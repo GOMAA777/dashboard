@@ -1,12 +1,13 @@
 import React from "react";
 import type { Metadata } from "next";
-import { LawyerSubscriptionsView } from "@/features/subscriptions/components/LawyerSubscriptionsView";
+import { SubscriptionManagementView } from "@/features/subscriptions/components/SubscriptionManagementView";
 
 export const metadata: Metadata = {
-  title: "اشتراكات المحامين | الجودي لإدارة مكاتب وشركات المحاماة",
-  description: "لوحة متابعة وإدارة اشتراكات المحامين ومكاتب المحاماة - منصة الجودي",
+  title: "إدارة الاشتراكات | الجودي لإدارة مكاتب وشركات المحاماة",
+  description:
+    "متابعة اشتراكات مكاتب المحاماة، دورات الفوترة، وحالات التجديد والتحصيل التلقائي - منصة الجودي",
 };
 
 export default function SubscriptionsPage() {
-  return <LawyerSubscriptionsView />;
+  return <SubscriptionManagementView />;
 }

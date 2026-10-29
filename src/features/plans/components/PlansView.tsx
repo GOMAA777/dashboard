@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
-import { ScalesOfJusticeWatermark } from "@/components/shared/ScalesOfJusticeWatermark";
 import { PlansManagementHeader } from "./PlansManagementHeader";
 import { PlansKpiMetrics } from "./PlansKpiMetrics";
 import { PlansToolbar } from "./PlansToolbar";
@@ -153,8 +152,6 @@ export function PlansView() {
 
         {/* Dynamic Workspace Container */}
         <main className="flex-1 relative p-[20px] md:p-[28px] max-w-[1580px] w-full mx-auto">
-          {/* Subtle Justice Scales Emblem Watermark */}
-          <ScalesOfJusticeWatermark />
 
           {/* View Mode Switching */}
           {viewMode === "list" && (

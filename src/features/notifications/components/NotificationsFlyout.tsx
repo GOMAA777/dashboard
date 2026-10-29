@@ -129,7 +129,7 @@ export function NotificationsFlyout({ isOpen, onClose }: NotificationsFlyoutProp
   return (
     <div
       ref={containerRef}
-      className="absolute start-0 top-full mt-2 w-[420px] max-w-[calc(100vw-32px)] bg-white rounded-[8px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] border border-[#eae8e4] overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150 font-['Cairo',sans-serif]"
+      className="absolute end-0 start-auto rtl:left-0 rtl:right-auto ltr:right-0 ltr:left-auto top-full mt-2 w-[420px] max-w-[calc(100vw-32px)] bg-white rounded-[8px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] border border-[#eae8e4] overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150 font-['Cairo',sans-serif]"
       data-node-id="1:24656"
       dir="rtl"
     >
