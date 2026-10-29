@@ -138,6 +138,17 @@
   background: #c29547;
 }
 
+/* Hide scrollbar while preserving scroll functionality */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+  width: 0px;
+  height: 0px;
+}
+
 .dark .scrollbar-thin {
   scrollbar-color: #383229 transparent;
 }

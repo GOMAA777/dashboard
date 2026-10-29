@@ -48,6 +48,18 @@ export function SubscribedFirmsView({
   // Active Menu Dropdown state
   const [openMenuFirmId, setOpenMenuFirmId] = useState<string | null>(null);
 
+  React.useEffect(() => {
+    if (!openMenuFirmId) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest("[data-actions-menu]")) {
+        setOpenMenuFirmId(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openMenuFirmId]);
+
   // Dialog states
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
@@ -413,7 +425,7 @@ export function SubscribedFirmsView({
 
       {/* 4. Comprehensive Data Table */}
       <div className="bg-white rounded-[8px] border border-[#e2ded7] shadow-2xs overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto scrollbar-none">
           <table className="w-full text-right text-[12px]">
             <thead>
               <tr className="bg-[#faf8f5] border-b border-[#f0eeea] text-[#737067] font-semibold">
@@ -428,7 +440,7 @@ export function SubscribedFirmsView({
               </tr>
             </thead>
             <tbody className="divide-y divide-[#f0eeea]">
-              {filteredFirms.map((firm) => (
+              {filteredFirms.map((firm, idx) => (
                 <tr
                   key={firm.id}
                   className="hover:bg-[#faf8f5] transition-colors"
@@ -618,7 +630,7 @@ export function SubscribedFirmsView({
                   </td>
 
                   {/* Actions dropdown */}
-                  <td className="py-[14px] px-[14px] text-center relative">
+                  <td className="py-[14px] px-[14px] text-center relative" data-actions-menu>
                     <button
                       type="button"
                       onClick={() =>
@@ -634,7 +646,13 @@ export function SubscribedFirmsView({
 
                     {/* Popover Menu */}
                     {openMenuFirmId === firm.id && (
-                      <div className="absolute start-0 mt-[2px] w-[200px] bg-white rounded-[6px] shadow-lg border border-[#e2ded7] p-[4px] z-30 text-right animate-in fade-in duration-150">
+                      <div
+                        className={`absolute end-0 start-auto rtl:left-0 rtl:right-auto ${
+                          idx >= filteredFirms.length - 2
+                            ? "bottom-full mb-[4px]"
+                            : "top-full mt-[4px]"
+                        } w-[190px] bg-white rounded-[6px] shadow-lg border border-[#e2ded7] p-[4px] z-50 text-right animate-in fade-in duration-150`}
+                      >
                         <button
                           type="button"
                           onClick={() => handleOpenUpgrade(firm)}
