@@ -2,6 +2,14 @@
 
 import React from "react";
 import Link from "next/link";
+import {
+  AlertCircle,
+  ArrowLeft,
+  CheckCircle2,
+  MoreVertical,
+  Scale,
+  Timer,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LawOfficeRow {
@@ -26,7 +34,7 @@ interface LawOfficeRow {
     label: string;
     bgClass: string;
     textClass: string;
-    icon?: string;
+    icon?: React.ComponentType<{ className?: string }>;
     dotColor?: string;
   };
 }
@@ -54,7 +62,7 @@ const officesData: LawOfficeRow[] = [
       label: "ساري",
       bgClass: "bg-[#ecfdf5]",
       textClass: "text-[#065f46]",
-      icon: "/figma/table-check.svg",
+      icon: CheckCircle2,
     },
   },
   {
@@ -79,7 +87,7 @@ const officesData: LawOfficeRow[] = [
       label: "ساري",
       bgClass: "bg-[#ecfdf5]",
       textClass: "text-[#065f46]",
-      icon: "/figma/table-check.svg",
+      icon: CheckCircle2,
     },
   },
   {
@@ -129,7 +137,7 @@ const officesData: LawOfficeRow[] = [
       label: "تجريبي (14 يوم)",
       bgClass: "bg-[#eff6ff]",
       textClass: "text-[#1d4ed8]",
-      icon: "/figma/table-clock.svg",
+      icon: Timer,
     },
   },
   {
@@ -154,7 +162,7 @@ const officesData: LawOfficeRow[] = [
       label: "متأخر عن السداد",
       bgClass: "bg-[#fef2f2]",
       textClass: "text-[#991b1b]",
-      icon: "/figma/table-alert.svg",
+      icon: AlertCircle,
     },
   },
 ];
@@ -189,12 +197,7 @@ export function DashboardLawOfficesTable() {
           </div>
 
           <div className="size-[20px] flex items-center justify-center shrink-0 ms-1">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/figma/table-scales.svg"
-              alt=""
-              className="w-[18px] h-[19px] block"
-            />
+            <Scale className="w-[18px] h-[19px] block text-[#9c6402]" />
           </div>
         </div>
 
@@ -205,12 +208,7 @@ export function DashboardLawOfficesTable() {
           data-node-id="1:233"
         >
           <div className="size-[11px] flex items-center justify-center shrink-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/figma/table-arrow-left.svg"
-              alt=""
-              className="size-[11px] block transition-transform group-hover:-translate-x-0.5"
-            />
+            <ArrowLeft className="size-[11px] block text-[#9c6402] transition-transform group-hover:-translate-x-0.5" />
           </div>
           <span className="text-[12px] leading-[16px] font-bold">
             عرض كل المكاتب (128)
@@ -336,12 +334,7 @@ export function DashboardLawOfficesTable() {
                   >
                     <span>{row.subscriptionStatus.label}</span>
                     {row.subscriptionStatus.icon ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={row.subscriptionStatus.icon}
-                        alt=""
-                        className="size-[11px] block shrink-0"
-                      />
+                      <row.subscriptionStatus.icon className="size-[11px] block shrink-0" />
                     ) : row.subscriptionStatus.dotColor ? (
                       <span
                         className={cn(
@@ -360,12 +353,7 @@ export function DashboardLawOfficesTable() {
                     aria-label="خيارات"
                     className="p-[6px] rounded-[4px] hover:bg-[#eae8e4] text-[#625d5d] transition-colors inline-flex items-center justify-center cursor-pointer"
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src="/figma/table-dots.svg"
-                      alt=""
-                      className="w-[4px] h-[14px] block opacity-70"
-                    />
+                    <MoreVertical className="w-[4px] h-[14px] block opacity-70" />
                   </button>
                 </td>
               </tr>

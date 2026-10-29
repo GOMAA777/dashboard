@@ -1,4 +1,11 @@
 import React from "react";
+import {
+  BadgeCheck,
+  Banknote,
+  Building2,
+  Headphones,
+  TrendingUp,
+} from "lucide-react";
 
 export function DashboardKpiCards() {
   return (
@@ -19,12 +26,7 @@ export function DashboardKpiCards() {
             className="size-[44px] rounded-[4px] bg-[#eae8e4] flex items-center justify-center shrink-0"
             data-node-id="1:99"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/figma/kpi-offices.svg"
-              alt=""
-              className="size-[18px] block"
-            />
+            <Building2 className="size-[18px] block text-[#9c6402]" />
           </div>
 
           {/* Title & Value */}
@@ -84,12 +86,7 @@ export function DashboardKpiCards() {
             className="size-[44px] rounded-[4px] bg-[#ecfdf5] flex items-center justify-center shrink-0"
             data-node-id="1:80"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/figma/kpi-subs.svg"
-              alt=""
-              className="w-[22px] h-[21px] block"
-            />
+            <BadgeCheck className="w-[22px] h-[21px] block text-[#047857]" />
           </div>
 
           {/* Title & Value */}
@@ -149,12 +146,7 @@ export function DashboardKpiCards() {
             className="size-[44px] rounded-[4px] bg-[#ffddb6] flex items-center justify-center shrink-0"
             data-node-id="1:57"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/figma/kpi-revenue.svg"
-              alt=""
-              className="w-[22px] h-[16px] block"
-            />
+            <Banknote className="w-[22px] h-[16px] block text-[#9c6402]" />
           </div>
 
           {/* Title & Value */}
@@ -193,12 +185,7 @@ export function DashboardKpiCards() {
               <span className="text-[#9c6402] text-[10px] leading-[14px] font-semibold">
                 +12.2%
               </span>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/figma/kpi-arrow-up.svg"
-                alt=""
-                className="w-[10px] h-[6px] block shrink-0"
-              />
+              <TrendingUp className="w-[10px] h-[6px] block shrink-0 text-[#9c6402]" />
             </div>
 
             {/* Subtitle */}
@@ -224,12 +211,7 @@ export function DashboardKpiCards() {
             className="size-[44px] rounded-[4px] bg-[rgba(255,218,214,0.4)] flex items-center justify-center shrink-0"
             data-node-id="1:38"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/figma/kpi-support.svg"
-              alt=""
-              className="w-[20px] h-[18px] block"
-            />
+            <Headphones className="w-[20px] h-[18px] block text-[#ba1a1a]" />
           </div>
 
           {/* Title & Value */}

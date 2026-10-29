@@ -2,11 +2,24 @@
 
 import React from "react";
 import Link from "next/link";
+import {
+  ArrowLeft,
+  Banknote,
+  Building2,
+  CreditCard,
+  Gauge,
+  Headphones,
+  History,
+  PauseCircle,
+  Smile,
+  Ticket,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ActivityItem {
   id: string;
-  icon: string;
+  icon: React.ComponentType<{ className?: string }>;
+  iconClass: string;
   iconBg: string;
   titlePrefix: string;
   titleBold: string;
@@ -20,7 +33,8 @@ interface ActivityItem {
 const activities: ActivityItem[] = [
   {
     id: "1",
-    icon: "/figma/activity-firm.svg",
+    icon: Building2,
+    iconClass: "w-[16px] h-[15px] text-[#047857]",
     iconBg: "bg-[#ecfdf5]",
     titlePrefix: "تم تسجيل مكتب محاماة جديد: ",
     titleBold: "مكتب د. عبد العزيز العجلان",
@@ -29,7 +43,8 @@ const activities: ActivityItem[] = [
   },
   {
     id: "2",
-    icon: "/figma/activity-card.svg",
+    icon: CreditCard,
+    iconClass: "w-[15px] h-[15px] text-[#9c6402]",
     iconBg: "bg-[rgba(123,78,0,0.1)]",
     titlePrefix: "تم تفعيل اشتراك سنوي: ",
     titleBold: "الباقة الاحترافية",
@@ -39,7 +54,8 @@ const activities: ActivityItem[] = [
   },
   {
     id: "3",
-    icon: "/figma/activity-cash.svg",
+    icon: Banknote,
+    iconClass: "w-[14px] h-[14px] text-[#047857]",
     iconBg: "bg-[#ecfdf5]",
     titlePrefix: "تم استلام دفعة بنجاح بقيمة ",
     titleBold: "1,800 ر.س",
@@ -49,7 +65,8 @@ const activities: ActivityItem[] = [
   },
   {
     id: "4",
-    icon: "/figma/activity-ticket.svg",
+    icon: Ticket,
+    iconClass: "w-[15px] h-[12px] text-[#b45309]",
     iconBg: "bg-[#fffbeb]",
     titlePrefix: "تم إنشاء تذكرة دعم جديدة: ",
     titleBold: "#TK-8422",
@@ -60,7 +77,8 @@ const activities: ActivityItem[] = [
   },
   {
     id: "5",
-    icon: "/figma/activity-pause.svg",
+    icon: PauseCircle,
+    iconClass: "w-[15px] h-[15px] text-[#625d5d]",
     iconBg: "bg-[#eae8e4]",
     titlePrefix: "تم تعديل حالة مكتب: ",
     titleBold: "مكتب المحامي بندر السبيعي",
@@ -92,12 +110,7 @@ export function DashboardBottomSection() {
             {/* Title & Icon */}
             <div className="flex items-center gap-[8px]" data-node-id="1:460">
               <div className="size-[17px] flex items-center justify-center shrink-0">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/figma/activity-clock.svg"
-                  alt=""
-                  className="size-[16.5px] block"
-                />
+                <History className="size-[16.5px] block text-[#9c6402]" />
               </div>
               <h2
                 className="text-[#1b1c1a] text-[18px] leading-[26px] font-bold font-sans"
@@ -131,12 +144,7 @@ export function DashboardBottomSection() {
                     item.iconBg
                   )}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={item.icon}
-                    alt=""
-                    className="w-[16px] h-[15px] block object-contain"
-                  />
+                  <item.icon className={cn("block object-contain", item.iconClass)} />
                 </div>
 
                 {/* Details */}
@@ -193,12 +201,7 @@ export function DashboardBottomSection() {
             data-node-id="1:551"
           >
             <div className="size-[11px] flex items-center justify-center shrink-0">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/figma/table-arrow-left.svg"
-                alt=""
-                className="size-[11px] block transition-transform group-hover:-translate-x-0.5"
-              />
+              <ArrowLeft className="size-[11px] block text-[#9c6402] transition-transform group-hover:-translate-x-0.5" />
             </div>
             <span className="text-[12px] leading-[16px] font-bold">
               عرض سجل النشاط الكامل للمنصة
@@ -222,12 +225,7 @@ export function DashboardBottomSection() {
             {/* Title & Icon */}
             <div className="flex items-center gap-[8px]" data-node-id="1:564">
               <div className="size-[18px] flex items-center justify-center shrink-0">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/figma/support-headset.svg"
-                  alt=""
-                  className="w-[16px] h-[18px] block"
-                />
+                <Headphones className="w-[16px] h-[18px] block text-[#9c6402]" />
               </div>
               <h2
                 className="text-[#1b1c1a] text-[18px] leading-[26px] font-bold font-sans"
@@ -244,12 +242,7 @@ export function DashboardBottomSection() {
               data-node-id="1:559"
             >
               <div className="size-[10px] flex items-center justify-center shrink-0">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/figma/table-arrow-left.svg"
-                  alt=""
-                  className="size-[10px] block transition-transform group-hover:-translate-x-0.5"
-                />
+                <ArrowLeft className="size-[10px] block text-[#9c6402] transition-transform group-hover:-translate-x-0.5" />
               </div>
               <span className="text-[12px] leading-[16px] font-bold">
                 إدارة التذاكر
@@ -349,12 +342,7 @@ export function DashboardBottomSection() {
             <div className="flex flex-col gap-[8px] w-full">
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-[6px]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/figma/support-speed.svg"
-                    alt=""
-                    className="w-[15px] h-[12px] block"
-                  />
+                  <Gauge className="w-[15px] h-[12px] block text-[#9c6402]" />
                   <span className="text-[#1b1c1a] text-[12px] font-medium leading-[16px]">
                     متوسط وقت الاستجابة الأولى
                   </span>
@@ -379,12 +367,7 @@ export function DashboardBottomSection() {
             {/* Satisfaction Rate */}
             <div className="flex items-center justify-between w-full pt-[2px]" data-node-id="1:625">
               <div className="flex items-center gap-[6px]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/figma/support-smile.svg"
-                  alt=""
-                  className="size-[15px] block"
-                />
+                <Smile className="size-[15px] block text-[#047857]" />
                 <span className="text-[#1b1c1a] text-[12px] font-medium leading-[16px]">
                   معدل رضا المكاتب والعملاء
                 </span>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { Bell, Calendar, Search } from "lucide-react";
 
 export function DashboardTopNavbar() {
   const [searchValue, setSearchValue] = useState("");
@@ -24,23 +25,13 @@ export function DashboardTopNavbar() {
             data-node-id="1:662"
           />
           <div className="absolute top-1/2 -translate-y-1/2 end-[14px] pointer-events-none size-[13.5px] flex items-center justify-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/figma/search.svg"
-              alt=""
-              className="size-[13.5px] block opacity-70"
-            />
+            <Search className="size-[13.5px] block text-[#837565]" />
           </div>
         </div>
 
         {/* Calendar Date Display */}
         <div className="hidden lg:flex items-center gap-[6px] text-[#514537] shrink-0" data-node-id="1:656">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/figma/calendar.svg"
-            alt=""
-            className="size-[14px] block shrink-0"
-          />
+          <Calendar className="size-[14px] block shrink-0 text-[#837565]" />
           <span className="text-[12px] leading-[18px] font-normal text-[#514537]">
             الخميس، 24 أكتوبر 2024
           </span>
@@ -59,12 +50,7 @@ export function DashboardTopNavbar() {
           className="relative p-[8px] rounded-[4px] hover:bg-[#f5f3ef] transition-colors flex items-center justify-center shrink-0 cursor-pointer"
           data-node-id="1:650"
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/figma/bell.svg"
-            alt=""
-            className="w-[15px] h-[18px] block opacity-85"
-          />
+          <Bell className="w-[15px] h-[18px] block text-[#514537]" />
           <span
             className="absolute top-[4px] start-[6px] size-[12px] rounded-full bg-[#9c6402] text-[#fff3e9] text-[9px] font-bold flex items-center justify-center"
             data-node-id="1:653"

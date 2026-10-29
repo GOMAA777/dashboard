@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useQueryState } from "nuqs";
+import { RefreshCw, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const filterOptions = [
@@ -63,11 +64,8 @@ export function DashboardHeaderSection() {
             تحديث البيانات
           </span>
           <div className="size-[12px] flex items-center justify-center shrink-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/figma/refresh.svg"
-              alt=""
-              className={cn("size-[12px] block", isRefreshing && "animate-spin")}
+            <RefreshCw
+              className={cn("size-[12px] block text-[#514537]", isRefreshing && "animate-spin")}
             />
           </div>
         </button>
@@ -97,12 +95,7 @@ export function DashboardHeaderSection() {
               >
                 {opt.hasIcon && (
                   <div className="size-[10.5px] flex items-center justify-center shrink-0">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src="/figma/filter.svg"
-                      alt=""
-                      className="size-[10.5px] block opacity-75"
-                    />
+                    <SlidersHorizontal className="size-[10.5px] block text-[#625d5d] opacity-75" />
                   </div>
                 )}
                 <span>{opt.label}</span>

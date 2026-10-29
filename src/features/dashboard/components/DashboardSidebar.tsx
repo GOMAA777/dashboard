@@ -3,29 +3,43 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  AppWindow,
+  Bell,
+  CreditCard,
+  Globe,
+  Headphones,
+  LayoutGrid,
+  Mail,
+  Receipt,
+  Settings,
+  Tag,
+  UserCheck,
+  Users,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
   id: string;
   label: string;
   href: string;
-  icon: string;
-  iconSize?: { w: number; h: number };
+  icon: React.ComponentType<{ className?: string }>;
+  sizeClass: string;
 }
 
 const navItems: NavItem[] = [
-  { id: "home", label: "الرئيسية", href: "/", icon: "/figma/nav-home.svg", iconSize: { w: 15, h: 15 } },
-  { id: "clients", label: "إدارة العملاء", href: "/accounts", icon: "/figma/nav-clients.svg", iconSize: { w: 18, h: 13 } },
-  { id: "plans", label: "الباقات والأسعار", href: "/plans", icon: "/figma/nav-pricing.svg", iconSize: { w: 17, h: 17 } },
-  { id: "subscriptions", label: "الاشتراكات", href: "/subscriptions", icon: "/figma/nav-subs.svg", iconSize: { w: 17, h: 17 } },
-  { id: "staff", label: "طاقم العمل", href: "/permissions", icon: "/figma/nav-staff.svg", iconSize: { w: 22, h: 22 } },
-  { id: "notifications", label: "الإشعارات", href: "/notifications", icon: "/figma/nav-notifications.svg", iconSize: { w: 13, h: 17 } },
-  { id: "finance", label: "المعاملات المالية", href: "/invoices", icon: "/figma/nav-finance.svg", iconSize: { w: 16, h: 15 } },
-  { id: "support", label: "الدعم الفني", href: "/tickets", icon: "/figma/nav-support.svg", iconSize: { w: 15, h: 18 } },
-  { id: "site-settings", label: "إعدادات الموقع", href: "/integrations", icon: "/figma/nav-web-settings.svg", iconSize: { w: 17, h: 17 } },
-  { id: "mail-settings", label: "إعدادات البريد", href: "/payment-gateways", icon: "/figma/nav-mail-settings.svg", iconSize: { w: 17, h: 17 } },
-  { id: "system-settings", label: "إعدادات النظام", href: "/menus", icon: "/figma/nav-system-settings.svg", iconSize: { w: 17, h: 17 } },
-  { id: "utility", label: "utility", href: "/trials", icon: "/figma/nav-utility.svg", iconSize: { w: 22, h: 22 } },
+  { id: "home", label: "الرئيسية", href: "/", icon: LayoutGrid, sizeClass: "size-[16px]" },
+  { id: "clients", label: "إدارة العملاء", href: "/accounts", icon: Users, sizeClass: "size-[18px]" },
+  { id: "plans", label: "الباقات والأسعار", href: "/plans", icon: Tag, sizeClass: "size-[17px]" },
+  { id: "subscriptions", label: "الاشتراكات", href: "/subscriptions", icon: CreditCard, sizeClass: "size-[17px]" },
+  { id: "staff", label: "طاقم العمل", href: "/permissions", icon: UserCheck, sizeClass: "size-[19px]" },
+  { id: "notifications", label: "الإشعارات", href: "/notifications", icon: Bell, sizeClass: "size-[16px]" },
+  { id: "finance", label: "المعاملات المالية", href: "/invoices", icon: Receipt, sizeClass: "size-[16px]" },
+  { id: "support", label: "الدعم الفني", href: "/tickets", icon: Headphones, sizeClass: "size-[17px]" },
+  { id: "site-settings", label: "إعدادات الموقع", href: "/integrations", icon: Globe, sizeClass: "size-[17px]" },
+  { id: "mail-settings", label: "إعدادات البريد", href: "/payment-gateways", icon: Mail, sizeClass: "size-[17px]" },
+  { id: "system-settings", label: "إعدادات النظام", href: "/menus", icon: Settings, sizeClass: "size-[17px]" },
+  { id: "utility", label: "utility", href: "/trials", icon: AppWindow, sizeClass: "size-[19px]" },
 ];
 
 export function DashboardSidebar() {
@@ -102,22 +116,14 @@ export function DashboardSidebar() {
                 </span>
 
                 {/* Icon on end */}
-                <div
-                  className="size-[22px] flex items-center justify-center shrink-0 ms-2"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={item.icon}
-                    alt=""
-                    style={{
-                      width: item.iconSize?.w || 18,
-                      height: item.iconSize?.h || 18,
-                    }}
+                <div className="size-[22px] flex items-center justify-center shrink-0 ms-2">
+                  <item.icon
                     className={cn(
-                      "block shrink-0",
+                      "shrink-0 transition-colors",
+                      item.sizeClass,
                       isActive
-                        ? "brightness-0" // makes SVG crisp dark like #1c140f in active state
-                        : "opacity-80 group-hover:opacity-100"
+                        ? "text-[#1c140f]"
+                        : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
                     )}
                   />
                 </div>

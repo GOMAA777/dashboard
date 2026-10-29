@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { ArrowUpRight } from "lucide-react";
 import {
   AreaChart,
   Area,
@@ -80,12 +81,7 @@ export function DashboardAnalyticsSection() {
                 +14% مقارنة
               </span>
               <div className="size-[8.75px] flex items-center justify-center shrink-0">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/figma/chart-trend-up.svg"
-                  alt=""
-                  className="size-[8.75px] block"
-                />
+                <ArrowUpRight className="size-[8.75px] block text-[#065f46]" />
               </div>
             </div>
 
