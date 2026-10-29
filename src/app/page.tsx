@@ -2,51 +2,50 @@ import React from "react";
 import type { Metadata } from "next";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
-import { DashboardWelcomeBanner } from "@/features/dashboard/components/DashboardWelcomeBanner";
-import { DashboardOverviewKpis } from "@/features/dashboard/components/DashboardOverviewKpis";
-import { DashboardEarningReportCard } from "@/features/dashboard/components/DashboardEarningReportCard";
-import { DashboardContactsAndPlansSection } from "@/features/dashboard/components/DashboardContactsAndPlansSection";
-import { DashboardSubscriptionsAndClientsTables } from "@/features/dashboard/components/DashboardSubscriptionsAndClientsTables";
+import { DashboardHeaderSection } from "@/features/dashboard/components/DashboardHeaderSection";
+import { DashboardKpiCards } from "@/features/dashboard/components/DashboardKpiCards";
+import { DashboardAnalyticsSection } from "@/features/dashboard/components/DashboardAnalyticsSection";
+import { DashboardLawOfficesTable } from "@/features/dashboard/components/DashboardLawOfficesTable";
+import { DashboardBottomSection } from "@/features/dashboard/components/DashboardBottomSection";
 
 export const metadata: Metadata = {
-  title: "لوحة التحكم - الجودي لإدارة مكاتب وشركات المحاماة",
-  description: "المنصة السحابية المتكاملة لإدارة مكاتب المحاماة، القضايا، الجلسات، والموكلين - الجودي",
+  title: "الرئيسية - الجودي لوحة الإدارة العليا",
+  description:
+    "نظرة عامة على أداء المنصة والاشتراكات والمكاتب المرخصة - منصة الجودي لإدارة مكاتب وشركات المحاماة",
 };
 
-export default function DashboardPage() {
+export default function DashboardHomePage() {
   return (
-    <div className="flex h-screen overflow-hidden bg-[#fcfbfa] dark:bg-[#121110] text-[#1c1917] dark:text-[#f5f4f0] transition-colors duration-200">
-      {/* 1. Main Navigation Sidebar (Right side in RTL) */}
+    <div
+      className="flex h-screen overflow-hidden bg-[#fcfbfa] text-[#1b1c1a]"
+      dir="rtl"
+      data-node-id="1:3"
+      data-name="الرئيسية"
+    >
+      {/* 1. Main Navigation Sidebar (240px, on start/right in RTL) */}
       <DashboardSidebar />
 
-      {/* 2. Main Application Body Area */}
+      {/* 2. Main Content Viewport */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-        {/* Top Navigation Bar with breadcrumbs and actions */}
+        {/* Top Navbar Header (64px) */}
         <DashboardTopNavbar />
 
         {/* Scrollable Dashboard Workspace Content */}
-        <main className="flex-1 px-4 sm:px-6 md:px-8 py-5 space-y-5 overflow-y-auto scrollbar-thin w-full pb-10">
-          {/* Greeting Banner with Date Range Filters */}
-          <DashboardWelcomeBanner />
+        <main className="flex-1 overflow-y-auto px-[32px] py-[32px] space-y-[24px] scrollbar-thin w-full">
+          {/* Section 1: Page Introduction & Action Bar */}
+          <DashboardHeaderSection />
 
-          {/* Row 1: Top 4 Overview KPI Cards with Sparklines */}
-          <DashboardOverviewKpis />
+          {/* Section 2: Primary KPI Cards (4 Tiles) */}
+          <DashboardKpiCards />
 
-          {/* Row 2: Main Middle 2-Column Grid (Earning Report + Contacts & Plans) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-            {/* Wider Column: Earning Report Chart */}
-            <div className="lg:col-span-8 flex flex-col h-full">
-              <DashboardEarningReportCard />
-            </div>
+          {/* Section 3: Visual Analytics Section (Revenue Area Chart & Plan Donut) */}
+          <DashboardAnalyticsSection />
 
-            {/* Narrower Column: Total Contact Lists, Total Contacts, and Best Selling Plan */}
-            <div className="lg:col-span-4 flex flex-col h-full">
-              <DashboardContactsAndPlansSection />
-            </div>
-          </div>
+          {/* Section 4: Recently Registered Law Offices Table */}
+          <DashboardLawOfficesTable />
 
-          {/* Row 3: Bottom 2 Tables (Recent Subscription + Best Client) */}
-          <DashboardSubscriptionsAndClientsTables />
+          {/* Section 5: Bottom Grid (Recent Activity Feed & Support Summary) */}
+          <DashboardBottomSection />
         </main>
       </div>
     </div>
