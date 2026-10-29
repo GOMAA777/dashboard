@@ -53,7 +53,7 @@ export function DashboardSidebar({ activeNav }: DashboardSidebarProps = {}) {
 
   return (
     <aside
-      className="w-[240px] shrink-0 h-screen bg-[#1c140f] flex flex-col justify-between border-s border-[#2c221c] drop-shadow-[0px_1px_4px_rgba(0,0,0,0.04)] select-none z-30"
+      className="w-[240px] shrink-0 h-screen h-dvh sticky top-0 bg-[#1c140f] flex flex-col justify-between border-s border-[#2c221c] drop-shadow-[0px_1px_4px_rgba(0,0,0,0.04)] select-none z-30"
       data-node-id="1:667"
       data-name="Aside"
     >

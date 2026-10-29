@@ -139,19 +139,20 @@ export function PlansView() {
 
   return (
     <div
-      className="flex min-h-screen bg-[#f5f3ef] text-[#1b1c1a] font-['Cairo',sans-serif] selection:bg-[#9c6402]/20 selection:text-[#9c6402]"
+      className="flex h-screen w-full overflow-hidden bg-[#f5f3ef] text-[#1b1c1a] font-['Cairo',sans-serif] selection:bg-[#9c6402]/20 selection:text-[#9c6402]"
       dir="rtl"
     >
       {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar activeNav="plans" />
 
       {/* 2. Main Content Canvas */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         {/* Top Navbar with Notifications Flyout */}
         <DashboardTopNavbar />
 
         {/* Dynamic Workspace Container */}
-        <main className="flex-1 relative p-[20px] md:p-[28px] max-w-[1580px] w-full mx-auto">
+        <main className="flex-1 overflow-y-auto p-[20px] md:p-[28px] scrollbar-thin">
+          <div className="max-w-[1580px] w-full mx-auto space-y-[20px]">
 
           {/* View Mode Switching */}
           {viewMode === "list" && (
@@ -243,6 +244,7 @@ export function PlansView() {
               />
             </div>
           )}
+          </div>
         </main>
       </div>
 
