@@ -26,17 +26,19 @@ interface ClientOfficeDetailsViewProps {
   office: ClientOffice | null;
   onBack: () => void;
   onEdit: () => void;
+  onOpenDeactivateModal?: (office: ClientOffice) => void;
+  onReactivate?: (office: ClientOffice) => void;
 }
 
 export function ClientOfficeDetailsView({
   office,
   onBack,
   onEdit,
+  onOpenDeactivateModal,
+  onReactivate,
 }: ClientOfficeDetailsViewProps) {
   const [internalNote, setInternalNote] = useState("");
-  const [isDeactivated, setIsDeactivated] = useState(
-    office?.accountStatus.type === "suspended"
-  );
+  const isDeactivated = office?.accountStatus.type === "suspended";
 
   const officeName = office?.name || "مكتب د. خالد بن عبد العزيز";
   const licenseNum = office?.licenseNumber.replace("ترخيص عدلي: ", "") || "38/412";
@@ -53,13 +55,15 @@ export function ClientOfficeDetailsView({
   };
 
   const handleToggleDeactivate = () => {
-    const nextState = !isDeactivated;
-    setIsDeactivated(nextState);
-    toast.success(
-      nextState
-        ? `تم تعطيل حساب ${officeName} مؤقتاً`
-        : `تم تنشيط حساب ${officeName} بنجاح`
-    );
+    if (!isDeactivated && office && onOpenDeactivateModal) {
+      onOpenDeactivateModal(office);
+      return;
+    }
+
+    if (isDeactivated && office && onReactivate) {
+      onReactivate(office);
+      toast.success(`تم تنشيط حساب ${officeName} بنجاح`);
+    }
   };
 
   return (

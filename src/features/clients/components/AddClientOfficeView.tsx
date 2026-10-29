@@ -18,26 +18,86 @@ import {
   FileCheck,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ClientOffice } from "../types/client.types";
 
-interface AddClientOfficeViewProps {
-  onBack: () => void;
-  onSuccess: (newOfficeName: string) => void;
+export interface OfficeFormData {
+  id?: string;
+  name: string;
+  owner: string;
+  licenseNumber: string;
+  email: string;
+  phone: string;
+  city: string;
+  plan: string;
+  billingCycle?: string;
+  password?: string;
 }
 
-export function AddClientOfficeView({ onBack, onSuccess }: AddClientOfficeViewProps) {
-  const [showPassword, setShowPassword] = useState(false);
-  const [selectedPlanType, setSelectedPlanType] = useState<"paid" | "trial">("paid");
+interface AddClientOfficeViewProps {
+  officeToEdit?: ClientOffice | null;
+  onBack: () => void;
+  onSuccess: (officeData: OfficeFormData, isEdit: boolean) => void;
+}
 
-  // Form states
-  const [ownerName, setOwnerName] = useState("د. عبد العزيز بن فهد العجلان");
-  const [firmName, setFirmName] = useState("شركة العجلان وشركاؤه للمحاماة والاستشارات");
-  const [licenseNumber, setLicenseNumber] = useState("38/412");
-  const [email, setEmail] = useState("contact@alajlan-law.sa");
-  const [phone, setPhone] = useState("50 123 4567");
-  const [city, setCity] = useState("المملكة العربية السعودية - الرياض");
-  const [password, setPassword] = useState("AlJudy#Law2025");
-  const [packageTier, setPackageTier] = useState("الباقة الاحترافية ( 750 ر.س / شهرياً - الموصى بها)");
-  const [billingCycle, setBillingCycle] = useState("اشتراك سنوي (موصى به - خصم شهرين مجاناً)");
+export function AddClientOfficeView({
+  officeToEdit,
+  onBack,
+  onSuccess,
+}: AddClientOfficeViewProps) {
+  const isEditMode = Boolean(officeToEdit);
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [selectedPlanType, setSelectedPlanType] = useState<"paid" | "trial">(
+    officeToEdit?.plan.includes("تجربة") ||
+      officeToEdit?.subscriptionStatus.type === "trial"
+      ? "trial"
+      : "paid"
+  );
+
+  // Form states initialized from officeToEdit or default
+  const [ownerName, setOwnerName] = useState(
+    officeToEdit ? officeToEdit.owner : "د. عبد العزيز بن فهد العجلان"
+  );
+  const [firmName, setFirmName] = useState(
+    officeToEdit
+      ? officeToEdit.name
+      : "شركة العجلان وشركاؤه للمحاماة والاستشارات"
+  );
+  const [licenseNumber, setLicenseNumber] = useState(
+    officeToEdit
+      ? officeToEdit.licenseNumber.replace("ترخيص عدلي: ", "")
+      : "38/412"
+  );
+  const [email, setEmail] = useState(
+    officeToEdit ? officeToEdit.email : "contact@alajlan-law.sa"
+  );
+  const [phone, setPhone] = useState(
+    officeToEdit
+      ? officeToEdit.phone.replace("+966 ", "").replace("+966", "")
+      : "50 123 4567"
+  );
+  const [city, setCity] = useState(
+    officeToEdit
+      ? officeToEdit.city.includes("المملكة العربية السعودية")
+        ? officeToEdit.city
+        : `المملكة العربية السعودية - ${officeToEdit.city}`
+      : "المملكة العربية السعودية - الرياض"
+  );
+  const [password, setPassword] = useState(
+    officeToEdit ? "••••••••••••" : "AlJudy#Law2025"
+  );
+  const [packageTier, setPackageTier] = useState(
+    officeToEdit
+      ? officeToEdit.plan.includes("شركات")
+        ? "باقة الشركات ( 1,450 ر.س / شهرياً)"
+        : officeToEdit.plan.includes("أساسية")
+        ? "الباقة الأساسية ( 350 ر.س / شهرياً)"
+        : "الباقة الاحترافية ( 750 ر.س / شهرياً - الموصى بها)"
+      : "الباقة الاحترافية ( 750 ر.س / شهرياً - الموصى بها)"
+  );
+  const [billingCycle, setBillingCycle] = useState(
+    "اشتراك سنوي (موصى به - خصم شهرين مجاناً)"
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,21 +105,60 @@ export function AddClientOfficeView({ onBack, onSuccess }: AddClientOfficeViewPr
       toast.error("يرجى ملء جميع الحقول الإلزامية");
       return;
     }
-    toast.success(`تمت إضافة مكتب "${firmName}" بنجاح وتفعيل الاشتراك.`);
-    onSuccess(firmName);
+
+    const cleanPlanName =
+      selectedPlanType === "trial"
+        ? "تجربة مجانية"
+        : packageTier.includes("الاحترافية")
+        ? "الباقة الاحترافية"
+        : packageTier.includes("الشركات")
+        ? "باقة الشركات"
+        : "الباقة الأساسية";
+
+    const cleanCity = city.replace("المملكة العربية السعودية - ", "").trim() || "الرياض";
+
+    onSuccess(
+      {
+        id: officeToEdit?.id,
+        name: firmName,
+        owner: ownerName,
+        licenseNumber: licenseNumber.startsWith("ترخيص عدلي: ")
+          ? licenseNumber
+          : `ترخيص عدلي: ${licenseNumber}`,
+        email,
+        phone: phone.startsWith("+966") ? phone : `+966 ${phone}`,
+        city: cleanCity,
+        plan: cleanPlanName,
+        billingCycle,
+        password,
+      },
+      isEditMode
+    );
+
+    toast.success(
+      isEditMode
+        ? `تم حفظ تعديلات مكتب "${firmName}" بنجاح.`
+        : `تمت إضافة مكتب "${firmName}" بنجاح وتفعيل الاشتراك.`
+    );
   };
 
   return (
-    <div className="w-full flex flex-col gap-[24px] font-['Cairo',sans-serif]" data-node-id="1:1427" dir="rtl">
+    <div
+      className="w-full flex flex-col gap-[24px] font-['Cairo',sans-serif]"
+      data-node-id="1:1427"
+      dir="rtl"
+    >
       {/* Top Action & Title Header */}
       <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] flex flex-col sm:flex-row sm:items-center justify-between gap-[16px] w-full">
         {/* Right: Title & Subtitle */}
         <div className="flex flex-col items-start text-right">
           <h1 className="text-[26px] leading-[36px] font-bold text-[#1b1c1a]">
-            إضافة مكتب جديد
+            {isEditMode ? "تعديل بيانات المكتب" : "إضافة مكتب جديد"}
           </h1>
           <p className="text-[#514537] text-[13px] leading-[20px] font-normal mt-[4px]">
-            أضف مكتب محاماة جديدًا إلى المنصة وحدد نوع اشتراكه وبيانات الدخول المعتمدة بدقة وموثوقية عالية.
+            {isEditMode
+              ? "قم بتحديث وتعديل بيانات المنشأة القانونية ووسائل التواصل والاشتراكات المعتمدة لمنصة الجودي."
+              : "أضف مكتب محاماة جديدًا إلى المنصة وحدد نوع اشتراكه وبيانات الدخول المعتمدة بدقة وموثوقية عالية."}
           </p>
         </div>
 
@@ -496,10 +595,12 @@ export function AddClientOfficeView({ onBack, onSuccess }: AddClientOfficeViewPr
         <div className="bg-[#f5f3ef] rounded-[8px] p-[16px] flex items-start gap-[12px]">
           <div className="flex-1 flex flex-col text-right">
             <span className="text-[13px] font-semibold text-[#1b1c1a]">
-              إشعار التشغيل الآلي للمكتب:
+              {isEditMode ? "تحديث سجل المنشأة:" : "إشعار التشغيل الآلي للمكتب:"}
             </span>
             <p className="text-[12px] text-[#514537] leading-[20px] mt-[2px]">
-              سيتم إرسال بريد ترحيبي رسمي فورياً إلى صاحب المكتب يحتوي على رابط تعيين وتأكيد كلمة المرور، وبيانات الخادم المخصص، مع دليل التشغيل الأولي المعتمد لمنصة الجودي.
+              {isEditMode
+                ? "سيتم تطبيق التعديلات وتحديث بيانات المنشأة القانونية ووسائل التواصل المعتمدة في سجلات منصة الجودي فوراً."
+                : "سيتم إرسال بريد ترحيبي رسمي فورياً إلى صاحب المكتب يحتوي على رابط تعيين وتأكيد كلمة المرور، وبيانات الخادم المخصص، مع دليل التشغيل الأولي المعتمد لمنصة الجودي."}
             </p>
           </div>
           <Info className="size-[20px] text-[#9c6402] shrink-0 mt-[2px]" />
@@ -526,8 +627,12 @@ export function AddClientOfficeView({ onBack, onSuccess }: AddClientOfficeViewPr
               type="submit"
               className="bg-[#9c6402] hover:bg-[#855402] text-white px-[32px] py-[10px] rounded-[4px] text-[14px] font-semibold shadow-sm transition-colors cursor-pointer flex items-center gap-[8px]"
             >
-              <span>إضافة المكتب</span>
-              <Building2 className="size-[15px]" />
+              <span>{isEditMode ? "حفظ التعديلات" : "إضافة المكتب"}</span>
+              {isEditMode ? (
+                <CheckCircle2 className="size-[15px]" />
+              ) : (
+                <Building2 className="size-[15px]" />
+              )}
             </button>
           </div>
         </div>

@@ -79,7 +79,7 @@ export function DashboardSidebar() {
                 alt="الجودي"
                 width={32}
                 height={32}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
                 priority
               />
             </div>
