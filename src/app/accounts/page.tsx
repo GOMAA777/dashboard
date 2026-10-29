@@ -1,13 +1,13 @@
 import React from "react";
 import type { Metadata } from "next";
-import { AccountsView } from "@/features/accounts/components/AccountsView";
+import { ClientManagementView } from "@/features/clients/components/ClientManagementView";
 
 export const metadata: Metadata = {
-  title: "الحسابات والمشرفين | الجودي لإدارة مكاتب وشركات المحاماة",
+  title: "إدارة العملاء ومكاتب المحاماة | منصة الجودي",
   description:
-    "لوحة إدارة حسابات المشرفين، صلاحيات الوصول، وضبط مستويات الأمان - منصة الجودي Super Admin",
+    "إدارة وتدقيق مكاتب المحاماة المسجلة ومتابعة بيانات التراخيص العدلية وحالة الاشتراكات الفعالة",
 };
 
 export default function AccountsPage() {
-  return <AccountsView />;
+  return <ClientManagementView />;
 }

@@ -1,6 +1,6 @@
 import React from "react";
-import { Metadata } from "next";
-import { LawFirmsView } from "@/features/law-firms/components/LawFirmsView";
+import type { Metadata } from "next";
+import { ClientManagementView } from "@/features/clients/components/ClientManagementView";
 
 export const metadata: Metadata = {
   title: "دليل مكاتب المحاماة | منصة الجودي لإدارة مكاتب المحاماة",
@@ -9,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function LawFirmsPage() {
-  return <LawFirmsView />;
+  return <ClientManagementView />;
 }

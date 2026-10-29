@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   AlertCircle,
   ArrowLeft,
@@ -10,7 +11,9 @@ import {
   Scale,
   Timer,
 } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ClientRowActionMenu } from "@/features/clients/components/ClientRowActionMenu";
 
 interface LawOfficeRow {
   id: string;
@@ -168,6 +171,9 @@ const officesData: LawOfficeRow[] = [
 ];
 
 export function DashboardLawOfficesTable() {
+  const router = useRouter();
+  const [openMenuRowId, setOpenMenuRowId] = useState<string | null>(null);
+
   return (
     <div
       className="bg-white rounded-[8px] drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] border border-[#f0eeea]/70 overflow-hidden w-full"
@@ -347,14 +353,40 @@ export function DashboardLawOfficesTable() {
                 </td>
 
                 {/* 7. إجراءات */}
-                <td className="py-[16px] px-[16px] text-center">
+                <td className="py-[16px] px-[16px] text-center relative">
                   <button
                     type="button"
                     aria-label="خيارات"
+                    onClick={() =>
+                      setOpenMenuRowId(openMenuRowId === row.id ? null : row.id)
+                    }
                     className="p-[6px] rounded-[4px] hover:bg-[#eae8e4] text-[#625d5d] transition-colors inline-flex items-center justify-center cursor-pointer"
                   >
                     <MoreVertical className="w-[4px] h-[14px] block opacity-70" />
                   </button>
+
+                  <ClientRowActionMenu
+                    isOpen={openMenuRowId === row.id}
+                    onClose={() => setOpenMenuRowId(null)}
+                    onViewDetails={() => {
+                      router.push("/accounts");
+                      toast.info(`عرض تفاصيل ${row.name}`);
+                    }}
+                    onEdit={() => {
+                      router.push("/accounts");
+                      toast.info(`تعديل بيانات ${row.name}`);
+                    }}
+                    onManageSubscriptions={() => {
+                      toast.info(`إدارة اشتراكات وفواتير ${row.name}`);
+                    }}
+                    onDeactivate={() => {
+                      toast.info(`تم تغيير حالة حساب ${row.name}`);
+                    }}
+                    onDelete={() => {
+                      toast.error(`تم حذف مكتب ${row.name}`);
+                    }}
+                    positionClass="left-0 top-full mt-1"
+                  />
                 </td>
               </tr>
             ))}
