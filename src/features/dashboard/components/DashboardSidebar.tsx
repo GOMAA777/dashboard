@@ -44,7 +44,11 @@ const navItems: NavItem[] = [
   { id: "utility", label: "utility", href: "/trials", icon: AppWindow, sizeClass: "size-[19px]" },
 ];
 
-export function DashboardSidebar() {
+interface DashboardSidebarProps {
+  activeNav?: string;
+}
+
+export function DashboardSidebar({ activeNav }: DashboardSidebarProps = {}) {
   const pathname = usePathname();
 
   return (
@@ -72,13 +76,13 @@ export function DashboardSidebar() {
               </span>
             </div>
 
-            {/* Logo Badge */}
-            <div className="size-[32px] rounded-[4px] bg-[rgba(156,100,2,0.5)] flex items-center justify-center overflow-hidden shrink-0">
+            {/* Brand Logo */}
+            <div className="size-[34px] flex items-center justify-center shrink-0">
               <Image
                 src={logoMarkImg}
                 alt="الجودي"
-                width={32}
-                height={32}
+                width={34}
+                height={34}
                 className="w-full h-full object-contain"
                 priority
               />
@@ -92,8 +96,9 @@ export function DashboardSidebar() {
           data-node-id="1:678"
         >
           {navItems.map((item) => {
-            const isActive =
-              item.href === "/"
+            const isActive = activeNav
+              ? item.id === activeNav
+              : item.href === "/"
                 ? pathname === "/"
                 : pathname.startsWith(item.href);
 

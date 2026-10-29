@@ -4,9 +4,11 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { Bell, Calendar, Search } from "lucide-react";
 import userAvatarImg from "../../../../public/figma/user-avatar.png";
+import { NotificationsFlyout } from "@/features/notifications/components/NotificationsFlyout";
 
 export function DashboardTopNavbar() {
   const [searchValue, setSearchValue] = useState("");
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   return (
     <header
@@ -46,20 +48,30 @@ export function DashboardTopNavbar() {
         <div className="hidden sm:block w-px h-[16px] bg-[#eae8e4]" data-node-id="1:655" />
 
         {/* Notifications Bell with Badge */}
-        <button
-          type="button"
-          aria-label="الإشعارات"
-          className="relative p-[8px] rounded-[4px] hover:bg-[#f5f3ef] transition-colors flex items-center justify-center shrink-0 cursor-pointer"
-          data-node-id="1:650"
-        >
-          <Bell className="w-[15px] h-[18px] block text-[#514537]" />
-          <span
-            className="absolute top-[4px] start-[6px] size-[12px] rounded-full bg-[#9c6402] text-[#fff3e9] text-[9px] font-bold flex items-center justify-center"
-            data-node-id="1:653"
+        <div className="relative">
+          <button
+            type="button"
+            aria-label="الإشعارات"
+            onClick={() => setIsNotificationsOpen((prev) => !prev)}
+            className={`relative p-[8px] rounded-[4px] hover:bg-[#f5f3ef] transition-colors flex items-center justify-center shrink-0 cursor-pointer ${
+              isNotificationsOpen ? "bg-[#f5f3ef]" : ""
+            }`}
+            data-node-id="1:650"
           >
-            3
-          </span>
-        </button>
+            <Bell className="w-[15px] h-[18px] block text-[#514537]" />
+            <span
+              className="absolute top-[4px] start-[6px] size-[12px] rounded-full bg-[#9c6402] text-[#fff3e9] text-[9px] font-bold flex items-center justify-center"
+              data-node-id="1:653"
+            >
+              4
+            </span>
+          </button>
+
+          <NotificationsFlyout
+            isOpen={isNotificationsOpen}
+            onClose={() => setIsNotificationsOpen(false)}
+          />
+        </div>
 
         {/* Profile Card */}
         <div className="flex items-center gap-[8px] ps-[4px]" data-node-id="1:643">
