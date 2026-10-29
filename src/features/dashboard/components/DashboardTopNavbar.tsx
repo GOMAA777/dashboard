@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { Bell, Calendar, Search } from "lucide-react";
+import userAvatarImg from "../../../../public/figma/user-avatar.png";
 
 export function DashboardTopNavbar() {
   const [searchValue, setSearchValue] = useState("");
@@ -74,11 +76,13 @@ export function DashboardTopNavbar() {
             className="size-[32px] rounded-full overflow-hidden shrink-0 border border-[#eae8e4]"
             data-node-id="1:644"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/figma/user-avatar.png"
+            <Image
+              src={userAvatarImg}
               alt="م. عبد العزيز بن فهد"
+              width={32}
+              height={32}
               className="w-full h-full object-cover"
+              priority
             />
           </div>
         </div>

@@ -2,7 +2,9 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
+import logoMarkImg from "../../../../public/figma/logo-mark.png";
 import {
   AppWindow,
   Bell,
@@ -72,11 +74,13 @@ export function DashboardSidebar() {
 
             {/* Logo Badge */}
             <div className="size-[32px] rounded-[4px] bg-[rgba(156,100,2,0.5)] flex items-center justify-center overflow-hidden shrink-0">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/figma/logo.png"
+              <Image
+                src={logoMarkImg}
                 alt="الجودي"
+                width={32}
+                height={32}
                 className="w-full h-full object-cover"
+                priority
               />
             </div>
           </div>
