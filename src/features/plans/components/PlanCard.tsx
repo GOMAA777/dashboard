@@ -19,7 +19,9 @@ interface PlanCardProps {
   billingCycle: "monthly" | "annual";
   onEdit: (plan: PricingPlanItem) => void;
   onViewDetails?: (plan: PricingPlanItem) => void;
+  onViewSubscribers?: (plan: PricingPlanItem) => void;
   onToggleActive?: (plan: PricingPlanItem) => void;
+  onDelete?: (plan: PricingPlanItem) => void;
 }
 
 export function PlanCard({
@@ -27,8 +29,11 @@ export function PlanCard({
   billingCycle,
   onEdit,
   onViewDetails,
+  onViewSubscribers,
   onToggleActive,
+  onDelete,
 }: PlanCardProps) {
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const displayPrice =
     billingCycle === "annual" && plan.annualPrice
       ? Math.round(plan.annualPrice / 12)
@@ -77,15 +82,67 @@ export function PlanCard({
           </span>
         </div>
 
-        {/* 3-dots Menu Icon */}
-        <button
-          type="button"
-          onClick={() => (onViewDetails ? onViewDetails(plan) : onEdit(plan))}
-          className="text-[#837565] hover:text-[#1b1c1a] p-1 rounded-sm cursor-pointer"
-          aria-label="خيارات إضافية"
-        >
-          <MoreVertical className="size-[15px]" />
-        </button>
+        {/* 3-dots Menu Icon & Dropdown */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen((prev) => !prev)}
+            className="text-[#837565] hover:text-[#1b1c1a] p-1 rounded-sm cursor-pointer"
+            aria-label="خيارات إضافية"
+          >
+            <MoreVertical className="size-[15px]" />
+          </button>
+
+          {isMenuOpen && (
+            <div className="absolute end-0 top-full mt-1 w-[160px] bg-white rounded-[6px] shadow-lg border border-[#e2ded7] py-[4px] z-20 text-right animate-in fade-in duration-100 font-['Cairo',sans-serif]">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  if (onViewDetails) onViewDetails(plan);
+                  else onEdit(plan);
+                }}
+                className="w-full text-right px-[12px] py-[6px] text-[12px] font-semibold text-[#1b1c1a] hover:bg-[#faf8f5] cursor-pointer"
+              >
+                تعديل الباقة
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  if (onViewSubscribers) onViewSubscribers(plan);
+                  else if (onViewDetails) onViewDetails(plan);
+                }}
+                className="w-full text-right px-[12px] py-[6px] text-[12px] font-semibold text-[#514537] hover:bg-[#faf8f5] cursor-pointer"
+              >
+                عرض المشتركين ({plan.subscribedFirmsCount})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  if (onToggleActive) onToggleActive(plan);
+                }}
+                className="w-full text-right px-[12px] py-[6px] text-[12px] font-semibold text-[#9c6402] hover:bg-[#fbf6ee] cursor-pointer"
+              >
+                {plan.isActive ? "تعطيل الباقة" : "تفعيل الباقة"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  if (onDelete) onDelete(plan);
+                }}
+                className="w-full text-right px-[12px] py-[6px] text-[12px] font-semibold text-[#b91c1c] hover:bg-[#fee2e2]/40 border-t border-[#f0eeea] cursor-pointer"
+              >
+                حذف الباقة
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Plan Title & Subtitle */}
@@ -205,7 +262,13 @@ export function PlanCard({
           <>
             <button
               type="button"
-              onClick={() => onViewDetails && onViewDetails(plan)}
+              onClick={() =>
+                onViewSubscribers
+                  ? onViewSubscribers(plan)
+                  : onViewDetails
+                  ? onViewDetails(plan)
+                  : onEdit(plan)
+              }
               className="p-[8px] rounded-[4px] bg-[#f5f3ef] hover:bg-[#eae8e4] text-[#514537] cursor-pointer shrink-0"
               title="عرض المكاتب المشتركة"
             >

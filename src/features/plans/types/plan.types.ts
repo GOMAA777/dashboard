@@ -48,4 +48,26 @@ export interface SubscribedFirm {
   status: "active" | "auto_renew" | "suspended";
 }
 
-export type PlanViewMode = "list" | "create" | "silver-details";
+export interface DetailedSubscribedFirm {
+  id: string;
+  initial: string;
+  name: string;
+  licenseNumber: string;
+  city: string;
+  owner: string;
+  contact: string; // phone or email
+  lawyersUsed: number;
+  lawyersLimit: number;
+  casesUsed: number;
+  casesLimit: number;
+  casesCritical?: boolean;
+  agentsUsed: number;
+  agentsLimit: number;
+  renewalDate: string;
+  renewalCycle: "سنوي" | "شهري" | "تجريبي";
+  remainingDaysText: string;
+  isOverdue?: boolean;
+  status: "active" | "expiring_soon" | "trial" | "pending_payment" | "suspended";
+}
+
+export type PlanViewMode = "list" | "create" | "silver-details" | "subscribed-firms";

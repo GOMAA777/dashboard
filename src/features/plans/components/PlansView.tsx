@@ -5,12 +5,17 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
+import { ScalesOfJusticeWatermark } from "@/components/shared/ScalesOfJusticeWatermark";
 import { PlansManagementHeader } from "./PlansManagementHeader";
 import { PlansKpiMetrics } from "./PlansKpiMetrics";
 import { PlansToolbar } from "./PlansToolbar";
 import { PlanCard } from "./PlanCard";
 import { CreatePlanView } from "./CreatePlanView";
 import { PlanDetailsView } from "./PlanDetailsView";
+import { SubscribedFirmsView } from "./SubscribedFirmsView";
+import { DeactivatePlanDialog } from "./DeactivatePlanDialog";
+import { CannotDeletePlanDialog } from "./CannotDeletePlanDialog";
+import { DeletePlanDialog } from "./DeletePlanDialog";
 import { PricingPlanItem, PlanViewMode } from "../types/plan.types";
 import { initialPricingPlans } from "../data/initialPlans";
 
@@ -21,6 +26,12 @@ export function PlansView() {
   const [selectedPlan, setSelectedPlan] = useState<PricingPlanItem>(
     initialPricingPlans.find((p) => p.id === "silver") || initialPricingPlans[1]
   );
+
+  // Dialog States
+  const [planForAction, setPlanForAction] = useState<PricingPlanItem | null>(null);
+  const [isDeactivateDialogOpen, setIsDeactivateDialogOpen] = useState(false);
+  const [isCannotDeleteDialogOpen, setIsCannotDeleteDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState("");
@@ -81,22 +92,40 @@ export function PlansView() {
     setViewMode("list");
   };
 
-  const handleToggleActive = (targetPlan: PricingPlanItem) => {
+  const handleOpenDeactivateDialog = (targetPlan: PricingPlanItem) => {
+    setPlanForAction(targetPlan);
+    setIsDeactivateDialogOpen(true);
+  };
+
+  const handleConfirmDeactivatePlan = (planId: string) => {
     setPlans((prev) =>
-      prev.map((p) =>
-        p.id === targetPlan.id ? { ...p, isActive: !p.isActive } : p
-      )
+      prev.map((p) => (p.id === planId ? { ...p, isActive: false } : p))
     );
-    toast.success(
-      targetPlan.isActive
-        ? `تم تعطيل باقة "${targetPlan.name}".`
-        : `تم تفعيل باقة "${targetPlan.name}".`
-    );
+    toast.success("تم تعطيل الباقة بنجاح ولم تعد متاحة للاشتراكات الجديدة.");
+  };
+
+  const handleOpenDeleteDialog = (targetPlan: PricingPlanItem) => {
+    setPlanForAction(targetPlan);
+    if (targetPlan.subscribedFirmsCount > 0) {
+      setIsCannotDeleteDialogOpen(true);
+    } else {
+      setIsDeleteDialogOpen(true);
+    }
+  };
+
+  const handleConfirmDeletePlan = (planId: string) => {
+    setPlans((prev) => prev.filter((p) => p.id !== planId));
+    toast.success("تم حذف الباقة نهائياً من النظام.");
   };
 
   const handleViewPlanDetails = (plan: PricingPlanItem) => {
     setSelectedPlan(plan);
     setViewMode("silver-details");
+  };
+
+  const handleViewSubscribedFirms = (plan?: PricingPlanItem) => {
+    if (plan) setSelectedPlan(plan);
+    setViewMode("subscribed-firms");
   };
 
   const handleEditPlan = (plan: PricingPlanItem) => {
@@ -124,6 +153,8 @@ export function PlansView() {
 
         {/* Dynamic Workspace Container */}
         <main className="flex-1 relative p-[20px] md:p-[28px] max-w-[1580px] w-full mx-auto">
+          {/* Subtle Justice Scales Emblem Watermark */}
+          <ScalesOfJusticeWatermark />
 
           {/* View Mode Switching */}
           {viewMode === "list" && (
@@ -131,7 +162,7 @@ export function PlansView() {
               {/* Header (Figma 1:2463) */}
               <PlansManagementHeader
                 onCreatePlan={() => setViewMode("create")}
-                onViewSubscribedFirms={() => router.push("/accounts")}
+                onViewSubscribedFirms={() => setViewMode("subscribed-firms")}
               />
 
               {/* KPI Metrics Summary (Figma 1:2464) */}
@@ -160,7 +191,9 @@ export function PlansView() {
                       billingCycle={billingCycle}
                       onEdit={handleEditPlan}
                       onViewDetails={handleViewPlanDetails}
-                      onToggleActive={handleToggleActive}
+                      onViewSubscribers={handleViewSubscribedFirms}
+                      onToggleActive={handleOpenDeactivateDialog}
+                      onDelete={handleOpenDeleteDialog}
                     />
                   ))}
                 </div>
@@ -200,12 +233,52 @@ export function PlansView() {
                 plan={selectedPlan}
                 onBack={() => setViewMode("list")}
                 onEdit={() => setViewMode("create")}
-                onNavigateToClients={() => router.push("/accounts")}
+                onNavigateToClients={() => setViewMode("subscribed-firms")}
+              />
+            </div>
+          )}
+
+          {viewMode === "subscribed-firms" && (
+            <div className="relative z-10 animate-in fade-in duration-200">
+              <SubscribedFirmsView
+                onBack={() => setViewMode("silver-details")}
+                onAddNewFirm={() => router.push("/accounts")}
               />
             </div>
           )}
         </main>
       </div>
+
+      {/* Dialog 1: Deactivate Plan Confirmation (Figma 1:4973) */}
+      <DeactivatePlanDialog
+        isOpen={isDeactivateDialogOpen}
+        onClose={() => setIsDeactivateDialogOpen(false)}
+        plan={planForAction}
+        onConfirmDeactivate={handleConfirmDeactivatePlan}
+        onViewSubscribers={() => {
+          setIsDeactivateDialogOpen(false);
+          setViewMode("subscribed-firms");
+        }}
+      />
+
+      {/* Dialog 2: Cannot Delete Plan (Subscribers Exist) (Figma 1:5154) */}
+      <CannotDeletePlanDialog
+        isOpen={isCannotDeleteDialogOpen}
+        onClose={() => setIsCannotDeleteDialogOpen(false)}
+        plan={planForAction}
+        onViewSubscribers={() => {
+          setIsCannotDeleteDialogOpen(false);
+          setViewMode("subscribed-firms");
+        }}
+      />
+
+      {/* Dialog 3: Delete Plan (0 Subscribers) (Figma 1:5203) */}
+      <DeletePlanDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        plan={planForAction}
+        onConfirmDelete={handleConfirmDeletePlan}
+      />
     </div>
   );
 }
