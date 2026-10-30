@@ -19,6 +19,7 @@ import {
   Tag,
   UserCheck,
   Users,
+  Building2,
   Key,
   ChevronLeft,
   ChevronRight,
@@ -51,10 +52,10 @@ const navItems: NavItem[] = [
   { id: "notifications", labelAr: "الإشعارات", labelEn: "Notifications", href: "/notifications", icon: Bell, sizeClass: "size-[16px]" },
   { id: "finance", labelAr: "المعاملات المالية", labelEn: "Financial Transactions", href: "/invoices", icon: Receipt, sizeClass: "size-[16px]" },
   { id: "support", labelAr: "الدعم الفني", labelEn: "Technical Support", href: "/tickets", icon: Headphones, sizeClass: "size-[17px]" },
-  { id: "site-settings", labelAr: "إعدادات الموقع", labelEn: "Site Settings", href: "#", icon: Globe, sizeClass: "size-[17px]", isUnderConstruction: true },
+  { id: "site-settings", labelAr: "إعدادات الموقع", labelEn: "Site Settings", href: "/website-settings", icon: Globe, sizeClass: "size-[17px]" },
   { id: "mail-settings", labelAr: "إعدادات البريد", labelEn: "Mail Settings", href: "#", icon: Mail, sizeClass: "size-[17px]", isUnderConstruction: true },
   { id: "system-settings", labelAr: "إعدادات النظام", labelEn: "System Settings", href: "/settings/general", icon: Settings, sizeClass: "size-[17px]" },
-  { id: "utility", labelAr: "utility", labelEn: "Utility", href: "/utility/update", icon: AppWindow, sizeClass: "size-[19px]" },
+  { id: "utility", labelAr: "فواتير", labelEn: "Invoices", href: "/utility/update", icon: AppWindow, sizeClass: "size-[19px]" },
 ];
 
 interface DashboardSidebarProps {
@@ -509,7 +510,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                             : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
                         )}
                       />
-                      <Users
+                      <Building2
                         className={cn(
                           "size-[15px] shrink-0",
                           activeSubNav === "departments"
@@ -517,7 +518,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                             : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
                         )}
                       />
-                      <span className="truncate">{currentLang === "en" ? "Departments" : "الاقسام"}</span>
+                      <span className="truncate">{currentLang === "en" ? "Departments" : "الأقسام"}</span>
                     </Link>
                   </div>
                 )}
