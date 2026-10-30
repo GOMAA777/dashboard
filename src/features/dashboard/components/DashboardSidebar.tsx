@@ -51,13 +51,13 @@ const navItems: NavItem[] = [
   { id: "support", label: "الدعم الفني", href: "/tickets", icon: Headphones, sizeClass: "size-[17px]" },
   { id: "site-settings", label: "إعدادات الموقع", href: "#", icon: Globe, sizeClass: "size-[17px]", isUnderConstruction: true },
   { id: "mail-settings", label: "إعدادات البريد", href: "#", icon: Mail, sizeClass: "size-[17px]", isUnderConstruction: true },
-  { id: "system-settings", label: "إعدادات النظام", href: "#", icon: Settings, sizeClass: "size-[17px]", isUnderConstruction: true },
+  { id: "system-settings", label: "إعدادات النظام", href: "/settings/general", icon: Settings, sizeClass: "size-[17px]" },
   { id: "utility", label: "فواتير", href: "#", icon: AppWindow, sizeClass: "size-[19px]", isUnderConstruction: true },
 ];
 
 interface DashboardSidebarProps {
   activeNav?: string;
-  activeSubNav?: "staff" | "roles" | "tickets" | "departments";
+  activeSubNav?: string;
 }
 
 export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarProps = {}) {
@@ -74,10 +74,14 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
     activeNav === "staff" ||
     (pathname?.startsWith("/permissions") ?? false) ||
     (pathname?.startsWith("/staff") ?? false);
+  const isSystemSettingsActive =
+    activeNav === "system-settings" ||
+    (pathname?.startsWith("/settings") ?? false);
 
   const openDropdowns: Record<string, boolean> = {
     support: userDropdownToggles.support ?? isSupportActive,
     staff: userDropdownToggles.staff ?? isStaffActive,
+    "system-settings": userDropdownToggles["system-settings"] ?? isSystemSettingsActive,
   };
 
   const isMounted = useSyncExternalStore(
@@ -147,7 +151,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
 
             {/* Logo Word / Titles (hidden when collapsed) */}
             {!isCollapsed && (
-              <div className="flex flex-col items-start text-right overflow-hidden whitespace-nowrap gap-[4px]">
+              <div className="flex flex-col items-start text-start overflow-hidden whitespace-nowrap gap-[4px]">
                 <span className="font-bold text-[#fdfbf7] text-[18px] leading-[22px] font-sans">
                   الجودي
                 </span>
@@ -193,7 +197,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   key={item.id}
                   type="button"
                   onClick={() => toast.info("هذا القسم قيد الإنشاء")}
-                  className="w-full flex items-center gap-[12px] px-[12px] py-[8px] rounded-[12px] transition-colors duration-150 group text-right text-[#cdc5bd] hover:bg-[#2c221c]/60 hover:text-[#fdfbf7] cursor-pointer"
+                  className="w-full flex items-center gap-[12px] px-[12px] py-[8px] rounded-[12px] transition-colors duration-150 group text-start text-[#cdc5bd] hover:bg-[#2c221c]/60 hover:text-[#fdfbf7] cursor-pointer"
                 >
                   {/* Icon first (Right in RTL) */}
                   <div className="size-[20px] flex items-center justify-center shrink-0">
@@ -206,7 +210,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   </div>
 
                   {/* Word next */}
-                  <span className="text-[14px] leading-[20px] font-semibold flex-1 text-right truncate text-[#cdc5bd] group-hover:text-[#fdfbf7]">
+                  <span className="text-[14px] leading-[20px] font-semibold flex-1 text-start truncate text-[#cdc5bd] group-hover:text-[#fdfbf7]">
                     {item.label}
                   </span>
                 </button>
@@ -245,7 +249,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
               );
             }
 
-            const hasSubmenu = item.id === "support" || item.id === "staff";
+            const hasSubmenu = item.id === "support" || item.id === "staff" || item.id === "system-settings";
             const isDropdownOpen = !!openDropdowns[item.id];
 
             if (!hasSubmenu) {
@@ -254,7 +258,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   key={item.id}
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-[12px] px-[12px] py-[8px] rounded-[12px] transition-colors duration-150 group text-right",
+                    "flex items-center gap-[12px] px-[12px] py-[8px] rounded-[12px] transition-colors duration-150 group text-start",
                     isActive
                       ? "bg-[#9c6402] text-[#1c140f]"
                       : "text-[#cdc5bd] hover:bg-[#2c221c]/60 hover:text-[#fdfbf7]"
@@ -277,7 +281,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   {/* Word next */}
                   <span
                     className={cn(
-                      "text-[14px] leading-[20px] font-semibold flex-1 text-right truncate",
+                      "text-[14px] leading-[20px] font-semibold flex-1 text-start truncate",
                       isActive ? "text-[#1c140f] font-bold" : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
                     )}
                   >
@@ -365,7 +369,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                     <Link
                       href="/permissions?tab=staff"
                       className={cn(
-                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-right group",
+                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                         activeSubNav === "roles"
                           ? "text-[#cdc5bd] hover:bg-[#2c221c]/40 hover:text-[#fdfbf7]"
                           : "text-[#e29d38] font-bold bg-[#2c221c]/60"
@@ -393,7 +397,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                     <Link
                       href="/permissions?tab=roles"
                       className={cn(
-                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-right group",
+                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                         activeSubNav === "roles"
                           ? "text-[#e29d38] font-bold bg-[#2c221c]/60"
                           : "text-[#cdc5bd] hover:bg-[#2c221c]/40 hover:text-[#fdfbf7]"
@@ -427,7 +431,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                     <Link
                       href="/tickets?tab=tickets"
                       className={cn(
-                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-right group",
+                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                         activeSubNav === "departments"
                           ? "text-[#cdc5bd] hover:bg-[#2c221c]/40 hover:text-[#fdfbf7]"
                           : "text-[#e29d38] font-bold bg-[#2c221c]/60"
@@ -455,7 +459,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                     <Link
                       href="/tickets?tab=departments"
                       className={cn(
-                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-right group",
+                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                         activeSubNav === "departments"
                           ? "text-[#e29d38] font-bold bg-[#2c221c]/60"
                           : "text-[#cdc5bd] hover:bg-[#2c221c]/40 hover:text-[#fdfbf7]"
@@ -479,6 +483,71 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                         )}
                       />
                       <span className="truncate">الاقسام</span>
+                    </Link>
+                  </div>
+                )}
+
+                {/* Sub-items for System Settings (اعدادت عامة، العملة، اللغة - Figma 1:17270-1:17278) */}
+                {item.id === "system-settings" && isDropdownOpen && (
+                  <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#38271c] my-1">
+                    <Link
+                      href="/settings/general"
+                      className={cn(
+                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
+                        activeSubNav === "general" || pathname === "/settings/general"
+                          ? "text-[#e29d38] font-bold bg-[#2c221c]/60"
+                          : "text-[#cdc5bd] hover:bg-[#2c221c]/40 hover:text-[#fdfbf7]"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "size-[6px] rounded-full shrink-0 transition-all",
+                          activeSubNav === "general" || pathname === "/settings/general"
+                            ? "bg-[#e29d38] shadow-[0_0_6px_#e29d38]"
+                            : "bg-[#625d5d] group-hover:bg-[#a89f91]"
+                        )}
+                      />
+                      <span className="truncate">اعدادت عامة</span>
+                    </Link>
+
+                    <Link
+                      href="/settings/currency"
+                      className={cn(
+                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
+                        activeSubNav === "currency" || pathname === "/settings/currency"
+                          ? "text-[#e29d38] font-bold bg-[#2c221c]/60"
+                          : "text-[#cdc5bd] hover:bg-[#2c221c]/40 hover:text-[#fdfbf7]"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "size-[6px] rounded-full shrink-0 transition-all",
+                          activeSubNav === "currency" || pathname === "/settings/currency"
+                            ? "bg-[#e29d38] shadow-[0_0_6px_#e29d38]"
+                            : "bg-[#625d5d] group-hover:bg-[#a89f91]"
+                        )}
+                      />
+                      <span className="truncate">العملة</span>
+                    </Link>
+
+                    <Link
+                      href="/settings/language"
+                      className={cn(
+                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
+                        activeSubNav === "language" || pathname === "/settings/language"
+                          ? "text-[#e29d38] font-bold bg-[#2c221c]/60"
+                          : "text-[#cdc5bd] hover:bg-[#2c221c]/40 hover:text-[#fdfbf7]"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "size-[6px] rounded-full shrink-0 transition-all",
+                          activeSubNav === "language" || pathname === "/settings/language"
+                            ? "bg-[#e29d38] shadow-[0_0_6px_#e29d38]"
+                            : "bg-[#625d5d] group-hover:bg-[#a89f91]"
+                        )}
+                      />
+                      <span className="truncate">اللغة</span>
                     </Link>
                   </div>
                 )}
@@ -532,7 +601,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
             <Link
               href="/profile"
               title="فتح الملف الشخصي"
-              className="flex items-center gap-2.5 flex-1 min-w-0 text-right group cursor-pointer"
+              className="flex items-center gap-2.5 flex-1 min-w-0 text-start group cursor-pointer"
             >
               <div className="relative size-[34px] rounded-full overflow-hidden border border-[#9c6402]/50 shrink-0">
                 <Image
@@ -544,7 +613,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                 />
                 <span className="absolute bottom-0 end-0 size-[7px] rounded-full bg-[#10b981] border border-[#16100c]" />
               </div>
-              <div className="flex flex-col min-w-0 text-right">
+              <div className="flex flex-col min-w-0 text-start">
                 <span className="text-[13px] font-semibold text-[#fdfbf7] truncate group-hover:text-[#e29d38] transition-colors leading-[18px]">
                   م. عبد العزيز بن فهد
                 </span>
