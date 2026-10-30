@@ -23,17 +23,31 @@ export function DashboardStickyActionBar({
   return (
     <div
       className={cn(
-        "sticky bottom-4 z-30 w-full mt-6 pointer-events-none transition-all duration-200",
+        "sticky bottom-1.5 sm:bottom-2 z-30 w-full mt-auto pt-3 pointer-events-none transition-all duration-300",
         containerClassName
       )}
     >
-      <div
-        className={cn(
-          "pointer-events-auto w-full bg-white/95 dark:bg-[#1f1712]/95 backdrop-blur-md rounded-[12px] border border-[#eae8e4] dark:border-[#38271c] py-3.5 px-6 sm:px-8 shadow-[0px_10px_25px_-5px_rgba(0,0,0,0.1),0px_8px_10px_-6px_rgba(0,0,0,0.06)] dark:shadow-[0px_10px_25px_-5px_rgba(0,0,0,0.6),0px_8px_10px_-6px_rgba(0,0,0,0.4)] flex flex-col sm:flex-row items-center justify-between gap-4 transition-colors",
-          className
-        )}
-      >
-        {children}
+      <div className="relative pointer-events-auto w-full group">
+        {/* Subtle Ambient Gold Aura Effect behind the floating bar */}
+        <div
+          className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-[#e29d38]/0 via-[#e29d38]/12 to-[#e29d38]/0 blur-md pointer-events-none -z-10 opacity-70 group-hover:opacity-100 transition-opacity duration-300"
+          aria-hidden="true"
+        />
+
+        <div
+          className={cn(
+            "relative w-full bg-white/90 dark:bg-[#1a120d]/92 backdrop-blur-xl rounded-2xl border border-[#eae8e4]/90 dark:border-[#38271c] py-3 px-5 sm:px-7 shadow-[0px_8px_30px_rgba(0,0,0,0.08),0_0_18px_rgba(226,157,56,0.1),0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-[0px_12px_40px_rgba(0,0,0,0.7),0_0_24px_rgba(226,157,56,0.15)] flex flex-col sm:flex-row items-center justify-between gap-4 transition-all duration-300 hover:border-[#e29d38]/30 dark:hover:border-[#e29d38]/40",
+            className
+          )}
+        >
+          {/* Top Architectural Ambient Gold Refraction Ray */}
+          <div
+            className="absolute inset-x-8 -top-px h-[1.5px] bg-gradient-to-r from-transparent via-[#e29d38]/45 dark:via-[#e29d38]/65 to-transparent pointer-events-none rounded-full"
+            aria-hidden="true"
+          />
+
+          {children}
+        </div>
       </div>
     </div>
   );
