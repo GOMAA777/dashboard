@@ -130,14 +130,19 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
       data-node-id="1:667"
       data-name="Aside"
     >
-      {/* Sidebar Collapse/Expand Toggle Button permanently anchored on the boundary */}
+      {/* Sidebar Collapse/Expand Toggle Button permanently anchored on the inner boundary */}
       <button
         type="button"
         onClick={toggleSidebarCollapsed}
         aria-label={isCollapsed ? (currentLang === "en" ? "Expand sidebar" : "توسيع القائمة الجانبية") : (currentLang === "en" ? "Collapse sidebar" : "تصغير القائمة الجانبية")}
         title={isCollapsed ? (currentLang === "en" ? "Expand sidebar" : "توسيع القائمة الجانبية") : (currentLang === "en" ? "Collapse sidebar" : "تصغير القائمة الجانبية")}
-        className="absolute top-[20px] end-[-13px] z-40 size-[26px] bg-[#221812] hover:bg-[#2c1f17] text-[#cdc5bd] hover:text-[#fdfbf7] border border-[#3d2a1d] rounded-full shadow-[0px_2px_5px_rgba(0,0,0,0.35)] flex items-center justify-center transition-colors cursor-pointer focus:outline-none"
-        style={{ insetInlineEnd: "-13px" }}
+        className={cn(
+          "absolute top-[20px] z-40 size-[26px] bg-[#221812] hover:bg-[#2c1f17] text-[#cdc5bd] hover:text-[#fdfbf7] border border-[#3d2a1d] rounded-full shadow-[0px_2px_5px_rgba(0,0,0,0.35)] flex items-center justify-center transition-colors cursor-pointer focus:outline-none",
+          isRTL ? "-left-[13px]" : "-right-[13px]"
+        )}
+        style={{
+          [isRTL ? "left" : "right"]: "-13px",
+        }}
       >
         <CollapseIcon className="size-[14px] text-[#cdc5bd]" />
       </button>

@@ -4,6 +4,7 @@ import React, { useState, useMemo } from "react";
 import { Plus, Search, ChevronDown, PenSquare, Trash2 } from "lucide-react";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
+import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 import { initialCurrencies } from "../data/initialCurrencies";
 import { CurrencyItem } from "../types/currency-settings.types";
 import { CurrencyEmptyState } from "./CurrencyEmptyState";
@@ -65,12 +66,12 @@ export function CurrencySettingsView() {
   };
 
   return (
-    <div className="flex h-screen bg-[#f5f3ef] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00]" dir="rtl">
+    <div className="flex h-screen h-dvh bg-[#f5f3ef] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00]" dir="rtl">
       {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar activeNav="system-settings" activeSubNav="currency" />
 
       {/* 2. Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
         <DashboardTopNavbar />
 
         {currentView === "add" ? (
@@ -79,7 +80,8 @@ export function CurrencySettingsView() {
             onSave={handleSaveNewCurrency}
           />
         ) : (
-          <main className="flex-1 px-[24px] sm:px-[32px] py-[24px] max-w-[1360px] w-full mx-auto pb-[80px]">
+          <main className="flex-1 overflow-y-auto px-[24px] sm:px-[32px] py-[24px] max-w-[1360px] w-full mx-auto pb-[80px] scrollbar-thin">
+            <DashboardPageTransition>
             {/* Top Identity & Command Banner (Figma 1:17292) */}
             <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] relative mb-[24px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]">
               {/* Title & Description */}
