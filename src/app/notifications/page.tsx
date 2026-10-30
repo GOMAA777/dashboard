@@ -1,13 +1,17 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { Metadata } from "next";
-import { NotificationsTemplatesView } from "@/features/notifications/components/NotificationsTemplatesView";
+import { NotificationsManagementView } from "@/features/notifications/components/NotificationsManagementView";
 
 export const metadata: Metadata = {
-  title: "قوالب الإشعارات والبريد الإلكتروني الآلي | منصة الجودي لإدارة مكاتب المحاماة",
+  title: "قائمة الإشعارات وإدارة التنبيهات المركزية | منصة الجودي لإدارة مكاتب المحاماة",
   description:
-    "تخصيص قوالب الإيميلات التلقائية لمكاتب المحاماة (الترحيب، التنبيهات، الفواتير، تأكيد السداد، والتعليق)، المتغيرات الديناميكية، وإرسال إيميلات تجريبية.",
+    "إدارة الإشعارات المركزية المرسلة إلى مكاتب المحاماة، إنشاء تحديثات المنظومة، إرسال إشعار جديد، وتتبع معدلات الوصول والتسليم الفوري.",
 };
 
 export default function NotificationsPage() {
-  return <NotificationsTemplatesView />;
+  return (
+    <Suspense fallback={null}>
+      <NotificationsManagementView />
+    </Suspense>
+  );
 }
