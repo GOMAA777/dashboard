@@ -111,14 +111,18 @@ export const useUIStore = create<UIState>((set, get) => ({
   },
 
   setLanguage: (lang: AppLanguage) => {
+    const nextDir: TextDirection = lang === "ar" ? "rtl" : "ltr";
     applyLanguageToDOM(lang);
-    set({ language: lang });
+    applyDirectionToDOM(nextDir);
+    set({ language: lang, direction: nextDir });
   },
 
   toggleLanguage: () => {
     const nextLang: AppLanguage = get().language === "ar" ? "en" : "ar";
+    const nextDir: TextDirection = nextLang === "ar" ? "rtl" : "ltr";
     applyLanguageToDOM(nextLang);
-    set({ language: nextLang });
+    applyDirectionToDOM(nextDir);
+    set({ language: nextLang, direction: nextDir });
   },
 
   setDirection: (dir: TextDirection) => {
@@ -142,17 +146,21 @@ if (typeof window !== "undefined") {
       useUIStore.setState({ theme: savedTheme });
     }
     const savedLang = localStorage.getItem("app-language") as AppLanguage | null;
+    const savedDir = localStorage.getItem("app-direction") as TextDirection | null;
     if (savedLang === "ar" || savedLang === "en") {
       applyLanguageToDOM(savedLang);
       useUIStore.setState({ language: savedLang });
-    }
-    const savedDir = localStorage.getItem("app-direction") as TextDirection | null;
-    if (savedDir === "rtl" || savedDir === "ltr") {
-      applyDirectionToDOM(savedDir);
-      useUIStore.setState({ direction: savedDir });
+      const dir = savedDir || (savedLang === "ar" ? "rtl" : "ltr");
+      applyDirectionToDOM(dir);
+      useUIStore.setState({ direction: dir });
     } else {
-      applyDirectionToDOM("rtl");
-      useUIStore.setState({ direction: "rtl" });
+      if (savedDir === "rtl" || savedDir === "ltr") {
+        applyDirectionToDOM(savedDir);
+        useUIStore.setState({ direction: savedDir });
+      } else {
+        applyDirectionToDOM("rtl");
+        useUIStore.setState({ direction: "rtl" });
+      }
     }
     const savedCollapsed = localStorage.getItem("app-sidebar-collapsed");
     if (savedCollapsed !== null) {
