@@ -155,7 +155,7 @@ export function RolesManagementView() {
       <div className="flex-1 flex flex-col min-w-0">
         <DashboardTopNavbar />
 
-        <main className="flex-1 p-6 md:p-8 max-w-[1360px] w-full mx-auto space-y-6">
+        <main className="flex-1 p-6 md:p-8 w-full space-y-6">
           {/* Main Title & Command Banner (Figma 1:11533 / 1:11321) */}
           {(currentView === "list" || currentView === "empty") && (
             <div

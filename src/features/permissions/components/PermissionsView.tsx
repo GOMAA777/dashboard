@@ -155,7 +155,7 @@ export function PermissionsView() {
             <ScalesOfJusticeWatermark className="w-full h-full" />
           </div>
 
-          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+          <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
             {/* Header Hero Banner */}
             <div className="relative overflow-hidden rounded-2xl border border-[#eeddbb]/70 dark:border-[#383126] bg-gradient-to-br from-[#ffffff] via-[#fbf8f2] to-[#f4ece0] dark:from-[#1e1b18] dark:via-[#191715] dark:to-[#141210] p-6 sm:p-8 shadow-sm">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">

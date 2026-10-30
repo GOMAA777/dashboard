@@ -717,7 +717,7 @@ export function SendNotificationView({
         className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#eae8e4] px-6 py-3.5 shadow-[0px_-4px_16px_rgba(0,0,0,0.06)]"
         data-node-id="1:13441"
       >
-        <div className="max-w-[1360px] mx-auto flex items-center justify-end gap-2.5">
+        <div className="w-full flex items-center justify-end gap-2.5">
           <button
             type="button"
             onClick={onBack}

@@ -494,7 +494,7 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
 
       {/* FIXED BOTTOM STICKY BAR: Compliance & Actions (Figma 1:12201) */}
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#e6e2dc] shadow-[0px_-4px_10px_rgba(0,0,0,0.04)] py-3 px-6 md:px-12">
-        <div className="max-w-[1360px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-3">
           {/* Security guarantee note on start */}
           <div className="flex items-center gap-2.5 text-right">
             <div className="size-[28px] rounded-full bg-[#f0eeea] flex items-center justify-center text-[#9c6402] shrink-0">

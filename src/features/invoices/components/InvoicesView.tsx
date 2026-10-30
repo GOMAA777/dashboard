@@ -422,7 +422,7 @@ export function InvoicesView() {
             <ScalesOfJusticeWatermark className="w-full h-full" />
           </div>
 
-          <div className="relative z-10 max-w-7xl mx-auto space-y-6 text-start">
+          <div className="relative z-10 w-full space-y-6 text-start">
             {/* Page Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>

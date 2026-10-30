@@ -152,7 +152,7 @@ export function PlansView() {
 
         {/* Dynamic Workspace Container */}
         <main className="flex-1 p-[20px] md:p-[28px]">
-          <div className="max-w-[1580px] w-full mx-auto space-y-[20px]">
+          <div className="w-full space-y-[20px]">
 
           {/* View Mode Switching */}
           {viewMode === "list" && (

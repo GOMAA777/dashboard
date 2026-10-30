@@ -204,7 +204,7 @@ export function NotificationsManagementView() {
       <div className="flex-1 flex flex-col min-w-0">
         <DashboardTopNavbar />
 
-        <main className="flex-1 p-6 md:p-8 max-w-[1360px] w-full mx-auto space-y-6">
+        <main className="flex-1 p-6 md:p-8 w-full space-y-6">
           {view === "list" ? (
             <NotificationsListView
               notifications={notifications}
