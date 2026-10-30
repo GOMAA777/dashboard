@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { SubscriptionRecord } from "../types/subscription.types";
 import { toast } from "sonner";
+import { DashboardStickyActionBar } from "@/components/shared/DashboardStickyActionBar";
 
 interface RenewSubscriptionViewProps {
   subscription?: SubscriptionRecord | null;
@@ -638,8 +639,8 @@ export function RenewSubscriptionView({
         </div>
       </div>
 
-      {/* Bottom Sticky Action Bar */}
-      <div className="bg-white dark:bg-[#1e1c1a] p-4 rounded-[8px] border border-[#f0eeea] dark:border-[#2f2a24] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col sm:flex-row items-center justify-between gap-4">
+      {/* Floating Sticky Action Bar */}
+      <DashboardStickyActionBar>
         <div className="flex items-center gap-2 text-[12px] text-[#514537] dark:text-[#a89f91]">
           <ShieldCheck className="w-4 h-4 text-[#059669]" />
           <span>سيتم إنشاء قيد اشتراك جديد برقم تسلسلي تلقائي فور الحفظ دون سحب رصيد آلي</span>
@@ -649,14 +650,14 @@ export function RenewSubscriptionView({
           <button
             type="button"
             onClick={onBack}
-            className="px-4 py-2 rounded-[4px] bg-[#f5f3ef] dark:bg-[#2c2621] hover:bg-[#eae8e4] text-[#514537] dark:text-[#a89f91] text-[12px] font-semibold transition-colors cursor-pointer"
+            className="px-4 py-2 rounded-[6px] bg-[#f5f3ef] dark:bg-[#2c2621] hover:bg-[#eae8e4] text-[#514537] dark:text-[#a89f91] text-[12px] font-semibold transition-colors cursor-pointer"
           >
             إلغاء
           </button>
           <button
             type="button"
             onClick={handleSave}
-            className="px-4 py-2 rounded-[4px] bg-[#f5f3ef] dark:bg-[#2c2621] hover:bg-[#eae8e4] text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] font-semibold transition-colors cursor-pointer"
+            className="px-4 py-2 rounded-[6px] bg-[#f5f3ef] dark:bg-[#2c2621] hover:bg-[#eae8e4] text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] font-semibold transition-colors cursor-pointer"
           >
             حفظ كمسودة
           </button>
@@ -664,13 +665,13 @@ export function RenewSubscriptionView({
             type="button"
             onClick={handleSave}
             disabled={isSubmitting}
-            className="bg-[#9c6402] hover:bg-[#825200] text-white px-6 py-2 rounded-[4px] font-bold text-[13px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+            className="bg-[#9c6402] hover:bg-[#825200] text-white px-6 py-2 rounded-[6px] font-bold text-[13px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
           >
             <Check className="w-4 h-4" />
             <span>حفظ الاشتراك</span>
           </button>
         </div>
-      </div>
+      </DashboardStickyActionBar>
     </div>
   );
 }

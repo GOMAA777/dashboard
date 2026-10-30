@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { staffRoles } from "../data/initialStaff";
 import { Employee } from "../types/staff.types";
 import { addEmployeeSchema, AddEmployeeFormData } from "../schemas/staff.schema";
+import { DashboardStickyActionBar } from "@/components/shared/DashboardStickyActionBar";
 
 interface AddEmployeeViewProps {
   onBack: () => void;
@@ -366,9 +367,9 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
         </div>
       </div>
 
-      {/* Bottom Sticky Action Bar */}
-      <div className="sticky bottom-0 bg-white/95 backdrop-blur-md rounded-[8px] p-4 border border-[#e6e2dc] shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4 z-10">
-        <div className="flex items-center gap-2 text-[13px] text-[#514537]">
+      {/* Floating Sticky Action Bar */}
+      <DashboardStickyActionBar>
+        <div className="flex items-center gap-2 text-[13px] text-[#514537] dark:text-[#cdc5bd]">
           <ShieldCheck className="size-[18px] text-[#10b981] shrink-0" />
           <span>يتم تسجيل إضافة الموظف فوراً في سجل تدقيق العمليات القضائي.</span>
         </div>
@@ -377,7 +378,7 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
           <button
             type="button"
             onClick={onBack}
-            className="px-4 py-2 text-[13px] font-semibold text-[#514537] bg-[#f5f3ef] hover:bg-[#eae6e0] rounded-[6px] transition-colors"
+            className="px-4 py-2 text-[13px] font-semibold text-[#514537] dark:text-[#fdfbf7] bg-[#f5f3ef] dark:bg-[#2c2017] hover:bg-[#eae6e0] dark:hover:bg-[#382a1f] border border-transparent dark:border-[#3d2a1d] rounded-[6px] transition-colors cursor-pointer"
           >
             إلغاء
           </button>
@@ -385,7 +386,7 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
           <button
             type="button"
             onClick={() => handleSubmit(true)}
-            className="px-4 py-2 text-[13px] font-semibold text-[#514537] bg-[#f5f3ef] hover:bg-[#eae6e0] rounded-[6px] transition-colors"
+            className="px-4 py-2 text-[13px] font-semibold text-[#514537] dark:text-[#fdfbf7] bg-[#f5f3ef] dark:bg-[#2c2017] hover:bg-[#eae6e0] dark:hover:bg-[#382a1f] border border-transparent dark:border-[#3d2a1d] rounded-[6px] transition-colors cursor-pointer"
           >
             حفظ كمسودة
           </button>
@@ -393,13 +394,13 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
           <button
             type="button"
             onClick={() => handleSubmit(false)}
-            className="px-5 py-2 text-[13px] font-bold text-white bg-[#9c6402] hover:bg-[#855402] rounded-[6px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors flex items-center gap-2"
+            className="px-5 py-2 text-[13px] font-bold text-white bg-[#9c6402] hover:bg-[#855402] rounded-[6px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors flex items-center gap-2 cursor-pointer"
           >
             <UserCheck className="size-[16px]" />
             <span>حفظ الموظف</span>
           </button>
         </div>
-      </div>
+      </DashboardStickyActionBar>
     </div>
   );
 }
