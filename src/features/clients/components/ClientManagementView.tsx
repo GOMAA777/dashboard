@@ -13,6 +13,7 @@ import { DeactivateOfficeModal } from "./DeactivateOfficeModal";
 import { DeleteOfficeModal } from "./DeleteOfficeModal";
 import { ClientOffice } from "../types/client.types";
 import { initialOffices } from "../data/initialOffices";
+import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 
 export function ClientManagementView() {
   const [currentView, setCurrentView] = useState<"list" | "add" | "details">("list");
@@ -177,65 +178,82 @@ export function ClientManagementView() {
     );
   };
 
+  const breadcrumbs =
+    currentView === "details"
+      ? [
+          { label: "الرئيسية", href: "/" },
+          { label: "مكاتب المحاماة", href: "/law-firms" },
+          { label: selectedOffice?.name || "تفاصيل المكتب" },
+        ]
+      : currentView === "add"
+      ? [
+          { label: "الرئيسية", href: "/" },
+          { label: "مكاتب المحاماة", href: "/law-firms" },
+          { label: officeToEdit ? "تعديل بيانات المكتب" : "إضافة مكتب محاماة جديد" },
+        ]
+      : undefined;
+
   return (
-    <div className="flex min-h-screen w-full bg-background text-foreground transition-colors duration-200 font-['Cairo',sans-serif]">
+    <div className="flex h-screen h-dvh overflow-hidden w-full bg-background text-foreground transition-colors duration-200 font-['Cairo',sans-serif]">
       {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar />
 
       {/* 2. Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
         {/* Top Navbar */}
-        <DashboardTopNavbar />
+        <DashboardTopNavbar customBreadcrumbs={breadcrumbs} />
 
         {/* Dynamic Page Content */}
-        <main className="flex-1 p-[24px] flex flex-col gap-[24px]">
-          {currentView === "list" && (
-            <>
-              {/* Header with Title & Add Office Button */}
-              <ClientManagementHeader onAddOffice={handleStartAddOffice} />
+        <main className="flex-1 overflow-y-auto p-[24px] flex flex-col gap-[24px] scrollbar-thin">
+          <DashboardPageTransition>
+            {currentView === "list" && (
+              <>
+                {/* Header with Title & Add Office Button */}
+                <ClientManagementHeader onAddOffice={handleStartAddOffice} />
 
-              {/* 4 KPI Metrics Cards */}
-              <ClientKpiMetrics />
+                {/* 4 KPI Metrics Cards */}
+                <ClientKpiMetrics />
 
-              {/* Main Client Offices Data Table */}
-              <ClientManagementTable
-                offices={offices}
-                onViewOfficeDetails={(office) => {
-                  setSelectedOffice(office);
-                  setCurrentView("details");
+                {/* Main Client Offices Data Table */}
+                <ClientManagementTable
+                  offices={offices}
+                  onViewOfficeDetails={(office) => {
+                    setSelectedOffice(office);
+                    setCurrentView("details");
+                  }}
+                  onEditOffice={handleStartEditOffice}
+                  onOpenDeactivateModal={(office) => setOfficeToDeactivate(office)}
+                  onOpenDeleteModal={(office) => setOfficeToDelete(office)}
+                />
+              </>
+            )}
+
+            {currentView === "add" && (
+              <AddClientOfficeView
+                key={officeToEdit ? officeToEdit.id : "new-office"}
+                officeToEdit={officeToEdit}
+                onBack={() => {
+                  setOfficeToEdit(null);
+                  setCurrentView("list");
                 }}
-                onEditOffice={handleStartEditOffice}
-                onOpenDeactivateModal={(office) => setOfficeToDeactivate(office)}
-                onOpenDeleteModal={(office) => setOfficeToDelete(office)}
+                onSuccess={handleSaveOffice}
               />
-            </>
-          )}
+            )}
 
-          {currentView === "add" && (
-            <AddClientOfficeView
-              key={officeToEdit ? officeToEdit.id : "new-office"}
-              officeToEdit={officeToEdit}
-              onBack={() => {
-                setOfficeToEdit(null);
-                setCurrentView("list");
-              }}
-              onSuccess={handleSaveOffice}
-            />
-          )}
-
-          {currentView === "details" && (
-            <ClientOfficeDetailsView
-              office={selectedOffice}
-              onBack={() => setCurrentView("list")}
-              onEdit={() => {
-                if (selectedOffice) {
-                  handleStartEditOffice(selectedOffice);
-                }
-              }}
-              onOpenDeactivateModal={(office) => setOfficeToDeactivate(office)}
-              onReactivate={handleReactivate}
-            />
-          )}
+            {currentView === "details" && (
+              <ClientOfficeDetailsView
+                office={selectedOffice}
+                onBack={() => setCurrentView("list")}
+                onEdit={() => {
+                  if (selectedOffice) {
+                    handleStartEditOffice(selectedOffice);
+                  }
+                }}
+                onOpenDeactivateModal={(office) => setOfficeToDeactivate(office)}
+                onReactivate={handleReactivate}
+              />
+            )}
+          </DashboardPageTransition>
         </main>
       </div>
 

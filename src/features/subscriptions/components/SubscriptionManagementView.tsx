@@ -13,6 +13,7 @@ import { RenewSubscriptionView } from "./RenewSubscriptionView";
 import { ChangeSubscriptionPlanModal } from "./ChangeSubscriptionPlanModal";
 import { CancelSubscriptionModal } from "./CancelSubscriptionModal";
 import { AddSubscriptionModal } from "./AddSubscriptionModal";
+import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 import {
   SubscriptionRecord,
   SubscriptionStatus,
@@ -287,17 +288,18 @@ export function SubscriptionManagementView() {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-background text-foreground transition-colors duration-200 font-['Cairo',sans-serif]">
+    <div className="flex h-screen h-dvh overflow-hidden w-full bg-background text-foreground transition-colors duration-200 font-['Cairo',sans-serif]">
       {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar activeNav="subscriptions" />
 
       {/* 2. Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
         {/* Top Navbar */}
         <DashboardTopNavbar />
 
         {/* Dynamic Page Content */}
-        <main className="flex-1 p-6 flex flex-col gap-6">
+        <main className="flex-1 overflow-y-auto p-6 flex flex-col gap-6 scrollbar-thin">
+          <DashboardPageTransition>
           {view === "renew" ? (
             <RenewSubscriptionView
               subscription={selectedSubForAction || activeSubscription}
@@ -336,11 +338,6 @@ export function SubscriptionManagementView() {
                 currentTab={(tab as SubscriptionTabFilter) || "all"}
                 onTabChange={(newTab) => {
                   setTab(newTab);
-                  setPageIndex(0);
-                }}
-                pageSize={pageSize}
-                onPageSizeChange={(newSize) => {
-                  setPageSize(newSize);
                   setPageIndex(0);
                 }}
                 searchQuery={search}
@@ -414,6 +411,7 @@ export function SubscriptionManagementView() {
             subscription={selectedSubForAction}
             onConfirmCancel={handleCancelSubscriptionSuccess}
           />
+          </DashboardPageTransition>
         </main>
       </div>
     </div>

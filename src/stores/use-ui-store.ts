@@ -12,6 +12,7 @@ interface UIState {
   theme: ThemePreference;
   language: AppLanguage;
   direction: TextDirection;
+  isPageNavigating: boolean;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
   toggleSidebarCollapsed: () => void;
@@ -23,6 +24,7 @@ interface UIState {
   toggleLanguage: () => void;
   setDirection: (dir: TextDirection) => void;
   toggleDirection: () => void;
+  setPageNavigating: (navigating: boolean) => void;
 }
 
 function applyThemeToDOM(theme: ThemePreference) {
@@ -69,6 +71,8 @@ export const useUIStore = create<UIState>((set, get) => ({
   theme: "light",
   language: "ar",
   direction: "rtl",
+  isPageNavigating: false,
+  setPageNavigating: (navigating: boolean) => set({ isPageNavigating: navigating }),
 
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
   setSidebarOpen: (open) => set({ sidebarOpen: open }),

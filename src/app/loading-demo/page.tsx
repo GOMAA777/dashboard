@@ -1,12 +1,27 @@
 import React from "react";
 import type { Metadata } from "next";
-import { LoadingScreen } from "@/components/shared/LoadingScreen";
+import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
+import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
+import { DashboardPageSkeleton } from "@/components/shared/DashboardPageSkeleton";
 
 export const metadata: Metadata = {
-  title: "جاري التحميل... | منصة الجودي",
-  description: "صفحة التحميل والتهيئة السحابية لمنصة الجودي",
+  title: "معاينة تحميل الهيكل (Skeleton Loading) | منصة الجودي",
+  description: "معاينة تجربة تحميل الشاشات بتقنية Skeleton Loading لمنصة الجودي",
 };
 
 export default function LoadingDemoPage() {
-  return <LoadingScreen statusText="توثيق مساحة العمل وتهيئة البيانات..." />;
+  return (
+    <div
+      className="flex h-screen h-dvh w-full bg-[#fcfbfa] dark:bg-[#151311] text-[#1b1c1a] dark:text-[#fdfbf7] overflow-hidden"
+      dir="rtl"
+    >
+      <DashboardSidebar />
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+        <DashboardTopNavbar />
+        <main className="flex-1 overflow-y-auto p-6 md:p-8">
+          <DashboardPageSkeleton />
+        </main>
+      </div>
+    </div>
+  );
 }

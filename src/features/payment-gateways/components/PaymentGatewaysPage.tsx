@@ -5,6 +5,7 @@ import { RefreshCw, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
+import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 import { PaymentGatewayItem, GatewayFilterStatus } from "../types/payment-gateways.types";
 import { initialPaymentGateways } from "../data/payment-gateways.data";
 import { TelemetryCards } from "./TelemetryCards";
@@ -131,17 +132,19 @@ export function PaymentGatewaysPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground transition-colors duration-200 antialiased select-none">
+    <div className="flex h-screen h-dvh overflow-hidden bg-background text-foreground transition-colors duration-200 antialiased select-none">
       {/* Sidebar with activeNav="finance" */}
       <DashboardSidebar activeNav="finance" />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
         {/* Top Navbar */}
         <DashboardTopNavbar />
 
         {/* Main Content Area matching Figma 1:13869 */}
-        <main className="flex-1 w-full p-4 sm:p-6 lg:p-8 max-w-[1360px] mx-auto space-y-6">
-          {/* 1. Main Identity & Command Banner (Figma 1:13872) */}
+        <main className="flex-1 overflow-y-auto w-full p-4 sm:p-6 lg:p-8 max-w-[1360px] mx-auto space-y-6 scrollbar-thin">
+          <DashboardPageTransition>
+            <>
+              {/* 1. Main Identity & Command Banner (Figma 1:13872) */}
           <div className="bg-white rounded-[8px] p-6 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             {/* Right Titles in RTL */}
             <div className="flex flex-col items-start text-start">
@@ -215,6 +218,8 @@ export function PaymentGatewaysPage() {
               <AddCustomGatewayCard onAdd={() => setIsAddCustomOpen(true)} />
             )}
           </div>
+            </>
+          </DashboardPageTransition>
         </main>
       </div>
 

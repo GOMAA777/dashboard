@@ -16,8 +16,6 @@ interface TicketsFilterBarProps {
     in_progress: number;
     closed: number;
   };
-  pageSize?: number;
-  onPageSizeChange?: (size: number) => void;
   isEmptyToggle?: boolean;
   onToggleEmptyState?: () => void;
 }
@@ -28,8 +26,6 @@ export function TicketsFilterBar({
   searchQuery,
   onSearchChange,
   counts,
-  pageSize = 10,
-  onPageSizeChange,
   isEmptyToggle = false,
   onToggleEmptyState,
 }: TicketsFilterBarProps) {
@@ -53,24 +49,6 @@ export function TicketsFilterBar({
           <option value="closed">تذاكر مغلقة ({counts.closed})</option>
         </select>
       </div>
-
-      {/* Page Size in Drawer */}
-      {onPageSizeChange && (
-        <div className="space-y-1.5">
-          <label className="text-[13px] font-bold text-[#1b1c1a] block">
-            عرض الصفحة
-          </label>
-          <select
-            value={pageSize}
-            onChange={(e) => onPageSizeChange(Number(e.target.value))}
-            className="w-full h-[40px] bg-[#f5f3ef] text-[#1b1c1a] text-[13px] font-semibold rounded-[4px] px-[12px] border border-transparent focus:outline-none focus:ring-1 focus:ring-[#9c6402] cursor-pointer"
-          >
-            <option value={10}>10 تذاكر</option>
-            <option value={20}>20 تذكرة</option>
-            <option value={50}>50 تذكرة</option>
-          </select>
-        </div>
-      )}
     </div>
   );
 

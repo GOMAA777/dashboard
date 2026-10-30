@@ -7,6 +7,8 @@ import {
   Mail,
   ChevronRight,
   ChevronLeft,
+  ChevronsRight,
+  ChevronsLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ClientOffice, TabFilter } from "../types/client.types";
@@ -43,7 +45,7 @@ export function ClientManagementTable({
 
   // Pagination
   const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(5);
 
   const filteredOffices = useMemo(() => {
     return offices.filter((item) => {
@@ -190,25 +192,6 @@ export function ClientManagementTable({
                 <option value="الخبر">الخبر</option>
                 <option value="مكة المكرمة">مكة المكرمة</option>
                 <option value="المدينة المنورة">المدينة المنورة</option>
-              </select>
-            </div>
-
-            {/* Page Size in Drawer */}
-            <div className="space-y-1.5">
-              <label className="text-[13px] font-bold text-[#1b1c1a] block">
-                عدد المكاتب بالصفحة
-              </label>
-              <select
-                value={pageSize}
-                onChange={(e) => {
-                  setPageSize(Number(e.target.value));
-                  setPageIndex(0);
-                }}
-                className="w-full h-[40px] bg-[#f5f3ef] text-[#1b1c1a] text-[13px] font-semibold rounded-[4px] px-[12px] border border-transparent focus:outline-none focus:ring-1 focus:ring-[#9c6402] cursor-pointer"
-              >
-                <option value={10}>10 مكاتب</option>
-                <option value={25}>25 مكتباً</option>
-                <option value={50}>50 مكتباً</option>
               </select>
             </div>
           </div>
@@ -406,8 +389,6 @@ export function ClientManagementTable({
               <option value={10}>10</option>
               <option value={20}>20</option>
               <option value={50}>50</option>
-              <option value={100}>100</option>
-              <option value={9999}>الكل</option>
             </select>
           </div>
         </div>
@@ -417,8 +398,19 @@ export function ClientManagementTable({
           <button
             type="button"
             disabled={pageIndex === 0}
+            onClick={() => setPageIndex(0)}
+            title="الصفحة الأولى"
+            className="size-[30px] rounded-[4px] border border-[#eae8e4] text-[#837565] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center cursor-pointer"
+          >
+            <ChevronsRight className="size-[14px]" />
+          </button>
+
+          <button
+            type="button"
+            disabled={pageIndex === 0}
             onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
-            className="px-[12px] py-[6px] rounded-[4px] border border-[#eae8e4] text-[#837565] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-[4px] cursor-pointer"
+            title="الصفحة السابقة"
+            className="px-[10px] py-[6px] rounded-[4px] border border-[#eae8e4] text-[#837565] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-[4px] cursor-pointer"
           >
             <ChevronRight className="size-[13px]" />
             <span>السابق</span>
@@ -456,10 +448,21 @@ export function ClientManagementTable({
             type="button"
             disabled={pageIndex >= totalPages - 1}
             onClick={() => setPageIndex((p) => Math.min(totalPages - 1, p + 1))}
-            className="px-[12px] py-[6px] rounded-[4px] border border-[#eae8e4] text-[#1b1c1a] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-[4px] cursor-pointer"
+            title="الصفحة التالية"
+            className="px-[10px] py-[6px] rounded-[4px] border border-[#eae8e4] text-[#1b1c1a] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-[4px] cursor-pointer"
           >
             <span>التالي</span>
             <ChevronLeft className="size-[13px]" />
+          </button>
+
+          <button
+            type="button"
+            disabled={pageIndex >= totalPages - 1}
+            onClick={() => setPageIndex(totalPages - 1)}
+            title="الصفحة الأخيرة"
+            className="size-[30px] rounded-[4px] border border-[#eae8e4] text-[#837565] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center cursor-pointer"
+          >
+            <ChevronsLeft className="size-[14px]" />
           </button>
         </div>
       </div>

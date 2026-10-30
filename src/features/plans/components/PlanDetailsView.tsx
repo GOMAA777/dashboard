@@ -18,6 +18,8 @@ import {
   SlidersHorizontal,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PricingPlanItem } from "../types/plan.types";
@@ -36,7 +38,16 @@ export function PlanDetailsView({
   onEdit,
   onNavigateToClients,
 }: PlanDetailsViewProps) {
-  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(5);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
+  const totalItems = silverSubscribedFirms.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const validCurrentPage = Math.min(currentPage, totalPages);
+  const pagedFirms = silverSubscribedFirms.slice(
+    (validCurrentPage - 1) * pageSize,
+    validCurrentPage * pageSize
+  );
 
   const planCode = plan?.code || "CODE: PLAN-SLV-02";
   const planName = plan?.name || "الباقة الفضية";
@@ -521,7 +532,7 @@ export function PlanDetailsView({
               </tr>
             </thead>
             <tbody className="divide-y divide-[#f0eeea]">
-              {silverSubscribedFirms.map((firm) => (
+              {pagedFirms.map((firm) => (
                 <tr
                   key={firm.id}
                   className="hover:bg-[#faf8f5] transition-colors"
@@ -617,12 +628,46 @@ export function PlanDetailsView({
 
         {/* Table Footer with Pagination */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-[12px] pt-[16px] mt-[12px] border-t border-[#f0eeea] text-[12px] text-[#737067]">
-          <div>عرض 1 إلى 4 من أصل 52 مكتباً مسجلاً في الباقة</div>
+          <div className="flex items-center gap-3">
+            <div>
+              عرض {totalItems === 0 ? 0 : (validCurrentPage - 1) * pageSize + 1} إلى{" "}
+              {Math.min(validCurrentPage * pageSize, totalItems)} من أصل {totalItems} مكتباً
+            </div>
+
+            <div className="flex items-center gap-[6px]">
+              <span className="text-[11px] text-[#837565]">صفوف بالصفحة:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="bg-[#f5f3ef] text-[#1b1c1a] text-[11px] font-bold py-1 px-2 rounded-[4px] border border-[#eae8e4] focus:outline-none cursor-pointer"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+          </div>
 
           <div className="flex items-center gap-[4px]">
+            {/* First Page */}
             <button
               type="button"
-              disabled={currentPage === 1}
+              disabled={validCurrentPage <= 1}
+              onClick={() => setCurrentPage(1)}
+              title="الصفحة الأولى"
+              className="size-[28px] rounded border border-[#e2ded7] bg-white text-[#737067] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center"
+            >
+              <ChevronsRight className="size-[14px]" />
+            </button>
+
+            {/* Previous Page */}
+            <button
+              type="button"
+              disabled={validCurrentPage <= 1}
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               className="px-[10px] py-[4px] rounded border border-[#e2ded7] bg-white text-[#737067] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-[4px]"
             >
@@ -630,63 +675,44 @@ export function PlanDetailsView({
               <span>السابق</span>
             </button>
 
+            {Array.from({ length: totalPages }).map((_, idx) => {
+              const pageNumber = idx + 1;
+              return (
+                <button
+                  key={pageNumber}
+                  type="button"
+                  onClick={() => setCurrentPage(pageNumber)}
+                  className={`size-[28px] rounded font-bold text-[12px] flex items-center justify-center cursor-pointer ${
+                    validCurrentPage === pageNumber
+                      ? "bg-[#9c6402] text-white"
+                      : "border border-[#e2ded7] bg-white text-[#1b1c1a] hover:bg-[#f5f3ef]"
+                  }`}
+                >
+                  {pageNumber}
+                </button>
+              );
+            })}
+
+            {/* Next Page */}
             <button
               type="button"
-              onClick={() => setCurrentPage(1)}
-              className={`size-[28px] rounded font-bold text-[12px] flex items-center justify-center cursor-pointer ${
-                currentPage === 1
-                  ? "bg-[#9c6402] text-white"
-                  : "border border-[#e2ded7] bg-white text-[#1b1c1a] hover:bg-[#f5f3ef]"
-              }`}
-            >
-              1
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setCurrentPage(2)}
-              className={`size-[28px] rounded font-bold text-[12px] flex items-center justify-center cursor-pointer ${
-                currentPage === 2
-                  ? "bg-[#9c6402] text-white"
-                  : "border border-[#e2ded7] bg-white text-[#1b1c1a] hover:bg-[#f5f3ef]"
-              }`}
-            >
-              2
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setCurrentPage(3)}
-              className={`size-[28px] rounded font-bold text-[12px] flex items-center justify-center cursor-pointer ${
-                currentPage === 3
-                  ? "bg-[#9c6402] text-white"
-                  : "border border-[#e2ded7] bg-white text-[#1b1c1a] hover:bg-[#f5f3ef]"
-              }`}
-            >
-              3
-            </button>
-
-            <span className="px-[4px] text-[#737067]">...</span>
-
-            <button
-              type="button"
-              onClick={() => setCurrentPage(16)}
-              className={`size-[28px] rounded font-bold text-[12px] flex items-center justify-center cursor-pointer ${
-                currentPage === 16
-                  ? "bg-[#9c6402] text-white"
-                  : "border border-[#e2ded7] bg-white text-[#1b1c1a] hover:bg-[#f5f3ef]"
-              }`}
-            >
-              16
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setCurrentPage((p) => Math.min(16, p + 1))}
-              className="px-[10px] py-[4px] rounded border border-[#e2ded7] bg-white text-[#737067] hover:bg-[#f5f3ef] cursor-pointer flex items-center gap-[4px]"
+              disabled={validCurrentPage >= totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              className="px-[10px] py-[4px] rounded border border-[#e2ded7] bg-white text-[#737067] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-[4px]"
             >
               <span>التالي</span>
               <ChevronLeft className="size-[14px]" />
+            </button>
+
+            {/* Last Page */}
+            <button
+              type="button"
+              disabled={validCurrentPage >= totalPages}
+              onClick={() => setCurrentPage(totalPages)}
+              title="الصفحة الأخيرة"
+              className="size-[28px] rounded border border-[#e2ded7] bg-white text-[#737067] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center"
+            >
+              <ChevronsLeft className="size-[14px]" />
             </button>
           </div>
         </div>

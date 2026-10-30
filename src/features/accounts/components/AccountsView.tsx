@@ -29,6 +29,7 @@ import {
 import { toast } from "sonner";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
+import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 import { ScalesOfJusticeWatermark } from "@/components/shared/ScalesOfJusticeWatermark";
 import { LuxurySelect, SelectOption } from "@/components/shared/LuxurySelect";
 import { LuxuryCheckbox } from "@/components/shared/LuxuryCheckbox";
@@ -867,16 +868,17 @@ export function AccountsView() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#fcfbfa] dark:bg-[#121110] text-[#1c1917] dark:text-[#f5f4f0] transition-colors duration-200 relative">
+    <div className="flex h-screen h-dvh overflow-hidden bg-[#fcfbfa] dark:bg-[#121110] text-[#1c1917] dark:text-[#f5f4f0] transition-colors duration-200 relative">
       {/* 1. Main Navigation Sidebar */}
       <DashboardSidebar />
 
       {/* 2. Main Application Body Area */}
-      <div className="flex-1 flex flex-col min-w-0 relative">
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
         <DashboardTopNavbar />
 
         {/* Workspace */}
-        <main className="flex-1 w-full relative">
+        <main className="flex-1 overflow-y-auto w-full relative scrollbar-thin">
+          <DashboardPageTransition>
           {/* Ambient Scales of Justice Emblems */}
           <div
             className="fixed top-28 -left-28 w-[400px] h-[400px] opacity-[0.035] dark:opacity-[0.045] text-[#c29547] pointer-events-none select-none z-0"
@@ -1487,6 +1489,7 @@ export function AccountsView() {
               </div>
             </div>
           </div>
+          </DashboardPageTransition>
         </main>
       </div>
 

@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import {
   Plus,
   Search,
-  ChevronDown,
   Pencil,
   Trash2,
   Building2,
@@ -13,6 +12,10 @@ import {
   Shield,
   FileCheck,
   FolderKanban,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import { TicketDepartment, DepartmentFilterStatus } from "../types/tickets.types";
 
@@ -31,6 +34,8 @@ export function DepartmentsSection({
 }: DepartmentsSectionProps) {
   const [filter, setFilter] = useState<DepartmentFilterStatus>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [pageSize, setPageSize] = useState<number>(5);
+  const [pageIndex, setPageIndex] = useState<number>(0);
 
   const activeCount = departments.filter((d) => d.status === "active").length;
   const inactiveCount = departments.filter((d) => d.status === "inactive").length;
@@ -51,6 +56,15 @@ export function DepartmentsSection({
 
     return true;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filteredDepartments.length / pageSize));
+  const safePageIndex = Math.min(pageIndex, totalPages - 1);
+  const pagedDepartments = filteredDepartments.slice(
+    safePageIndex * pageSize,
+    (safePageIndex + 1) * pageSize
+  );
+  const startItem = filteredDepartments.length === 0 ? 0 : safePageIndex * pageSize + 1;
+  const endItem = Math.min((safePageIndex + 1) * pageSize, filteredDepartments.length);
 
   const getDepartmentIcon = (code: string) => {
     switch (code) {
@@ -117,7 +131,10 @@ export function DepartmentsSection({
             {/* All */}
             <button
               type="button"
-              onClick={() => setFilter("all")}
+              onClick={() => {
+                setFilter("all");
+                setPageIndex(0);
+              }}
               className={`flex items-center gap-[8px] px-[16px] py-[6px] rounded-[10px] text-[14px] leading-[20px] font-semibold transition-all cursor-pointer ${
                 filter === "all"
                   ? "bg-white text-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
@@ -139,7 +156,10 @@ export function DepartmentsSection({
             {/* Active */}
             <button
               type="button"
-              onClick={() => setFilter("active")}
+              onClick={() => {
+                setFilter("active");
+                setPageIndex(0);
+              }}
               className={`flex items-center gap-[8px] px-[16px] py-[6px] rounded-[10px] text-[14px] leading-[20px] font-medium transition-all cursor-pointer ${
                 filter === "active"
                   ? "bg-white text-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] font-semibold"
@@ -155,7 +175,10 @@ export function DepartmentsSection({
             {/* Inactive */}
             <button
               type="button"
-              onClick={() => setFilter("inactive")}
+              onClick={() => {
+                setFilter("inactive");
+                setPageIndex(0);
+              }}
               className={`flex items-center gap-[8px] px-[16px] py-[6px] rounded-[10px] text-[14px] leading-[20px] font-medium transition-all cursor-pointer ${
                 filter === "inactive"
                   ? "bg-white text-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] font-semibold"
@@ -168,19 +191,6 @@ export function DepartmentsSection({
               <span>غير نشط</span>
             </button>
           </div>
-
-          {/* Page view size */}
-          <div className="flex items-center gap-[8px] justify-end">
-            <span className="text-[#837565] text-[12px] leading-[18px]">
-              عرض الصفحة:
-            </span>
-            <div className="bg-[#f5f3ef] flex items-center gap-[6px] px-[12px] py-[6px] rounded-[4px] cursor-pointer">
-              <span className="font-semibold text-[#1b1c1a] text-[12px] leading-[16px]">
-                10 مكاتب
-              </span>
-              <ChevronDown className="size-[12px] text-[#514537]" />
-            </div>
-          </div>
         </div>
 
         {/* Search Bar */}
@@ -188,7 +198,10 @@ export function DepartmentsSection({
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPageIndex(0);
+            }}
             placeholder="البحث باسم القسم أو الرقم التعريفي..."
             className="w-full bg-[#f5f3ef] border-0 rounded-[4px] py-[8px] ps-[14px] pe-[40px] text-[12px] text-[#1b1c1a] placeholder:text-[#837565] focus:outline-none focus:ring-1 focus:ring-[#9c6402]/40 text-start"
           />
@@ -221,7 +234,7 @@ export function DepartmentsSection({
             </thead>
 
             <tbody className="divide-y divide-[#eae8e4]/60">
-              {filteredDepartments.map((dept, idx) => {
+              {pagedDepartments.map((dept, idx) => {
                 const isEven = idx % 2 === 1;
 
                 return (
@@ -302,6 +315,108 @@ export function DepartmentsSection({
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination Footer */}
+        <div className="bg-white flex flex-col sm:flex-row items-center justify-between p-[16px] border-t border-[#eae8e4] gap-[12px]">
+          <div className="flex items-center gap-[12px] order-1 sm:order-2">
+            <div className="text-[12px] text-[#514537]">
+              عرض <span className="font-bold text-[#1b1c1a]">{startItem}</span> إلى{" "}
+              <span className="font-bold text-[#1b1c1a]">{endItem}</span> من أصل{" "}
+              <span className="font-bold text-[#1b1c1a]">{filteredDepartments.length}</span> قسم
+            </div>
+
+            <div className="flex items-center gap-[6px]">
+              <span className="text-[11px] text-[#837565]">صفوف بالصفحة:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setPageIndex(0);
+                }}
+                className="bg-[#f5f3ef] text-[#1b1c1a] text-[11px] font-bold py-1 px-2 rounded-[4px] border border-[#eae8e4] focus:outline-none cursor-pointer"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-[6px] order-2 sm:order-1">
+            {/* First Page */}
+            <button
+              type="button"
+              disabled={safePageIndex === 0}
+              onClick={() => setPageIndex(0)}
+              title="الصفحة الأولى"
+              className="size-[32px] rounded-[4px] border border-[#eae8e4] text-[#837565] hover:bg-[#eae8e4] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
+            >
+              <ChevronsRight className="size-[14px]" />
+            </button>
+
+            {/* Previous Page */}
+            <button
+              type="button"
+              disabled={safePageIndex === 0}
+              onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
+              className="bg-[#f5f3ef] flex items-center gap-[4px] px-[12px] py-[6px] rounded-[4px] text-[12px] font-semibold text-[#837565] hover:text-[#1b1c1a] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            >
+              <ChevronRight className="size-[12px]" />
+              <span>السابق</span>
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i).map((p) => {
+              if (totalPages > 5 && Math.abs(p - safePageIndex) > 2 && p !== 0 && p !== totalPages - 1) {
+                if (p === 1 || p === totalPages - 2) {
+                  return (
+                    <span key={p} className="text-[#837565] px-[4px] text-[12px]">
+                      ...
+                    </span>
+                  );
+                }
+                return null;
+              }
+              const isActive = safePageIndex === p;
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setPageIndex(p)}
+                  className={`size-[32px] rounded-[4px] font-bold text-[12px] flex items-center justify-center transition-colors cursor-pointer ${
+                    isActive
+                      ? "bg-[#9c6402] text-white shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
+                      : "bg-[#f5f3ef] text-[#1b1c1a] hover:bg-[#eae8e4]"
+                  }`}
+                >
+                  {p + 1}
+                </button>
+              );
+            })}
+
+            {/* Next Page */}
+            <button
+              type="button"
+              disabled={safePageIndex >= totalPages - 1}
+              onClick={() => setPageIndex((p) => Math.min(totalPages - 1, p + 1))}
+              className="bg-[#f5f3ef] flex items-center gap-[4px] px-[12px] py-[6px] rounded-[4px] text-[12px] font-semibold text-[#1b1c1a] hover:bg-[#eae8e4] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            >
+              <span>التالي</span>
+              <ChevronLeft className="size-[12px]" />
+            </button>
+
+            {/* Last Page */}
+            <button
+              type="button"
+              disabled={safePageIndex >= totalPages - 1}
+              onClick={() => setPageIndex(totalPages - 1)}
+              title="الصفحة الأخيرة"
+              className="size-[32px] rounded-[4px] border border-[#eae8e4] text-[#837565] hover:bg-[#eae8e4] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
+            >
+              <ChevronsLeft className="size-[14px]" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -17,6 +17,7 @@ import { CannotDeletePlanDialog } from "./CannotDeletePlanDialog";
 import { DeletePlanDialog } from "./DeletePlanDialog";
 import { PricingPlanItem, PlanViewMode } from "../types/plan.types";
 import { initialPricingPlans } from "../data/initialPlans";
+import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 
 export function PlansView() {
   const router = useRouter();
@@ -139,19 +140,20 @@ export function PlansView() {
 
   return (
     <div
-      className="flex min-h-screen w-full bg-background text-foreground transition-colors duration-200 font-['Cairo',sans-serif] selection:bg-[#9c6402]/20 selection:text-[#9c6402]"
+      className="flex h-screen h-dvh overflow-hidden w-full bg-background text-foreground transition-colors duration-200 font-['Cairo',sans-serif] selection:bg-[#9c6402]/20 selection:text-[#9c6402]"
     >
       {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar activeNav="plans" />
 
       {/* 2. Main Content Canvas */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
         {/* Top Navbar with Notifications Flyout */}
         <DashboardTopNavbar />
 
         {/* Dynamic Workspace Container */}
-        <main className="flex-1 p-[20px] md:p-[28px]">
-          <div className="w-full space-y-[20px]">
+        <main className="flex-1 overflow-y-auto p-[20px] md:p-[28px] scrollbar-thin">
+          <DashboardPageTransition>
+            <div className="w-full space-y-[20px]">
 
           {/* View Mode Switching */}
           {viewMode === "list" && (
@@ -243,7 +245,8 @@ export function PlansView() {
               />
             </div>
           )}
-          </div>
+            </div>
+          </DashboardPageTransition>
         </main>
       </div>
 

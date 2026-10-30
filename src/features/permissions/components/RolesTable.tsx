@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import {
   Shield,
   Headphones,
@@ -12,6 +14,8 @@ import {
   Trash2,
   ChevronRight,
   ChevronLeft,
+  ChevronsRight,
+  ChevronsLeft,
 } from "lucide-react";
 import { RoleItem } from "../types/roles.types";
 
@@ -22,6 +26,18 @@ interface RolesTableProps {
 }
 
 export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps) {
+  const [pageSize, setPageSize] = useState<number>(5);
+  const [pageIndex, setPageIndex] = useState<number>(0);
+
+  const totalPages = Math.max(1, Math.ceil(roles.length / pageSize));
+  const safePageIndex = Math.min(pageIndex, totalPages - 1);
+  const pagedRoles = roles.slice(
+    safePageIndex * pageSize,
+    (safePageIndex + 1) * pageSize
+  );
+  const startItem = roles.length === 0 ? 0 : safePageIndex * pageSize + 1;
+  const endItem = Math.min((safePageIndex + 1) * pageSize, roles.length);
+
   const getRoleIcon = (type: string) => {
     switch (type) {
       case "shield":
@@ -78,7 +94,7 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
 
           {/* Table Body */}
           <tbody className="divide-y divide-[#f0eeea]" data-node-id="1:11657">
-            {roles.map((role) => (
+            {pagedRoles.map((role) => (
               <tr
                 key={role.id}
                 className="hover:bg-[#fbf9f6] transition-colors"
@@ -227,72 +243,110 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
         className="bg-white border-t border-[#e6e2dc] p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-right"
         data-node-id="1:11855"
       >
-        {/* Total counts text */}
-        <div className="text-[12px] text-[#514537]" data-node-id="1:11877">
-          <span>عرض </span>
-          <strong className="font-bold text-[#1b1c1a]">1</strong>
-          <span> إلى </span>
-          <strong className="font-bold text-[#1b1c1a]">{roles.length}</strong>
-          <span> من أصل </span>
-          <strong className="font-bold text-[#1b1c1a]">10</strong>
-          <span> أدوار مسجلة</span>
+        {/* Total counts text & Rows per page */}
+        <div className="flex items-center gap-3 order-1 sm:order-2">
+          <div className="text-[12px] text-[#514537]" data-node-id="1:11877">
+            <span>عرض </span>
+            <strong className="font-bold text-[#1b1c1a]">{startItem}</strong>
+            <span> إلى </span>
+            <strong className="font-bold text-[#1b1c1a]">{endItem}</strong>
+            <span> من أصل </span>
+            <strong className="font-bold text-[#1b1c1a]">{roles.length}</strong>
+            <span> أدوار مسجلة</span>
+          </div>
+
+          <div className="flex items-center gap-[6px]">
+            <span className="text-[11px] text-[#837565]">صفوف بالصفحة:</span>
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setPageIndex(0);
+              }}
+              className="bg-[#f5f3ef] text-[#1b1c1a] text-[11px] font-bold py-1 px-2 rounded-[4px] border border-[#eae8e4] focus:outline-none cursor-pointer"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
         </div>
 
-        {/* Numeric page buttons */}
-        <div className="flex items-center gap-1.5" data-node-id="1:11856">
+        {/* Numeric page buttons with First & Last arrows */}
+        <div className="flex items-center gap-1.5 order-2 sm:order-1" data-node-id="1:11856">
+          {/* First Page */}
+          <button
+            type="button"
+            disabled={safePageIndex === 0}
+            onClick={() => setPageIndex(0)}
+            title="الصفحة الأولى"
+            className="size-[32px] rounded-[4px] border border-[#e6e2dc] text-[#837565] hover:bg-[#eae8e4] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
+          >
+            <ChevronsRight className="size-[14px]" />
+          </button>
+
           {/* Previous */}
           <button
             type="button"
-            className="flex items-center gap-1 px-2.5 py-1.5 bg-[#f5f3ef] hover:bg-[#eae8e4] text-[#837565] rounded-[4px] text-[12px] font-semibold transition-colors cursor-pointer"
+            disabled={safePageIndex === 0}
+            onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
+            className="flex items-center gap-1 px-2.5 py-1.5 bg-[#f5f3ef] hover:bg-[#eae8e4] disabled:opacity-40 disabled:cursor-not-allowed text-[#837565] rounded-[4px] text-[12px] font-semibold transition-colors cursor-pointer"
             data-node-id="1:11872"
           >
             <ChevronRight className="size-[13px]" />
             <span>السابق</span>
           </button>
 
-          {/* Page 1 (Active) */}
-          <button
-            type="button"
-            className="size-[32px] bg-[#9c6402] text-white rounded-[4px] text-[12px] font-bold flex items-center justify-center shadow-xs cursor-default"
-            data-node-id="1:11870"
-          >
-            1
-          </button>
-
-          {/* Page 2 */}
-          <button
-            type="button"
-            className="size-[32px] bg-[#f5f3ef] hover:bg-[#eae8e4] text-[#1b1c1a] rounded-[4px] text-[12px] font-semibold flex items-center justify-center transition-colors cursor-pointer"
-          >
-            2
-          </button>
-
-          {/* Page 3 */}
-          <button
-            type="button"
-            className="size-[32px] bg-[#f5f3ef] hover:bg-[#eae8e4] text-[#1b1c1a] rounded-[4px] text-[12px] font-semibold flex items-center justify-center transition-colors cursor-pointer"
-          >
-            3
-          </button>
-
-          <span className="text-[#837565] text-[12px] px-1 font-semibold">...</span>
-
-          {/* Last page */}
-          <button
-            type="button"
-            className="size-[32px] bg-[#f5f3ef] hover:bg-[#eae8e4] text-[#1b1c1a] rounded-[4px] text-[12px] font-semibold flex items-center justify-center transition-colors cursor-pointer"
-          >
-            16
-          </button>
+          {Array.from({ length: totalPages }, (_, i) => i).map((p) => {
+            if (totalPages > 5 && Math.abs(p - safePageIndex) > 2 && p !== 0 && p !== totalPages - 1) {
+              if (p === 1 || p === totalPages - 2) {
+                return (
+                  <span key={p} className="text-[#837565] text-[12px] px-1 font-semibold">
+                    ...
+                  </span>
+                );
+              }
+              return null;
+            }
+            const isActive = safePageIndex === p;
+            return (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setPageIndex(p)}
+                className={`size-[32px] rounded-[4px] text-[12px] font-semibold flex items-center justify-center transition-colors cursor-pointer ${
+                  isActive
+                    ? "bg-[#9c6402] text-white font-bold shadow-xs cursor-default"
+                    : "bg-[#f5f3ef] hover:bg-[#eae8e4] text-[#1b1c1a]"
+                }`}
+              >
+                {p + 1}
+              </button>
+            );
+          })}
 
           {/* Next */}
           <button
             type="button"
-            className="flex items-center gap-1 px-2.5 py-1.5 bg-[#f5f3ef] hover:bg-[#eae8e4] text-[#1b1c1a] rounded-[4px] text-[12px] font-semibold transition-colors cursor-pointer"
+            disabled={safePageIndex >= totalPages - 1}
+            onClick={() => setPageIndex((p) => Math.min(totalPages - 1, p + 1))}
+            className="flex items-center gap-1 px-2.5 py-1.5 bg-[#f5f3ef] hover:bg-[#eae8e4] disabled:opacity-40 disabled:cursor-not-allowed text-[#1b1c1a] rounded-[4px] text-[12px] font-semibold transition-colors cursor-pointer"
             data-node-id="1:11857"
           >
             <span>التالي</span>
             <ChevronLeft className="size-[13px]" />
+          </button>
+
+          {/* Last Page */}
+          <button
+            type="button"
+            disabled={safePageIndex >= totalPages - 1}
+            onClick={() => setPageIndex(totalPages - 1)}
+            title="الصفحة الأخيرة"
+            className="size-[32px] rounded-[4px] border border-[#e6e2dc] text-[#837565] hover:bg-[#eae8e4] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
+          >
+            <ChevronsLeft className="size-[14px]" />
           </button>
         </div>
       </div>

@@ -17,6 +17,8 @@ import {
   UserCheck,
   ChevronRight,
   ChevronLeft,
+  ChevronsRight,
+  ChevronsLeft,
   Lock,
 } from "lucide-react";
 import { Employee, IconType } from "../types/staff.types";
@@ -39,7 +41,7 @@ export function StaffTable({
   onResetPassword,
 }: StaffTableProps) {
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(5);
   const [pageIndex, setPageIndex] = useState(0);
 
   const totalItems = employees.length;
@@ -378,8 +380,6 @@ export function StaffTable({
               <option value={10}>10</option>
               <option value={20}>20</option>
               <option value={50}>50</option>
-              <option value={100}>100</option>
-              <option value={9999}>الكل</option>
             </select>
           </div>
         </div>
@@ -389,7 +389,18 @@ export function StaffTable({
           <button
             type="button"
             disabled={safePageIndex === 0}
+            onClick={() => setPageIndex(0)}
+            title="الصفحة الأولى"
+            className="size-[28px] rounded-[4px] border border-[#eae8e4] text-[#837565] hover:bg-[#f2efe9] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
+          >
+            <ChevronsRight className="size-[14px]" />
+          </button>
+
+          <button
+            type="button"
+            disabled={safePageIndex === 0}
             onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
+            title="الصفحة السابقة"
             className="px-2.5 py-1 text-[#514537] hover:bg-[#f2efe9] disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 rounded-[4px] transition-colors cursor-pointer"
           >
             <ChevronRight className="size-[14px]" />
@@ -428,10 +439,21 @@ export function StaffTable({
             type="button"
             disabled={safePageIndex >= totalPages - 1}
             onClick={() => setPageIndex((p) => Math.min(totalPages - 1, p + 1))}
+            title="الصفحة التالية"
             className="px-2.5 py-1 text-[#514537] hover:bg-[#f2efe9] disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 rounded-[4px] transition-colors cursor-pointer"
           >
             <span>التالي</span>
             <ChevronLeft className="size-[14px]" />
+          </button>
+
+          <button
+            type="button"
+            disabled={safePageIndex >= totalPages - 1}
+            onClick={() => setPageIndex(totalPages - 1)}
+            title="الصفحة الأخيرة"
+            className="size-[28px] rounded-[4px] border border-[#eae8e4] text-[#837565] hover:bg-[#f2efe9] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
+          >
+            <ChevronsLeft className="size-[14px]" />
           </button>
         </div>
       </div>

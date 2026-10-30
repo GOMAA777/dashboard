@@ -15,6 +15,8 @@ import {
   Eye,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { DetailedSubscribedFirm } from "../types/plan.types";
@@ -43,7 +45,7 @@ export function SubscribedFirmsView({
   const [renewalFilter, setRenewalFilter] = useState("all");
   const [resourceFilter, setResourceFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(5);
 
   // Active Menu Dropdown state (rendered via createPortal to prevent table scrollbars)
   const [openMenuFirm, setOpenMenuFirm] = useState<{
@@ -410,25 +412,6 @@ export function SubscribedFirmsView({
                 <option value="full">بلغ الحد الأقصى</option>
               </select>
             </div>
-
-            {/* Page Size in Drawer */}
-            <div className="space-y-1.5">
-              <label className="text-[13px] font-bold text-[#1b1c1a] block">
-                عدد الصفوف بالصفحة
-              </label>
-              <select
-                value={pageSize}
-                onChange={(e) => {
-                  setPageSize(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                className="w-full h-[40px] bg-[#f5f3ef] text-[#1b1c1a] text-[13px] font-semibold rounded-[4px] px-[12px] border border-transparent focus:outline-none focus:ring-1 focus:ring-[#9c6402]/30 cursor-pointer"
-              >
-                <option value={10}>10 مكاتب</option>
-                <option value={25}>25 مكتباً</option>
-                <option value={50}>50 مكتباً</option>
-              </select>
-            </div>
           </div>
         }
       />
@@ -687,7 +670,6 @@ export function SubscribedFirmsView({
                 <option value={10}>10</option>
                 <option value={20}>20</option>
                 <option value={50}>50</option>
-                <option value={9999}>الكل</option>
               </select>
             </div>
           </div>
@@ -696,7 +678,18 @@ export function SubscribedFirmsView({
             <button
               type="button"
               disabled={currentPage === 1}
+              onClick={() => setCurrentPage(1)}
+              title="الصفحة الأولى"
+              className="size-[28px] rounded border border-[#e2ded7] bg-white text-[#737067] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center"
+            >
+              <ChevronsRight className="size-[14px]" />
+            </button>
+
+            <button
+              type="button"
+              disabled={currentPage === 1}
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              title="الصفحة السابقة"
               className="px-[10px] py-[4px] rounded border border-[#e2ded7] bg-white text-[#737067] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-[4px]"
             >
               <ChevronRight className="size-[14px]" />
@@ -735,10 +728,21 @@ export function SubscribedFirmsView({
               type="button"
               disabled={currentPage >= totalPages}
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              title="الصفحة التالية"
               className="px-[10px] py-[4px] rounded border border-[#e2ded7] bg-white text-[#737067] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-[4px]"
             >
               <span>التالي</span>
               <ChevronLeft className="size-[14px]" />
+            </button>
+
+            <button
+              type="button"
+              disabled={currentPage >= totalPages}
+              onClick={() => setCurrentPage(totalPages)}
+              title="الصفحة الأخيرة"
+              className="size-[28px] rounded border border-[#e2ded7] bg-white text-[#737067] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center"
+            >
+              <ChevronsLeft className="size-[14px]" />
             </button>
           </div>
         </div>

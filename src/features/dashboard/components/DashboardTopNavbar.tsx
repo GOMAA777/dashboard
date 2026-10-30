@@ -29,6 +29,7 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
   const toggleTheme = useUIStore((state) => state.toggleTheme);
   const direction = useUIStore((state) => state.direction);
   const toggleDirection = useUIStore((state) => state.toggleDirection);
+  const isPageNavigating = useUIStore((state) => state.isPageNavigating);
 
   const currentLanguage = isMounted ? language : "ar";
   const currentTheme = isMounted ? theme : "light";
@@ -36,10 +37,16 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
 
   return (
     <header
-      className="sticky top-0 z-20 shrink-0 bg-white dark:bg-[#1c140f] border-b border-[#eae8e4] dark:border-[#2c221c] drop-shadow-[0px_1px_4px_rgba(0,0,0,0.04)] select-none transition-colors duration-200 w-full"
+      className="sticky top-0 z-20 shrink-0 bg-white dark:bg-[#1c140f] border-b border-[#eae8e4] dark:border-[#2c221c] drop-shadow-[0px_1px_4px_rgba(0,0,0,0.04)] select-none transition-colors duration-200 w-full relative"
       data-node-id="1:641"
       data-name="Header"
     >
+      {/* Dynamic Route Transition Shimmer Bar */}
+      {isPageNavigating && (
+        <div className="absolute top-0 inset-x-0 h-[2.5px] bg-[#9c6402]/20 overflow-hidden z-50">
+          <div className="h-full bg-gradient-to-r from-[#c29547] via-[#e29d38] to-[#9c6402] animate-pulse w-full" />
+        </div>
+      )}
       {/* 1. Primary Actions Bar (64px) */}
       <div className="h-[64px] px-[24px] flex items-center justify-between">
         {/* Right / Start Side (in RTL): Search, Calendar Date */}

@@ -17,18 +17,20 @@ import userAvatarImg from "../../../../public/figma/user-avatar.png";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
 import { ScalesOfJusticeWatermark } from "@/components/shared/ScalesOfJusticeWatermark";
+import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 
 export function ProfileView() {
   return (
-    <div className="flex min-h-screen bg-background text-foreground transition-colors duration-200 relative font-sans">
+    <div className="flex h-screen h-dvh overflow-hidden bg-background text-foreground transition-colors duration-200 relative font-sans">
       {/* 1. Main Navigation Sidebar */}
       <DashboardSidebar />
 
       {/* 2. Main Content Wrapper */}
-      <div className="flex-1 flex flex-col min-w-0 relative">
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
         <DashboardTopNavbar />
 
-        <main className="flex-1 w-full relative p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto w-full relative p-4 sm:p-6 lg:p-8 scrollbar-thin">
+          <DashboardPageTransition>
           {/* Ambient Scales of Justice Emblems */}
           <div
             className="fixed top-28 -left-28 size-[380px] opacity-[0.035] text-[#c29547] pointer-events-none select-none z-0"
@@ -184,6 +186,7 @@ export function ProfileView() {
               </div>
             </div>
           </div>
+          </DashboardPageTransition>
         </main>
       </div>
     </div>

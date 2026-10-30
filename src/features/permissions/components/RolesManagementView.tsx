@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
+import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 import { RoleItem } from "../types/roles.types";
 import { initialRolesList } from "../data/initialRoles";
 import { RolesKpiMetrics } from "./RolesKpiMetrics";
@@ -147,16 +148,17 @@ export function RolesManagementView() {
   };
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground transition-colors duration-200 font-sans antialiased">
+    <div className="flex h-screen h-dvh overflow-hidden bg-background text-foreground transition-colors duration-200 font-sans antialiased">
       {/* Sidebar with active sub-nav for Roles & Permissions */}
       <DashboardSidebar activeNav="staff" activeSubNav="roles" />
 
       {/* Main Layout Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
         <DashboardTopNavbar />
 
-        <main className="flex-1 p-6 md:p-8 w-full space-y-6">
-          {/* Main Title & Command Banner (Figma 1:11533 / 1:11321) */}
+        <main className="flex-1 overflow-y-auto p-6 md:p-8 w-full space-y-6 scrollbar-thin">
+          <DashboardPageTransition>
+            {/* Main Title & Command Banner (Figma 1:11533 / 1:11321) */}
           {(currentView === "list" || currentView === "empty") && (
             <div
               className="bg-white rounded-[8px] p-6 border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
@@ -259,6 +261,7 @@ export function RolesManagementView() {
               initialRole={editingRole}
             />
           )}
+          </DashboardPageTransition>
         </main>
       </div>
 

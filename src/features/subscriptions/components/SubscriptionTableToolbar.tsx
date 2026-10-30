@@ -7,8 +7,6 @@ import { SubscriptionTabFilter } from "../types/subscription.types";
 interface SubscriptionTableToolbarProps {
   currentTab: SubscriptionTabFilter;
   onTabChange: (tab: SubscriptionTabFilter) => void;
-  pageSize: number;
-  onPageSizeChange: (size: number) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   planFilter: string;
@@ -29,8 +27,6 @@ interface SubscriptionTableToolbarProps {
 export function SubscriptionTableToolbar({
   currentTab,
   onTabChange,
-  pageSize,
-  onPageSizeChange,
   searchQuery,
   onSearchChange,
   planFilter,
@@ -109,23 +105,6 @@ export function SubscriptionTableToolbar({
           <option value="sadad">سداد</option>
           <option value="transfer">تحويل بنكي</option>
           <option value="settlement">تسوية</option>
-        </select>
-      </div>
-
-      {/* Page Size in Drawer */}
-      <div className="space-y-1.5">
-        <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-          عدد المكاتب بالصفحة
-        </label>
-        <select
-          value={pageSize}
-          onChange={(e) => onPageSizeChange(Number(e.target.value))}
-          className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[4px] px-[12px] border border-transparent focus:outline-none focus:ring-1 focus:ring-[#9c6402] cursor-pointer"
-        >
-          <option value={10}>10 مكاتب</option>
-          <option value={20}>20 مكتباً</option>
-          <option value={50}>50 مكتباً</option>
-          <option value={100}>100 مكتب</option>
         </select>
       </div>
     </div>

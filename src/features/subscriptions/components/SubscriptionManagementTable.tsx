@@ -10,7 +10,7 @@ import {
 } from "@tanstack/react-table";
 import { SubscriptionRecord, SubscriptionStatus } from "../types/subscription.types";
 import { SubscriptionRowActionMenu } from "./SubscriptionRowActionMenu";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronRight, ChevronLeft, ChevronsRight, ChevronsLeft } from "lucide-react";
 
 interface SubscriptionManagementTableProps {
   data: SubscriptionRecord[];
@@ -392,8 +392,6 @@ export function SubscriptionManagementTable({
                 <option value={10}>10</option>
                 <option value={20}>20</option>
                 <option value={50}>50</option>
-                <option value={100}>100</option>
-                <option value={9999}>الكل</option>
               </select>
             </div>
           )}
@@ -404,7 +402,18 @@ export function SubscriptionManagementTable({
           <button
             type="button"
             disabled={pageIndex === 0}
+            onClick={() => onPageChange(0)}
+            title="الصفحة الأولى"
+            className="size-8 rounded-[4px] bg-[#f5f3ef] dark:bg-[#2c2621] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#514537] dark:text-[#d1c9bd] flex items-center justify-center transition-colors cursor-pointer"
+          >
+            <ChevronsRight className="w-4 h-4" />
+          </button>
+
+          <button
+            type="button"
+            disabled={pageIndex === 0}
             onClick={() => onPageChange(pageIndex - 1)}
+            title="الصفحة السابقة"
             className="bg-[#f5f3ef] dark:bg-[#2c2621] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#514537] dark:text-[#d1c9bd] px-2.5 py-1.5 rounded-[4px] font-['Cairo'] font-semibold text-[12px] flex items-center gap-1 transition-colors cursor-pointer"
           >
             <ChevronRight className="w-3.5 h-3.5" />
@@ -473,10 +482,21 @@ export function SubscriptionManagementTable({
             type="button"
             disabled={pageIndex >= totalPages - 1}
             onClick={() => onPageChange(pageIndex + 1)}
+            title="الصفحة التالية"
             className="bg-[#f5f3ef] dark:bg-[#2c2621] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#1b1c1a] dark:text-[#fdfbf7] px-2.5 py-1.5 rounded-[4px] font-['Cairo'] font-semibold text-[12px] flex items-center gap-1 transition-colors cursor-pointer"
           >
             <span>التالي</span>
             <ChevronLeft className="w-3.5 h-3.5" />
+          </button>
+
+          <button
+            type="button"
+            disabled={pageIndex >= totalPages - 1}
+            onClick={() => onPageChange(totalPages - 1)}
+            title="الصفحة الأخيرة"
+            className="size-8 rounded-[4px] bg-[#f5f3ef] dark:bg-[#2c2621] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#514537] dark:text-[#d1c9bd] flex items-center justify-center transition-colors cursor-pointer"
+          >
+            <ChevronsLeft className="w-4 h-4" />
           </button>
         </div>
       </div>

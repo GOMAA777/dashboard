@@ -6,6 +6,7 @@ import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
+import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 import {
   Ticket,
   TicketTabType,
@@ -276,17 +277,32 @@ export function TicketsView() {
     toast.success(`تم حذف القسم "${targetDept?.name || ""}" بنجاح`);
   };
 
+  const breadcrumbs = selectedTicketForDetails
+    ? [
+        { label: "الرئيسية", href: "/" },
+        { label: "تذاكر الدعم الفني", href: "/tickets" },
+        { label: `تذكرة ${selectedTicketForDetails.ticketNumber || selectedTicketForDetails.id}` },
+      ]
+    : isCreatingTicket
+    ? [
+        { label: "الرئيسية", href: "/" },
+        { label: "تذاكر الدعم الفني", href: "/tickets" },
+        { label: "إنشاء تذكرة جديدة" },
+      ]
+    : undefined;
+
   return (
-    <div className="flex min-h-screen bg-background text-foreground transition-colors duration-200 antialiased select-none">
+    <div className="flex h-screen h-dvh overflow-hidden bg-background text-foreground transition-colors duration-200 antialiased select-none">
       {/* Sidebar with activeNav="support" and activeSubNav={activeTab} */}
       <DashboardSidebar activeNav="support" activeSubNav={activeTab} />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
         {/* Top Navbar */}
-        <DashboardTopNavbar />
+        <DashboardTopNavbar customBreadcrumbs={breadcrumbs} />
 
         {/* Main Content Container */}
-        <main className="flex-1 p-[24px] sm:p-[32px] max-w-[1400px] w-full mx-auto flex flex-col gap-[24px]">
+        <main className="flex-1 overflow-y-auto p-[24px] sm:p-[32px] max-w-[1400px] w-full mx-auto flex flex-col gap-[24px] scrollbar-thin">
+          <DashboardPageTransition>
           {/* VIEW 1: Ticket Details View */}
           {selectedTicketForDetails ? (
             <TicketDetailsModal
@@ -387,6 +403,7 @@ export function TicketsView() {
               )}
             </div>
           )}
+          </DashboardPageTransition>
         </main>
       </div>
 

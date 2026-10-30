@@ -1,6 +1,27 @@
 import React from "react";
-import { LoadingScreen } from "@/components/shared/LoadingScreen";
+import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
+import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
+import { DashboardPageSkeleton } from "@/components/shared/DashboardPageSkeleton";
 
 export default function Loading() {
-  return <LoadingScreen statusText="جاري تحميل لوحة التحكم..." />;
+  return (
+    <div
+      className="flex h-screen h-dvh w-full bg-[#fcfbfa] dark:bg-[#151311] text-[#1b1c1a] dark:text-[#fdfbf7] overflow-hidden"
+      dir="rtl"
+    >
+      {/* 1. Global Navigation Sidebar remains fixed */}
+      <DashboardSidebar />
+
+      {/* 2. Main Content Viewport */}
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+        {/* Fixed Top Navbar & Breadcrumb */}
+        <DashboardTopNavbar />
+
+        {/* Dynamic Skeleton Content */}
+        <main className="flex-1 overflow-y-auto p-6 md:p-8">
+          <DashboardPageSkeleton />
+        </main>
+      </div>
+    </div>
+  );
 }

@@ -5,13 +5,14 @@ import Image from "next/image";
 import {
   Bell,
   Search,
-  ChevronDown,
   Trash2,
   Eye,
   Copy,
   ExternalLink,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   CheckCheck,
   ImageIcon,
 } from "lucide-react";
@@ -37,7 +38,7 @@ export function NotificationsListView({
   // Filters & State
   const [activeTab, setActiveTab] = useState<"all" | "active" | "scheduled" | "draft">("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [pageSize, setPageSize] = useState<number>(10);
+  const [pageSize, setPageSize] = useState<number>(5);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -272,29 +273,6 @@ export function NotificationsListView({
               </span>
             </button>
           </div>
-
-          {/* Left Page Size Dropdown (Visual Left in RTL) */}
-          <div className="flex items-center gap-2 shrink-0" data-node-id="1:12893">
-            <span className="text-[#837565] text-[12px]" data-node-id="1:12900">
-              عرض الصفحة:
-            </span>
-            <div className="relative">
-              <select
-                value={pageSize}
-                onChange={(e) => {
-                  setPageSize(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                className="bg-[#f5f3ef] hover:bg-[#edebe6] text-[#1b1c1a] text-[12px] font-semibold pl-8 pr-3 py-1.5 rounded-[4px] appearance-none focus:outline-none cursor-pointer transition-colors"
-                data-node-id="1:12895"
-              >
-                <option value={10}>10 إشعارات</option>
-                <option value={20}>20 إشعاراً</option>
-                <option value={50}>50 إشعاراً</option>
-              </select>
-              <ChevronDown className="size-3 text-[#514537] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            </div>
-          </div>
         </div>
 
         {/* Filter Row & Search Bar (Figma 1:12922) */}
@@ -511,12 +489,43 @@ export function NotificationsListView({
 
         {/* Table Footer: Pagination */}
         <div className="border-t border-[#f5f3ef] px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-[12px] text-[#514537]">
-            عرض {totalItems === 0 ? 0 : (validCurrentPage - 1) * pageSize + 1} إلى{" "}
-            {Math.min(validCurrentPage * pageSize, totalItems)} من أصل {totalItems} إشعاراً
-          </p>
+          <div className="flex items-center gap-3">
+            <p className="text-[12px] text-[#514537]">
+              عرض {totalItems === 0 ? 0 : (validCurrentPage - 1) * pageSize + 1} إلى{" "}
+              {Math.min(validCurrentPage * pageSize, totalItems)} من أصل {totalItems} إشعاراً
+            </p>
+
+            <div className="flex items-center gap-[6px]">
+              <span className="text-[11px] text-[#837565]">صفوف بالصفحة:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="bg-[#f5f3ef] text-[#1b1c1a] text-[11px] font-bold py-1 px-2 rounded-[4px] border border-[#eae8e4] focus:outline-none cursor-pointer"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+          </div>
 
           <div className="flex items-center gap-1.5">
+            {/* First Page */}
+            <button
+              type="button"
+              onClick={() => setCurrentPage(1)}
+              disabled={validCurrentPage <= 1}
+              title="الصفحة الأولى"
+              className="size-[28px] rounded-[4px] border border-[#e6e2dc] bg-white text-[#514537] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer flex items-center justify-center"
+            >
+              <ChevronsRight className="size-3.5" />
+            </button>
+
+            {/* Previous Page */}
             <button
               type="button"
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -561,6 +570,7 @@ export function NotificationsListView({
               );
             })}
 
+            {/* Next Page */}
             <button
               type="button"
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
@@ -569,6 +579,17 @@ export function NotificationsListView({
             >
               <span>التالي</span>
               <ChevronLeft className="size-3.5" />
+            </button>
+
+            {/* Last Page */}
+            <button
+              type="button"
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={validCurrentPage >= totalPages}
+              title="الصفحة الأخيرة"
+              className="size-[28px] rounded-[4px] border border-[#e6e2dc] bg-white text-[#514537] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer flex items-center justify-center"
+            >
+              <ChevronsLeft className="size-3.5" />
             </button>
           </div>
         </div>

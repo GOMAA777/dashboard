@@ -21,6 +21,7 @@ import {
   Users,
   Key,
   ChevronLeft,
+  ChevronRight,
   ChevronDown,
   LogOut,
   Ticket,
@@ -33,7 +34,8 @@ import { clearAuthSession } from "@/lib/auth-client";
 
 interface NavItem {
   id: string;
-  label: string;
+  labelAr: string;
+  labelEn: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   sizeClass: string;
@@ -41,18 +43,18 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { id: "home", label: "الرئيسية", href: "/", icon: LayoutGrid, sizeClass: "size-[16px]" },
-  { id: "clients", label: "إدارة العملاء", href: "/accounts", icon: Users, sizeClass: "size-[18px]" },
-  { id: "plans", label: "الباقات والأسعار", href: "/plans", icon: Tag, sizeClass: "size-[17px]" },
-  { id: "subscriptions", label: "الاشتراكات", href: "/subscriptions", icon: CreditCard, sizeClass: "size-[17px]" },
-  { id: "staff", label: "طاقم العمل", href: "/permissions", icon: UserCheck, sizeClass: "size-[19px]" },
-  { id: "notifications", label: "الإشعارات", href: "/notifications", icon: Bell, sizeClass: "size-[16px]" },
-  { id: "finance", label: "المعاملات المالية", href: "/invoices", icon: Receipt, sizeClass: "size-[16px]" },
-  { id: "support", label: "الدعم الفني", href: "/tickets", icon: Headphones, sizeClass: "size-[17px]" },
-  { id: "site-settings", label: "إعدادات الموقع", href: "#", icon: Globe, sizeClass: "size-[17px]", isUnderConstruction: true },
-  { id: "mail-settings", label: "إعدادات البريد", href: "#", icon: Mail, sizeClass: "size-[17px]", isUnderConstruction: true },
-  { id: "system-settings", label: "إعدادات النظام", href: "/settings/general", icon: Settings, sizeClass: "size-[17px]" },
-  { id: "utility", label: "فواتير", href: "#", icon: AppWindow, sizeClass: "size-[19px]", isUnderConstruction: true },
+  { id: "home", labelAr: "الرئيسية", labelEn: "Dashboard", href: "/", icon: LayoutGrid, sizeClass: "size-[16px]" },
+  { id: "clients", labelAr: "إدارة العملاء", labelEn: "Client Management", href: "/accounts", icon: Users, sizeClass: "size-[18px]" },
+  { id: "plans", labelAr: "الباقات والأسعار", labelEn: "Plans & Pricing", href: "/plans", icon: Tag, sizeClass: "size-[17px]" },
+  { id: "subscriptions", labelAr: "الاشتراكات", labelEn: "Subscriptions", href: "/subscriptions", icon: CreditCard, sizeClass: "size-[17px]" },
+  { id: "staff", labelAr: "طاقم العمل", labelEn: "Staff", href: "/permissions", icon: UserCheck, sizeClass: "size-[19px]" },
+  { id: "notifications", labelAr: "الإشعارات", labelEn: "Notifications", href: "/notifications", icon: Bell, sizeClass: "size-[16px]" },
+  { id: "finance", labelAr: "المعاملات المالية", labelEn: "Financial Transactions", href: "/invoices", icon: Receipt, sizeClass: "size-[16px]" },
+  { id: "support", labelAr: "الدعم الفني", labelEn: "Technical Support", href: "/tickets", icon: Headphones, sizeClass: "size-[17px]" },
+  { id: "site-settings", labelAr: "إعدادات الموقع", labelEn: "Site Settings", href: "#", icon: Globe, sizeClass: "size-[17px]", isUnderConstruction: true },
+  { id: "mail-settings", labelAr: "إعدادات البريد", labelEn: "Mail Settings", href: "#", icon: Mail, sizeClass: "size-[17px]", isUnderConstruction: true },
+  { id: "system-settings", labelAr: "إعدادات النظام", labelEn: "System Settings", href: "/settings/general", icon: Settings, sizeClass: "size-[17px]" },
+  { id: "utility", labelAr: "utility", labelEn: "Utility", href: "/utility/update", icon: AppWindow, sizeClass: "size-[19px]" },
 ];
 
 interface DashboardSidebarProps {
@@ -66,6 +68,13 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
   const toggleSidebarCollapsed = useUIStore((state) => state.toggleSidebarCollapsed);
+  const setPageNavigating = useUIStore((state) => state.setPageNavigating);
+
+  const handleNavClick = (href: string) => {
+    if (href && href !== "#" && href !== pathname) {
+      setPageNavigating(true);
+    }
+  };
 
   const [userDropdownToggles, setUserDropdownToggles] = useState<Record<string, boolean>>({});
 
@@ -77,12 +86,19 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
   const isSystemSettingsActive =
     activeNav === "system-settings" ||
     (pathname?.startsWith("/settings") ?? false);
+  const isUtilityActive =
+    activeNav === "utility" ||
+    (pathname?.startsWith("/utility") ?? false);
 
   const openDropdowns: Record<string, boolean> = {
     support: userDropdownToggles.support ?? isSupportActive,
     staff: userDropdownToggles.staff ?? isStaffActive,
     "system-settings": userDropdownToggles["system-settings"] ?? isSystemSettingsActive,
+    utility: userDropdownToggles.utility ?? isUtilityActive,
   };
+
+  const direction = useUIStore((state) => state.direction);
+  const language = useUIStore((state) => state.language);
 
   const isMounted = useSyncExternalStore(
     () => () => {},
@@ -91,11 +107,17 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
   );
 
   const isCollapsed = isMounted ? sidebarCollapsed : false;
+  const currentLang = isMounted ? language : "ar";
+  const isRTL = isMounted ? direction === "rtl" : true;
+
+  const CollapseIcon = isCollapsed
+    ? (isRTL ? ChevronLeft : ChevronRight)
+    : (isRTL ? ChevronRight : ChevronLeft);
 
   const handleConfirmLogout = () => {
     clearAuthSession();
     setIsLogoutModalOpen(false);
-    toast.success("تم تسجيل الخروج بنجاح");
+    toast.success(currentLang === "en" ? "Logged out successfully" : "تم تسجيل الخروج بنجاح");
     router.push("/login");
   };
 
@@ -108,20 +130,16 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
       data-node-id="1:667"
       data-name="Aside"
     >
-      {/* Sidebar Collapse/Expand Toggle Button on the boundary */}
+      {/* Sidebar Collapse/Expand Toggle Button permanently anchored on the boundary */}
       <button
         type="button"
         onClick={toggleSidebarCollapsed}
-        aria-label={isCollapsed ? "توسيع القائمة الجانبية" : "تصغير القائمة الجانبية"}
-        title={isCollapsed ? "توسيع القائمة الجانبية" : "تصغير القائمة الجانبية"}
-        className="absolute top-[20px] rtl:left-0 rtl:-translate-x-1/2 ltr:right-0 ltr:translate-x-1/2 z-40 size-[26px] bg-white hover:bg-[#f5f3ef] text-[#514537] hover:text-[#1b1c1a] border border-[#ded5c6] rounded-full shadow-[0px_2px_5px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all cursor-pointer focus:outline-none"
+        aria-label={isCollapsed ? (currentLang === "en" ? "Expand sidebar" : "توسيع القائمة الجانبية") : (currentLang === "en" ? "Collapse sidebar" : "تصغير القائمة الجانبية")}
+        title={isCollapsed ? (currentLang === "en" ? "Expand sidebar" : "توسيع القائمة الجانبية") : (currentLang === "en" ? "Collapse sidebar" : "تصغير القائمة الجانبية")}
+        className="absolute top-[20px] end-[-13px] z-40 size-[26px] bg-[#221812] hover:bg-[#2c1f17] text-[#cdc5bd] hover:text-[#fdfbf7] border border-[#3d2a1d] rounded-full shadow-[0px_2px_5px_rgba(0,0,0,0.35)] flex items-center justify-center transition-colors cursor-pointer focus:outline-none"
+        style={{ insetInlineEnd: "-13px" }}
       >
-        <ChevronLeft
-          className={cn(
-            "size-[14px] text-[#514537] transition-transform duration-300",
-            isCollapsed ? "rtl:rotate-180 ltr:rotate-0" : "rtl:rotate-0 ltr:rotate-180"
-          )}
-        />
+        <CollapseIcon className="size-[14px] text-[#cdc5bd]" />
       </button>
 
       {/* Top Section: Logo & Nav List */}
@@ -144,7 +162,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
             {/* Brand Logo Icon */}
             <div
               className="size-[34px] rounded-[8px] overflow-hidden flex items-center justify-center shrink-0"
-              title={isCollapsed ? "الجودي - لوحة الإدارة العليا" : undefined}
+              title={isCollapsed ? (currentLang === "en" ? "Al Joudy - Executive Admin Dashboard" : "الجودي - لوحة الإدارة العليا") : undefined}
             >
               <AlJoudyLogo className="size-[34px]" priority />
             </div>
@@ -153,10 +171,10 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
             {!isCollapsed && (
               <div className="flex flex-col items-start text-start overflow-hidden whitespace-nowrap gap-[4px]">
                 <span className="font-bold text-[#fdfbf7] text-[18px] leading-[22px] font-sans">
-                  الجودي
+                  {currentLang === "en" ? "Al Joudy" : "الجودي"}
                 </span>
                 <span className="font-bold text-[#b9b3ae] text-[10px] leading-[14px]">
-                  لوحة الإدارة العليا
+                  {currentLang === "en" ? "Executive Admin Dashboard" : "لوحة الإدارة العليا"}
                 </span>
               </div>
             )}
@@ -172,14 +190,15 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
           data-node-id="1:678"
         >
           {navItems.map((item) => {
+            const itemLabel = currentLang === "en" ? item.labelEn : item.labelAr;
             if (item.isUnderConstruction) {
               if (isCollapsed) {
                 return (
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => toast.info("هذا القسم قيد الإنشاء")}
-                    title={item.label}
+                    onClick={() => toast.info(currentLang === "en" ? "This section is under construction" : "هذا القسم قيد الإنشاء")}
+                    title={itemLabel}
                     className="size-[44px] rounded-[12px] flex items-center justify-center transition-all duration-200 group text-[#cdc5bd] hover:bg-[#2c221c]/80 hover:text-[#fdfbf7] cursor-pointer"
                   >
                     <item.icon
@@ -196,10 +215,10 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                 <button
                   key={item.id}
                   type="button"
-                  onClick={() => toast.info("هذا القسم قيد الإنشاء")}
+                  onClick={() => toast.info(currentLang === "en" ? "This section is under construction" : "هذا القسم قيد الإنشاء")}
                   className="w-full flex items-center gap-[12px] px-[12px] py-[8px] rounded-[12px] transition-colors duration-150 group text-start text-[#cdc5bd] hover:bg-[#2c221c]/60 hover:text-[#fdfbf7] cursor-pointer"
                 >
-                  {/* Icon first (Right in RTL) */}
+                  {/* Icon first (Right in RTL, Left in LTR) */}
                   <div className="size-[20px] flex items-center justify-center shrink-0">
                     <item.icon
                       className={cn(
@@ -211,7 +230,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
 
                   {/* Word next */}
                   <span className="text-[14px] leading-[20px] font-semibold flex-1 text-start truncate text-[#cdc5bd] group-hover:text-[#fdfbf7]">
-                    {item.label}
+                    {itemLabel}
                   </span>
                 </button>
               );
@@ -228,7 +247,8 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                 <Link
                   key={item.id}
                   href={item.href}
-                  title={item.label}
+                  onClick={() => handleNavClick(item.href)}
+                  title={itemLabel}
                   className={cn(
                     "size-[44px] rounded-[12px] flex items-center justify-center transition-all duration-200 group relative",
                     isActive
@@ -249,7 +269,11 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
               );
             }
 
-            const hasSubmenu = item.id === "support" || item.id === "staff" || item.id === "system-settings";
+            const hasSubmenu =
+              item.id === "support" ||
+              item.id === "staff" ||
+              item.id === "system-settings" ||
+              item.id === "utility";
             const isDropdownOpen = !!openDropdowns[item.id];
 
             if (!hasSubmenu) {
@@ -257,6 +281,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                 <Link
                   key={item.id}
                   href={item.href}
+                  onClick={() => handleNavClick(item.href)}
                   className={cn(
                     "flex items-center gap-[12px] px-[12px] py-[8px] rounded-[12px] transition-colors duration-150 group text-start",
                     isActive
@@ -285,7 +310,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       isActive ? "text-[#1c140f] font-bold" : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
                     )}
                   >
-                    {item.label}
+                    {itemLabel}
                   </span>
                 </Link>
               );
@@ -306,6 +331,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   <Link
                     href={item.href}
                     onClick={() => {
+                      handleNavClick(item.href);
                       setUserDropdownToggles((prev) => ({ ...prev, [item.id]: true }));
                     }}
                     className="flex items-center gap-[12px] flex-1 min-w-0"
@@ -330,7 +356,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                         isActive ? "text-[#1c140f] font-bold" : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
                       )}
                     >
-                      {item.label}
+                      {itemLabel}
                     </span>
                   </Link>
 
@@ -345,8 +371,8 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                         [item.id]: !isDropdownOpen,
                       }));
                     }}
-                    aria-label={`توسيع أو إغلاق قائمة ${item.label}`}
-                    title={`توسيع أو إغلاق قائمة ${item.label}`}
+                    aria-label={`توسيع أو إغلاق قائمة ${item.labelAr}`}
+                    title={`توسيع أو إغلاق قائمة ${item.labelAr}`}
                     className={cn(
                       "size-[24px] rounded-[6px] flex items-center justify-center transition-all cursor-pointer ms-2 shrink-0",
                       isActive
@@ -368,6 +394,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#38271c] my-1">
                     <Link
                       href="/permissions?tab=staff"
+                      onClick={() => handleNavClick("/permissions?tab=staff")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                         activeSubNav === "roles"
@@ -392,10 +419,11 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                             : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
                         )}
                       />
-                      <span className="truncate">فريق العمل</span>
+                      <span className="truncate">{currentLang === "en" ? "Team Members" : "فريق العمل"}</span>
                     </Link>
                     <Link
                       href="/permissions?tab=roles"
+                      onClick={() => handleNavClick("/permissions?tab=roles")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                         activeSubNav === "roles"
@@ -420,7 +448,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                             : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
                         )}
                       />
-                      <span className="truncate">الأدوار والصلاحيات</span>
+                      <span className="truncate">{currentLang === "en" ? "Roles & Permissions" : "الأدوار والصلاحيات"}</span>
                     </Link>
                   </div>
                 )}
@@ -430,6 +458,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#38271c] my-1">
                     <Link
                       href="/tickets?tab=tickets"
+                      onClick={() => handleNavClick("/tickets?tab=tickets")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                         activeSubNav === "departments"
@@ -454,10 +483,11 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                             : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
                         )}
                       />
-                      <span className="truncate">تذاكر الدعم الفني</span>
+                      <span className="truncate">{currentLang === "en" ? "Support Tickets" : "تذاكر الدعم الفني"}</span>
                     </Link>
                     <Link
                       href="/tickets?tab=departments"
+                      onClick={() => handleNavClick("/tickets?tab=departments")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                         activeSubNav === "departments"
@@ -482,7 +512,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                             : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
                         )}
                       />
-                      <span className="truncate">الاقسام</span>
+                      <span className="truncate">{currentLang === "en" ? "Departments" : "الاقسام"}</span>
                     </Link>
                   </div>
                 )}
@@ -492,6 +522,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#38271c] my-1">
                     <Link
                       href="/settings/general"
+                      onClick={() => handleNavClick("/settings/general")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                         activeSubNav === "general" || pathname === "/settings/general"
@@ -507,11 +538,12 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                             : "bg-[#625d5d] group-hover:bg-[#a89f91]"
                         )}
                       />
-                      <span className="truncate">اعدادت عامة</span>
+                      <span className="truncate">{currentLang === "en" ? "General Settings" : "اعدادت عامة"}</span>
                     </Link>
 
                     <Link
                       href="/settings/currency"
+                      onClick={() => handleNavClick("/settings/currency")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                         activeSubNav === "currency" || pathname === "/settings/currency"
@@ -527,11 +559,12 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                             : "bg-[#625d5d] group-hover:bg-[#a89f91]"
                         )}
                       />
-                      <span className="truncate">العملة</span>
+                      <span className="truncate">{currentLang === "en" ? "Currencies" : "العملة"}</span>
                     </Link>
 
                     <Link
                       href="/settings/language"
+                      onClick={() => handleNavClick("/settings/language")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                         activeSubNav === "language" || pathname === "/settings/language"
@@ -547,7 +580,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                             : "bg-[#625d5d] group-hover:bg-[#a89f91]"
                         )}
                       />
-                      <span className="truncate">اللغة</span>
+                      <span className="truncate">{currentLang === "en" ? "Languages" : "اللغة"}</span>
                     </Link>
                   </div>
                 )}
@@ -570,12 +603,13 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
             {/* Collapsed Mode: User Avatar Link to Profile */}
             <Link
               href="/profile"
-              title="الملف الشخصي - م. عبد العزيز بن فهد"
+              onClick={() => handleNavClick("/profile")}
+              title={currentLang === "en" ? "Profile - Eng. Abdulaziz Bin Fahad" : "الملف الشخصي - م. عبد العزيز بن فهد"}
               className="size-[38px] rounded-full overflow-hidden border border-[#9c6402]/40 hover:border-[#9c6402] transition-colors flex items-center justify-center shrink-0 relative group"
             >
               <Image
                 src={userAvatarImg}
-                alt="م. عبد العزيز بن فهد"
+                alt={currentLang === "en" ? "Eng. Abdulaziz Bin Fahad" : "م. عبد العزيز بن فهد"}
                 width={38}
                 height={38}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform"
@@ -587,8 +621,8 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
             <button
               type="button"
               onClick={() => setIsLogoutModalOpen(true)}
-              title="تسجيل الخروج"
-              aria-label="تسجيل الخروج"
+              title={currentLang === "en" ? "Logout" : "تسجيل الخروج"}
+              aria-label={currentLang === "en" ? "Logout" : "تسجيل الخروج"}
               className="size-[34px] rounded-full bg-[#251b14] border border-[#3b2a1f] hover:border-[#ba1a1a]/40 hover:bg-[#ba1a1a]/20 text-[#8e8680] hover:text-[#f87171] flex items-center justify-center transition-colors cursor-pointer"
             >
               <LogOut className="size-[15px]" />
@@ -600,13 +634,14 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
             {/* User Info Link (Avatar + Name + Role) leading to /profile */}
             <Link
               href="/profile"
-              title="فتح الملف الشخصي"
+              onClick={() => handleNavClick("/profile")}
+              title={currentLang === "en" ? "View Profile" : "فتح الملف الشخصي"}
               className="flex items-center gap-2.5 flex-1 min-w-0 text-start group cursor-pointer"
             >
               <div className="relative size-[34px] rounded-full overflow-hidden border border-[#9c6402]/50 shrink-0">
                 <Image
                   src={userAvatarImg}
-                  alt="م. عبد العزيز بن فهد"
+                  alt={currentLang === "en" ? "Eng. Abdulaziz Bin Fahad" : "م. عبد العزيز بن فهد"}
                   width={34}
                   height={34}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform"
@@ -615,10 +650,10 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
               </div>
               <div className="flex flex-col min-w-0 text-start">
                 <span className="text-[13px] font-semibold text-[#fdfbf7] truncate group-hover:text-[#e29d38] transition-colors leading-[18px]">
-                  م. عبد العزيز بن فهد
+                  {currentLang === "en" ? "Eng. Abdulaziz Bin Fahad" : "م. عبد العزيز بن فهد"}
                 </span>
                 <span className="text-[10px] text-[#8e8680] truncate leading-[14px]">
-                  مشرف النظام العام
+                  {currentLang === "en" ? "General System Admin" : "مشرف النظام العام"}
                 </span>
               </div>
             </Link>
@@ -627,8 +662,8 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
             <button
               type="button"
               onClick={() => setIsLogoutModalOpen(true)}
-              title="تسجيل الخروج"
-              aria-label="تسجيل الخروج"
+              title={currentLang === "en" ? "Logout" : "تسجيل الخروج"}
+              aria-label={currentLang === "en" ? "Logout" : "تسجيل الخروج"}
               className="size-[32px] rounded-full bg-[#2d1f17] border border-[#443023] hover:border-[#ba1a1a]/50 hover:bg-[#ba1a1a]/20 text-[#a89f91] hover:text-[#f87171] flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-2xs"
             >
               <LogOut className="size-[15px]" />

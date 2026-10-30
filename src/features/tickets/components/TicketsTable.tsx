@@ -8,6 +8,8 @@ import {
   RefreshCw,
   ChevronRight,
   ChevronLeft,
+  ChevronsRight,
+  ChevronsLeft,
   Building2,
 } from "lucide-react";
 import { Ticket } from "../types/tickets.types";
@@ -26,6 +28,17 @@ export function TicketsTable({
   onChangeStatus,
 }: TicketsTableProps) {
   const [activeMenuTicketId, setActiveMenuTicketId] = useState<string | null>(null);
+  const [pageSize, setPageSize] = useState<number>(5);
+  const [pageIndex, setPageIndex] = useState<number>(0);
+
+  const totalPages = Math.max(1, Math.ceil(tickets.length / pageSize));
+  const safePageIndex = Math.min(pageIndex, totalPages - 1);
+  const pagedTickets = tickets.slice(
+    safePageIndex * pageSize,
+    (safePageIndex + 1) * pageSize
+  );
+  const startItem = tickets.length === 0 ? 0 : safePageIndex * pageSize + 1;
+  const endItem = Math.min((safePageIndex + 1) * pageSize, tickets.length);
 
   const getPriorityBadge = (priority: Ticket["priority"]) => {
     switch (priority) {
@@ -144,7 +157,7 @@ export function TicketsTable({
 
           {/* Table Body */}
           <tbody className="divide-y divide-[#eae8e4]/70">
-            {tickets.map((ticket, idx) => {
+            {pagedTickets.map((ticket, idx) => {
               const isEven = idx % 2 === 1;
               const isMenuOpen = activeMenuTicketId === ticket.id;
 
@@ -324,49 +337,100 @@ export function TicketsTable({
         data-node-id="1:14764"
         data-name="Pagination Footer"
       >
+        <div className="flex items-center gap-[12px] order-1 sm:order-2">
+          <div className="text-[12px] text-[#514537]">
+            عرض <span className="font-bold text-[#1b1c1a]">{startItem}</span> إلى{" "}
+            <span className="font-bold text-[#1b1c1a]">{endItem}</span> من أصل{" "}
+            <span className="font-bold text-[#1b1c1a]">{tickets.length}</span> تذكرة
+          </div>
+
+          <div className="flex items-center gap-[6px]">
+            <span className="text-[11px] text-[#837565]">صفوف بالصفحة:</span>
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setPageIndex(0);
+              }}
+              className="bg-[#f5f3ef] text-[#1b1c1a] text-[11px] font-bold py-1 px-2 rounded-[4px] border border-[#eae8e4] focus:outline-none cursor-pointer"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+        </div>
+
+        {/* RTL: ChevronsRight is first page, ChevronRight is previous */}
         <div className="flex items-center gap-[6px] order-2 sm:order-1">
           <button
             type="button"
-            className="bg-[#f5f3ef] flex items-center gap-[4px] px-[12px] py-[6px] rounded-[4px] text-[12px] font-semibold text-[#837565] hover:text-[#1b1c1a] transition-colors cursor-pointer"
+            disabled={safePageIndex === 0}
+            onClick={() => setPageIndex(0)}
+            title="الصفحة الأولى"
+            className="size-[32px] rounded-[4px] border border-[#eae8e4] text-[#837565] hover:bg-[#eae8e4] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
+          >
+            <ChevronsRight className="size-[14px]" />
+          </button>
+
+          <button
+            type="button"
+            disabled={safePageIndex === 0}
+            onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
+            className="bg-[#f5f3ef] flex items-center gap-[4px] px-[12px] py-[6px] rounded-[4px] text-[12px] font-semibold text-[#837565] hover:text-[#1b1c1a] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             <ChevronRight className="size-[12px]" />
             <span>السابق</span>
           </button>
-          <div className="bg-[#9c6402] text-white font-bold text-[12px] size-[32px] rounded-[4px] flex items-center justify-center shadow-[0px_1px_1px_rgba(0,0,0,0.05)]">
-            1
-          </div>
+
+          {Array.from({ length: totalPages }, (_, i) => i).map((p) => {
+            if (totalPages > 5 && Math.abs(p - safePageIndex) > 2 && p !== 0 && p !== totalPages - 1) {
+              if (p === 1 || p === totalPages - 2) {
+                return (
+                  <span key={p} className="text-[#837565] px-[4px] text-[12px]">
+                    ...
+                  </span>
+                );
+              }
+              return null;
+            }
+            const isActive = safePageIndex === p;
+            return (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setPageIndex(p)}
+                className={`size-[32px] rounded-[4px] font-bold text-[12px] flex items-center justify-center transition-colors cursor-pointer ${
+                  isActive
+                    ? "bg-[#9c6402] text-white shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
+                    : "bg-[#f5f3ef] text-[#1b1c1a] hover:bg-[#eae8e4]"
+                }`}
+              >
+                {p + 1}
+              </button>
+            );
+          })}
+
           <button
             type="button"
-            className="bg-[#f5f3ef] text-[#1b1c1a] font-semibold text-[12px] size-[32px] rounded-[4px] flex items-center justify-center hover:bg-[#eae8e4] transition-colors cursor-pointer"
-          >
-            2
-          </button>
-          <button
-            type="button"
-            className="bg-[#f5f3ef] text-[#1b1c1a] font-semibold text-[12px] size-[32px] rounded-[4px] flex items-center justify-center hover:bg-[#eae8e4] transition-colors cursor-pointer"
-          >
-            3
-          </button>
-          <span className="text-[#837565] px-[4px] text-[12px]">...</span>
-          <button
-            type="button"
-            className="bg-[#f5f3ef] text-[#1b1c1a] font-semibold text-[12px] size-[32px] rounded-[4px] flex items-center justify-center hover:bg-[#eae8e4] transition-colors cursor-pointer"
-          >
-            16
-          </button>
-          <button
-            type="button"
-            className="bg-[#f5f3ef] flex items-center gap-[4px] px-[12px] py-[6px] rounded-[4px] text-[12px] font-semibold text-[#1b1c1a] hover:bg-[#eae8e4] transition-colors cursor-pointer"
+            disabled={safePageIndex >= totalPages - 1}
+            onClick={() => setPageIndex((p) => Math.min(totalPages - 1, p + 1))}
+            className="bg-[#f5f3ef] flex items-center gap-[4px] px-[12px] py-[6px] rounded-[4px] text-[12px] font-semibold text-[#1b1c1a] hover:bg-[#eae8e4] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             <span>التالي</span>
             <ChevronLeft className="size-[12px]" />
           </button>
-        </div>
 
-        <div className="text-[12px] text-[#514537] order-1 sm:order-2">
-          عرض <span className="font-bold text-[#1b1c1a]">1</span> إلى{" "}
-          <span className="font-bold text-[#1b1c1a]">{tickets.length}</span> من أصل{" "}
-          <span className="font-bold text-[#1b1c1a]">24</span> تذكرة
+          <button
+            type="button"
+            disabled={safePageIndex >= totalPages - 1}
+            onClick={() => setPageIndex(totalPages - 1)}
+            title="الصفحة الأخيرة"
+            className="size-[32px] rounded-[4px] border border-[#eae8e4] text-[#837565] hover:bg-[#eae8e4] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
+          >
+            <ChevronsLeft className="size-[14px]" />
+          </button>
         </div>
       </div>
     </div>
