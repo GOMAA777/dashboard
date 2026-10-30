@@ -9,6 +9,9 @@ import { SubscriptionKpiCards } from "./SubscriptionKpiCards";
 import { SubscriptionTableToolbar } from "./SubscriptionTableToolbar";
 import { SubscriptionManagementTable } from "./SubscriptionManagementTable";
 import { SubscriptionDetailsView } from "./SubscriptionDetailsView";
+import { RenewSubscriptionView } from "./RenewSubscriptionView";
+import { ChangeSubscriptionPlanModal } from "./ChangeSubscriptionPlanModal";
+import { CancelSubscriptionModal } from "./CancelSubscriptionModal";
 import { AddSubscriptionModal } from "./AddSubscriptionModal";
 import {
   SubscriptionRecord,
@@ -51,8 +54,12 @@ export function SubscriptionManagementView() {
     initialSubscriptionsList
   );
 
-  // Add Subscription Modal State
+  // Modal dialog states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isChangePlanModalOpen, setIsChangePlanModalOpen] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [selectedSubForAction, setSelectedSubForAction] =
+    useState<SubscriptionRecord | null>(null);
 
   // Selected subscription for details view
   const activeSubscription = useMemo<SubscriptionRecord | undefined>(() => {
@@ -153,6 +160,24 @@ export function SubscriptionManagementView() {
     setView("list");
   };
 
+  const handleStartRenew = (sub?: SubscriptionRecord) => {
+    if (sub) {
+      setSelectedSubForAction(sub);
+      setSelectedSubId(sub.id);
+    }
+    setView("renew");
+  };
+
+  const handleStartChangePlan = (sub: SubscriptionRecord) => {
+    setSelectedSubForAction(sub);
+    setIsChangePlanModalOpen(true);
+  };
+
+  const handleStartCancel = (sub: SubscriptionRecord) => {
+    setSelectedSubForAction(sub);
+    setIsCancelModalOpen(true);
+  };
+
   const handleResetFilters = () => {
     setSearch("");
     setPlan("all");
@@ -177,6 +202,40 @@ export function SubscriptionManagementView() {
             ...sub,
             status: newStatus,
             statusLabel: statusLabels[newStatus],
+          };
+        }
+        return sub;
+      })
+    );
+  };
+
+  const handleChangePlanSuccess = (newPlanTitle: string) => {
+    if (!selectedSubForAction) return;
+    const targetId = selectedSubForAction.id;
+    setSubscriptions((prev) =>
+      prev.map((sub) => {
+        if (sub.id === targetId) {
+          return {
+            ...sub,
+            planName: newPlanTitle,
+          };
+        }
+        return sub;
+      })
+    );
+  };
+
+  const handleCancelSubscriptionSuccess = (reason: string) => {
+    if (!selectedSubForAction) return;
+    const targetId = selectedSubForAction.id;
+    setSubscriptions((prev) =>
+      prev.map((sub) => {
+        if (sub.id === targetId) {
+          return {
+            ...sub,
+            status: "cancelled",
+            statusLabel: "ملغي",
+            cancellationReason: reason,
           };
         }
         return sub;
@@ -239,7 +298,13 @@ export function SubscriptionManagementView() {
 
         {/* Dynamic Page Content */}
         <main className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
-          {view === "details" ? (
+          {view === "renew" ? (
+            <RenewSubscriptionView
+              subscription={selectedSubForAction || activeSubscription}
+              onBack={handleBackToList}
+              onSuccess={handleBackToList}
+            />
+          ) : view === "details" ? (
             <SubscriptionDetailsView
               initialSubscription={activeSubscription}
               initialStateVariant={
@@ -247,12 +312,15 @@ export function SubscriptionManagementView() {
               }
               onBack={handleBackToList}
               onStatusChange={handleStatusChange}
+              onOpenRenew={handleStartRenew}
+              onOpenChangePlan={handleStartChangePlan}
+              onOpenCancel={handleStartCancel}
             />
           ) : (
             <>
               {/* Command Banner */}
               <SubscriptionManagementHeader
-                onAddSubscription={() => setIsAddModalOpen(true)}
+                onAddSubscription={() => handleStartRenew()}
               />
 
               {/* 4 KPI Cards (Total: 128, Active: 86, Expiring: 12, Cancelled: 18) */}
@@ -303,6 +371,9 @@ export function SubscriptionManagementView() {
               <SubscriptionManagementTable
                 data={paginatedSubscriptions}
                 onViewDetails={handleViewDetails}
+                onEdit={handleStartChangePlan}
+                onRenew={handleStartRenew}
+                onCancel={handleStartCancel}
                 pageIndex={pageIndex}
                 pageSize={pageSize}
                 totalItems={filteredSubscriptions.length}
@@ -311,11 +382,33 @@ export function SubscriptionManagementView() {
             </>
           )}
 
-          {/* Add Subscription Modal */}
+          {/* Add Subscription Quick Modal */}
           <AddSubscriptionModal
             isOpen={isAddModalOpen}
             onClose={() => setIsAddModalOpen(false)}
             onSubmitSuccess={handleCreateSubscription}
+          />
+
+          {/* Change Subscription Plan Modal (Figma 1:6978) */}
+          <ChangeSubscriptionPlanModal
+            isOpen={isChangePlanModalOpen}
+            onClose={() => {
+              setIsChangePlanModalOpen(false);
+              setSelectedSubForAction(null);
+            }}
+            subscription={selectedSubForAction}
+            onSuccess={handleChangePlanSuccess}
+          />
+
+          {/* Cancel Subscription Modal (Figma 1:7101) */}
+          <CancelSubscriptionModal
+            isOpen={isCancelModalOpen}
+            onClose={() => {
+              setIsCancelModalOpen(false);
+              setSelectedSubForAction(null);
+            }}
+            subscription={selectedSubForAction}
+            onConfirmCancel={handleCancelSubscriptionSuccess}
           />
         </main>
       </div>

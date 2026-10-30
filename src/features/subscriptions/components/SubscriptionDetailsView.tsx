@@ -34,6 +34,9 @@ interface SubscriptionDetailsViewProps {
   initialStateVariant?: SubscriptionStatus;
   onBack: () => void;
   onStatusChange?: (id: string, newStatus: SubscriptionStatus) => void;
+  onOpenRenew?: (sub: SubscriptionRecord) => void;
+  onOpenChangePlan?: (sub: SubscriptionRecord) => void;
+  onOpenCancel?: (sub: SubscriptionRecord) => void;
 }
 
 export function SubscriptionDetailsView({
@@ -41,6 +44,9 @@ export function SubscriptionDetailsView({
   initialStateVariant = "active",
   onBack,
   onStatusChange,
+  onOpenRenew,
+  onOpenChangePlan,
+  onOpenCancel,
 }: SubscriptionDetailsViewProps) {
   // Allow toggling between the 4 Figma design states
   const [selectedState, setSelectedState] = useState<SubscriptionStatus>(
@@ -162,6 +168,34 @@ export function SubscriptionDetailsView({
             }`}
           >
             ● مرفوض (1:7769)
+          </button>
+        </div>
+
+        {/* Action Commands: Renew, Change Plan, Cancel */}
+        <div className="flex items-center gap-2 self-stretch md:self-auto justify-end">
+          <button
+            type="button"
+            onClick={() => onOpenRenew?.(currentSub)}
+            className="bg-[#9c6402] hover:bg-[#825200] text-white px-3.5 py-1.5 rounded-[4px] font-semibold text-[12px] flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>تجديد الاشتراك</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onOpenChangePlan?.(currentSub)}
+            className="bg-[#f5f3ef] dark:bg-[#2c2621] hover:bg-[#eae8e4] text-[#1b1c1a] dark:text-[#fdfbf7] border border-[#e4e2de] dark:border-[#38332c] px-3.5 py-1.5 rounded-[4px] font-semibold text-[12px] flex items-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <span>تغيير الباقة</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onOpenCancel?.(currentSub)}
+            className="bg-transparent hover:bg-[#fef2f2] text-[#dc2626] border border-[#fecaca] px-3.5 py-1.5 rounded-[4px] font-semibold text-[12px] flex items-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <span>إلغاء الاشتراك</span>
           </button>
         </div>
       </div>

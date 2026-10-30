@@ -15,6 +15,9 @@ import { ChevronRight, ChevronLeft } from "lucide-react";
 interface SubscriptionManagementTableProps {
   data: SubscriptionRecord[];
   onViewDetails: (sub: SubscriptionRecord) => void;
+  onEdit?: (sub: SubscriptionRecord) => void;
+  onRenew?: (sub: SubscriptionRecord) => void;
+  onCancel?: (sub: SubscriptionRecord) => void;
   pageIndex: number;
   pageSize: number;
   totalItems: number;
@@ -24,6 +27,9 @@ interface SubscriptionManagementTableProps {
 export function SubscriptionManagementTable({
   data,
   onViewDetails,
+  onEdit,
+  onRenew,
+  onCancel,
   pageIndex,
   pageSize,
   totalItems,
@@ -255,12 +261,15 @@ export function SubscriptionManagementTable({
             <SubscriptionRowActionMenu
               subscription={row.original}
               onViewDetails={onViewDetails}
+              onEdit={onEdit}
+              onRenew={onRenew}
+              onCancel={onCancel}
             />
           </div>
         ),
       },
     ],
-    [onViewDetails]
+    [onViewDetails, onEdit, onRenew, onCancel]
   );
 
   const paginationState = useMemo<PaginationState>(
