@@ -45,7 +45,7 @@ const navItems: NavItem[] = [
   { id: "staff", label: "طاقم العمل", href: "/permissions", icon: UserCheck, sizeClass: "size-[19px]" },
   { id: "notifications", label: "الإشعارات", href: "/notifications", icon: Bell, sizeClass: "size-[16px]" },
   { id: "finance", label: "المعاملات المالية", href: "/invoices", icon: Receipt, sizeClass: "size-[16px]" },
-  { id: "support", label: "الدعم الفني", href: "#", icon: Headphones, sizeClass: "size-[17px]", isUnderConstruction: true },
+  { id: "support", label: "الدعم الفني", href: "/tickets", icon: Headphones, sizeClass: "size-[17px]" },
   { id: "site-settings", label: "إعدادات الموقع", href: "#", icon: Globe, sizeClass: "size-[17px]", isUnderConstruction: true },
   { id: "mail-settings", label: "إعدادات البريد", href: "#", icon: Mail, sizeClass: "size-[17px]", isUnderConstruction: true },
   { id: "system-settings", label: "إعدادات النظام", href: "#", icon: Settings, sizeClass: "size-[17px]", isUnderConstruction: true },
