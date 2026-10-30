@@ -22,6 +22,7 @@ import {
   Lock,
 } from "lucide-react";
 import { Employee, IconType } from "../types/staff.types";
+import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
 
 interface StaffTableProps {
   employees: Employee[];
@@ -366,21 +367,16 @@ export function StaffTable({
             <span> موظف</span>
           </div>
 
-          <div className="flex items-center gap-1.5 border-s border-[#eae8e4] ps-3">
+          <div className="flex items-center gap-2 border-s border-[#eae8e4] ps-3">
             <span className="text-[11px] text-[#837565]">صفوف بالصفحة:</span>
-            <select
+            <PageSizeDropdown
               value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
+              onChange={(newSize) => {
+                setPageSize(newSize);
                 setPageIndex(0);
               }}
-              className="bg-[#f5f3ef] text-[#1b1c1a] text-[11px] font-bold py-1 px-2 rounded-[4px] border border-[#eae8e4] focus:outline-none cursor-pointer"
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
+              options={[5, 10, 20, 50]}
+            />
           </div>
         </div>
 

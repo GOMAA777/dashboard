@@ -24,6 +24,7 @@ import { detailedSilverSubscribedFirms } from "../data/initialPlans";
 import { UpgradeSubscriptionDialog } from "./UpgradeSubscriptionDialog";
 import { DeactivateSubscriptionDialog } from "./DeactivateSubscriptionDialog";
 import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
+import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
 
 interface SubscribedFirmsViewProps {
   onBack: () => void;
@@ -656,21 +657,16 @@ export function SubscribedFirmsView({
               <span> مكتباً مسجلاً في الباقة</span>
             </div>
 
-            <div className="flex items-center gap-1.5 border-s border-[#e2ded7] ps-3">
+            <div className="flex items-center gap-2 border-s border-[#e2ded7] ps-3">
               <span className="text-[11px] text-[#737067]">صفوف بالصفحة:</span>
-              <select
+              <PageSizeDropdown
                 value={pageSize}
-                onChange={(e) => {
-                  setPageSize(Number(e.target.value));
+                onChange={(newSize) => {
+                  setPageSize(newSize);
                   setCurrentPage(1);
                 }}
-                className="bg-[#f5f3ef] text-[#1b1c1a] text-[11px] font-bold py-1 px-2 rounded-[4px] border border-[#e2ded7] focus:outline-none cursor-pointer"
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-              </select>
+                options={[5, 10, 20, 50]}
+              />
             </div>
           </div>
 

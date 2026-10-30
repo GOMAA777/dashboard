@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Loader2 } from "lucide-react";
+import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -136,24 +137,19 @@ export function DataTable<TData, TValue>({
             <div className="text-sm text-muted-foreground">
               صفحة {pagination.pageIndex + 1} من {Math.max(1, pageCount)}
             </div>
-            <div className="flex items-center gap-[6px]">
+            <div className="flex items-center gap-2 border-s border-border ps-3">
               <span className="text-[11px] text-muted-foreground">صفوف بالصفحة:</span>
-              <select
+              <PageSizeDropdown
                 value={pagination.pageSize}
-                onChange={(e) => {
+                onChange={(newSize) => {
                   onPaginationChange?.({
                     ...pagination,
-                    pageSize: Number(e.target.value),
+                    pageSize: newSize,
                     pageIndex: 0,
                   });
                 }}
-                className="bg-muted text-foreground text-[11px] font-bold py-1 px-2 rounded-[4px] border border-border focus:outline-none cursor-pointer"
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-              </select>
+                options={[5, 10, 20, 50]}
+              />
             </div>
           </div>
           <div className="flex items-center gap-2">

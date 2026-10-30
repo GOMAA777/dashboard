@@ -51,10 +51,12 @@ export function ClientManagementView() {
               city: data.city,
               plan: data.plan,
               planBadgeClass: data.plan.includes("احترافية")
-                ? "bg-[#ffddb6]/40 text-[#7b4e00]"
+                ? "bg-[#ffddb6]/40 text-[#7b4e00] border border-[#ffddb6] dark:bg-[rgba(226,157,56,0.18)] dark:text-[#f3c27e] dark:border-[#e29d38]/50"
                 : data.plan.includes("شركات")
-                ? "bg-[#f5f3ef] text-[#1b1c1a]"
-                : "bg-[#f5f3ef] text-[#514537]",
+                ? "bg-[#f5f3ef] text-[#1b1c1a] border border-[#eae8e4] dark:bg-[#38261b] dark:text-[#ffddb6] dark:border-[#e29d38]/40"
+                : data.plan.includes("أساسية")
+                ? "bg-[#f5f3ef] text-[#514537] border border-[#eae8e4] dark:bg-[#281c15] dark:text-[#cdc5bd] dark:border-[#4d3627]"
+                : "bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe] dark:bg-[#172554] dark:text-[#93c5fd] dark:border-blue-500/40",
             };
             if (selectedOffice?.id === officeToEdit.id) {
               setSelectedOffice(updated);
@@ -70,8 +72,8 @@ export function ClientManagementView() {
       const newOffice: ClientOffice = {
         id: Date.now().toString(),
         initial: data.name.trim()[0] || "م",
-        initialBg: "bg-[#ffddb6]",
-        initialText: "text-[#7b4e00]",
+        initialBg: "bg-[#ffddb6] dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60",
+        initialText: "text-[#7b4e00] dark:text-[#f3c27e]",
         name: data.name,
         licenseNumber: data.licenseNumber,
         city: data.city,
@@ -80,24 +82,25 @@ export function ClientManagementView() {
         phone: data.phone,
         plan: data.plan,
         planBadgeClass: data.plan.includes("احترافية")
-          ? "bg-[#ffddb6]/40 text-[#7b4e00]"
+          ? "bg-[#ffddb6]/40 text-[#7b4e00] border border-[#ffddb6] dark:bg-[rgba(226,157,56,0.18)] dark:text-[#f3c27e] dark:border-[#e29d38]/50"
           : data.plan.includes("شركات")
-          ? "bg-[#f5f3ef] text-[#1b1c1a]"
-          : "bg-[#f5f3ef] text-[#514537]",
+          ? "bg-[#f5f3ef] text-[#1b1c1a] border border-[#eae8e4] dark:bg-[#38261b] dark:text-[#ffddb6] dark:border-[#e29d38]/40"
+          : data.plan.includes("أساسية")
+          ? "bg-[#f5f3ef] text-[#514537] border border-[#eae8e4] dark:bg-[#281c15] dark:text-[#cdc5bd] dark:border-[#4d3627]"
+          : "bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe] dark:bg-[#172554] dark:text-[#93c5fd] dark:border-blue-500/40",
         registrationDate: "اليوم",
         accountStatus: {
           label: "نشط",
           type: "active",
-          bgClass: "bg-[#e8f5e9]",
-          textClass: "text-[#1b7340]",
-          dotClass: "bg-[#1b7340]",
+          bgClass: "bg-[#e8f5e9] border border-[#c8e6c9] dark:bg-[#132c1c] dark:border-emerald-500/40",
+          textClass: "text-[#1b7340] dark:text-[#6ee7b7]",
+          dotClass: "bg-[#1b7340] dark:bg-[#10b981]",
         },
         subscriptionStatus: {
           label: "نشط",
           type: "active",
-          note: "(جديد)",
-          bgClass: "bg-[#e8f5e9]",
-          textClass: "text-[#1b7340]",
+          bgClass: "bg-[#e8f5e9] border border-[#c8e6c9] dark:bg-[#132c1c] dark:border-emerald-500/40",
+          textClass: "text-[#1b7340] dark:text-[#6ee7b7]",
         },
       };
 

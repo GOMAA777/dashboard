@@ -10,7 +10,13 @@ import {
 } from "@tanstack/react-table";
 import { SubscriptionRecord, SubscriptionStatus } from "../types/subscription.types";
 import { SubscriptionRowActionMenu } from "./SubscriptionRowActionMenu";
-import { ChevronRight, ChevronLeft, ChevronsRight, ChevronsLeft } from "lucide-react";
+import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
+import {
+  ChevronRight,
+  ChevronLeft,
+  ChevronsRight,
+  ChevronsLeft,
+} from "lucide-react";
 
 interface SubscriptionManagementTableProps {
   data: SubscriptionRecord[];
@@ -118,7 +124,7 @@ export function SubscriptionManagementTable({
               <button
                 type="button"
                 onClick={() => onViewDetails(sub)}
-                className="font-['Cairo'] font-bold text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] hover:text-[#9c6402] dark:hover:text-[#f59e0b] tracking-tight transition-colors text-right cursor-pointer"
+                className="font-['Cairo'] font-bold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] hover:text-[#9c6402] dark:hover:text-[#f59e0b] tracking-tight transition-colors text-right cursor-pointer"
               >
                 {sub.id}
               </button>
@@ -137,10 +143,10 @@ export function SubscriptionManagementTable({
           const { firm } = row.original;
           return (
             <div className="flex flex-col items-start text-right">
-              <span className="font-['Cairo'] font-semibold text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] leading-snug">
+              <span className="font-['Cairo'] font-semibold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] leading-snug">
                 {firm.name}
               </span>
-              <div className="flex items-center gap-2 text-[12px] text-[#514537] dark:text-[#a89f91] font-['Cairo'] pt-0.5">
+              <div className="flex items-center gap-1.5 text-[11px] text-[#514537] dark:text-[#a89f91] font-['Cairo'] pt-0.5">
                 <span>{firm.city}</span>
                 <span>•</span>
                 <span>ترخيص: {firm.licenseNumber}</span>
@@ -160,7 +166,7 @@ export function SubscriptionManagementTable({
           const sub = row.original;
           return (
             <div className="flex flex-col items-start text-right">
-              <span className="font-['Cairo'] font-semibold text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7]">
+              <span className="font-['Cairo'] font-semibold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7]">
                 {sub.planName}
               </span>
               <span className="font-['Cairo'] font-bold text-[10px] text-[#837565] dark:text-[#a89f91] pt-0.5">
@@ -178,7 +184,7 @@ export function SubscriptionManagementTable({
           </div>
         ),
         cell: ({ row }) => (
-          <span className="font-['Cairo'] text-[14px] text-[#514537] dark:text-[#d1c9bd]">
+          <span className="font-['Cairo'] text-[13px] text-[#514537] dark:text-[#d1c9bd]">
             {row.original.startDate}
           </span>
         ),
@@ -196,7 +202,7 @@ export function SubscriptionManagementTable({
           const isUrgent = sub.daysUrgency === "urgent";
           return (
             <div className="flex flex-col items-start text-right">
-              <span className="font-['Cairo'] text-[14px] text-[#514537] dark:text-[#d1c9bd]">
+              <span className="font-['Cairo'] text-[13px] text-[#514537] dark:text-[#d1c9bd]">
                 {sub.renewalDate}
               </span>
               <span
@@ -300,21 +306,21 @@ export function SubscriptionManagementTable({
 
   return (
     <div
-      className="bg-white dark:bg-[#1e1c1a] flex flex-col rounded-[8px] border border-[#f0eeea] dark:border-[#2f2a24] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] overflow-hidden w-full"
+      className="bg-white dark:bg-[#1e1c1a] flex flex-col rounded-[8px] border border-[#f0eeea] dark:border-[#2f2a24] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] w-full font-['Cairo',sans-serif]"
       data-node-id="1:5392"
       data-name="Main Table Container"
     >
-      {/* Table Body Area with sleek horizontal scroll confined inside the container */}
-      <div className="overflow-x-auto scrollbar-thin w-full max-w-full">
+      {/* Table Body Area - Clean responsive container without forced scrollbars */}
+      <div className="overflow-x-auto w-full max-w-full">
         <table className="w-full border-collapse text-right">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr
                 key={headerGroup.id}
-                className="bg-[#f0eeea] dark:bg-[#2c2621] border-b border-[#e5e2dc] dark:border-[#38332c] h-[58px]"
+                className="bg-[#f0eeea] dark:bg-[#2c2621] border-b border-[#e5e2dc] dark:border-[#38332c] h-[52px]"
               >
                 {headerGroup.headers.map((header) => (
-                  <th key={header.id} className="py-3 px-4 font-normal">
+                  <th key={header.id} className="py-2.5 px-3 font-normal">
                     {flexRender(
                       header.column.columnDef.header,
                       header.getContext()
@@ -347,7 +353,7 @@ export function SubscriptionManagementTable({
                     }`}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="py-4 px-4 align-middle">
+                      <td key={cell.id} className="py-3 px-3 align-middle">
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()
@@ -368,7 +374,7 @@ export function SubscriptionManagementTable({
         data-node-id="1:5737"
         data-name="Pagination Footer"
       >
-        {/* Right in RTL: Count Summary and Rows Per Page */}
+        {/* Right in RTL: Count Summary and Custom Rows Per Page Dropdown */}
         <div className="flex flex-wrap items-center gap-4 text-[12px] text-[#514537] dark:text-[#a89f91] font-['Cairo']">
           <div>
             <span>عرض </span>
@@ -381,23 +387,18 @@ export function SubscriptionManagementTable({
           </div>
 
           {onPageSizeChange && (
-            <div className="flex items-center gap-1.5 border-s border-[#eae8e4] dark:border-[#2f2a24] ps-3">
+            <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#2f2a24] ps-3">
               <span className="text-[11px] text-[#837565] dark:text-[#a89f91]">صفوف بالصفحة:</span>
-              <select
+              <PageSizeDropdown
                 value={pageSize}
-                onChange={(e) => onPageSizeChange(Number(e.target.value))}
-                className="bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[11px] font-bold py-1 px-2 rounded-[4px] border-none focus:outline-none cursor-pointer"
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-              </select>
+                onChange={onPageSizeChange}
+                options={[5, 10, 20, 50]}
+              />
             </div>
           )}
         </div>
 
-        {/* Left in RTL: Page Controls */}
+        {/* Left in RTL: Page Navigation Controls */}
         <div className="flex items-center gap-1.5" data-node-id="1:5738">
           <button
             type="button"
@@ -453,7 +454,7 @@ export function SubscriptionManagementTable({
               className={`size-8 rounded-[4px] font-['Cairo'] text-[12px] flex items-center justify-center transition-colors cursor-pointer ${
                 pageIndex === 2
                   ? "bg-[#9c6402] text-[#fff3e9] font-bold shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-                  : "bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] font-semibold hover:bg-[#eae8e4]"
+                : "bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] font-semibold hover:bg-[#eae8e4]"
               }`}
             >
               3

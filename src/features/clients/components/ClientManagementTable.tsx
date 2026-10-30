@@ -15,6 +15,7 @@ import { ClientOffice, TabFilter } from "../types/client.types";
 import { initialOffices } from "../data/initialOffices";
 import { ClientRowActionMenu } from "./ClientRowActionMenu";
 import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
+import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
 
 export { initialOffices };
 
@@ -159,13 +160,13 @@ export function ClientManagementTable({
           <div className="space-y-4 text-start font-['Cairo',sans-serif]">
             {/* Plan Filter */}
             <div className="space-y-1.5">
-              <label className="text-[13px] font-bold text-[#1b1c1a] block">
+              <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
                 باقة الاشتراك
               </label>
               <select
                 value={planFilter}
                 onChange={(e) => setPlanFilter(e.target.value)}
-                className="w-full h-[40px] bg-[#f5f3ef] text-[#1b1c1a] text-[13px] font-semibold rounded-[4px] px-[12px] border border-transparent focus:outline-none focus:ring-1 focus:ring-[#9c6402] cursor-pointer"
+                className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[4px] px-[12px] border border-transparent dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] cursor-pointer"
               >
                 <option value="all">جميع الباقات</option>
                 <option value="الاحترافية">الباقة الاحترافية</option>
@@ -177,13 +178,13 @@ export function ClientManagementTable({
 
             {/* City Filter */}
             <div className="space-y-1.5">
-              <label className="text-[13px] font-bold text-[#1b1c1a] block">
+              <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
                 المدينة
               </label>
               <select
                 value={cityFilter}
                 onChange={(e) => setCityFilter(e.target.value)}
-                className="w-full h-[40px] bg-[#f5f3ef] text-[#1b1c1a] text-[13px] font-semibold rounded-[4px] px-[12px] border border-transparent focus:outline-none focus:ring-1 focus:ring-[#9c6402] cursor-pointer"
+                className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[4px] px-[12px] border border-transparent dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] cursor-pointer"
               >
                 <option value="all">كافة المدن</option>
                 <option value="الرياض">الرياض</option>
@@ -203,7 +204,7 @@ export function ClientManagementTable({
       <div className="overflow-x-auto scrollbar-none w-full">
         <table className="w-full text-right border-collapse">
           <thead>
-            <tr className="bg-[#f5f3ef] border-b border-[#eae8e4] text-[#514537] text-[12px] leading-[18px] font-semibold">
+            <tr className="bg-[#f5f3ef] dark:bg-[#281c15] border-b border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[18px] font-semibold">
               <th className="py-[12px] px-[16px] whitespace-nowrap">اسم المكتب والترخيص</th>
               <th className="py-[12px] px-[16px] whitespace-nowrap">المالك</th>
               <th className="py-[12px] px-[16px] whitespace-nowrap">البريد الإلكتروني</th>
@@ -214,10 +215,10 @@ export function ClientManagementTable({
               <th className="py-[12px] px-[16px] text-center whitespace-nowrap">الإجراءات</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#f0eeea]">
+          <tbody className="divide-y divide-[#f0eeea] dark:divide-[#38271c]">
             {paginatedOffices.length === 0 ? (
               <tr>
-                <td colSpan={8} className="py-[48px] text-center text-[#837565] text-[14px]">
+                <td colSpan={8} className="py-[48px] text-center text-[#837565] dark:text-[#8e8680] text-[14px]">
                   لا توجد مكاتب تطابق معايير البحث الحالية
                 </td>
               </tr>
@@ -225,7 +226,7 @@ export function ClientManagementTable({
               paginatedOffices.map((office) => (
                 <tr
                   key={office.id}
-                  className="hover:bg-[#faf9f7] transition-colors group"
+                  className="hover:bg-[#faf9f7] dark:hover:bg-[#281c15]/60 transition-colors group"
                 >
                   {/* 1. اسم المكتب والترخيص */}
                   <td className="py-[16px] px-[16px]">
@@ -236,10 +237,10 @@ export function ClientManagementTable({
                         {office.initial}
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-[#1b1c1a] text-[13px] font-bold leading-[19px]">
+                        <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-bold leading-[19px]">
                           {office.name}
                         </span>
-                        <span className="text-[#837565] text-[11px] leading-[16px]">
+                        <span className="text-[#837565] dark:text-[#8e8680] text-[11px] leading-[16px]">
                           {office.licenseNumber} • {office.city}
                         </span>
                       </div>
@@ -248,22 +249,22 @@ export function ClientManagementTable({
 
                   {/* 2. المالك */}
                   <td className="py-[16px] px-[16px]">
-                    <span className="text-[#1b1c1a] text-[13px] font-medium leading-[18px]">
+                    <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-medium leading-[18px]">
                       {office.owner}
                     </span>
                   </td>
 
                   {/* 3. البريد الإلكتروني */}
                   <td className="py-[16px] px-[16px]">
-                    <div className="flex items-center gap-[6px] text-[#514537] text-[12px] font-normal direction-ltr">
-                      <Mail className="size-[13px] text-[#837565] shrink-0" />
+                    <div className="flex items-center gap-[6px] text-[#514537] dark:text-[#cdc5bd] text-[12px] font-normal direction-ltr">
+                      <Mail className="size-[13px] text-[#837565] dark:text-[#8e8680] shrink-0" />
                       <span>{office.email}</span>
                     </div>
                   </td>
 
                   {/* 4. رقم التواصل */}
                   <td className="py-[16px] px-[16px]">
-                    <span className="text-[#1b1c1a] text-[12px] font-normal direction-ltr block">
+                    <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] font-normal direction-ltr block">
                       {office.phone}
                     </span>
                   </td>
@@ -309,7 +310,7 @@ export function ClientManagementTable({
                         type="button"
                         aria-label="عرض التفاصيل"
                         onClick={() => onViewOfficeDetails(office)}
-                        className="p-[6px] rounded-[4px] hover:bg-[#eae8e4] text-[#514537] hover:text-[#1b1c1a] transition-colors cursor-pointer"
+                        className="p-[6px] rounded-[4px] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] transition-colors cursor-pointer"
                         title="عرض التفاصيل"
                       >
                         <Eye className="size-[15px]" />
@@ -323,7 +324,7 @@ export function ClientManagementTable({
                           onClick={() =>
                             setOpenMenuRowId(openMenuRowId === office.id ? null : office.id)
                           }
-                          className="p-[6px] rounded-[4px] hover:bg-[#eae8e4] text-[#514537] hover:text-[#1b1c1a] transition-colors cursor-pointer"
+                          className="p-[6px] rounded-[4px] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] transition-colors cursor-pointer"
                         >
                           <MoreVertical className="size-[15px]" />
                         </button>
@@ -362,34 +363,29 @@ export function ClientManagementTable({
         </div>
 
         {/* Pagination Footer */}
-        <div className="p-[16px] border-t border-[#f0eeea] flex flex-col sm:flex-row items-center justify-between gap-[12px] text-[12px] text-[#514537] font-['Cairo']">
+        <div className="p-[16px] border-t border-[#f0eeea] dark:border-[#38271c] flex flex-col sm:flex-row items-center justify-between gap-[12px] text-[12px] text-[#514537] dark:text-[#cdc5bd] font-['Cairo']">
           {/* Right in RTL: Count Summary & Rows per page */}
         <div className="flex flex-wrap items-center gap-4">
           <div>
             <span>عرض </span>
-            <span className="font-bold text-[#1b1c1a]">{startItem}</span>
+            <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{startItem}</span>
             <span> إلى </span>
-            <span className="font-bold text-[#1b1c1a]">{endItem}</span>
+            <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{endItem}</span>
             <span> من أصل </span>
-            <span className="font-bold text-[#1b1c1a]">{totalItems}</span>
+            <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{totalItems}</span>
             <span> مكتب محاماة مسجل</span>
           </div>
 
-          <div className="flex items-center gap-1.5 border-s border-[#eae8e4] ps-3">
-            <span className="text-[11px] text-[#837565]">صفوف بالصفحة:</span>
-            <select
+          <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
+            <span className="text-[11px] text-[#837565] dark:text-[#8e8680]">صفوف بالصفحة:</span>
+            <PageSizeDropdown
               value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
+              onChange={(newSize) => {
+                setPageSize(newSize);
                 setPageIndex(0);
               }}
-              className="bg-[#f5f3ef] text-[#1b1c1a] text-[11px] font-bold py-1 px-2 rounded-[4px] border border-[#eae8e4] focus:outline-none cursor-pointer"
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
+              options={[5, 10, 20, 50]}
+            />
           </div>
         </div>
 
@@ -400,7 +396,7 @@ export function ClientManagementTable({
             disabled={pageIndex === 0}
             onClick={() => setPageIndex(0)}
             title="الصفحة الأولى"
-            className="size-[30px] rounded-[4px] border border-[#eae8e4] text-[#837565] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center cursor-pointer"
+            className="size-[30px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center cursor-pointer"
           >
             <ChevronsRight className="size-[14px]" />
           </button>
@@ -410,7 +406,7 @@ export function ClientManagementTable({
             disabled={pageIndex === 0}
             onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
             title="الصفحة السابقة"
-            className="px-[10px] py-[6px] rounded-[4px] border border-[#eae8e4] text-[#837565] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-[4px] cursor-pointer"
+            className="px-[10px] py-[6px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-[4px] cursor-pointer"
           >
             <ChevronRight className="size-[13px]" />
             <span>السابق</span>
@@ -420,7 +416,7 @@ export function ClientManagementTable({
             if (totalPages > 5 && Math.abs(p - pageIndex) > 2 && p !== 0 && p !== totalPages - 1) {
               if (p === 1 || p === totalPages - 2) {
                 return (
-                  <span key={p} className="px-[2px] text-[#837565]">
+                  <span key={p} className="px-[2px] text-[#837565] dark:text-[#8e8680]">
                     ...
                   </span>
                 );
@@ -435,8 +431,8 @@ export function ClientManagementTable({
                 onClick={() => setPageIndex(p)}
                 className={`size-[30px] rounded-[4px] font-semibold text-[12px] flex items-center justify-center cursor-pointer transition-colors ${
                   isActive
-                    ? "bg-[#9c6402] text-white font-bold shadow-sm"
-                    : "border border-[#eae8e4] text-[#514537] hover:bg-[#f5f3ef]"
+                    ? "bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] font-bold shadow-sm"
+                    : "border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15]"
                 }`}
               >
                 {p + 1}
