@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { useQueryState } from "nuqs";
-import { Plus, Ticket as TicketIcon, Building2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
@@ -34,11 +34,8 @@ import { DeleteDepartmentModal } from "./DeleteDepartmentModal";
 
 export function TicketsView() {
   // Navigation & View Mode driven by URL query param ?tab=tickets or ?tab=departments
-  const [tabParam, setTabParam] = useQueryState("tab", { defaultValue: "tickets" });
+  const [tabParam] = useQueryState("tab", { defaultValue: "tickets" });
   const activeTab: TicketTabType = tabParam === "departments" ? "departments" : "tickets";
-  const setActiveTab = (tab: TicketTabType) => {
-    setTabParam(tab);
-  };
   const [isCreatingTicket, setIsCreatingTicket] = useState(false);
   const [selectedTicketForDetails, setSelectedTicketForDetails] = useState<Ticket | null>(null);
 
@@ -290,37 +287,6 @@ export function TicketsView() {
 
         {/* Main Content Container */}
         <main className="flex-1 p-[24px] sm:p-[32px] max-w-[1400px] w-full mx-auto flex flex-col gap-[24px]">
-          {/* Top Sub-Navigation Tabs: تذاكر الدعم الفني vs الأقسام */}
-          {!isCreatingTicket && !selectedTicketForDetails && (
-            <div className="flex items-center gap-[8px] bg-white rounded-[8px] p-[6px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 w-fit">
-              <button
-                type="button"
-                onClick={() => setActiveTab("tickets")}
-                className={`flex items-center gap-[8px] px-[18px] py-[8px] rounded-[6px] text-[13px] font-semibold transition-all cursor-pointer ${
-                  activeTab === "tickets"
-                    ? "bg-[#9c6402] text-white shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-                    : "text-[#514537] hover:text-[#1b1c1a] hover:bg-[#f5f3ef]"
-                }`}
-              >
-                <TicketIcon className="size-[15px]" />
-                <span>تذاكر الدعم الفني</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab("departments")}
-                className={`flex items-center gap-[8px] px-[18px] py-[8px] rounded-[6px] text-[13px] font-semibold transition-all cursor-pointer ${
-                  activeTab === "departments"
-                    ? "bg-[#9c6402] text-white shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-                    : "text-[#514537] hover:text-[#1b1c1a] hover:bg-[#f5f3ef]"
-                }`}
-              >
-                <Building2 className="size-[15px]" />
-                <span>الأقسام</span>
-              </button>
-            </div>
-          )}
-
           {/* VIEW 1: Ticket Details View */}
           {selectedTicketForDetails ? (
             <TicketDetailsModal

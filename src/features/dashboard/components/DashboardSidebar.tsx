@@ -28,6 +28,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/use-ui-store";
 import { LogoutConfirmModal } from "./LogoutConfirmModal";
+import { AlJoudyLogo } from "@/components/shared/BrandLogos";
 
 interface NavItem {
   id: string;
@@ -74,6 +75,10 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
   const isCollapsed = isMounted ? sidebarCollapsed : false;
 
   const handleConfirmLogout = () => {
+    try {
+      localStorage.removeItem("aljudy_auth");
+      document.cookie = "aljudy_auth=; path=/; max-age=0";
+    } catch {}
     setIsLogoutModalOpen(false);
     toast.success("تم تسجيل الخروج بنجاح");
     router.push("/login");
@@ -123,10 +128,10 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
           >
             {/* Brand Logo Icon */}
             <div
-              className="size-[34px] rounded-[8px] bg-[#9c6402]/15 border border-[#9c6402]/30 flex items-center justify-center shrink-0"
+              className="size-[34px] rounded-[8px] overflow-hidden flex items-center justify-center shrink-0"
               title={isCollapsed ? "الجودي - لوحة الإدارة العليا" : undefined}
             >
-              <Scale className="size-[20px] text-[#9c6402]" />
+              <AlJoudyLogo className="size-[34px]" priority />
             </div>
 
             {/* Logo Word / Titles (hidden when collapsed) */}
