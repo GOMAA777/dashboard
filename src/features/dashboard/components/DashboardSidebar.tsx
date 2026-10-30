@@ -123,8 +123,8 @@ export function DashboardSidebar({ activeNav }: DashboardSidebarProps = {}) {
 
             {/* Logo Word / Titles (hidden when collapsed) */}
             {!isCollapsed && (
-              <div className="flex flex-col items-start text-right overflow-hidden whitespace-nowrap">
-                <span className="font-bold text-[#fdfbf7] text-[18px] leading-[22.5px] font-sans">
+              <div className="flex flex-col items-start text-right overflow-hidden whitespace-nowrap gap-[4px]">
+                <span className="font-bold text-[#fdfbf7] text-[18px] leading-[22px] font-sans">
                   الجودي
                 </span>
                 <span className="font-bold text-[#b9b3ae] text-[10px] leading-[14px]">
