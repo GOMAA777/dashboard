@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useSyncExternalStore } from "react";
 import { useQueryState } from "nuqs";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
+import { useUIStore } from "@/stores/use-ui-store";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
 import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
@@ -277,17 +278,31 @@ export function TicketsView() {
     toast.success(`تم حذف القسم "${targetDept?.name || ""}" بنجاح`);
   };
 
+  const isMounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+
+  const language = useUIStore((state) => state.language);
+  const currentLang = isMounted ? language : "ar";
+
   const breadcrumbs = selectedTicketForDetails
     ? [
-        { label: "الرئيسية", href: "/" },
-        { label: "تذاكر الدعم الفني", href: "/tickets" },
-        { label: `تذكرة ${selectedTicketForDetails.ticketNumber || selectedTicketForDetails.id}` },
+        { label: currentLang === "en" ? "Dashboard" : "الرئيسية", href: "/" },
+        { label: currentLang === "en" ? "Support Tickets" : "تذاكر الدعم الفني", href: "/tickets" },
+        {
+          label:
+            currentLang === "en"
+              ? `Ticket ${selectedTicketForDetails.ticketNumber || selectedTicketForDetails.id}`
+              : `تذكرة ${selectedTicketForDetails.ticketNumber || selectedTicketForDetails.id}`,
+        },
       ]
     : isCreatingTicket
     ? [
-        { label: "الرئيسية", href: "/" },
-        { label: "تذاكر الدعم الفني", href: "/tickets" },
-        { label: "إنشاء تذكرة جديدة" },
+        { label: currentLang === "en" ? "Dashboard" : "الرئيسية", href: "/" },
+        { label: currentLang === "en" ? "Support Tickets" : "تذاكر الدعم الفني", href: "/tickets" },
+        { label: currentLang === "en" ? "Create New Ticket" : "إنشاء تذكرة جديدة" },
       ]
     : undefined;
 
@@ -335,15 +350,17 @@ export function TicketsView() {
             <div className="flex flex-col gap-[24px] w-full">
               {/* Main Identity & Command Banner */}
               <div
-                className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]"
+                className="bg-white dark:bg-[#221812] rounded-[8px] p-[24px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 dark:border-[#38271c] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]"
                 data-node-id="1:14409"
               >
-                <div className="flex flex-col gap-[4px] text-right">
-                  <h1 className="text-[#1b1c1a] font-bold text-[24px] sm:text-[28px] leading-[38px]">
-                    تذاكر الدعم الفني
+                <div className="flex flex-col gap-[4px] text-start">
+                  <h1 className="text-[#1b1c1a] dark:text-[#fdfbf7] font-bold text-[24px] sm:text-[28px] leading-[38px]">
+                    {currentLang === "en" ? "Support Tickets" : "تذاكر الدعم الفني"}
                   </h1>
-                  <p className="text-[#514537] text-[13px] sm:text-[14px] leading-[22px]">
-                    متابعة وإدارة طلبات واستفسارات العملاء وأوامر العمل بالمنصة
+                  <p className="text-[#514537] dark:text-[#cdc5bd] text-[13px] sm:text-[14px] leading-[22px]">
+                    {currentLang === "en"
+                      ? "Track and manage client inquiries and platform work orders"
+                      : "متابعة وإدارة طلبات واستفسارات العملاء وأوامر العمل بالمنصة"}
                   </p>
                 </div>
 
@@ -355,7 +372,7 @@ export function TicketsView() {
                   data-node-id="1:14412"
                 >
                   <Plus className="size-[16px]" />
-                  <span>إنشاء تذكرة جديدة</span>
+                  <span>{currentLang === "en" ? "Create New Ticket" : "إنشاء تذكرة جديدة"}</span>
                 </button>
               </div>
 

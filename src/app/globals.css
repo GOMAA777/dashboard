@@ -209,6 +209,70 @@
   border-color: #3d2a1d !important;
 }
 
+/* Badges and tags in Dark Mode: Zero bright pastel/white */
+.dark .bg-\[\#ecfdf5\] {
+  background-color: #12281a !important;
+}
+.dark .text-\[\#065f46\],
+.dark .text-\[\#047857\] {
+  color: #6ee7b7 !important;
+}
+
+.dark .bg-\[\#fffbeb\],
+.dark .bg-\[\#fff8e1\] {
+  background-color: #2b1f0c !important;
+}
+.dark .text-\[\#92400e\],
+.dark .text-\[\#b45309\] {
+  color: #fbbf24 !important;
+}
+
+.dark .bg-\[\#ffdad6\],
+.dark .bg-\[rgba\(255\,218\,214\,0\.4\)\],
+.dark .bg-\[rgba\(254\,242\,242\,0\.6\)\] {
+  background-color: #381616 !important;
+}
+.dark .text-\[\#93000a\],
+.dark .text-\[\#ba1a1a\],
+.dark .text-\[\#7f1d1d\],
+.dark .text-\[\#b91c1c\] {
+  color: #fca5a5 !important;
+}
+
+.dark .bg-\[\#eff6ff\] {
+  background-color: #162233 !important;
+}
+.dark .text-\[\#1d4ed8\],
+.dark .text-\[\#2563eb\] {
+  color: #93c5fd !important;
+}
+
+.dark .bg-\[\#ffddb6\] {
+  background-color: #3d2716 !important;
+}
+
+.dark .bg-\[\#eae8e4\] {
+  background-color: #2a1f18 !important;
+}
+
+.dark .bg-\[rgba\(123\,78\,0\,0\.1\)\] {
+  background-color: rgba(226, 157, 56, 0.15) !important;
+}
+
+.dark .bg-\[rgba\(255\,251\,235\,0\.7\)\] {
+  background-color: #2e1d0f !important;
+}
+.dark .text-\[\#78350f\] {
+  color: #fbbf24 !important;
+}
+
+.dark .bg-\[rgba\(236\,253\,245\,0\.6\)\] {
+  background-color: #12281a !important;
+}
+.dark .text-\[\#064e3b\] {
+  color: #6ee7b7 !important;
+}
+
 /* Custom sleek scrollbar for sidebar & dashboard workspace */
 .scrollbar-thin {
   scrollbar-width: thin;

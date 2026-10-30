@@ -11,6 +11,10 @@ import {
   ShieldCheck,
   Languages,
   Pilcrow,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
@@ -27,6 +31,8 @@ export function LanguageSettingsView() {
   const [currentView, setCurrentView] = useState<"list" | "add">("list");
   const [activeTab, setActiveTab] = useState<"all" | "active" | "inactive">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [pageSize, setPageSize] = useState<number>(5);
+  const [pageIndex, setPageIndex] = useState<number>(0);
   const [languageToDelete, setLanguageToDelete] = useState<LanguageItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -49,6 +55,15 @@ export function LanguageSettingsView() {
       return true;
     });
   }, [languages, activeTab, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredLanguages.length / pageSize));
+  const safePageIndex = Math.min(pageIndex, totalPages - 1);
+  const pagedLanguages = filteredLanguages.slice(
+    safePageIndex * pageSize,
+    (safePageIndex + 1) * pageSize
+  );
+  const startItem = filteredLanguages.length === 0 ? 0 : safePageIndex * pageSize + 1;
+  const endItem = Math.min((safePageIndex + 1) * pageSize, filteredLanguages.length);
 
   // Tab counts
   const activeCount = useMemo(() => languages.filter((l) => l.status === "active").length, [languages]);
@@ -75,12 +90,12 @@ export function LanguageSettingsView() {
   };
 
   return (
-    <div className="flex h-screen bg-[#f5f3ef] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00]" dir="rtl">
+    <div className="flex h-screen h-dvh bg-[#f5f3ef] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00]" dir="rtl">
       {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar activeNav="system-settings" activeSubNav="language" />
 
       {/* 2. Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
         <DashboardTopNavbar />
 
         {currentView === "add" ? (
@@ -89,7 +104,7 @@ export function LanguageSettingsView() {
             onSave={handleSaveNewLanguage}
           />
         ) : (
-          <main className="flex-1 px-[24px] sm:px-[32px] py-[24px] max-w-[1360px] w-full mx-auto pb-[80px]">
+          <main className="flex-1 overflow-y-auto px-[24px] sm:px-[32px] py-[24px] max-w-[1360px] w-full mx-auto pb-[80px] scrollbar-thin">
             {/* Top Identity & Command Banner (Figma 1:18083) */}
             <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] relative mb-[24px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]">
               {/* Title & Description */}
@@ -186,7 +201,10 @@ export function LanguageSettingsView() {
                   {/* Tab Inactive */}
                   <button
                     type="button"
-                    onClick={() => setActiveTab("inactive")}
+                    onClick={() => {
+                      setActiveTab("inactive");
+                      setPageIndex(0);
+                    }}
                     className={cn(
                       "px-[16px] py-[6px] rounded-[6px] text-[13px] font-semibold transition-all flex items-center gap-[6px] cursor-pointer",
                       activeTab === "inactive"
@@ -199,22 +217,6 @@ export function LanguageSettingsView() {
                       {inactiveCount}
                     </span>
                   </button>
-                </div>
-
-                {/* Page Limit Selector */}
-                <div className="flex items-center gap-[8px] text-[13px] text-[#514537]">
-                  <span>عرض الصفحة:</span>
-                  <div className="relative">
-                    <select
-                      className="bg-[#f5f3ef] border border-[#eae8e4] text-[#1b1c1a] text-[13px] font-semibold rounded-[4px] ps-[12px] pe-[28px] py-[6px] appearance-none cursor-pointer focus:outline-none"
-                      defaultValue="10"
-                    >
-                      <option value="10">10 سجلات</option>
-                      <option value="25">25 سجل</option>
-                      <option value="50">50 سجل</option>
-                    </select>
-                    <ChevronDown className="absolute top-1/2 -translate-y-1/2 end-[8px] size-[14px] text-[#837565] pointer-events-none" />
-                  </div>
                 </div>
               </div>
 

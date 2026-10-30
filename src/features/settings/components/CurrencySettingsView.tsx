@@ -1,7 +1,17 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Plus, Search, ChevronDown, PenSquare, Trash2 } from "lucide-react";
+import {
+  Plus,
+  Search,
+  ChevronDown,
+  PenSquare,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
 import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
@@ -18,6 +28,8 @@ export function CurrencySettingsView() {
   const [currentView, setCurrentView] = useState<"list" | "add">("list");
   const [activeTab, setActiveTab] = useState<"all" | "active" | "inactive">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [pageSize, setPageSize] = useState<number>(5);
+  const [pageIndex, setPageIndex] = useState<number>(0);
   const [currencyToDelete, setCurrencyToDelete] = useState<CurrencyItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -40,6 +52,15 @@ export function CurrencySettingsView() {
       return true;
     });
   }, [currencies, activeTab, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredCurrencies.length / pageSize));
+  const safePageIndex = Math.min(pageIndex, totalPages - 1);
+  const pagedCurrencies = filteredCurrencies.slice(
+    safePageIndex * pageSize,
+    (safePageIndex + 1) * pageSize
+  );
+  const startItem = filteredCurrencies.length === 0 ? 0 : safePageIndex * pageSize + 1;
+  const endItem = Math.min((safePageIndex + 1) * pageSize, filteredCurrencies.length);
 
   // Tab count stats
   const activeCount = useMemo(() => currencies.filter((c) => c.status === "active").length, [currencies]);
@@ -82,7 +103,8 @@ export function CurrencySettingsView() {
         ) : (
           <main className="flex-1 overflow-y-auto px-[24px] sm:px-[32px] py-[24px] max-w-[1360px] w-full mx-auto pb-[80px] scrollbar-thin">
             <DashboardPageTransition>
-            {/* Top Identity & Command Banner (Figma 1:17292) */}
+              <>
+                {/* Top Identity & Command Banner (Figma 1:17292) */}
             <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] relative mb-[24px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]">
               {/* Title & Description */}
               <div className="flex flex-col gap-[4px] text-right">
@@ -148,7 +170,10 @@ export function CurrencySettingsView() {
                   {/* Tab Inactive */}
                   <button
                     type="button"
-                    onClick={() => setActiveTab("inactive")}
+                    onClick={() => {
+                      setActiveTab("inactive");
+                      setPageIndex(0);
+                    }}
                     className={cn(
                       "px-[16px] py-[6px] rounded-[6px] text-[13px] font-semibold transition-all flex items-center gap-[6px] cursor-pointer",
                       activeTab === "inactive"
@@ -161,22 +186,6 @@ export function CurrencySettingsView() {
                       {inactiveCount}
                     </span>
                   </button>
-                </div>
-
-                {/* Page Limit Selector (Left in RTL) */}
-                <div className="flex items-center gap-[8px] text-[13px] text-[#514537]">
-                  <span>عرض الصفحة:</span>
-                  <div className="relative">
-                    <select
-                      className="bg-[#f5f3ef] border border-[#eae8e4] text-[#1b1c1a] text-[13px] font-semibold rounded-[4px] ps-[12px] pe-[28px] py-[6px] appearance-none cursor-pointer focus:outline-none"
-                      defaultValue="10"
-                    >
-                      <option value="10">10 سجلات</option>
-                      <option value="25">25 سجل</option>
-                      <option value="50">50 سجل</option>
-                    </select>
-                    <ChevronDown className="absolute top-1/2 -translate-y-1/2 end-[8px] size-[14px] text-[#837565] pointer-events-none" />
-                  </div>
                 </div>
               </div>
 
@@ -213,7 +222,7 @@ export function CurrencySettingsView() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#eae8e4] text-[14px] text-[#1b1c1a]">
-                        {filteredCurrencies.map((currency) => (
+                        {pagedCurrencies.map((currency) => (
                           <tr
                             key={currency.id}
                             className="hover:bg-[#faf9f6] transition-colors"
@@ -289,56 +298,95 @@ export function CurrencySettingsView() {
 
                   {/* Pagination Footer (Figma 1:17292) */}
                   <div className="p-[16px] px-[20px] border-t border-[#eae8e4] flex flex-col sm:flex-row items-center justify-between gap-[12px]">
-                    {/* Count Statement (Right in RTL) */}
-                    <span className="text-[13px] text-[#514537]">
-                      عرض 1 إلى {filteredCurrencies.length} من أصل {currencies.length} عملات مسجلة
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[13px] text-[#514537]">
+                        عرض {startItem} إلى {endItem} من أصل {filteredCurrencies.length} عملة مسجلة
+                      </span>
+
+                      <div className="flex items-center gap-[6px]">
+                        <span className="text-[11px] text-[#837565]">صفوف بالصفحة:</span>
+                        <select
+                          value={pageSize}
+                          onChange={(e) => {
+                            setPageSize(Number(e.target.value));
+                            setPageIndex(0);
+                          }}
+                          className="bg-[#f5f3ef] text-[#1b1c1a] text-[11px] font-bold py-1 px-2 rounded-[4px] border border-[#eae8e4] focus:outline-none cursor-pointer"
+                        >
+                          <option value={5}>5</option>
+                          <option value={10}>10</option>
+                          <option value={20}>20</option>
+                          <option value={50}>50</option>
+                        </select>
+                      </div>
+                    </div>
 
                     {/* Pagination Buttons (Left in RTL) */}
                     <div className="flex items-center gap-[4px]">
                       <button
                         type="button"
-                        disabled
-                        className="px-[12px] py-[6px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] bg-[#f5f3ef] text-[#837565] opacity-60 cursor-not-allowed"
+                        disabled={safePageIndex === 0}
+                        onClick={() => setPageIndex(0)}
+                        title="الصفحة الأولى"
+                        className="size-[32px] rounded-[4px] border border-[#eae8e4] text-[#837565] hover:bg-[#eae8e4] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
                       >
-                        السابق
+                        <ChevronsRight className="size-[14px]" />
                       </button>
+
                       <button
                         type="button"
-                        className="size-[32px] text-[12px] font-bold rounded-[4px] bg-[#9c6402] text-white flex items-center justify-center shadow-xs"
+                        disabled={safePageIndex === 0}
+                        onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
+                        className="px-[12px] py-[6px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] bg-[#f5f3ef] text-[#514537] hover:bg-[#eae8e4] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-[4px]"
                       >
-                        1
+                        <ChevronRight className="size-[12px]" />
+                        <span>السابق</span>
                       </button>
+
+                      {Array.from({ length: totalPages }, (_, i) => i).map((p) => {
+                        const isActive = safePageIndex === p;
+                        return (
+                          <button
+                            key={p}
+                            type="button"
+                            onClick={() => setPageIndex(p)}
+                            className={`size-[32px] text-[12px] font-bold rounded-[4px] flex items-center justify-center transition-colors cursor-pointer ${
+                              isActive
+                                ? "bg-[#9c6402] text-white shadow-xs"
+                                : "border border-[#eae8e4] text-[#1b1c1a] hover:bg-[#f5f3ef]"
+                            }`}
+                          >
+                            {p + 1}
+                          </button>
+                        );
+                      })}
+
                       <button
                         type="button"
-                        className="size-[32px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] text-[#1b1c1a] hover:bg-[#f5f3ef] flex items-center justify-center transition-colors"
+                        disabled={safePageIndex >= totalPages - 1}
+                        onClick={() => setPageIndex((p) => Math.min(totalPages - 1, p + 1))}
+                        className="px-[12px] py-[6px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] bg-white text-[#1b1c1a] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-[4px]"
                       >
-                        2
+                        <span>التالي</span>
+                        <ChevronLeft className="size-[12px]" />
                       </button>
+
                       <button
                         type="button"
-                        className="size-[32px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] text-[#1b1c1a] hover:bg-[#f5f3ef] flex items-center justify-center transition-colors"
+                        disabled={safePageIndex >= totalPages - 1}
+                        onClick={() => setPageIndex(totalPages - 1)}
+                        title="الصفحة الأخيرة"
+                        className="size-[32px] rounded-[4px] border border-[#eae8e4] text-[#837565] hover:bg-[#eae8e4] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
                       >
-                        3
-                      </button>
-                      <span className="px-[4px] text-[#837565]">...</span>
-                      <button
-                        type="button"
-                        className="size-[32px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] text-[#1b1c1a] hover:bg-[#f5f3ef] flex items-center justify-center transition-colors"
-                      >
-                        16
-                      </button>
-                      <button
-                        type="button"
-                        className="px-[12px] py-[6px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] bg-white text-[#1b1c1a] hover:bg-[#f5f3ef] transition-colors cursor-pointer"
-                      >
-                        التالي
+                        <ChevronsLeft className="size-[14px]" />
                       </button>
                     </div>
                   </div>
                 </>
               )}
             </div>
+            </>
+            </DashboardPageTransition>
           </main>
         )}
       </div>

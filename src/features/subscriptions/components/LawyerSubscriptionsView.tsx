@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
+import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 import { SubscriptionsPricingHero } from "./SubscriptionsPricingHero";
 import { SubscriptionsPricingCards } from "./SubscriptionsPricingCards";
 import { SubscriptionsCustomBanner } from "./SubscriptionsCustomBanner";
@@ -30,17 +31,18 @@ export function LawyerSubscriptionsView() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#fcfbfa] dark:bg-[#121110] text-[#1c1917] dark:text-[#f5f4f0] transition-colors duration-200 relative">
+    <div className="flex h-screen h-dvh overflow-hidden bg-[#fcfbfa] dark:bg-[#121110] text-[#1c1917] dark:text-[#f5f4f0] transition-colors duration-200 relative">
       {/* 1. Main Navigation Sidebar (Right side in RTL) */}
       <DashboardSidebar />
 
       {/* 2. Main Application Body Area */}
-      <div className="flex-1 flex flex-col min-w-0 relative">
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
         {/* Top Navigation Bar with breadcrumbs and actions */}
         <DashboardTopNavbar />
 
         {/* Dashboard Workspace Content */}
-        <main className="flex-1 w-full relative">
+        <main className="flex-1 overflow-y-auto w-full relative scrollbar-thin">
+          <DashboardPageTransition>
           {/* Ambient Scales of Justice (ميزان العدالة) Background Emblems replacing the side photo arches */}
           {/* 1. Left Ambient Scale Emblem */}
           <div
@@ -105,6 +107,7 @@ export function LawyerSubscriptionsView() {
             {/* Section 8: Page Footer */}
             <SubscriptionsPageFooter />
           </div>
+          </DashboardPageTransition>
         </main>
       </div>
     </div>

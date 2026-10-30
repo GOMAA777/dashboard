@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   AlertCircle,
   ArrowLeft,
+  ArrowRight,
   CheckCircle2,
   MoreVertical,
   Scale,
@@ -14,27 +15,36 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ClientRowActionMenu } from "@/features/clients/components/ClientRowActionMenu";
+import { useUIStore } from "@/stores/use-ui-store";
 
 interface LawOfficeRow {
   id: string;
-  initial: string;
+  initialAr: string;
+  initialEn: string;
   initialBg: string;
   initialText: string;
-  name: string;
-  license: string;
+  nameAr: string;
+  nameEn: string;
+  licenseAr: string;
+  licenseEn: string;
   code: string;
-  owner: string;
-  plan: string;
+  ownerAr: string;
+  ownerEn: string;
+  planAr: string;
+  planEn: string;
   planBadgeClass: string;
-  registrationDate: string;
+  registrationDateAr: string;
+  registrationDateEn: string;
   accountStatus: {
-    label: string;
+    labelAr: string;
+    labelEn: string;
     bgClass: string;
     textClass: string;
     dotClass: string;
   };
   subscriptionStatus: {
-    label: string;
+    labelAr: string;
+    labelEn: string;
     bgClass: string;
     textClass: string;
     icon?: React.ComponentType<{ className?: string }>;
@@ -45,127 +55,167 @@ interface LawOfficeRow {
 const officesData: LawOfficeRow[] = [
   {
     id: "1",
-    initial: "ع",
-    initialBg: "bg-[#ffddb6]",
-    initialText: "text-[#9c6402]",
-    name: "مكتب د. عبد العزيز بن فهد العجلان",
-    license: "ترخيص عدلي: 38/194",
-    code: "كود: JUD-8902",
-    owner: "عبد العزيز العجلان",
-    plan: "الاحترافية",
-    planBadgeClass: "bg-[rgba(123,78,0,0.1)] text-[#9c6402]",
-    registrationDate: "22 أكتوبر 2024",
+    initialAr: "ع",
+    initialEn: "A",
+    initialBg: "bg-[#ffddb6] dark:bg-[#3d2716]",
+    initialText: "text-[#9c6402] dark:text-[#e29d38]",
+    nameAr: "مكتب د. عبد العزيز بن فهد العجلان",
+    nameEn: "Dr. Abdulaziz Al-Ajlan Law Firm",
+    licenseAr: "ترخيص عدلي: 38/194",
+    licenseEn: "MoJ License: 38/194",
+    code: "JUD-8902",
+    ownerAr: "عبد العزيز العجلان",
+    ownerEn: "Abdulaziz Al-Ajlan",
+    planAr: "الاحترافية",
+    planEn: "Professional",
+    planBadgeClass: "bg-[rgba(123,78,0,0.1)] dark:bg-[rgba(226,157,56,0.15)] text-[#9c6402] dark:text-[#e29d38]",
+    registrationDateAr: "22 أكتوبر 2024",
+    registrationDateEn: "22 Oct 2024",
     accountStatus: {
-      label: "نشط",
-      bgClass: "bg-[#ecfdf5]",
-      textClass: "text-[#065f46]",
+      labelAr: "نشط",
+      labelEn: "Active",
+      bgClass: "bg-[#ecfdf5] dark:bg-[#12281a]",
+      textClass: "text-[#065f46] dark:text-[#6ee7b7]",
       dotClass: "bg-[#059669]",
     },
     subscriptionStatus: {
-      label: "ساري",
-      bgClass: "bg-[#ecfdf5]",
-      textClass: "text-[#065f46]",
+      labelAr: "ساري",
+      labelEn: "Valid",
+      bgClass: "bg-[#ecfdf5] dark:bg-[#12281a]",
+      textClass: "text-[#065f46] dark:text-[#6ee7b7]",
       icon: CheckCircle2,
     },
   },
   {
     id: "2",
-    initial: "ش",
-    initialBg: "bg-[#1c140f]",
-    initialText: "text-[#ffddb6]",
-    name: "شركة الشريف وشركاؤه للمحاماة والاستشارات",
-    license: "ترخيص عدلي: 41/502",
-    code: "كود: JUD-8895",
-    owner: "تركي الشريف",
-    plan: "شركات",
-    planBadgeClass: "bg-[#1c140f] text-[#ffddb6]",
-    registrationDate: "20 أكتوبر 2024",
+    initialAr: "ش",
+    initialEn: "S",
+    initialBg: "bg-[#1c140f] dark:bg-[#2d1f16]",
+    initialText: "text-[#ffddb6] dark:text-[#e29d38]",
+    nameAr: "شركة الشريف وشركاؤه للمحاماة والاستشارات",
+    nameEn: "Al-Sharif & Partners Legal Firm",
+    licenseAr: "ترخيص عدلي: 41/502",
+    licenseEn: "MoJ License: 41/502",
+    code: "JUD-8895",
+    ownerAr: "تركي الشريف",
+    ownerEn: "Turki Al-Sharif",
+    planAr: "شركات",
+    planEn: "Enterprise",
+    planBadgeClass: "bg-[#1c140f] dark:bg-[#342419] text-[#ffddb6] dark:text-[#e29d38]",
+    registrationDateAr: "20 أكتوبر 2024",
+    registrationDateEn: "20 Oct 2024",
     accountStatus: {
-      label: "نشط",
-      bgClass: "bg-[#ecfdf5]",
-      textClass: "text-[#065f46]",
+      labelAr: "نشط",
+      labelEn: "Active",
+      bgClass: "bg-[#ecfdf5] dark:bg-[#12281a]",
+      textClass: "text-[#065f46] dark:text-[#6ee7b7]",
       dotClass: "bg-[#059669]",
     },
     subscriptionStatus: {
-      label: "ساري",
-      bgClass: "bg-[#ecfdf5]",
-      textClass: "text-[#065f46]",
+      labelAr: "ساري",
+      labelEn: "Valid",
+      bgClass: "bg-[#ecfdf5] dark:bg-[#12281a]",
+      textClass: "text-[#065f46] dark:text-[#6ee7b7]",
       icon: CheckCircle2,
     },
   },
   {
     id: "3",
-    initial: "ت",
-    initialBg: "bg-[#eae8e4]",
-    initialText: "text-[#514537]",
-    name: "مكتب المستشار فهد التميمي للتوثيق والقانون",
-    license: "ترخيص عدلي: 36/902",
-    code: "كود: JUD-8861",
-    owner: "فهد التميمي",
-    plan: "الاحترافية",
-    planBadgeClass: "bg-[rgba(123,78,0,0.1)] text-[#9c6402]",
-    registrationDate: "18 أكتوبر 2024",
+    initialAr: "ت",
+    initialEn: "T",
+    initialBg: "bg-[#eae8e4] dark:bg-[#2a1d15]",
+    initialText: "text-[#514537] dark:text-[#cdc5bd]",
+    nameAr: "مكتب المستشار فهد التميمي للتوثيق والقانون",
+    nameEn: "Fahad Al-Tamimi Legal Services",
+    licenseAr: "ترخيص عدلي: 36/902",
+    licenseEn: "MoJ License: 36/902",
+    code: "JUD-8861",
+    ownerAr: "فهد التميمي",
+    ownerEn: "Fahad Al-Tamimi",
+    planAr: "الاحترافية",
+    planEn: "Professional",
+    planBadgeClass: "bg-[rgba(123,78,0,0.1)] dark:bg-[rgba(226,157,56,0.15)] text-[#9c6402] dark:text-[#e29d38]",
+    registrationDateAr: "18 أكتوبر 2024",
+    registrationDateEn: "18 Oct 2024",
     accountStatus: {
-      label: "نشط",
-      bgClass: "bg-[#ecfdf5]",
-      textClass: "text-[#065f46]",
+      labelAr: "نشط",
+      labelEn: "Active",
+      bgClass: "bg-[#ecfdf5] dark:bg-[#12281a]",
+      textClass: "text-[#065f46] dark:text-[#6ee7b7]",
       dotClass: "bg-[#059669]",
     },
     subscriptionStatus: {
-      label: "ينتهي قريباً",
-      bgClass: "bg-[#fffbeb]",
-      textClass: "text-[#92400e]",
+      labelAr: "ينتهي قريباً",
+      labelEn: "Expiring Soon",
+      bgClass: "bg-[#fffbeb] dark:bg-[#2b1f0c]",
+      textClass: "text-[#92400e] dark:text-[#fbbf24]",
       dotColor: "bg-[#d97706]",
     },
   },
   {
     id: "4",
-    initial: "م",
-    initialBg: "bg-[#eae8e4]",
-    initialText: "text-[#514537]",
-    name: "مجموعة الميزان القضائي للاستشارات",
-    license: "ترخيص عدلي: 44/110",
-    code: "كود: JUD-8840",
-    owner: "عبد الله السبيعي",
-    plan: "الأساسية",
-    planBadgeClass: "bg-[#eae8e4] text-[#514537]",
-    registrationDate: "15 أكتوبر 2024",
+    initialAr: "م",
+    initialEn: "M",
+    initialBg: "bg-[#eae8e4] dark:bg-[#2a1d15]",
+    initialText: "text-[#514537] dark:text-[#cdc5bd]",
+    nameAr: "مجموعة الميزان القضائي للاستشارات",
+    nameEn: "Al-Mizan Judicial Consulting Group",
+    licenseAr: "ترخيص عدلي: 44/110",
+    licenseEn: "MoJ License: 44/110",
+    code: "JUD-8840",
+    ownerAr: "عبد الله السبيعي",
+    ownerEn: "Abdullah Al-Subaie",
+    planAr: "الأساسية",
+    planEn: "Basic",
+    planBadgeClass: "bg-[#eae8e4] dark:bg-[#2a1d15] text-[#514537] dark:text-[#cdc5bd]",
+    registrationDateAr: "15 أكتوبر 2024",
+    registrationDateEn: "15 Oct 2024",
     accountStatus: {
-      label: "قيد التحقق",
-      bgClass: "bg-[#fffbeb]",
-      textClass: "text-[#92400e]",
+      labelAr: "قيد التحقق",
+      labelEn: "Under Review",
+      bgClass: "bg-[#fffbeb] dark:bg-[#2b1f0c]",
+      textClass: "text-[#92400e] dark:text-[#fbbf24]",
       dotClass: "bg-[#d97706]",
     },
     subscriptionStatus: {
-      label: "تجريبي (14 يوم)",
-      bgClass: "bg-[#eff6ff]",
-      textClass: "text-[#1d4ed8]",
+      labelAr: "تجريبي (14 يوم)",
+      labelEn: "Trial (14 Days)",
+      bgClass: "bg-[#eff6ff] dark:bg-[#162233]",
+      textClass: "text-[#1d4ed8] dark:text-[#93c5fd]",
       icon: Timer,
     },
   },
   {
     id: "5",
-    initial: "ن",
-    initialBg: "bg-[#1c140f]",
-    initialText: "text-[#ffddb6]",
-    name: "شركة نخبة الرياض للمحاماة والتحكيم",
-    license: "ترخيص عدلي: 39/760",
-    code: "كود: JUD-8819",
-    owner: "سلطان الهذلي",
-    plan: "شركات",
-    planBadgeClass: "bg-[#1c140f] text-[#ffddb6]",
-    registrationDate: "12 أكتوبر 2024",
+    initialAr: "ن",
+    initialEn: "N",
+    initialBg: "bg-[#1c140f] dark:bg-[#2d1f16]",
+    initialText: "text-[#ffddb6] dark:text-[#e29d38]",
+    nameAr: "مكتب المحامي ناصر بن فهد الدوسري",
+    nameEn: "Nasser Al-Dossari Law Firm",
+    licenseAr: "ترخيص عدلي: 39/781",
+    licenseEn: "MoJ License: 39/781",
+    code: "JUD-8812",
+    ownerAr: "ناصر الدوسري",
+    ownerEn: "Nasser Al-Dossari",
+    planAr: "الاحترافية",
+    planEn: "Professional",
+    planBadgeClass: "bg-[rgba(123,78,0,0.1)] dark:bg-[rgba(226,157,56,0.15)] text-[#9c6402] dark:text-[#e29d38]",
+    registrationDateAr: "12 أكتوبر 2024",
+    registrationDateEn: "12 Oct 2024",
     accountStatus: {
-      label: "نشط",
-      bgClass: "bg-[#ecfdf5]",
-      textClass: "text-[#065f46]",
+      labelAr: "نشط",
+      labelEn: "Active",
+      bgClass: "bg-[#ecfdf5] dark:bg-[#12281a]",
+      textClass: "text-[#065f46] dark:text-[#6ee7b7]",
       dotClass: "bg-[#059669]",
     },
     subscriptionStatus: {
-      label: "متأخر عن السداد",
-      bgClass: "bg-[#fef2f2]",
-      textClass: "text-[#991b1b]",
-      icon: AlertCircle,
+      labelAr: "ساري",
+      labelEn: "Valid",
+      bgClass: "bg-[#ecfdf5] dark:bg-[#12281a]",
+      textClass: "text-[#065f46] dark:text-[#6ee7b7]",
+      icon: CheckCircle2,
     },
   },
 ];
@@ -174,50 +224,65 @@ export function DashboardLawOfficesTable() {
   const router = useRouter();
   const [openMenuRowId, setOpenMenuRowId] = useState<string | null>(null);
 
+  const isMounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+
+  const language = useUIStore((state) => state.language);
+  const direction = useUIStore((state) => state.direction);
+  const currentLang = isMounted ? language : "ar";
+  const isRTL = isMounted ? direction === "rtl" : true;
+
+  const LinkIcon = isRTL ? ArrowLeft : ArrowRight;
+
   return (
     <div
-      className="bg-white rounded-[8px] drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] border border-[#f0eeea]/70 overflow-hidden w-full"
-      data-node-id="1:231"
+      className="bg-white dark:bg-[#221812] rounded-[8px] p-[24px] drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] border border-[#f0eeea]/70 dark:border-[#38271c] flex flex-col justify-between w-full"
+      data-node-id="1:230"
       data-name="Section 4: Recently Registered Law Offices Table"
     >
-      {/* Header */}
+      {/* Header Bar */}
       <div
-        className="border-b border-[#f0eeea] px-[24px] py-[20px] flex items-center justify-between"
-        data-node-id="1:232"
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-[20px]"
+        data-node-id="1:231"
       >
-        {/* Right / Start (in RTL): Title, Subtitle, and Scales Icon */}
-        <div className="flex items-center gap-[8px]">
-          <div className="flex flex-col items-start text-start">
+        {/* Title & Subtitle with Icon */}
+        <div className="flex items-center gap-[8px]" data-node-id="1:234">
+          <div className="flex flex-col text-start">
             <h2
-              className="text-[#1b1c1a] text-[18px] leading-[26px] font-bold font-sans"
-              data-node-id="1:241"
+              className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[18px] leading-[26px] font-bold font-sans"
+              data-node-id="1:236"
             >
-              أحدث المكاتب المسجلة
+              {currentLang === "en" ? "Recently Registered Law Offices" : "المكاتب المسجلة حديثاً"}
             </h2>
             <p
-              className="text-[#514537] text-[12px] leading-[18px] font-normal"
-              data-node-id="1:243"
+              className="text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[18px] font-normal"
+              data-node-id="1:238"
             >
-              آخر مكاتب وشركات المحاماة المنضمة لمنصة الجودي القضائية
+              {currentLang === "en"
+                ? "Latest law firms and legal entities joining Al-Joudi platform"
+                : "آخر مكاتب وشركات المحاماة المنضمة لمنصة الجودي القضائية"}
             </p>
           </div>
 
           <div className="size-[20px] flex items-center justify-center shrink-0 ms-1">
-            <Scale className="w-[18px] h-[19px] block text-[#9c6402]" />
+            <Scale className="w-[18px] h-[19px] block text-[#9c6402] dark:text-[#e29d38]" />
           </div>
         </div>
 
-        {/* Left / End (in RTL): View All Link */}
+        {/* View All Link */}
         <Link
           href="/law-firms"
-          className="flex items-center gap-[6px] text-[#9c6402] hover:text-[#b47818] transition-colors group cursor-pointer"
+          className="flex items-center gap-[6px] text-[#9c6402] dark:text-[#e29d38] hover:text-[#b47818] transition-colors group cursor-pointer"
           data-node-id="1:233"
         >
           <div className="size-[11px] flex items-center justify-center shrink-0">
-            <ArrowLeft className="size-[11px] block text-[#9c6402] transition-transform group-hover:-translate-x-0.5" />
+            <LinkIcon className="size-[11px] block text-[#9c6402] dark:text-[#e29d38] transition-transform group-hover:scale-110" />
           </div>
           <span className="text-[12px] leading-[16px] font-bold">
-            عرض كل المكاتب (128)
+            {currentLang === "en" ? "View All Offices (128)" : "عرض كل المكاتب (128)"}
           </span>
         </Link>
       </div>
@@ -228,31 +293,41 @@ export function DashboardLawOfficesTable() {
           {/* Header Row */}
           <thead>
             <tr
-              className="bg-[#f5f3ef] text-[#625d5d] text-[12px] leading-[16px] font-bold border-b border-[#f0eeea]"
+              className="bg-[#f5f3ef] dark:bg-[#1a120d] text-[#625d5d] dark:text-[#a89f91] text-[12px] leading-[16px] font-bold border-b border-[#f0eeea] dark:border-[#38271c]"
               data-node-id="1:247"
             >
               <th className="py-[16px] px-[20px] text-start font-bold w-[320px]">
-                اسم المكتب / المنشأة العدلية
+                {currentLang === "en" ? "Law Office / Legal Entity" : "اسم المكتب / المنشأة العدلية"}
               </th>
-              <th className="py-[16px] px-[16px] text-start font-bold">المالك</th>
-              <th className="py-[16px] px-[16px] text-start font-bold">الباقة الحالية</th>
-              <th className="py-[16px] px-[16px] text-start font-bold">تاريخ التسجيل</th>
-              <th className="py-[16px] px-[16px] text-start font-bold">حالة الحساب</th>
-              <th className="py-[16px] px-[16px] text-start font-bold">حالة الاشتراك</th>
+              <th className="py-[16px] px-[16px] text-start font-bold">
+                {currentLang === "en" ? "Owner" : "المالك"}
+              </th>
+              <th className="py-[16px] px-[16px] text-start font-bold">
+                {currentLang === "en" ? "Current Plan" : "الباقة الحالية"}
+              </th>
+              <th className="py-[16px] px-[16px] text-start font-bold">
+                {currentLang === "en" ? "Registration Date" : "تاريخ التسجيل"}
+              </th>
+              <th className="py-[16px] px-[16px] text-start font-bold">
+                {currentLang === "en" ? "Account Status" : "حالة الحساب"}
+              </th>
+              <th className="py-[16px] px-[16px] text-start font-bold">
+                {currentLang === "en" ? "Subscription Status" : "حالة الاشتراك"}
+              </th>
               <th className="py-[16px] px-[16px] text-center font-bold w-[72px]">
-                إجراءات
+                {currentLang === "en" ? "Actions" : "إجراءات"}
               </th>
             </tr>
           </thead>
 
           {/* Body Rows */}
-          <tbody className="divide-y divide-[#f0eeea]" data-node-id="1:262">
+          <tbody className="divide-y divide-[#f0eeea] dark:divide-[#38271c]" data-node-id="1:262">
             {officesData.map((row) => (
               <tr
                 key={row.id}
-                className="hover:bg-[#fcfbfa] transition-colors duration-150"
+                className="hover:bg-[#fcfbfa] dark:hover:bg-[#2a1d15] transition-colors duration-150"
               >
-                {/* 1. اسم المكتب / المنشأة العدلية */}
+                {/* 1. Office Name */}
                 <td className="py-[16px] px-[20px]">
                   <div className="flex items-center gap-[12px]">
                     {/* Initials Avatar Box */}
@@ -263,20 +338,20 @@ export function DashboardLawOfficesTable() {
                         row.initialText
                       )}
                     >
-                      {row.initial}
+                      {currentLang === "en" ? row.initialEn : row.initialAr}
                     </div>
 
                     {/* Name + License & Code */}
                     <div className="flex flex-col text-start">
-                      <span className="text-[#1b1c1a] text-[14px] leading-[20px] font-bold font-sans">
-                        {row.name}
+                      <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[14px] leading-[20px] font-bold font-sans">
+                        {currentLang === "en" ? row.nameEn : row.nameAr}
                       </span>
                       <div className="flex items-center gap-[8px] mt-[2px] text-[10px] leading-[14px]">
-                        <span className="font-bold text-[#837565]">
-                          {row.license}
+                        <span className="font-bold text-[#837565] dark:text-[#a89f91]">
+                          {currentLang === "en" ? row.licenseEn : row.licenseAr}
                         </span>
-                        <span className="text-[#625d5d]">•</span>
-                        <span className="font-bold text-[#625d5d]">
+                        <span className="text-[#625d5d] dark:text-[#8e8680]">•</span>
+                        <span className="font-bold text-[#625d5d] dark:text-[#8e8680]">
                           {row.code}
                         </span>
                       </div>
@@ -284,14 +359,14 @@ export function DashboardLawOfficesTable() {
                   </div>
                 </td>
 
-                {/* 2. المالك */}
+                {/* 2. Owner */}
                 <td className="py-[16px] px-[16px]">
-                  <span className="text-[#1b1c1a] text-[14px] leading-[22px] font-semibold">
-                    {row.owner}
+                  <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[14px] leading-[22px] font-semibold">
+                    {currentLang === "en" ? row.ownerEn : row.ownerAr}
                   </span>
                 </td>
 
-                {/* 3. الباقة الحالية */}
+                {/* 3. Current Plan */}
                 <td className="py-[16px] px-[16px]">
                   <span
                     className={cn(
@@ -299,18 +374,18 @@ export function DashboardLawOfficesTable() {
                       row.planBadgeClass
                     )}
                   >
-                    {row.plan}
+                    {currentLang === "en" ? row.planEn : row.planAr}
                   </span>
                 </td>
 
-                {/* 4. تاريخ التسجيل */}
+                {/* 4. Registration Date */}
                 <td className="py-[16px] px-[16px]">
-                  <span className="text-[#514537] text-[12px] leading-[18px] font-normal whitespace-nowrap">
-                    {row.registrationDate}
+                  <span className="text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[18px] font-normal whitespace-nowrap">
+                    {currentLang === "en" ? row.registrationDateEn : row.registrationDateAr}
                   </span>
                 </td>
 
-                {/* 5. حالة الحساب */}
+                {/* 5. Account Status */}
                 <td className="py-[16px] px-[16px]">
                   <span
                     className={cn(
@@ -319,7 +394,7 @@ export function DashboardLawOfficesTable() {
                       row.accountStatus.textClass
                     )}
                   >
-                    <span>{row.accountStatus.label}</span>
+                    <span>{currentLang === "en" ? row.accountStatus.labelEn : row.accountStatus.labelAr}</span>
                     <span
                       className={cn(
                         "size-[6px] rounded-full shrink-0",
@@ -329,7 +404,7 @@ export function DashboardLawOfficesTable() {
                   </span>
                 </td>
 
-                {/* 6. حالة الاشتراك */}
+                {/* 6. Subscription Status */}
                 <td className="py-[16px] px-[16px]">
                   <span
                     className={cn(
@@ -338,7 +413,11 @@ export function DashboardLawOfficesTable() {
                       row.subscriptionStatus.textClass
                     )}
                   >
-                    <span>{row.subscriptionStatus.label}</span>
+                    <span>
+                      {currentLang === "en"
+                        ? row.subscriptionStatus.labelEn
+                        : row.subscriptionStatus.labelAr}
+                    </span>
                     {row.subscriptionStatus.icon ? (
                       <row.subscriptionStatus.icon className="size-[11px] block shrink-0" />
                     ) : row.subscriptionStatus.dotColor ? (
@@ -352,16 +431,16 @@ export function DashboardLawOfficesTable() {
                   </span>
                 </td>
 
-                {/* 7. إجراءات */}
+                {/* 7. Actions */}
                 <td className="py-[16px] px-[16px] text-center">
                   <div className="relative inline-block">
                     <button
                       type="button"
-                      aria-label="خيارات"
+                      aria-label={currentLang === "en" ? "Options" : "خيارات"}
                       onClick={() =>
                         setOpenMenuRowId(openMenuRowId === row.id ? null : row.id)
                       }
-                      className="p-[6px] rounded-[4px] hover:bg-[#eae8e4] text-[#625d5d] transition-colors inline-flex items-center justify-center cursor-pointer"
+                      className="p-[6px] rounded-[4px] hover:bg-[#eae8e4] dark:hover:bg-[#2d1f16] text-[#625d5d] dark:text-[#a89f91] transition-colors inline-flex items-center justify-center cursor-pointer"
                     >
                       <MoreVertical className="w-[4px] h-[14px] block opacity-70" />
                     </button>
@@ -370,21 +449,41 @@ export function DashboardLawOfficesTable() {
                       isOpen={openMenuRowId === row.id}
                       onClose={() => setOpenMenuRowId(null)}
                       onViewDetails={() => {
-                        router.push("/accounts");
-                        toast.info(`عرض تفاصيل ${row.name}`);
+                        router.push("/law-firms");
+                        toast.info(
+                          currentLang === "en"
+                            ? `Viewing details for ${row.nameEn}`
+                            : `عرض تفاصيل ${row.nameAr}`
+                        );
                       }}
                       onEdit={() => {
-                        router.push("/accounts");
-                        toast.info(`تعديل بيانات ${row.name}`);
+                        router.push("/law-firms");
+                        toast.info(
+                          currentLang === "en"
+                            ? `Editing ${row.nameEn}`
+                            : `تعديل بيانات ${row.nameAr}`
+                        );
                       }}
                       onManageSubscriptions={() => {
-                        toast.info(`إدارة اشتراكات وفواتير ${row.name}`);
+                        toast.info(
+                          currentLang === "en"
+                            ? `Managing subscriptions for ${row.nameEn}`
+                            : `إدارة اشتراكات وفواتير ${row.nameAr}`
+                        );
                       }}
                       onDeactivate={() => {
-                        toast.info(`تم تغيير حالة حساب ${row.name}`);
+                        toast.info(
+                          currentLang === "en"
+                            ? `Updated status for ${row.nameEn}`
+                            : `تم تغيير حالة حساب ${row.nameAr}`
+                        );
                       }}
                       onDelete={() => {
-                        toast.error(`تم حذف مكتب ${row.name}`);
+                        toast.error(
+                          currentLang === "en"
+                            ? `Deleted office ${row.nameEn}`
+                            : `تم حذف مكتب ${row.nameAr}`
+                        );
                       }}
                     />
                   </div>
