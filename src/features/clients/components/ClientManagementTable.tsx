@@ -137,7 +137,7 @@ export function ClientManagementTable({
 
   return (
     <div
-      className="bg-white dark:bg-[#221812] rounded-[8px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] overflow-hidden w-full font-['Cairo',sans-serif]"
+      className="bg-white dark:bg-[#221812] rounded-[8px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] overflow-hidden w-full shrink-0 font-['Cairo',sans-serif]"
       data-node-id="1:770"
     >
       {/* Unified Filter Bar with 3 Pills + Comprehensive Drawer */}
@@ -169,6 +169,22 @@ export function ClientManagementTable({
           setSubscriptionStatusFilter("all");
           setSortOrder("newest");
         }}
+        actionButton={
+          <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
+            <span className="text-[12px] font-semibold text-[#837565] dark:text-[#8e8680] whitespace-nowrap">
+              الترقيم:
+            </span>
+            <PageSizeDropdown
+              value={pageSize}
+              onChange={(newSize) => {
+                setPageSize(newSize);
+                setPageIndex(0);
+              }}
+              options={[5, 6, 8, 10, 12, 20, 50, 9999]}
+              dropdownPlacement="bottom"
+            />
+          </div>
+        }
         drawerTitle="تصفية شاملة لمكاتب المحاماة"
         drawerDescription="خيارات تصفية وفلترة متقدمة للوصول الدقيق لبيانات المنشآت"
         drawerContent={
@@ -270,6 +286,32 @@ export function ClientManagementTable({
                   <option value="newest">الأحدث تسجيلاً أولاً</option>
                   <option value="oldest">الأقدم تسجيلاً أولاً</option>
                   <option value="name">أبجدياً حسب اسم المنشأة (أ - ي)</option>
+                </select>
+                <ChevronDown className="size-[15px] text-[#837565] dark:text-[#8e8680] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* 6. Page Size Control */}
+            <div className="space-y-2">
+              <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
+                عدد المكاتب المعروضة (الترقيم)
+              </label>
+              <div className="relative">
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setPageIndex(0);
+                  }}
+                  className="w-full h-[42px] appearance-none bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[14px] pe-[36px] border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
+                >
+                  <option value={5}>5 مكاتب بالصفحة</option>
+                  <option value={6}>6 مكاتب بالصفحة</option>
+                  <option value={8}>8 مكاتب بالصفحة</option>
+                  <option value={10}>10 مكاتب بالصفحة</option>
+                  <option value={12}>12 مكتب بالصفحة</option>
+                  <option value={20}>20 مكتب بالصفحة</option>
+                  <option value={9999}>عرض كافة المكاتب (الكل)</option>
                 </select>
                 <ChevronDown className="size-[15px] text-[#837565] dark:text-[#8e8680] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
@@ -470,7 +512,8 @@ export function ClientManagementTable({
                 setPageSize(newSize);
                 setPageIndex(0);
               }}
-              options={[5, 10, 20, 50]}
+              options={[5, 6, 8, 10, 12, 20, 50, 9999]}
+              dropdownPlacement="top"
             />
           </div>
         </div>
@@ -479,7 +522,7 @@ export function ClientManagementTable({
         <div className="flex items-center gap-[4px]">
           <button
             type="button"
-            disabled={pageIndex === 0 || totalItems === 0}
+            disabled={safePageIndex === 0 || totalItems === 0}
             onClick={() => setPageIndex(0)}
             title="الصفحة الأولى"
             className="size-[30px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center cursor-pointer"
@@ -489,7 +532,7 @@ export function ClientManagementTable({
 
           <button
             type="button"
-            disabled={pageIndex === 0 || totalItems === 0}
+            disabled={safePageIndex === 0 || totalItems === 0}
             onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
             title="الصفحة السابقة"
             className="px-[10px] py-[6px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-[4px] cursor-pointer"
@@ -508,7 +551,7 @@ export function ClientManagementTable({
             </button>
           ) : (
             Array.from({ length: totalPages }, (_, i) => i).map((p) => {
-              if (totalPages > 5 && Math.abs(p - pageIndex) > 2 && p !== 0 && p !== totalPages - 1) {
+              if (totalPages > 5 && Math.abs(p - safePageIndex) > 2 && p !== 0 && p !== totalPages - 1) {
                 if (p === 1 || p === totalPages - 2) {
                   return (
                     <span key={p} className="px-[2px] text-[#837565] dark:text-[#8e8680]">
@@ -518,7 +561,7 @@ export function ClientManagementTable({
                 }
                 return null;
               }
-              const isActive = pageIndex === p;
+              const isActive = safePageIndex === p;
               return (
                 <button
                   key={p}
@@ -538,7 +581,7 @@ export function ClientManagementTable({
 
           <button
             type="button"
-            disabled={pageIndex >= totalPages - 1 || totalItems === 0}
+            disabled={safePageIndex >= totalPages - 1 || totalItems === 0}
             onClick={() => setPageIndex((p) => Math.min(totalPages - 1, p + 1))}
             title="الصفحة التالية"
             className="px-[10px] py-[6px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#1b1c1a] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-[4px] cursor-pointer"
@@ -549,7 +592,7 @@ export function ClientManagementTable({
 
           <button
             type="button"
-            disabled={pageIndex >= totalPages - 1 || totalItems === 0}
+            disabled={safePageIndex >= totalPages - 1 || totalItems === 0}
             onClick={() => setPageIndex(totalPages - 1)}
             title="الصفحة الأخيرة"
             className="size-[30px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center cursor-pointer"

@@ -41,7 +41,7 @@ export function ServerInfoView() {
 
   return (
     <div
-      className="flex h-screen bg-[#f5f3ef] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00]"
+      className="flex h-screen bg-[#f5f3ef] dark:bg-[#1a120d] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00]"
     >
       {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar activeNav="utility" activeSubNav="server-info" />
@@ -52,23 +52,23 @@ export function ServerInfoView() {
 
         <main className="flex-1 overflow-y-auto px-[24px] sm:px-[32px] py-[24px] max-w-[1360px] w-full mx-auto pb-[80px] scrollbar-thin">
           {/* Main Identity & Command Banner (Figma 1:19057) */}
-          <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] relative mb-[24px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]">
+          <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[24px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] relative mb-[24px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]">
             <div className="flex flex-col gap-[4px] text-start">
-              <h1 className="text-[28px] leading-[38px] font-bold text-[#1b1c1a]">
+              <h1 className="text-[28px] leading-[38px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                 معلومات السيرفر
               </h1>
-              <p className="text-[14px] leading-[22px] font-normal text-[#514537]">
+              <p className="text-[14px] leading-[22px] font-normal text-[#514537] dark:text-[#cdc5bd]">
                 فحص ومراقبة البيئة التقنية وإعدادات خادم التطبيق وتوافقها مع متطلبات النظام
               </p>
             </div>
           </div>
 
           {/* Main Card (Figma 1:19069) */}
-          <div className="bg-white rounded-[8px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] flex flex-col overflow-hidden">
+          <div className="bg-white dark:bg-[#221812] rounded-[8px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] flex flex-col overflow-hidden">
             {/* Card Controls Toolbar: Tabs & Page Limit (Figma 1:19071) */}
-            <div className="p-[20px] pb-[16px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px] border-b border-[#eae8e4]">
+            <div className="p-[20px] pb-[16px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px] border-b border-[#eae8e4] dark:border-[#38271c]">
               {/* Tabs Filter (Right in RTL) */}
-              <div className="flex items-center bg-[#f5f3ef] p-[4px] rounded-[8px] border border-[#eae8e4]">
+              <div className="flex items-center bg-[#f5f3ef] dark:bg-[#1a120d] p-[4px] rounded-[8px] border border-[#eae8e4] dark:border-[#38271c]">
                 {/* Tab All */}
                 <button
                   type="button"
@@ -76,12 +76,12 @@ export function ServerInfoView() {
                   className={cn(
                     "px-[16px] py-[6px] rounded-[6px] text-[13px] font-semibold transition-all flex items-center gap-[6px] cursor-pointer",
                     activeTab === "all"
-                      ? "bg-white text-[#9c6402] shadow-xs"
-                      : "text-[#514537] hover:text-[#1b1c1a]"
+                      ? "bg-white dark:bg-[#281c15] text-[#9c6402] dark:text-[#e29d38] shadow-xs"
+                      : "text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
                   )}
                 >
                   <span>الكل</span>
-                  <span className="text-[11px] px-[6px] py-[1px] rounded-full bg-[#f0eeea] text-[#7b4e00] font-bold">
+                  <span className="text-[11px] px-[6px] py-[1px] rounded-full bg-[#f0eeea] dark:bg-[#38271c] text-[#7b4e00] dark:text-[#e29d38] font-bold">
                     {directives.length}
                   </span>
                 </button>
@@ -93,12 +93,12 @@ export function ServerInfoView() {
                   className={cn(
                     "px-[16px] py-[6px] rounded-[6px] text-[13px] font-semibold transition-all flex items-center gap-[6px] cursor-pointer",
                     activeTab === "compatible"
-                      ? "bg-white text-[#065f46] shadow-xs"
-                      : "text-[#514537] hover:text-[#1b1c1a]"
+                      ? "bg-white dark:bg-[#281c15] text-[#065f46] dark:text-emerald-400 shadow-xs"
+                      : "text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
                   )}
                 >
                   <span>متوافق</span>
-                  <span className="text-[11px] px-[6px] py-[1px] rounded-full bg-[#f0eeea] text-[#514537] font-bold">
+                  <span className="text-[11px] px-[6px] py-[1px] rounded-full bg-[#f0eeea] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] font-bold">
                     {compatibleCount}
                   </span>
                 </button>
@@ -110,45 +110,45 @@ export function ServerInfoView() {
                   className={cn(
                     "px-[16px] py-[6px] rounded-[6px] text-[13px] font-semibold transition-all flex items-center gap-[6px] cursor-pointer",
                     activeTab === "needs_review"
-                      ? "bg-white text-[#78350f] shadow-xs"
-                      : "text-[#514537] hover:text-[#1b1c1a]"
+                      ? "bg-white dark:bg-[#281c15] text-[#78350f] dark:text-amber-400 shadow-xs"
+                      : "text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
                   )}
                 >
                   <span>يحتاج مراجعة</span>
-                  <span className="text-[11px] px-[6px] py-[1px] rounded-full bg-[#f0eeea] text-[#514537] font-bold">
+                  <span className="text-[11px] px-[6px] py-[1px] rounded-full bg-[#f0eeea] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] font-bold">
                     {reviewCount}
                   </span>
                 </button>
               </div>
 
               {/* Page Limit Selector (Left in RTL) */}
-              <div className="flex items-center gap-[8px] text-[13px] text-[#514537]">
+              <div className="flex items-center gap-[8px] text-[13px] text-[#514537] dark:text-[#cdc5bd]">
                 <span>عرض الصفحة:</span>
                 <div className="relative">
                   <select
-                    className="bg-[#f5f3ef] border border-[#eae8e4] text-[#1b1c1a] text-[13px] font-semibold rounded-[4px] ps-[12px] pe-[28px] py-[6px] appearance-none cursor-pointer focus:outline-none"
+                    className="bg-[#f5f3ef] dark:bg-[#1a120d] border border-[#eae8e4] dark:border-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[4px] ps-[12px] pe-[28px] py-[6px] appearance-none cursor-pointer focus:outline-none"
                     defaultValue="10"
                   >
                     <option value="10">10 سجلات</option>
                     <option value="25">25 سجل</option>
                     <option value="50">50 سجل</option>
                   </select>
-                  <ChevronDown className="absolute top-1/2 -translate-y-1/2 end-[8px] size-[14px] text-[#837565] pointer-events-none" />
+                  <ChevronDown className="absolute top-1/2 -translate-y-1/2 end-[8px] size-[14px] text-[#837565] dark:text-[#8e8680] pointer-events-none" />
                 </div>
               </div>
             </div>
 
             {/* Search Bar (Figma 1:19096) */}
-            <div className="px-[20px] py-[14px] border-b border-[#eae8e4]">
+            <div className="px-[20px] py-[14px] border-b border-[#eae8e4] dark:border-[#38271c]">
               <div className="relative w-full">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="البحث في إعدادات السيرفر أو اسم المتغير..."
-                  className="w-full bg-[#f5f3ef] text-[#1b1c1a] placeholder-[#837565] text-[13px] rounded-[6px] ps-[16px] pe-[40px] py-[10px] border border-transparent focus:border-[#9c6402] focus:bg-white focus:outline-none transition-all"
+                  className="w-full bg-[#f5f3ef] dark:bg-[#1a120d] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder-[#837565] dark:placeholder-[#8e8680] text-[13px] rounded-[6px] ps-[16px] pe-[40px] py-[10px] border border-transparent dark:border-[#38271c] focus:border-[#9c6402] dark:focus:border-[#e29d38] focus:bg-white dark:focus:bg-[#281c15] focus:outline-none transition-all"
                 />
-                <Search className="absolute top-1/2 -translate-y-1/2 end-[14px] size-[16px] text-[#837565]" />
+                <Search className="absolute top-1/2 -translate-y-1/2 end-[14px] size-[16px] text-[#837565] dark:text-[#8e8680]" />
               </div>
             </div>
 
@@ -156,7 +156,7 @@ export function ServerInfoView() {
             <div className="overflow-x-auto">
               <table className="w-full text-start border-collapse">
                 <thead>
-                  <tr className="bg-[#f5f3ef]/70 text-[#514537] text-[13px] font-bold border-b border-[#eae8e4]">
+                  <tr className="bg-[#f5f3ef]/70 dark:bg-[#1a120d]/80 text-[#514537] dark:text-[#cdc5bd] text-[13px] font-bold border-b border-[#eae8e4] dark:border-[#38271c]">
                     <th className="py-[14px] px-[20px] w-[60px] text-center">#</th>
                     <th className="py-[14px] px-[20px]">اسم الإعداد والمتغير</th>
                     <th className="py-[14px] px-[20px]">القيمة الحالية</th>
@@ -164,7 +164,7 @@ export function ServerInfoView() {
                     <th className="py-[14px] px-[20px] text-center w-[140px]">الحالة</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#eae8e4] text-[14px] text-[#1b1c1a]">
+                <tbody className="divide-y divide-[#eae8e4] dark:divide-[#38271c] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7]">
                   {filteredDirectives.map((directive) => {
                     const isWarning = directive.status === "needs_review";
                     return (
@@ -173,22 +173,22 @@ export function ServerInfoView() {
                         className={cn(
                           "transition-colors",
                           isWarning
-                            ? "bg-[rgba(255,251,235,0.4)] hover:bg-[rgba(255,251,235,0.7)]"
-                            : "hover:bg-[#faf9f6]"
+                            ? "bg-[rgba(255,251,235,0.4)] dark:bg-amber-950/20 hover:bg-[rgba(255,251,235,0.7)] dark:hover:bg-amber-950/30"
+                            : "hover:bg-[#faf9f6] dark:hover:bg-[#281c15]/60"
                         )}
                       >
                         {/* Order Number */}
-                        <td className="py-[18px] px-[20px] text-center font-mono text-[13px] text-[#514537]">
+                        <td className="py-[18px] px-[20px] text-center font-mono text-[13px] text-[#514537] dark:text-[#8e8680]">
                           {directive.orderNumber}
                         </td>
 
                         {/* Title & Variable Name */}
                         <td className="py-[18px] px-[20px]">
                           <div className="flex flex-col gap-[2px]">
-                            <span className="font-semibold text-[#1b1c1a] text-[14px]">
+                            <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] text-[14px]">
                               {directive.title}
                             </span>
-                            <span className="font-mono text-[12px] text-[#837565]">
+                            <span className="font-mono text-[12px] text-[#837565] dark:text-[#8e8680]">
                               {directive.directiveName}
                             </span>
                           </div>
@@ -200,8 +200,8 @@ export function ServerInfoView() {
                             className={cn(
                               "font-mono font-bold text-[12px] px-[10px] py-[3px] rounded-[3px] inline-block",
                               isWarning
-                                ? "bg-[#fef3c7] text-[#78350f]"
-                                : "bg-[#f0eeea] text-[#1b1c1a]"
+                                ? "bg-[#fef3c7] dark:bg-amber-950/60 text-[#78350f] dark:text-amber-400 border border-transparent dark:border-amber-800/40"
+                                : "bg-[#f0eeea] dark:bg-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7]"
                             )}
                           >
                             {directive.currentValue}
@@ -211,11 +211,11 @@ export function ServerInfoView() {
                         {/* Recommended Value */}
                         <td className="py-[18px] px-[20px]">
                           <div className="flex flex-col gap-[2px]">
-                            <span className="font-semibold text-[#514537] text-[12px]">
+                            <span className="font-semibold text-[#514537] dark:text-[#cdc5bd] text-[12px]">
                               {directive.recommendedValue}
                             </span>
                             {directive.recommendedNote && (
-                              <span className="text-[11px] font-normal text-[#92400e]">
+                              <span className="text-[11px] font-normal text-[#92400e] dark:text-amber-400">
                                 {directive.recommendedNote}
                               </span>
                             )}
@@ -225,13 +225,13 @@ export function ServerInfoView() {
                         {/* Status Badge */}
                         <td className="py-[18px] px-[20px] text-center">
                           {isWarning ? (
-                            <span className="inline-flex items-center gap-[4px] bg-[#fef3c7] text-[#78350f] text-[11px] font-bold px-[10px] py-[4px] rounded-[3px]">
-                              <AlertTriangle className="size-[12px] text-[#78350f]" />
+                            <span className="inline-flex items-center gap-[4px] bg-[#fef3c7] dark:bg-amber-950/60 text-[#78350f] dark:text-amber-400 border border-transparent dark:border-amber-800/40 text-[11px] font-bold px-[10px] py-[4px] rounded-[3px]">
+                              <AlertTriangle className="size-[12px] text-[#78350f] dark:text-amber-400" />
                               <span>يحتاج مراجعة</span>
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-[4px] bg-[#d1fae5] text-[#065f46] text-[11px] font-bold px-[10px] py-[4px] rounded-[3px]">
-                              <CheckCircle2 className="size-[12px] text-[#059669]" />
+                            <span className="inline-flex items-center gap-[4px] bg-[#d1fae5] dark:bg-emerald-950/60 text-[#065f46] dark:text-emerald-400 border border-transparent dark:border-emerald-800/40 text-[11px] font-bold px-[10px] py-[4px] rounded-[3px]">
+                              <CheckCircle2 className="size-[12px] text-[#059669] dark:text-emerald-400" />
                               <span>متوافق</span>
                             </span>
                           )}
@@ -244,8 +244,8 @@ export function ServerInfoView() {
             </div>
 
             {/* Pagination Footer (Figma 1:19054) */}
-            <div className="p-[16px] px-[20px] border-t border-[#eae8e4] flex flex-col sm:flex-row items-center justify-between gap-[12px]">
-              <span className="text-[13px] text-[#514537]">
+            <div className="p-[16px] px-[20px] border-t border-[#eae8e4] dark:border-[#38271c] flex flex-col sm:flex-row items-center justify-between gap-[12px]">
+              <span className="text-[13px] text-[#514537] dark:text-[#cdc5bd]">
                 عرض 1 إلى {filteredDirectives.length} من أصل {directives.length} إعدادات فنية مسجلة
               </span>
 
@@ -253,38 +253,38 @@ export function ServerInfoView() {
                 <button
                   type="button"
                   disabled
-                  className="px-[12px] py-[6px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] bg-[#f5f3ef] text-[#837565] opacity-60 cursor-not-allowed"
+                  className="px-[12px] py-[6px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] bg-[#f5f3ef] dark:bg-[#1a120d] text-[#837565] dark:text-[#8e8680] opacity-60 cursor-not-allowed"
                 >
                   السابق
                 </button>
                 <button
                   type="button"
-                  className="size-[32px] text-[12px] font-bold rounded-[4px] bg-[#9c6402] text-white flex items-center justify-center shadow-xs"
+                  className="size-[32px] text-[12px] font-bold rounded-[4px] bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] flex items-center justify-center shadow-xs"
                 >
                   1
                 </button>
                 <button
                   type="button"
-                  className="size-[32px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] text-[#1b1c1a] hover:bg-[#f5f3ef] flex items-center justify-center transition-colors"
+                  className="size-[32px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] flex items-center justify-center transition-colors"
                 >
                   2
                 </button>
                 <button
                   type="button"
-                  className="size-[32px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] text-[#1b1c1a] hover:bg-[#f5f3ef] flex items-center justify-center transition-colors"
+                  className="size-[32px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] flex items-center justify-center transition-colors"
                 >
                   3
                 </button>
-                <span className="px-[4px] text-[#837565]">...</span>
+                <span className="px-[4px] text-[#837565] dark:text-[#8e8680]">...</span>
                 <button
                   type="button"
-                  className="size-[32px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] text-[#1b1c1a] hover:bg-[#f5f3ef] flex items-center justify-center transition-colors"
+                  className="size-[32px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] flex items-center justify-center transition-colors"
                 >
                   16
                 </button>
                 <button
                   type="button"
-                  className="px-[12px] py-[6px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] bg-white text-[#1b1c1a] hover:bg-[#f5f3ef] transition-colors cursor-pointer"
+                  className="px-[12px] py-[6px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] bg-white dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#38271c] transition-colors cursor-pointer"
                 >
                   التالي
                 </button>

@@ -3,10 +3,11 @@
 import React, { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Bell, Calendar, Search, Sun, Moon, ArrowLeftRight, Languages } from "lucide-react";
+import { Bell, Sun, Moon, ArrowLeftRight, Languages } from "lucide-react";
 import userAvatarImg from "../../../../public/figma/user-avatar.png";
 import { NotificationsFlyout } from "@/features/notifications/components/NotificationsFlyout";
 import { DashboardBreadcrumb, type BreadcrumbSegment } from "@/components/shared/DashboardBreadcrumb";
+import { NavbarDatePicker } from "./NavbarDatePicker";
 import { useUIStore } from "@/stores/use-ui-store";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +16,6 @@ interface DashboardTopNavbarProps {
 }
 
 export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProps = {}) {
-  const [searchValue, setSearchValue] = useState("");
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   const isMounted = useSyncExternalStore(
@@ -48,142 +48,124 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
           <div className="h-full bg-gradient-to-r from-[#c29547] via-[#e29d38] to-[#9c6402] animate-pulse w-full" />
         </div>
       )}
+
       {/* 1. Primary Actions Bar (64px) */}
-      <div className="h-[64px] px-[24px] flex items-center justify-between">
-        {/* Right / Start Side (in RTL): Search, Calendar Date */}
-        <div className="flex items-center gap-[24px] flex-1 max-w-[800px]">
-          {/* Search Input Box */}
-          <div className="relative w-full max-w-[505px] h-[41px]" data-node-id="1:661">
-            <input
-              type="text"
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              placeholder={currentLanguage === "en" ? "Search system..." : "البحث في النظام"}
-              className="w-full h-full bg-[#f5f3ef] dark:bg-[#251b14] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder-[#837565] dark:placeholder-[#8e8680] border border-transparent dark:border-[#38271c] text-[12px] rounded-[8px] pe-[38px] ps-[16px] focus:outline-none focus:ring-1 focus:ring-[#9c6402]/30 transition-all font-sans"
-              data-node-id="1:662"
-            />
-            <div className="absolute top-1/2 -translate-y-1/2 end-[14px] pointer-events-none size-[13.5px] flex items-center justify-center">
-              <Search className="size-[13.5px] block text-[#837565] dark:text-[#8e8680]" />
-            </div>
-          </div>
-
-          {/* Calendar Date Display */}
-          <div className="hidden lg:flex items-center gap-[6px] text-[#514537] dark:text-[#cdc5bd] shrink-0" data-node-id="1:656">
-            <Calendar className="size-[14px] block shrink-0 text-[#837565] dark:text-[#8e8680]" />
-            <span className="text-[12px] leading-[18px] font-normal text-[#514537] dark:text-[#cdc5bd]">
-              {currentLanguage === "en" ? "Thursday, 24 October 2024" : "الخميس، 24 أكتوبر 2024"}
-            </span>
-          </div>
-        </div>
-
-        {/* Left / End Side (in RTL): Controls, Notifications & User Profile */}
-        <div className="flex items-center gap-[8px] sm:gap-[12px] shrink-0">
-          {/* Language Toggle Button (AR / EN) - Icon only */}
-          <button
-            type="button"
-            onClick={toggleLanguage}
-            title={currentLanguage === "ar" ? "English" : "العربية"}
-            aria-label={currentLanguage === "ar" ? "English" : "العربية"}
-            className="size-[36px] rounded-[6px] hover:bg-[#f5f3ef] dark:hover:bg-[#251b14] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] border border-transparent hover:border-[#eae8e4] dark:hover:border-[#38271c] transition-colors flex items-center justify-center shrink-0 cursor-pointer"
-          >
-            <Languages className="size-[16px]" />
-          </button>
-
-          {/* Direction Toggle Button (LTR / RTL) - Icon only */}
-          <button
-            type="button"
-            onClick={toggleDirection}
-            title={
-              currentDirection === "rtl"
-                ? "Switch to LTR"
-                : "التبديل إلى RTL"
-            }
-            aria-label={currentDirection === "rtl" ? "Switch to LTR" : "التبديل إلى RTL"}
-            className="size-[36px] rounded-[6px] hover:bg-[#f5f3ef] dark:hover:bg-[#251b14] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] border border-transparent hover:border-[#eae8e4] dark:hover:border-[#38271c] transition-colors flex items-center justify-center shrink-0 cursor-pointer"
-          >
-            <ArrowLeftRight className="size-[16px]" />
-          </button>
-
-          {/* Theme Toggle Button (Dark / Light Mode) - Icon only */}
-          <button
-            type="button"
-            onClick={toggleTheme}
-            title={currentTheme === "dark" ? "Light Mode" : "Dark Mode"}
-            aria-label={currentTheme === "dark" ? "Light Mode" : "Dark Mode"}
-            className="size-[36px] rounded-[6px] hover:bg-[#f5f3ef] dark:hover:bg-[#251b14] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] border border-transparent hover:border-[#eae8e4] dark:hover:border-[#38271c] transition-colors flex items-center justify-center shrink-0 cursor-pointer"
-          >
-            {currentTheme === "dark" ? (
-              <Sun className="size-[17px] text-[#e29d38]" />
-            ) : (
-              <Moon className="size-[17px] text-[#514537] dark:text-[#cdc5bd]" />
-            )}
-          </button>
-
-          {/* Notifications Bell with Badge */}
-          <div className="relative">
-            <button
-              type="button"
-              aria-label="الإشعارات"
-              onClick={() => setIsNotificationsOpen((prev) => !prev)}
-              className={cn(
-                "relative size-[36px] rounded-[6px] hover:bg-[#f5f3ef] dark:hover:bg-[#251b14] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] border border-transparent hover:border-[#eae8e4] dark:hover:border-[#38271c] transition-colors flex items-center justify-center shrink-0 cursor-pointer",
-                isNotificationsOpen && "bg-[#f5f3ef] dark:bg-[#251b14] border-[#eae8e4] dark:border-[#38271c]"
-              )}
-              data-node-id="1:650"
-            >
-              <Bell className="w-[15px] h-[18px] block text-current" />
-              <span
-                className="absolute top-[4px] start-[6px] size-[12px] rounded-full bg-[#9c6402] text-[#fff3e9] text-[9px] font-bold flex items-center justify-center"
-                data-node-id="1:653"
-              >
-                3
-              </span>
-            </button>
-
-            <NotificationsFlyout
-              isOpen={isNotificationsOpen}
-              onClose={() => setIsNotificationsOpen(false)}
-            />
-          </div>
-
-          {/* Vertical Divider */}
-          <div className="hidden sm:block w-px h-[20px] bg-[#eae8e4] dark:bg-[#2c221c]" data-node-id="1:655" />
-
-          {/* Profile Card */}
+      <div className="h-[64px] px-4 sm:px-6 flex items-center justify-between">
+        {/* Right / Start Side (in RTL): User Profile */}
+        <div className="flex items-center gap-3 shrink-0">
           <Link
             href="/profile"
             title={currentLanguage === "en" ? "View Profile" : "عرض الملف الشخصي"}
-            className="flex items-center gap-[8px] ps-[4px] hover:opacity-85 transition-opacity cursor-pointer"
+            className="flex items-center gap-2.5 ps-1 group cursor-pointer"
             data-node-id="1:643"
           >
-            <div className="flex flex-col text-start">
-              <span className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[17.5px] font-sans">
-                {currentLanguage === "en" ? "Eng. Abdulaziz Bin Fahad" : "م. عبد العزيز بن فهد"}
-              </span>
-              <span className="text-[10px] font-semibold text-[#514537] dark:text-[#8e8680] leading-[12.5px]">
-                {currentLanguage === "en" ? "System Super Admin" : "مشرف النظام العام"}
-              </span>
-            </div>
-
             <div
-              className="size-[32px] rounded-full overflow-hidden shrink-0 border border-[#eae8e4] dark:border-[#38271c]"
+              className="size-[36px] rounded-full overflow-hidden shrink-0 border border-[#9c6402] dark:border-[#f59e0b] ring-2 ring-transparent group-hover:ring-[#9c6402]/30 transition-all shadow-2xs"
               data-node-id="1:644"
             >
               <Image
                 src={userAvatarImg}
                 alt={currentLanguage === "en" ? "Eng. Abdulaziz Bin Fahad" : "م. عبد العزيز بن فهد"}
-                width={32}
-                height={32}
-                className="w-full h-full object-cover"
+                width={36}
+                height={36}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                 priority
               />
             </div>
+
+            <div className="flex flex-col text-start">
+              <span className="text-[13px] sm:text-[14px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[18px] group-hover:text-[#9c6402] dark:group-hover:text-[#f59e0b] transition-colors">
+                {currentLanguage === "en" ? "Eng. Abdulaziz Bin Fahad" : "م. عبد العزيز بن فهد"}
+              </span>
+              <span className="text-[10px] sm:text-[11px] font-semibold text-[#837565] dark:text-[#8e8680] leading-[14px]">
+                {currentLanguage === "en" ? "System Super Admin" : "مشرف النظام العام"}
+              </span>
+            </div>
           </Link>
+        </div>
+
+        {/* Left / End Side (in RTL): Date Picker Button + White Divider Line + 4 Action Icons */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {/* Interactive Date & Time Picker Popover */}
+          <NavbarDatePicker language={currentLanguage} />
+
+          {/* Small White Line Divider (same height as buttons: 36px) */}
+          <div
+            className="w-[1.5px] h-[36px] bg-white border-s border-[#eae8e4] dark:border-white/10 dark:bg-white/20 rounded-full shrink-0 shadow-2xs"
+            aria-hidden="true"
+          />
+
+          {/* The 4 Action Icons Group */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* 1. Language Toggle Button (AR / EN) */}
+            <button
+              type="button"
+              onClick={toggleLanguage}
+              title={currentLanguage === "ar" ? "English" : "العربية"}
+              aria-label={currentLanguage === "ar" ? "English" : "العربية"}
+              className="size-[36px] rounded-[6px] hover:bg-[#f5f3ef] dark:hover:bg-[#251b14] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] border border-transparent hover:border-[#eae8e4] dark:hover:border-[#38271c] transition-colors flex items-center justify-center shrink-0 cursor-pointer"
+            >
+              <Languages className="size-[16px]" />
+            </button>
+
+            {/* 2. Direction Toggle Button (LTR / RTL) */}
+            <button
+              type="button"
+              onClick={toggleDirection}
+              title={currentDirection === "rtl" ? "Switch to LTR" : "التبديل إلى RTL"}
+              aria-label={currentDirection === "rtl" ? "Switch to LTR" : "التبديل إلى RTL"}
+              className="size-[36px] rounded-[6px] hover:bg-[#f5f3ef] dark:hover:bg-[#251b14] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] border border-transparent hover:border-[#eae8e4] dark:hover:border-[#38271c] transition-colors flex items-center justify-center shrink-0 cursor-pointer"
+            >
+              <ArrowLeftRight className="size-[16px]" />
+            </button>
+
+            {/* 3. Theme Toggle Button (Dark / Light Mode) */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              title={currentTheme === "dark" ? "Light Mode" : "Dark Mode"}
+              aria-label={currentTheme === "dark" ? "Light Mode" : "Dark Mode"}
+              className="size-[36px] rounded-[6px] hover:bg-[#f5f3ef] dark:hover:bg-[#251b14] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] border border-transparent hover:border-[#eae8e4] dark:hover:border-[#38271c] transition-colors flex items-center justify-center shrink-0 cursor-pointer"
+            >
+              {currentTheme === "dark" ? (
+                <Sun className="size-[17px] text-[#e29d38]" />
+              ) : (
+                <Moon className="size-[17px] text-[#514537] dark:text-[#cdc5bd]" />
+              )}
+            </button>
+
+            {/* 4. Notifications Bell with Badge */}
+            <div className="relative">
+              <button
+                type="button"
+                aria-label="الإشعارات"
+                onClick={() => setIsNotificationsOpen((prev) => !prev)}
+                className={cn(
+                  "relative size-[36px] rounded-[6px] hover:bg-[#f5f3ef] dark:hover:bg-[#251b14] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] border border-transparent hover:border-[#eae8e4] dark:hover:border-[#38271c] transition-colors flex items-center justify-center shrink-0 cursor-pointer",
+                  isNotificationsOpen && "bg-[#f5f3ef] dark:bg-[#251b14] border-[#eae8e4] dark:border-[#38271c]"
+                )}
+                data-node-id="1:650"
+              >
+                <Bell className="w-[15px] h-[18px] block text-current" />
+                <span
+                  className="absolute top-[4px] start-[6px] size-[12px] rounded-full bg-[#9c6402] text-[#fff3e9] text-[9px] font-bold flex items-center justify-center"
+                  data-node-id="1:653"
+                >
+                  3
+                </span>
+              </button>
+
+              <NotificationsFlyout
+                isOpen={isNotificationsOpen}
+                onClose={() => setIsNotificationsOpen(false)}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
       {/* 2. Sleek shadcn/ui Breadcrumb Bar (38px) */}
-      <div className="h-[38px] px-[24px] bg-[#fbfaf8]/95 dark:bg-[#17120e]/95 backdrop-blur-xs border-t border-[#f0ede8] dark:border-[#281f18] flex items-center justify-between">
+      <div className="h-[38px] px-4 sm:px-6 bg-[#fbfaf8]/95 dark:bg-[#17120e]/95 backdrop-blur-xs border-t border-[#f0ede8] dark:border-[#281f18] flex items-center justify-between">
         <DashboardBreadcrumb customItems={customBreadcrumbs} />
 
         {/* Subtle Platform Status indicator */}

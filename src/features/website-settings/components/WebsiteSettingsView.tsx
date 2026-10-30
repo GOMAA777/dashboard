@@ -59,11 +59,11 @@ export function WebsiteSettingsView({ initialTab = "menu" }: WebsiteSettingsView
         return <SeoTab />;
       default:
         return (
-          <div className="bg-white rounded-[12px] p-[32px] border border-[rgba(231,229,228,0.8)] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] flex flex-col items-center justify-center text-center gap-[12px] min-h-[360px]">
-            <h3 className="text-[18px] font-bold text-[#1c1917]">
+          <div className="bg-white dark:bg-[#221812] rounded-[12px] p-[32px] border border-[rgba(231,229,228,0.8)] dark:border-[#38271c] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] flex flex-col items-center justify-center text-center gap-[12px] min-h-[360px]">
+            <h3 className="text-[18px] font-bold text-[#1c1917] dark:text-[#fdfbf7]">
               إعدادات {activeTab}
             </h3>
-            <p className="text-[14px] text-[#78716c] max-w-[420px]">
+            <p className="text-[14px] text-[#78716c] dark:text-[#cdc5bd] max-w-[420px]">
               يتم العمل على مزامنة هذا التبويب مع الهوية البصرية وإعدادات المنصة.
             </p>
           </div>
@@ -73,7 +73,7 @@ export function WebsiteSettingsView({ initialTab = "menu" }: WebsiteSettingsView
 
   return (
     <div
-      className="flex h-screen h-dvh bg-[#f5f3ef] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00]"
+      className="flex h-screen h-dvh bg-[#f5f3ef] dark:bg-[#1a120d] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00]"
     >
       {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar activeNav="site-settings" />
@@ -85,13 +85,13 @@ export function WebsiteSettingsView({ initialTab = "menu" }: WebsiteSettingsView
         <main className="flex-1 overflow-y-auto px-[24px] sm:px-[32px] py-[24px] max-w-[1360px] w-full mx-auto pb-[100px] scrollbar-thin">
           <DashboardPageTransition>
             {/* Main Identity & Command Banner (Figma 1:19876) */}
-            <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] relative mb-[24px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]">
+            <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[24px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] relative mb-[24px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]">
               <div className="flex flex-col gap-[4px] text-start">
-                <h1 className="text-[28px] leading-[38px] font-bold text-[#1b1c1a]">
+                <h1 className="text-[28px] leading-[38px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                   إعدادات الموقع
                 </h1>
-                <p className="text-[14px] leading-[22px] font-normal text-[#514537]">
-                  إدارة وتفعيلاعدادات الموقع لدعم الهوية البصرية والالوان واكواد المنصة
+                <p className="text-[14px] leading-[22px] font-normal text-[#514537] dark:text-[#cdc5bd]">
+                  إدارة وتفعيل إعدادات الموقع لدعم الهوية البصرية والألوان وأكواد المنصة
                 </p>
               </div>
             </div>
