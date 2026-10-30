@@ -240,11 +240,11 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
 
       {/* Pagination Footer (Figma 1:11855) */}
       <div
-        className="bg-white dark:bg-[#221812] border-t border-[#e6e2dc] dark:border-[#38271c] p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-start"
+        className="bg-[#fcfaf7] dark:bg-[#1a120d] border-t border-[#e6e2dc] dark:border-[#38271c] p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-start"
         data-node-id="1:11855"
       >
-        {/* Total counts text & Rows per page */}
-        <div className="flex items-center gap-3 order-1 sm:order-2">
+        {/* Right in RTL: Total counts text & Rows per page */}
+        <div className="flex flex-wrap items-center gap-3">
           <div className="text-[12px] text-[#514537] dark:text-[#cdc5bd]" data-node-id="1:11877">
             <span>عرض </span>
             <strong className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{startItem}</strong>
@@ -268,8 +268,8 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
           </div>
         </div>
 
-        {/* Numeric page buttons with First & Last arrows */}
-        <div className="flex items-center gap-1.5 order-2 sm:order-1" data-node-id="1:11856">
+        {/* Left in RTL: Numeric page buttons with First & Last arrows */}
+        <div className="flex items-center gap-1.5" data-node-id="1:11856">
           {/* First Page */}
           <button
             type="button"

@@ -10,11 +10,16 @@ import {
   MoreVertical,
   Scale,
   Timer,
+  ChevronRight,
+  ChevronLeft,
+  ChevronsRight,
+  ChevronsLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ClientRowActionMenu } from "@/features/clients/components/ClientRowActionMenu";
 import { useUIStore } from "@/stores/use-ui-store";
+import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
 
 interface LawOfficeRow {
   id: string;
@@ -222,6 +227,8 @@ const officesData: LawOfficeRow[] = [
 export function DashboardLawOfficesTable() {
   const router = useRouter();
   const [openMenuRowId, setOpenMenuRowId] = useState<string | null>(null);
+  const [pageSize, setPageSize] = useState(5);
+  const [pageIndex, setPageIndex] = useState(0);
 
   const isMounted = useSyncExternalStore(
     () => () => {},
@@ -235,6 +242,16 @@ export function DashboardLawOfficesTable() {
   const isRTL = isMounted ? direction === "rtl" : true;
 
   const LinkIcon = isRTL ? ArrowLeft : ArrowRight;
+
+  const totalItems = officesData.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const safePageIndex = Math.min(pageIndex, totalPages - 1);
+  const paginatedOffices = officesData.slice(
+    safePageIndex * pageSize,
+    (safePageIndex + 1) * pageSize
+  );
+  const startItem = totalItems === 0 ? 0 : safePageIndex * pageSize + 1;
+  const endItem = Math.min((safePageIndex + 1) * pageSize, totalItems);
 
   return (
     <div
@@ -321,7 +338,7 @@ export function DashboardLawOfficesTable() {
 
           {/* Body Rows */}
           <tbody className="divide-y divide-[#f0eeea] dark:divide-[#38271c]" data-node-id="1:262">
-            {officesData.map((row) => (
+            {paginatedOffices.map((row) => (
               <tr
                 key={row.id}
                 className="hover:bg-[#fcfbfa] dark:hover:bg-[#2a1d15] transition-colors duration-150"
@@ -491,6 +508,111 @@ export function DashboardLawOfficesTable() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Pagination Footer */}
+      <div className="bg-[#fcfaf7] dark:bg-[#1a120d] p-[16px] border-t border-[#f0eeea] dark:border-[#38271c] rounded-b-[8px] -mx-[24px] -mb-[24px] mt-[16px] flex flex-col sm:flex-row items-center justify-between gap-[12px] text-[12px] text-[#514537] dark:text-[#cdc5bd] font-['Cairo']">
+        {/* Right in RTL: Count Summary & Rows per page */}
+        <div className="flex flex-wrap items-center gap-4">
+          <div>
+            <span>{currentLang === "en" ? "Showing " : "عرض "}</span>
+            <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+              {totalItems === 0 ? 0 : safePageIndex * pageSize + 1}
+            </span>
+            <span>{currentLang === "en" ? " to " : " إلى "}</span>
+            <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{endItem}</span>
+            <span>{currentLang === "en" ? " of " : " من أصل "}</span>
+            <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{totalItems}</span>
+            <span>{currentLang === "en" ? " law offices" : " مكتب محاماة مسجل"}</span>
+          </div>
+
+          <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
+            <span className="text-[11px] text-[#837565] dark:text-[#8e8680]">
+              {currentLang === "en" ? "Rows per page:" : "صفوف بالصفحة:"}
+            </span>
+            <PageSizeDropdown
+              value={pageSize}
+              onChange={(newSize) => {
+                setPageSize(newSize);
+                setPageIndex(0);
+              }}
+              options={[5, 10, 20]}
+            />
+          </div>
+        </div>
+
+        {/* Left in RTL: Page Controls */}
+        <div className="flex items-center gap-[4px]">
+          <button
+            type="button"
+            disabled={safePageIndex === 0 || totalItems === 0}
+            onClick={() => setPageIndex(0)}
+            title={currentLang === "en" ? "First page" : "الصفحة الأولى"}
+            className="size-[30px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center cursor-pointer"
+          >
+            <ChevronsRight className="size-[14px]" />
+          </button>
+
+          <button
+            type="button"
+            disabled={safePageIndex === 0 || totalItems === 0}
+            onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
+            title={currentLang === "en" ? "Previous page" : "الصفحة السابقة"}
+            className="px-[10px] py-[6px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-[4px] cursor-pointer"
+          >
+            <ChevronRight className="size-[13px]" />
+            <span>{currentLang === "en" ? "Previous" : "السابق"}</span>
+          </button>
+
+          {totalItems === 0 ? (
+            <button
+              type="button"
+              disabled
+              className="size-[30px] rounded-[4px] font-semibold text-[12px] flex items-center justify-center border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#8e8680] opacity-40 cursor-not-allowed"
+            >
+              1
+            </button>
+          ) : (
+            Array.from({ length: totalPages }, (_, i) => i).map((p) => {
+              const isActive = safePageIndex === p;
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setPageIndex(p)}
+                  className={`size-[30px] rounded-[4px] font-semibold text-[12px] flex items-center justify-center cursor-pointer transition-colors ${
+                    isActive
+                      ? "bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] font-bold shadow-sm"
+                      : "border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15]"
+                  }`}
+                >
+                  {p + 1}
+                </button>
+              );
+            })
+          )}
+
+          <button
+            type="button"
+            disabled={safePageIndex >= totalPages - 1 || totalItems === 0}
+            onClick={() => setPageIndex((p) => Math.min(totalPages - 1, p + 1))}
+            title={currentLang === "en" ? "Next page" : "الصفحة التالية"}
+            className="px-[10px] py-[6px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#1b1c1a] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-[4px] cursor-pointer"
+          >
+            <span>{currentLang === "en" ? "Next" : "التالي"}</span>
+            <ChevronLeft className="size-[13px]" />
+          </button>
+
+          <button
+            type="button"
+            disabled={safePageIndex >= totalPages - 1 || totalItems === 0}
+            onClick={() => setPageIndex(totalPages - 1)}
+            title={currentLang === "en" ? "Last page" : "الصفحة الأخيرة"}
+            className="size-[30px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center cursor-pointer"
+          >
+            <ChevronsLeft className="size-[14px]" />
+          </button>
+        </div>
       </div>
     </div>
   );

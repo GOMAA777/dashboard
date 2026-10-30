@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronsRight,
   ChevronsLeft,
+  ChevronDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ClientOffice, TabFilter } from "../types/client.types";
@@ -170,92 +171,107 @@ export function ClientManagementTable({
         drawerTitle="تصفية شاملة لمكاتب المحاماة"
         drawerDescription="خيارات تصفية وفلترة متقدمة للوصول الدقيق لبيانات المنشآت"
         drawerContent={
-          <div className="space-y-4 text-start font-['Cairo',sans-serif]">
+          <div className="space-y-6 text-start font-['Cairo',sans-serif]">
             {/* 1. Account Status */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
                 حالة الحساب
               </label>
-              <select
-                value={activeTab}
-                onChange={(e) => setActiveTab(e.target.value as TabFilter)}
-                className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[12px] border border-transparent dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
-              >
-                <option value="all">كافة الحالات (الكل)</option>
-                <option value="active">الحسابات النشطة فقط</option>
-                <option value="suspended">الحسابات المعطلة فقط</option>
-              </select>
+              <div className="relative">
+                <select
+                  value={activeTab}
+                  onChange={(e) => setActiveTab(e.target.value as TabFilter)}
+                  className="w-full h-[42px] appearance-none bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[14px] pe-[36px] border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
+                >
+                  <option value="all">كافة الحالات (الكل)</option>
+                  <option value="active">الحسابات النشطة فقط</option>
+                  <option value="suspended">الحسابات المعطلة فقط</option>
+                </select>
+                <ChevronDown className="size-[15px] text-[#837565] dark:text-[#8e8680] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
             </div>
 
             {/* 2. Subscription Status */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
                 حالة الاشتراك
               </label>
-              <select
-                value={subscriptionStatusFilter}
-                onChange={(e) => setSubscriptionStatusFilter(e.target.value)}
-                className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[12px] border border-transparent dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
-              >
-                <option value="all">كافة اشتراكات المكاتب</option>
-                <option value="active">اشتراك نشط وساري</option>
-                <option value="trial">تحت التجربة المجانية</option>
-                <option value="expired">منتهي الصلاحية</option>
-              </select>
+              <div className="relative">
+                <select
+                  value={subscriptionStatusFilter}
+                  onChange={(e) => setSubscriptionStatusFilter(e.target.value)}
+                  className="w-full h-[42px] appearance-none bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[14px] pe-[36px] border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
+                >
+                  <option value="all">كافة اشتراكات المكاتب</option>
+                  <option value="active">اشتراك نشط وساري</option>
+                  <option value="trial">تحت التجربة المجانية</option>
+                  <option value="expired">منتهي الصلاحية</option>
+                </select>
+                <ChevronDown className="size-[15px] text-[#837565] dark:text-[#8e8680] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
             </div>
 
             {/* 3. Plan Filter */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
                 باقة الاشتراك المعتمدة
               </label>
-              <select
-                value={planFilter}
-                onChange={(e) => setPlanFilter(e.target.value)}
-                className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[12px] border border-transparent dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
-              >
-                <option value="all">جميع الباقات</option>
-                <option value="الاحترافية">الباقة الاحترافية (Pro)</option>
-                <option value="الشركات">باقة الشركات (Enterprise)</option>
-                <option value="الأساسية">الباقة الأساسية (Basic)</option>
-                <option value="مجانية">تجربة مجانية (Free Trial)</option>
-              </select>
+              <div className="relative">
+                <select
+                  value={planFilter}
+                  onChange={(e) => setPlanFilter(e.target.value)}
+                  className="w-full h-[42px] appearance-none bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[14px] pe-[36px] border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
+                >
+                  <option value="all">جميع الباقات</option>
+                  <option value="الاحترافية">الباقة الاحترافية (Pro)</option>
+                  <option value="الشركات">باقة الشركات (Enterprise)</option>
+                  <option value="الأساسية">الباقة الأساسية (Basic)</option>
+                  <option value="مجانية">تجربة مجانية (Free Trial)</option>
+                </select>
+                <ChevronDown className="size-[15px] text-[#837565] dark:text-[#8e8680] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
             </div>
 
             {/* 4. City Filter */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
                 المدينة / المقر الرئيسي
               </label>
-              <select
-                value={cityFilter}
-                onChange={(e) => setCityFilter(e.target.value)}
-                className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[12px] border border-transparent dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
-              >
-                <option value="all">كافة المدن والمناطق</option>
-                <option value="الرياض">مدينة الرياض</option>
-                <option value="جدة">مدينة جدة</option>
-                <option value="الدمام">الدمام والمنطقة الشرقية</option>
-                <option value="الخبر">محافظة الخبر</option>
-                <option value="مكة المكرمة">مكة المكرمة</option>
-                <option value="المدينة المنورة">المدينة المنورة</option>
-              </select>
+              <div className="relative">
+                <select
+                  value={cityFilter}
+                  onChange={(e) => setCityFilter(e.target.value)}
+                  className="w-full h-[42px] appearance-none bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[14px] pe-[36px] border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
+                >
+                  <option value="all">كافة المدن والمناطق</option>
+                  <option value="الرياض">مدينة الرياض</option>
+                  <option value="جدة">مدينة جدة</option>
+                  <option value="الدمام">الدمام والمنطقة الشرقية</option>
+                  <option value="الخبر">محافظة الخبر</option>
+                  <option value="مكة المكرمة">مكة المكرمة</option>
+                  <option value="المدينة المنورة">المدينة المنورة</option>
+                </select>
+                <ChevronDown className="size-[15px] text-[#837565] dark:text-[#8e8680] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
             </div>
 
             {/* 5. Sort Order */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
                 ترتيب النتائج
               </label>
-              <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value as "newest" | "oldest" | "name")}
-                className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[12px] border border-transparent dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
-              >
-                <option value="newest">الأحدث تسجيلاً أولاً</option>
-                <option value="oldest">الأقدم تسجيلاً أولاً</option>
-                <option value="name">أبجدياً حسب اسم المنشأة (أ - ي)</option>
-              </select>
+              <div className="relative">
+                <select
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value as "newest" | "oldest" | "name")}
+                  className="w-full h-[42px] appearance-none bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[14px] pe-[36px] border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
+                >
+                  <option value="newest">الأحدث تسجيلاً أولاً</option>
+                  <option value="oldest">الأقدم تسجيلاً أولاً</option>
+                  <option value="name">أبجدياً حسب اسم المنشأة (أ - ي)</option>
+                </select>
+                <ChevronDown className="size-[15px] text-[#837565] dark:text-[#8e8680] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
             </div>
           </div>
         }
@@ -425,7 +441,7 @@ export function ClientManagementTable({
         </div>
 
         {/* Pagination Footer */}
-        <div className="p-[16px] border-t border-[#f0eeea] dark:border-[#38271c] flex flex-col sm:flex-row items-center justify-between gap-[12px] text-[12px] text-[#514537] dark:text-[#cdc5bd] font-['Cairo']">
+        <div className="bg-[#fcfaf7] dark:bg-[#1a120d] p-[16px] border-t border-[#f0eeea] dark:border-[#38271c] flex flex-col sm:flex-row items-center justify-between gap-[12px] text-[12px] text-[#514537] dark:text-[#cdc5bd] font-['Cairo']">
           {/* Right in RTL: Count Summary & Rows per page */}
         <div className="flex flex-wrap items-center gap-4">
           <div>
