@@ -1,4 +1,6 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useSyncExternalStore } from "react";
+import { cn } from "@/lib/utils";
+import { useUIStore } from "@/stores/use-ui-store";
 import {
   Key,
   ShieldCheck,
@@ -29,6 +31,14 @@ interface AddRoleViewProps {
 }
 
 export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProps) {
+  const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
+  const isMounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+  const isCollapsed = isMounted ? sidebarCollapsed : false;
+
   // Form fields
   const [roleName, setRoleName] = useState(initialRole?.name || "مستشار مراجعة الامتثال والتوثيق");
   const [roleSlug, setRoleSlug] = useState(initialRole?.slug || "compliance_audit_specialist");
@@ -493,7 +503,12 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
       </div>
 
       {/* FIXED BOTTOM STICKY BAR: Compliance & Actions (Figma 1:12201) */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#e6e2dc] shadow-[0px_-4px_10px_rgba(0,0,0,0.04)] py-3 px-6 md:px-12">
+      <div
+        className={cn(
+          "fixed bottom-0 end-0 z-20 bg-white/95 backdrop-blur-md border-t border-[#e6e2dc] shadow-[0px_-4px_10px_rgba(0,0,0,0.04)] py-3 px-6 md:px-8 transition-all duration-300 ease-in-out",
+          isCollapsed ? "start-[72px]" : "start-[240px]"
+        )}
+      >
         <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-3">
           {/* Security guarantee note on start */}
           <div className="flex items-center gap-2.5 text-right">

@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useSyncExternalStore } from "react";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
+import { useUIStore } from "@/stores/use-ui-store";
 import {
   ArrowRight,
   Eye,
@@ -46,6 +48,14 @@ export function SendNotificationView({
   onSaveDraft,
   initialData,
 }: SendNotificationViewProps) {
+  const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
+  const isMounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+  const isCollapsed = isMounted ? sidebarCollapsed : false;
+
   const {
     register,
     handleSubmit,
@@ -714,7 +724,10 @@ export function SendNotificationView({
 
       {/* Sticky Bottom Actions Footer (Figma 1:13441) */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#eae8e4] px-6 py-3.5 shadow-[0px_-4px_16px_rgba(0,0,0,0.06)]"
+        className={cn(
+          "fixed bottom-0 end-0 z-20 bg-white border-t border-[#eae8e4] px-6 md:px-8 py-3.5 shadow-[0px_-4px_16px_rgba(0,0,0,0.06)] transition-all duration-300 ease-in-out",
+          isCollapsed ? "start-[72px]" : "start-[240px]"
+        )}
         data-node-id="1:13441"
       >
         <div className="w-full flex items-center justify-end gap-2.5">
