@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import {
   ArrowRight,
+  ArrowLeft,
   Eye,
   Check,
   CheckCircle2,
@@ -112,12 +113,11 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
     <div
       className="w-full flex flex-col gap-[24px] font-['Cairo',sans-serif]"
       data-node-id="1:3035"
-      dir="rtl"
     >
       {/* 1. Top Header Bar */}
       <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] flex flex-col sm:flex-row sm:items-center justify-between gap-[16px] w-full">
         {/* Right / Start: Title & Subtitle */}
-        <div className="flex flex-col text-right">
+        <div className="flex flex-col text-start">
           <h1 className="text-[26px] leading-[36px] font-bold text-[#1b1c1a]">
             إنشاء باقة اشتراك جديدة
           </h1>
@@ -154,7 +154,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
                 خطوة 1 من 4
               </span>
               <div className="flex items-center gap-[10px]">
-                <div className="flex flex-col text-right">
+                <div className="flex flex-col text-start">
                   <h2 className="text-[16px] font-bold text-[#1b1c1a]">
                     البيانات الأساسية للباقة
                   </h2>
@@ -169,7 +169,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
             </div>
 
             {/* Input: اسم الباقة */}
-            <div className="flex flex-col gap-[6px] text-right">
+            <div className="flex flex-col gap-[6px] text-start">
               <label className="text-[13px] font-semibold text-[#1b1c1a]">
                 اسم الباقة <span className="text-[#9c6402] font-bold">*</span>
               </label>
@@ -184,7 +184,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
             </div>
 
             {/* Input: الوصف التعريفي المعتمد */}
-            <div className="flex flex-col gap-[6px] text-right">
+            <div className="flex flex-col gap-[6px] text-start">
               <label className="text-[13px] font-semibold text-[#1b1c1a]">
                 الوصف التعريفي المعتمد <span className="text-[#9c6402] font-bold">*</span>
               </label>
@@ -201,7 +201,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
             {/* Status & Color Selection */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px] pt-[4px]">
               {/* حالة الباقة والظهور */}
-              <div className="flex flex-col gap-[8px] text-right">
+              <div className="flex flex-col gap-[8px] text-start">
                 <label className="text-[13px] font-semibold text-[#1b1c1a]">
                   حالة الباقة والظهور
                 </label>
@@ -230,7 +230,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
               </div>
 
               {/* لون وتمييز هوية الباقة */}
-              <div className="flex flex-col gap-[8px] text-right">
+              <div className="flex flex-col gap-[8px] text-start">
                 <label className="text-[13px] font-semibold text-[#1b1c1a]">
                   لون وتمييز هوية الباقة
                 </label>
@@ -256,7 +256,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
             <div className="bg-[#f5f3ef]/70 rounded-[6px] p-[14px] flex items-center justify-between mt-[4px]">
               <div className="flex items-center gap-[10px]">
                 <Sparkles className="size-[18px] text-[#9c6402]" />
-                <div className="flex flex-col text-right">
+                <div className="flex flex-col text-start">
                   <span className="text-[13px] font-bold text-[#1b1c1a]">
                     تمييز الباقة كـ &quot;الأكثر اختياراً&quot; (Most Popular)
                   </span>
@@ -291,7 +291,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
                 خطوة 2 من 4
               </span>
               <div className="flex items-center gap-[10px]">
-                <div className="flex flex-col text-right">
+                <div className="flex flex-col text-start">
                   <h2 className="text-[16px] font-bold text-[#1b1c1a]">
                     السعر ودورات الفوترة
                   </h2>
@@ -315,7 +315,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
                     : "border-[#eae8e4] hover:bg-[#faf9f7]"
                 }`}
               >
-                <div className="flex flex-col text-right">
+                <div className="flex flex-col text-start">
                   <span className="text-[13px] font-bold text-[#1b1c1a]">باقة تجارية مدفوعة</span>
                   <span className="text-[11px] text-[#514537]">تتطلب اشتراكاً دورياً ودفعات مؤتمتة عبر مدى وسداد وفيزا</span>
                 </div>
@@ -336,7 +336,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
                     : "border-[#eae8e4] hover:bg-[#faf9f7]"
                 }`}
               >
-                <div className="flex flex-col text-right">
+                <div className="flex flex-col text-start">
                   <span className="text-[13px] font-bold text-[#1b1c1a]">باقة تجريبية / مجانية (0 ر.س)</span>
                   <span className="text-[11px] text-[#514537]">فترة استكشافية محدودة الأجل للمحامين الجدد والناشئين</span>
                 </div>
@@ -353,7 +353,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
             {/* حقول أسعار الدورات الزمنية */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px] pt-[4px]">
               {/* شهري */}
-              <div className="flex flex-col gap-[6px] text-right">
+              <div className="flex flex-col gap-[6px] text-start">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold text-[#837565] bg-[#eae8e4] px-[6px] py-[2px] rounded-[2px]">
                     الدورة الأساسية
@@ -375,7 +375,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
               </div>
 
               {/* سنوي */}
-              <div className="flex flex-col gap-[6px] text-right">
+              <div className="flex flex-col gap-[6px] text-start">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold text-[#047857] bg-[#ecfdf5] px-[6px] py-[2px] rounded-[2px]">
                     شهران مجاناً
@@ -410,7 +410,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
                 خطوة 3 من 4
               </span>
               <div className="flex items-center gap-[10px]">
-                <div className="flex flex-col text-right">
+                <div className="flex flex-col text-start">
                   <h2 className="text-[16px] font-bold text-[#1b1c1a]">
                     حدود الاستخدام والموارد السحابية
                   </h2>
@@ -433,7 +433,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
             {/* 6 Limit Inputs in 3x2 Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-[16px]">
               {/* 1. المحامون والمستشارون */}
-              <div className="flex flex-col gap-[4px] text-right">
+              <div className="flex flex-col gap-[4px] text-start">
                 <label className="text-[12px] font-bold text-[#1b1c1a]">المحامون والمستشارون</label>
                 <div className="relative">
                   <input
@@ -450,7 +450,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
               </div>
 
               {/* 2. القضايا والمعاملات النشطة */}
-              <div className="flex flex-col gap-[4px] text-right">
+              <div className="flex flex-col gap-[4px] text-start">
                 <label className="text-[12px] font-bold text-[#1b1c1a]">القضايا والمعاملات النشطة</label>
                 <div className="relative">
                   <input
@@ -467,7 +467,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
               </div>
 
               {/* 3. الوكلاء والمفوضون */}
-              <div className="flex flex-col gap-[4px] text-right">
+              <div className="flex flex-col gap-[4px] text-start">
                 <label className="text-[12px] font-bold text-[#1b1c1a]">الوكلاء والمفوضون</label>
                 <div className="relative">
                   <input
@@ -484,7 +484,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
               </div>
 
               {/* 4. الموكلون والشركات */}
-              <div className="flex flex-col gap-[4px] text-right">
+              <div className="flex flex-col gap-[4px] text-start">
                 <label className="text-[12px] font-bold text-[#1b1c1a]">الموكلون والشركات</label>
                 <div className="relative">
                   <input
@@ -501,7 +501,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
               </div>
 
               {/* 5. المساحة السحابية */}
-              <div className="flex flex-col gap-[4px] text-right">
+              <div className="flex flex-col gap-[4px] text-start">
                 <label className="text-[12px] font-bold text-[#1b1c1a]">المساحة السحابية (GB)</label>
                 <div className="relative">
                   <input
@@ -518,7 +518,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
               </div>
 
               {/* 6. المساعدون والمحاسبون */}
-              <div className="flex flex-col gap-[4px] text-right">
+              <div className="flex flex-col gap-[4px] text-start">
                 <label className="text-[12px] font-bold text-[#1b1c1a]">المساعدون والمحاسبون</label>
                 <div className="relative">
                   <input
@@ -544,7 +544,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
                 خطوة 4 من 4
               </span>
               <div className="flex items-center gap-[10px]">
-                <div className="flex flex-col text-right">
+                <div className="flex flex-col text-start">
                   <h2 className="text-[16px] font-bold text-[#1b1c1a]">
                     المميزات المتقدمة وتكاملات المنظومة
                   </h2>
@@ -576,7 +576,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
                     onChange={() => toggleFeature("vipSla")}
                     className="size-[16px] accent-[#9c6402]"
                   />
-                  <div className="flex flex-col text-right">
+                  <div className="flex flex-col text-start">
                     <div className="flex items-center gap-[6px]">
                       <span className="text-[13px] font-bold text-[#1b1c1a]">
                         دعم فني واستجابة بأولوية قصوى (VIP SLA)
@@ -608,7 +608,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
                     onChange={() => toggleFeature("accountManager")}
                     className="size-[16px] accent-[#9c6402]"
                   />
-                  <div className="flex flex-col text-right">
+                  <div className="flex flex-col text-start">
                     <div className="flex items-center gap-[6px]">
                       <span className="text-[13px] font-bold text-[#1b1c1a]">
                         مدير حساب قانوني معتمد
@@ -640,7 +640,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
                     onChange={() => toggleFeature("kpiReports")}
                     className="size-[16px] accent-[#9c6402]"
                   />
-                  <div className="flex flex-col text-right">
+                  <div className="flex flex-col text-start">
                     <div className="flex items-center gap-[6px]">
                       <span className="text-[13px] font-bold text-[#1b1c1a]">
                         تقارير الذكاء القضائي ومؤشرات الأداء المالي (KPIs)
@@ -672,7 +672,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
                     onChange={() => toggleFeature("zatcaV2")}
                     className="size-[16px] accent-[#9c6402]"
                   />
-                  <div className="flex flex-col text-right">
+                  <div className="flex flex-col text-start">
                     <div className="flex items-center gap-[6px]">
                       <span className="text-[13px] font-bold text-[#1b1c1a]">
                         فوترة إلكترونية متوافقة كلياً مع منصة فاتورة (المرحلة الثانية)
@@ -730,13 +730,13 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
         {/* ======================================================== */}
         <div className="lg:col-span-4 sticky top-[24px] flex flex-col gap-[12px]">
           {/* Preview Header */}
-          <div className="flex items-center gap-[6px] text-[#514537] text-[13px] font-bold text-right px-[4px]">
+          <div className="flex items-center gap-[6px] text-[#514537] text-[13px] font-bold text-start px-[4px]">
             <Eye className="size-[15px] text-[#9c6402]" />
             <span>معاينة بطاقة الباقة</span>
           </div>
 
           {/* Live Interactive Card */}
-          <div className="bg-white rounded-[12px] p-[24px] shadow-[0px_8px_24px_rgba(0,0,0,0.08)] border-2 border-[#9c6402] flex flex-col gap-[16px] text-right">
+          <div className="bg-white rounded-[12px] p-[24px] shadow-[0px_8px_24px_rgba(0,0,0,0.08)] border-2 border-[#9c6402] flex flex-col gap-[16px] text-start">
             {/* Top Badges */}
             <div className="flex items-center justify-between">
               <span className="bg-[#e8f5e9] text-[#1b7340] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px]">
@@ -811,8 +811,8 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
               disabled
               className="w-full bg-[#9c6402] text-white py-[10px] rounded-[4px] text-[13px] font-bold shadow-xs flex items-center justify-center gap-[6px] opacity-90 cursor-default"
             >
+              <ArrowLeft className="size-[14px] rtl:rotate-0 ltr:rotate-180" />
               <span>اشتراك في هذه الباقة</span>
-              <ArrowRight className="size-[14px]" />
             </button>
           </div>
         </div>

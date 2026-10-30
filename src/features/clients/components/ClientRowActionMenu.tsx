@@ -116,9 +116,8 @@ export function ClientRowActionMenu({
               ...(coords.bottom !== undefined ? { bottom: `${coords.bottom}px` } : {}),
               zIndex: 9999,
             }}
-            className="w-[210px] bg-white dark:bg-[#1e1c1a] rounded-[8px] p-[6px] shadow-[0px_8px_24px_rgba(0,0,0,0.14)] border border-[#eae8e4] dark:border-[#2f2a24] flex flex-col gap-[2px] text-right font-['Cairo',sans-serif] animate-in fade-in-50 zoom-in-95 select-none"
+            className="w-[210px] bg-white dark:bg-[#1e1c1a] rounded-[8px] p-[6px] shadow-[0px_8px_24px_rgba(0,0,0,0.14)] border border-[#eae8e4] dark:border-[#2f2a24] flex flex-col gap-[2px] text-start font-['Cairo',sans-serif] animate-in fade-in-50 zoom-in-95 select-none"
             data-node-id="1:1399"
-            dir="rtl"
           >
             {/* 1. عرض التفاصيل */}
             <button
@@ -127,10 +126,10 @@ export function ClientRowActionMenu({
                 onClose();
                 onViewDetails();
               }}
-              className="w-full flex items-center justify-between px-[12px] py-[8px] rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold transition-colors cursor-pointer group"
+              className="w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold transition-colors cursor-pointer group"
             >
-              <span className="leading-[18px]">عرض التفاصيل</span>
               <Eye className="size-[15px] text-[#514537] dark:text-[#a89f91] group-hover:text-[#1b1c1a] dark:group-hover:text-[#fdfbf7] shrink-0" />
+              <span className="leading-[18px]">عرض التفاصيل</span>
             </button>
 
             {/* 2. تعديل بيانات الحساب */}
@@ -140,10 +139,10 @@ export function ClientRowActionMenu({
                 onClose();
                 onEdit();
               }}
-              className="w-full flex items-center justify-between px-[12px] py-[8px] rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold transition-colors cursor-pointer group"
+              className="w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold transition-colors cursor-pointer group"
             >
-              <span className="leading-[18px]">تعديل بيانات الحساب</span>
               <PenSquare className="size-[15px] text-[#514537] dark:text-[#a89f91] group-hover:text-[#1b1c1a] dark:group-hover:text-[#fdfbf7] shrink-0" />
+              <span className="leading-[18px]">تعديل بيانات الحساب</span>
             </button>
 
             {/* 3. إدارة الاشتراكات والفواتير */}
@@ -153,10 +152,10 @@ export function ClientRowActionMenu({
                 onClose();
                 onManageSubscriptions();
               }}
-              className="w-full flex items-center justify-between px-[12px] py-[8px] rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold transition-colors cursor-pointer group"
+              className="w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold transition-colors cursor-pointer group"
             >
-              <span className="leading-[18px]">إدارة الاشتراكات والفواتير</span>
               <Receipt className="size-[15px] text-[#514537] dark:text-[#a89f91] group-hover:text-[#1b1c1a] dark:group-hover:text-[#fdfbf7] shrink-0" />
+              <span className="leading-[18px]">إدارة الاشتراكات والفواتير</span>
             </button>
 
             {/* Divider */}
@@ -169,10 +168,10 @@ export function ClientRowActionMenu({
                 onClose();
                 onDeactivate();
               }}
-              className="w-full flex items-center justify-between px-[12px] py-[8px] rounded-[4px] hover:bg-[#fffbeb] dark:hover:bg-[#342711] text-[#b45309] dark:text-[#fbbf24] text-[13px] font-semibold transition-colors cursor-pointer group"
+              className="w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] hover:bg-[#fffbeb] dark:hover:bg-[#342711] text-[#b45309] dark:text-[#fbbf24] text-[13px] font-semibold transition-colors cursor-pointer group"
             >
-              <span className="leading-[18px]">تعطيل الحساب مؤقتاً</span>
               <Ban className="size-[15px] text-[#b45309] dark:text-[#fbbf24] shrink-0" />
+              <span className="leading-[18px]">تعطيل الحساب مؤقتاً</span>
             </button>
 
             {/* 5. حذف المكتب نهائياً */}
@@ -182,10 +181,10 @@ export function ClientRowActionMenu({
                 onClose();
                 onDelete();
               }}
-              className="w-full flex items-center justify-between px-[12px] py-[8px] rounded-[4px] hover:bg-[#fef2f2] dark:hover:bg-[#311616] text-[#dc2626] dark:text-[#f87171] text-[13px] font-semibold transition-colors cursor-pointer group"
+              className="w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] hover:bg-[#fef2f2] dark:hover:bg-[#311616] text-[#dc2626] dark:text-[#f87171] text-[13px] font-semibold transition-colors cursor-pointer group"
             >
-              <span className="leading-[18px]">حذف المكتب نهائياً</span>
               <Trash2 className="size-[15px] text-[#dc2626] dark:text-[#f87171] shrink-0" />
+              <span className="leading-[18px]">حذف المكتب نهائياً</span>
             </button>
           </div>,
           document.body
