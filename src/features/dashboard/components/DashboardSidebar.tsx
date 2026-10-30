@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useSyncExternalStore } from "react";
+import React, { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { toast } from "sonner";
 import logoMarkImg from "../../../../public/figma/logo-mark.png";
 import userAvatarImg from "../../../../public/figma/user-avatar.png";
 import {
@@ -22,9 +23,11 @@ import {
   Key,
   ChevronLeft,
   LogIn,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/use-ui-store";
+import { LogoutConfirmModal } from "./LogoutConfirmModal";
 
 interface NavItem {
   id: string;
@@ -55,7 +58,9 @@ interface DashboardSidebarProps {
 }
 
 export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarProps = {}) {
+  const router = useRouter();
   const pathname = usePathname();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
   const toggleSidebarCollapsed = useUIStore((state) => state.toggleSidebarCollapsed);
 
@@ -66,6 +71,12 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
   );
 
   const isCollapsed = isMounted ? sidebarCollapsed : false;
+
+  const handleConfirmLogout = () => {
+    setIsLogoutModalOpen(false);
+    toast.success("تم تسجيل الخروج بنجاح");
+    router.push("/login");
+  };
 
   return (
     <aside
@@ -250,38 +261,51 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
         </nav>
       </div>
 
-      {/* Bottom User Profile Section (Click to Open Login Page) */}
+      {/* Bottom User Profile Section with Logout Icon */}
       <div
         className={cn(
           "border-t border-[#2c221c] bg-[#16100c] shrink-0 transition-all duration-300",
-          isCollapsed ? "p-2 flex items-center justify-center" : "p-2.5"
+          isCollapsed ? "p-2 flex flex-col items-center gap-2" : "p-2 flex items-center justify-between gap-1.5"
         )}
         data-node-id="1:744-user-profile"
       >
         {isCollapsed ? (
-          /* Collapsed Mode: User Avatar Link to Login Page */
-          <Link
-            href="/login"
-            title="فتح صفحة تسجيل الدخول (/login) - م. عبد العزيز بن فهد"
-            className="size-[38px] rounded-full overflow-hidden border border-[#9c6402]/40 hover:border-[#9c6402] transition-colors flex items-center justify-center shrink-0 relative group"
-          >
-            <Image
-              src={userAvatarImg}
-              alt="م. عبد العزيز بن فهد"
-              width={38}
-              height={38}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-            />
-            <span className="absolute bottom-0 end-0 size-[8px] rounded-full bg-[#10b981] border border-[#16100c]" />
-          </Link>
+          <>
+            {/* Collapsed Mode: User Avatar Link to Login Page */}
+            <Link
+              href="/login"
+              title="فتح صفحة تسجيل الدخول (/login) - م. عبد العزيز بن فهد"
+              className="size-[38px] rounded-full overflow-hidden border border-[#9c6402]/40 hover:border-[#9c6402] transition-colors flex items-center justify-center shrink-0 relative group"
+            >
+              <Image
+                src={userAvatarImg}
+                alt="م. عبد العزيز بن فهد"
+                width={38}
+                height={38}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+              />
+              <span className="absolute bottom-0 end-0 size-[8px] rounded-full bg-[#10b981] border border-[#16100c]" />
+            </Link>
+
+            {/* Collapsed Mode: Logout Icon Button (Click opens question popup) */}
+            <button
+              type="button"
+              onClick={() => setIsLogoutModalOpen(true)}
+              title="تسجيل الخروج"
+              aria-label="تسجيل الخروج"
+              className="size-[34px] rounded-[8px] flex items-center justify-center text-[#8e8680] hover:text-[#f87171] hover:bg-[#2c221c] transition-colors cursor-pointer"
+            >
+              <LogOut className="size-[16px]" />
+            </button>
+          </>
         ) : (
-          /* Expanded Mode: Integrated User Profile Card (Click opens /login) */
-          <Link
-            href="/login"
-            title="فتح صفحة تسجيل الدخول (/login)"
-            className="flex items-center justify-between p-2 rounded-[10px] hover:bg-[#2c221c]/80 transition-colors group text-right cursor-pointer"
-          >
-            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <>
+            {/* Expanded Mode: Integrated User Profile Card (Click opens /login) */}
+            <Link
+              href="/login"
+              title="فتح صفحة تسجيل الدخول (/login)"
+              className="flex items-center gap-2.5 p-1.5 rounded-[8px] hover:bg-[#2c221c]/70 transition-colors flex-1 min-w-0 text-right group cursor-pointer"
+            >
               <div className="relative size-[34px] rounded-full overflow-hidden border border-[#9c6402]/40 shrink-0">
                 <Image
                   src={userAvatarImg}
@@ -293,25 +317,38 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                 <span className="absolute bottom-0 end-0 size-[7px] rounded-full bg-[#10b981] border border-[#16100c]" />
               </div>
               <div className="flex flex-col min-w-0 text-right">
-                <span className="text-[13px] font-semibold text-[#fdfbf7] truncate group-hover:text-[#e29d38] transition-colors">
-                  م. عبد العزيز بن فهد
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[13px] font-semibold text-[#fdfbf7] truncate group-hover:text-[#e29d38] transition-colors">
+                    م. عبد العزيز بن فهد
+                  </span>
+                  <LogIn className="size-[12px] text-[#8e8680] group-hover:text-[#e29d38] transition-colors shrink-0" />
+                </div>
                 <span className="text-[10px] text-[#8e8680] truncate">
                   مشرف النظام العام
                 </span>
               </div>
-            </div>
+            </Link>
 
-            {/* Login Page Indicator Icon */}
-            <div
-              className="size-[24px] rounded-[6px] flex items-center justify-center text-[#8e8680] group-hover:text-[#e29d38] group-hover:bg-[#2c221c] transition-colors shrink-0 ms-1"
-              title="فتح صفحة تسجيل الدخول"
+            {/* Expanded Mode: Logout Icon Button (Click opens question popup modal) */}
+            <button
+              type="button"
+              onClick={() => setIsLogoutModalOpen(true)}
+              title="تسجيل الخروج"
+              aria-label="تسجيل الخروج"
+              className="size-[32px] rounded-[8px] flex items-center justify-center text-[#8e8680] hover:text-[#f87171] hover:bg-[#2c221c] transition-colors cursor-pointer shrink-0"
             >
-              <LogIn className="size-[14px]" />
-            </div>
-          </Link>
+              <LogOut className="size-[16px]" />
+            </button>
+          </>
         )}
       </div>
+
+      {/* Logout Question Confirmation Popup Modal */}
+      <LogoutConfirmModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleConfirmLogout}
+      />
     </aside>
   );
 }
