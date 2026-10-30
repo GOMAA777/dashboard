@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import logoMarkImg from "../../../../public/figma/logo-mark.png";
 import userAvatarImg from "../../../../public/figma/user-avatar.png";
 import {
   AppWindow,
@@ -23,6 +22,7 @@ import {
   Key,
   ChevronLeft,
   LogOut,
+  Scale,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/use-ui-store";
@@ -122,17 +122,10 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
           >
             {/* Brand Logo Icon */}
             <div
-              className="size-[34px] flex items-center justify-center shrink-0"
+              className="size-[34px] rounded-[8px] bg-[#9c6402]/15 border border-[#9c6402]/30 flex items-center justify-center shrink-0"
               title={isCollapsed ? "الجودي - لوحة الإدارة العليا" : undefined}
             >
-              <Image
-                src={logoMarkImg}
-                alt="الجودي"
-                width={34}
-                height={34}
-                className="w-full h-full object-contain"
-                priority
-              />
+              <Scale className="size-[20px] text-[#9c6402]" />
             </div>
 
             {/* Logo Word / Titles (hidden when collapsed) */}

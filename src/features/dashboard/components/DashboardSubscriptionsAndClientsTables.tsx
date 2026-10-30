@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
-import { Building2 } from "lucide-react";
+import { Building2, Scale } from "lucide-react";
 import { useUIStore } from "@/stores/use-ui-store";
 import { translations } from "@/lib/i18n";
 
@@ -72,13 +71,7 @@ export function DashboardSubscriptionsAndClientsTables() {
                     <div className="flex items-center gap-2.5">
                       <div className="w-7 h-7 rounded-full bg-[#fbf6ec] dark:bg-[#2b2419] border border-[#eeddbb] dark:border-[#4d3a1f] flex items-center justify-center shrink-0">
                         {sub.isAlJoudy ? (
-                          <Image
-                            src="/dashboard/logo.png"
-                            alt="Al-Joudy"
-                            width={16}
-                            height={16}
-                            className="w-4 h-4 object-contain"
-                          />
+                          <Scale className="w-3.5 h-3.5 text-[#9c6402]" />
                         ) : (
                           <Building2 className="w-3.5 h-3.5 text-[#8c8279] dark:text-[#a8a195]" />
                         )}
@@ -126,13 +119,7 @@ export function DashboardSubscriptionsAndClientsTables() {
                     <div className="flex items-center gap-2.5">
                       <div className="w-7 h-7 rounded-full bg-[#fbf6ec] dark:bg-[#2b2419] border border-[#eeddbb] dark:border-[#4d3a1f] flex items-center justify-center shrink-0">
                         {client.isAlJoudy ? (
-                          <Image
-                            src="/dashboard/logo.png"
-                            alt="Al-Joudy"
-                            width={16}
-                            height={16}
-                            className="w-4 h-4 object-contain"
-                          />
+                          <Scale className="w-3.5 h-3.5 text-[#9c6402]" />
                         ) : (
                           <Building2 className="w-3.5 h-3.5 text-[#8c8279] dark:text-[#a8a195]" />
                         )}

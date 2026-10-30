@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { X, LogOut, ShieldAlert } from "lucide-react";
 import userAvatarImg from "../../../../public/figma/user-avatar.png";
@@ -20,18 +21,56 @@ export function LogoutConfirmModal({
   userName = "م. عبد العزيز بن فهد",
   userRole = "مشرف النظام العام",
 }: LogoutConfirmModalProps) {
-  if (!isOpen) return null;
+  const isMounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
 
-  return (
+  // Prevent background scrolling and movement while modal is open
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.documentElement.style.overflow = originalHtmlOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
+  if (!isMounted || !isOpen) return null;
+
+  const modalContent = (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-[99999] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 select-none animate-in fade-in duration-200"
       dir="rtl"
+      role="presentation"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
     >
       <div
-        className="bg-white rounded-[14px] border border-[#e6e2dc] shadow-2xl max-w-[480px] w-full overflow-hidden animate-in zoom-in-95 duration-150"
+        className="bg-white rounded-[16px] border border-[#e6e2dc] shadow-2xl max-w-[460px] w-full overflow-hidden animate-in zoom-in-95 duration-150 relative text-right"
         role="dialog"
         aria-modal="true"
         aria-labelledby="logout-modal-title"
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="p-6 pb-4 flex items-start justify-between border-b border-[#f0ede6]">
@@ -39,7 +78,7 @@ export function LogoutConfirmModal({
             type="button"
             onClick={onClose}
             className="size-[32px] rounded-[6px] hover:bg-[#f5f3ef] text-[#79716b] flex items-center justify-center transition-colors cursor-pointer"
-            aria-label="إغلاق"
+            aria-label="إلغاء وإغلاق النافذة"
           >
             <X className="size-[18px]" />
           </button>
@@ -50,7 +89,7 @@ export function LogoutConfirmModal({
                 id="logout-modal-title"
                 className="text-[18px] font-bold text-[#1b1c1a]"
               >
-                هل تريد تسجيل الخروج؟
+                هل تريد الخروج؟
               </h2>
               <p className="text-[12px] text-[#79716b] mt-0.5">
                 لوحة تحكم الجودي لإدارة مكاتب وشركات المحاماة
@@ -113,20 +152,22 @@ export function LogoutConfirmModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-[8px] border border-[#d6cfc5] hover:bg-[#ede8e1] text-[#514537] text-[13px] font-semibold transition-colors cursor-pointer"
+            className="px-5 py-2.5 rounded-[8px] border border-[#d6cfc5] hover:bg-[#ede8e1] text-[#514537] text-[13px] font-semibold transition-colors cursor-pointer"
           >
             إلغاء
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className="px-4 py-2 rounded-[8px] bg-[#dc2626] hover:bg-[#b91c1c] text-white text-[13px] font-semibold shadow-sm transition-colors flex items-center gap-2 cursor-pointer"
+            className="px-5 py-2.5 rounded-[8px] bg-[#dc2626] hover:bg-[#b91c1c] text-white text-[13px] font-semibold shadow-sm transition-colors flex items-center gap-2 cursor-pointer"
           >
             <LogOut className="size-[15px]" />
-            نعم، تسجيل الخروج
+            <span>تأكيد الخروج</span>
           </button>
         </div>
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }

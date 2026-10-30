@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { RefreshCw, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
@@ -159,10 +160,8 @@ export function PaymentGatewaysPage() {
               disabled={isCheckingPing}
               className="bg-[#9c6402] hover:bg-[#855401] active:scale-[0.98] drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] text-white text-[14px] font-semibold rounded-[4px] px-4 py-2 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-70 self-start sm:self-auto shrink-0"
             >
-              <img
-                alt=""
-                className={`size-3 ${isCheckingPing ? "animate-spin" : ""}`}
-                src="/figma/payment-gateways/refresh-icon.svg"
+              <RefreshCw
+                className={`size-3.5 ${isCheckingPing ? "animate-spin" : ""}`}
               />
               <span>فحص حالة الاتصال</span>
             </button>
@@ -176,10 +175,8 @@ export function PaymentGatewaysPage() {
 
           {/* 3. Alert / Advisory Notice (Figma 1:13938) */}
           <div className="bg-[#fff8e1] border border-[#b76e00] border-s-4 border-solid rounded-[16px] p-4 flex items-start gap-3 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] text-start">
-            <img
-              alt=""
-              className="w-[18.3px] h-[20.3px] shrink-0 mt-0.5"
-              src="/figma/payment-gateways/alert-icon.svg"
+            <AlertTriangle
+              className="size-5 text-[#b76e00] shrink-0 mt-0.5"
             />
             <div className="flex flex-col items-start flex-1 text-start">
               <h4 className="text-[#1c140f] text-[14px] font-bold leading-[20px]">

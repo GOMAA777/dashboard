@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { Coins, X, Copy, Eye, EyeOff, Lock, Send } from "lucide-react";
 import { toast } from "sonner";
 import { PaymentGatewayItem } from "../types/payment-gateways.types";
 
@@ -11,39 +12,35 @@ interface GatewaySettingsModalProps {
   onSave: (gatewayId: string, clientId: string, clientSecret: string) => void;
 }
 
-interface GatewaySettingsDialogBodyProps {
-  gateway: PaymentGatewayItem;
-  onClose: () => void;
-  onSave: (gatewayId: string, clientId: string, clientSecret: string) => void;
-}
-
 function GatewaySettingsDialogBody({
   gateway,
   onClose,
   onSave,
-}: GatewaySettingsDialogBodyProps) {
-  const [clientId, setClientId] = useState(gateway.clientId || "");
-  const [clientSecret, setClientSecret] = useState(gateway.clientSecret || "");
+}: {
+  gateway: PaymentGatewayItem;
+  onClose: () => void;
+  onSave: (gatewayId: string, clientId: string, clientSecret: string) => void;
+}) {
+  const [clientId, setClientId] = useState(gateway.clientId);
+  const [clientSecret, setClientSecret] = useState(gateway.clientSecret);
   const [showSecret, setShowSecret] = useState(false);
 
   const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
-    toast.success(`تم نسخ ${label} إلى الحافظة بنجاح`);
+    toast.success(`تم نسخ ${label} بنجاح إلى الحافظة`);
   };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(gateway.id, clientId, clientSecret);
-    toast.success("تم حفظ إعدادات البوابة ومفاتيح الربط بنجاح", {
-      description: `${gateway.name} - تم تشفير وتأمين المفاتيح`,
-    });
+    toast.success(`تم تحديث إعدادات بوابة "${gateway.name}" بنجاح!`);
     onClose();
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
       <div
-        className="w-full max-w-[512px] bg-white rounded-[8px] overflow-hidden shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] flex flex-col animate-in zoom-in-95 duration-150 text-start"
+        className="w-full max-w-[512px] bg-white rounded-[8px] overflow-hidden shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] flex flex-col animate-in zoom-in-95 duration-150 text-right"
         dir="rtl"
       >
         {/* Header */}
@@ -51,11 +48,7 @@ function GatewaySettingsDialogBody({
           {/* Title and Icon on Start (Right) */}
           <div className="flex items-center gap-3">
             <div className="bg-[rgba(255,221,182,0.5)] rounded-[4px] size-9 flex items-center justify-center shrink-0">
-              <img
-                alt=""
-                className="size-[18.3px]"
-                src="/figma/payment-gateways/coin-icon.svg"
-              />
+              <Coins className="size-[18.3px] text-[#9c6403]" />
             </div>
             <h2 className="text-[#1b1c1a] text-[22px] font-bold leading-[22.5px]">
               إعدادات البوابة
@@ -69,11 +62,7 @@ function GatewaySettingsDialogBody({
             className="size-8 rounded-[4px] flex items-center justify-center text-[#514537] hover:bg-[#f0eeea] transition-colors cursor-pointer shrink-0"
             aria-label="إغلاق النافذة"
           >
-            <img
-              alt="Close"
-              className="size-[11.6px]"
-              src="/figma/payment-gateways/modal-close.svg"
-            />
+            <X className="size-4" />
           </button>
         </div>
 
@@ -103,19 +92,15 @@ function GatewaySettingsDialogBody({
                 value={clientId}
                 onChange={(e) => setClientId(e.target.value)}
                 required
-                className="w-full bg-white border border-[#eae8e4] rounded-[4px] ps-20 pe-3.5 py-2.5 font-mono text-[12px] tracking-tight text-[#1b1c1a] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] focus:ring-1 focus:ring-[#9c6403] focus:border-[#9c6403] outline-none text-left"
+                className="w-full bg-white border border-[#eae8e4] rounded-[4px] ps-16 pe-3.5 py-2.5 font-mono text-[12px] tracking-tight text-[#1b1c1a] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] focus:ring-1 focus:ring-[#9c6403] focus:border-[#9c6403] outline-none text-left"
               />
               <button
                 type="button"
                 onClick={() => handleCopy(clientId, "معرّف العميل")}
-                className="bg-[#f0eeea] hover:bg-[#eae8e4] text-[#514537] text-[10px] font-bold px-2 py-1 rounded-[2px] flex items-center gap-1 transition-colors cursor-pointer absolute start-2 top-2"
+                className="absolute start-2 top-2 bg-[#f0eeea] hover:bg-[#eae8e4] text-[#514537] text-[10px] font-bold px-2 py-1 rounded-[2px] flex items-center gap-1 transition-colors cursor-pointer"
               >
                 <span>نسخ</span>
-                <img
-                  alt=""
-                  className="w-[10px] h-[11.6px]"
-                  src="/figma/payment-gateways/copy-icon.svg"
-                />
+                <Copy className="size-3" />
               </button>
             </div>
 
@@ -154,11 +139,7 @@ function GatewaySettingsDialogBody({
                   className="size-6 flex items-center justify-center text-[#514537] hover:bg-[#eae8e4] rounded-[2px] transition-colors cursor-pointer"
                   title={showSecret ? "إخفاء المفتاح" : "إظهار المفتاح"}
                 >
-                  <img
-                    alt=""
-                    className="w-4 h-[11px]"
-                    src="/figma/payment-gateways/eye-icon.svg"
-                  />
+                  {showSecret ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
                 </button>
                 <button
                   type="button"
@@ -166,21 +147,13 @@ function GatewaySettingsDialogBody({
                   className="bg-[#f0eeea] hover:bg-[#eae8e4] text-[#514537] text-[10px] font-bold px-2 py-1 rounded-[2px] flex items-center gap-1 transition-colors cursor-pointer"
                 >
                   <span>نسخ</span>
-                  <img
-                    alt=""
-                    className="w-[10px] h-[11.6px]"
-                    src="/figma/payment-gateways/copy-icon.svg"
-                  />
+                  <Copy className="size-3" />
                 </button>
               </div>
             </div>
 
             <div className="flex items-center justify-start gap-1.5 text-start pt-0.5">
-              <img
-                alt=""
-                className="w-[9.3px] h-[12.2px] shrink-0"
-                src="/figma/payment-gateways/lock-icon.svg"
-              />
+              <Lock className="size-3 shrink-0 text-[#9c6403]" />
               <span className="text-[#514537] text-[10px] font-bold">
                 يتم حفظ المفتاح مشفراً وفق معايير الحماية البنكية الفيدرالية AES-256.
               </span>
@@ -200,11 +173,7 @@ function GatewaySettingsDialogBody({
               type="submit"
               className="bg-[#9c6403] hover:bg-[#835402] text-[#fff3e9] text-xs font-bold rounded-[4px] h-10 px-6 flex items-center gap-1.5 transition-colors cursor-pointer"
             >
-              <img
-                alt=""
-                className="w-[14px] h-[12px]"
-                src="/figma/payment-gateways/send-icon.svg"
-              />
+              <Send className="size-3.5" />
               <span>حفظ الاعدادات</span>
             </button>
           </div>

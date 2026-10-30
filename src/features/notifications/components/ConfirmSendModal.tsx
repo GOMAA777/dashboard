@@ -159,7 +159,7 @@ export function ConfirmSendModal({
                 <div className="flex items-center gap-2">
                   <div className="bg-[#f0eeea] border border-[rgba(214,196,177,0.4)] rounded-[6px] size-9 overflow-hidden shrink-0 relative flex items-center justify-center">
                     <Image
-                      src={formData.imageUrl || "/figma/notifications/security-modal-thumb.png"}
+                      src={formData.imageUrl || "/figma/placeholder-banner.png"}
                       alt="Thumbnail"
                       width={48}
                       height={36}

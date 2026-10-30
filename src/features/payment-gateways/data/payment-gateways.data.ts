@@ -87,7 +87,7 @@ export const initialPaymentGateways: PaymentGatewayItem[] = [
         label: "المدفوعات المتكررة (Recurring):",
         value: "مفعلة تلقائياً",
         isSuccess: true,
-        iconSrc: "/figma/payment-gateways/recurring-icon.svg",
+        isRecurring: true,
       },
       {
         label: "طرق الدفع الإضافية:",

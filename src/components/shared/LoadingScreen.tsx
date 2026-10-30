@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Image from "next/image";
+import { Scale } from "lucide-react";
 
 interface LoadingScreenProps {
   statusText?: string;
@@ -69,14 +69,7 @@ export function LoadingScreen({
 
           {/* Central Logo Badge */}
           <div className="relative z-10 w-20 h-20 rounded-full bg-[#faf5eb] dark:bg-[#201c17] border border-[#eeddbb] dark:border-[#382b18] p-3 flex items-center justify-center shadow-[0_8px_24px_-4px_rgba(194,149,71,0.25)] hover:scale-105 transition-transform duration-300">
-            <Image
-              src="/dashboard/logo.png"
-              alt="الجودي"
-              width={52}
-              height={52}
-              className="w-full h-full object-contain drop-shadow-xs"
-              priority
-            />
+            <Scale className="w-10 h-10 text-[#c29547] dark:text-[#d4a759]" />
           </div>
         </div>
 

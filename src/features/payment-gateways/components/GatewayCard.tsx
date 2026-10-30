@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Landmark, CreditCard, Zap, Coins, Settings, Repeat } from "lucide-react";
 import { PaymentGatewayItem } from "../types/payment-gateways.types";
 
 interface GatewayCardProps {
@@ -39,11 +40,7 @@ export function GatewayCard({
             {/* Official Brand Badge */}
             {brandType === "bank" && (
               <div className="bg-[#fffbeb] border border-[#fef3c7] rounded-[16px] size-14 flex items-center justify-center shrink-0">
-                <img
-                  alt="Bank"
-                  className="size-[25px]"
-                  src="/figma/payment-gateways/bank-icon.svg"
-                />
+                <Landmark className="size-[25px] text-[#9c6402]" />
               </div>
             )}
 
@@ -66,31 +63,19 @@ export function GatewayCard({
 
             {brandType === "paddle" && (
               <div className="bg-[rgba(13,31,45,0.05)] border border-[rgba(13,31,45,0.1)] rounded-[16px] size-14 flex items-center justify-center shrink-0">
-                <img
-                  alt="Paddle"
-                  className="w-[26px] h-[19px]"
-                  src="/figma/payment-gateways/paddle-icon.svg"
-                />
+                <CreditCard className="size-[22px] text-[#0d1f2d]" />
               </div>
             )}
 
             {brandType === "razorpay" && (
               <div className="bg-[rgba(12,35,64,0.05)] border border-[rgba(12,35,64,0.15)] rounded-[16px] size-14 flex items-center justify-center shrink-0">
-                <img
-                  alt="Razorpay"
-                  className="size-[26px]"
-                  src="/figma/payment-gateways/razorpay-icon.svg"
-                />
+                <Zap className="size-[24px] text-[#0c2340]" />
               </div>
             )}
 
             {brandType === "custom" && (
               <div className="bg-[#f0eeea] rounded-[16px] size-14 flex items-center justify-center shrink-0">
-                <img
-                  alt="Custom"
-                  className="size-[22px]"
-                  src="/figma/payment-gateways/coin-icon.svg"
-                />
+                <Coins className="size-[22px] text-[#837565]" />
               </div>
             )}
 
@@ -101,50 +86,46 @@ export function GatewayCard({
                 </h3>
                 <span
                   style={{ backgroundColor: badgeBg, color: badgeText }}
-                  className="text-[10px] font-semibold px-2 py-0.5 rounded-[2px]"
+                  className="text-[10px] font-bold px-2 py-0.5 rounded-[4px] leading-tight"
                 >
                   {badgeLabel}
                 </span>
               </div>
-              <p className="text-[#837565] text-[10px] font-bold leading-[14px] mt-0.5">
+              <span className="text-[#837565] text-[12px] leading-[18px]">
                 {providerSubtitle}
-              </p>
+              </span>
             </div>
           </div>
 
-          {/* Custom Switch on End (Left in RTL) */}
+          {/* iOS-Style Toggle Switch on Left */}
           <button
             type="button"
             role="switch"
             aria-checked={isEnabled}
             onClick={() => onToggle(gateway)}
-            className={`relative w-[44px] h-[24px] rounded-full p-0.5 transition-colors cursor-pointer shrink-0 focus:outline-none ${
-              isEnabled ? "bg-[#9c6402]" : "bg-[#e8e4de]"
+            className={`relative inline-flex h-[28px] w-[50px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#9c6402] focus:ring-offset-2 ${
+              isEnabled ? "bg-[#059669]" : "bg-[#d6cfc7]"
             }`}
           >
             <span
-              className={`block size-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-                isEnabled ? "-translate-x-5" : "translate-x-0"
+              className={`pointer-events-none inline-block size-[24px] transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                isEnabled ? "-translate-x-[22px]" : "translate-x-0"
               }`}
             />
           </button>
         </div>
 
-        {/* Status Badge */}
-        <div className="flex items-center gap-2 justify-start w-full">
-          <div
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] ${
-              isEnabled ? "bg-[#e8f5e9]" : "bg-[#f5f5f4]"
-            }`}
-          >
+        {/* Status Line */}
+        <div className="flex items-center gap-2 pt-1">
+          <div className="flex items-center gap-1.5">
             <span
-              className={`size-1.5 rounded-full ${
-                isEnabled ? "bg-[#1b7340]" : "bg-[#b9b9b9]"
+              className={`size-2 rounded-full ${
+                isEnabled ? "bg-[#059669]" : "bg-[#ba1a1a]"
               }`}
             />
             <span
-              className={`text-[10px] font-bold leading-[14px] ${
-                isEnabled ? "text-[#1b7340]" : "text-[#555151]"
+              className={`text-[12px] font-bold leading-[18px] ${
+                isEnabled ? "text-[#047857]" : "text-[#ba1a1a]"
               }`}
             >
               {statusText}
@@ -173,8 +154,8 @@ export function GatewayCard({
 
               {/* Value on End (Left) */}
               <div className="flex items-center gap-1.5">
-                {meta.iconSrc && (
-                  <img alt="" className="size-3" src={meta.iconSrc} />
+                {meta.isRecurring && (
+                  <Repeat className="size-3 text-[#047857]" />
                 )}
                 {meta.hasDot && (
                   <span className="size-1.5 rounded-full bg-[#059669]" />
@@ -204,11 +185,7 @@ export function GatewayCard({
           className="bg-[#f5f3ef] hover:bg-[#eae8e4] text-[#1c140f] rounded-[8px] py-2 px-3 text-xs font-semibold w-full flex items-center justify-center gap-2 transition-colors cursor-pointer"
         >
           <span>إعدادات البوابة</span>
-          <img
-            alt=""
-            className="size-[15px]"
-            src="/figma/payment-gateways/settings-icon.svg"
-          />
+          <Settings className="size-[15px] text-[#514537]" />
         </button>
       </div>
     </div>

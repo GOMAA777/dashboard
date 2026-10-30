@@ -2,8 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { ShieldCheck, Mail, Phone, Award } from "lucide-react";
+import { ShieldCheck, Mail, Phone, Award, Scale } from "lucide-react";
 
 export function SubscriptionsPageFooter() {
   return (
@@ -13,13 +12,7 @@ export function SubscriptionsPageFooter() {
         <div className="md:col-span-1 space-y-3">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-[#faf5eb] dark:bg-[#201c17] border border-[#eeddbb] dark:border-[#382b18] p-1 flex items-center justify-center">
-              <Image
-                src="/dashboard/logo.png"
-                alt="الجودي"
-                width={32}
-                height={32}
-                className="w-full h-full object-contain"
-              />
+              <Scale className="w-5 h-5 text-[#c29547] dark:text-[#d4a759]" />
             </div>
             <div>
               <span className="text-sm font-extrabold text-[#c29547] dark:text-[#d4a759] block">

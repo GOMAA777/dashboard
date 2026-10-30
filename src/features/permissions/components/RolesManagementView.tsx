@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
 import { RoleItem } from "../types/roles.types";
-import { initialRolesList, initialRolesKpis } from "../data/initialRoles";
+import { initialRolesList } from "../data/initialRoles";
 import { RolesKpiMetrics } from "./RolesKpiMetrics";
 import { RolesToolbar } from "./RolesToolbar";
 import { RolesTable } from "./RolesTable";

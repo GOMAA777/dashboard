@@ -1,12 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, ShieldCheck, LogIn, Loader2 } from "lucide-react";
+import { Eye, EyeOff, ShieldCheck, LogIn, Loader2, Scale } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 import { useUIStore } from "@/stores/use-ui-store";
@@ -68,14 +67,7 @@ export function LoginForm() {
             {/* Brand Logo & Name (Static Display) */}
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-full bg-[#faf5eb] dark:bg-[#201c17] border border-[#eeddbb] dark:border-[#382b18] p-1.5 flex items-center justify-center shadow-2xs">
-                <Image
-                  src="/dashboard/logo.png"
-                  alt={brand.name}
-                  width={32}
-                  height={32}
-                  className="w-full h-full object-contain"
-                  priority
-                />
+                <Scale className="w-5 h-5 text-[#c29547] dark:text-[#d4a759]" />
               </div>
               <span className="text-lg font-extrabold text-[#c29547] dark:text-[#d4a759] tracking-tight">
                 {brand.name}

@@ -1,27 +1,28 @@
 "use client";
 
 import React, { useState } from "react";
+import { ShieldAlert, X, ShieldCheck, ChevronDown, Power } from "lucide-react";
 import { PaymentGatewayItem } from "../types/payment-gateways.types";
 
 interface DisableGatewayModalProps {
-  gateway: PaymentGatewayItem | null;
   isOpen: boolean;
   onClose: () => void;
+  gateway: PaymentGatewayItem | null;
   onConfirm: (gatewayId: string, reason: string) => void;
 }
 
 const disableReasons = [
-  "إجراء أعمال صيانة دورية مجدولة وتحديث الواجهات (API)",
-  "تحديث الحساب المصرفي المستفيد أو بيانات الآيبان",
-  "ارتفاع معدل العمليات المرفوضة من المصدر",
-  "مراجعة دورية للامتثال والضرائب والتراخيص",
-  "أخرى (ملاحظة إدارية داخلية خاصة)",
+  "أعمال صيانة وتحديث دورية لبروتوكول الربط",
+  "انتهاء صلاحية المفاتيح السرية (API Keys)",
+  "توقف الخدمة مؤقتاً من قبل المزود البنكي",
+  "تحديث اشتراطات ومتطلبات الامتثال الضريبي (ZATCA)",
+  "استبدال وسيلة الدفع بمزود بديل",
 ];
 
 export function DisableGatewayModal({
-  gateway,
   isOpen,
   onClose,
+  gateway,
   onConfirm,
 }: DisableGatewayModalProps) {
   const [selectedReason, setSelectedReason] = useState(disableReasons[0]);
@@ -50,11 +51,7 @@ export function DisableGatewayModal({
             {/* Warning Shield & Title on Right */}
             <div className="flex gap-4 items-start">
               <div className="bg-[#ffdad6] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] rounded-[8px] size-12 flex items-center justify-center shrink-0">
-                <img
-                  alt="Warning"
-                  className="w-[17.5px] h-[21.5px]"
-                  src="/figma/payment-gateways/danger-shield.svg"
-                />
+                <ShieldAlert className="size-6 text-[#93000a]" />
               </div>
 
               <div className="flex flex-col items-start text-start">
@@ -79,11 +76,7 @@ export function DisableGatewayModal({
               className="size-8 rounded-[4px] flex items-center justify-center text-[#514537] hover:bg-[#f0eeea] transition-colors cursor-pointer shrink-0"
               aria-label="إغلاق"
             >
-              <img
-                alt="Close"
-                className="size-[11.6px]"
-                src="/figma/payment-gateways/modal-close.svg"
-              />
+              <X className="size-4" />
             </button>
           </div>
 
@@ -150,11 +143,7 @@ export function DisableGatewayModal({
 
           {/* Financial & Compliance Guarantee Banner */}
           <div className="bg-[#fffbeb]/90 border border-[#fef3c7] rounded-[8px] p-4 flex gap-2.5 items-start text-start">
-            <img
-              alt=""
-              className="w-[14.5px] h-[20.5px] shrink-0 mt-0.5"
-              src="/figma/payment-gateways/guarantee-shield.svg"
-            />
+            <ShieldCheck className="size-5 shrink-0 mt-0.5 text-[#78350f]" />
             <div className="flex flex-col items-start text-start">
               <span className="text-[#78350f] text-[12px] font-bold leading-[16px] mb-1">
                 ضمانة الاستقرار المالي والنظامي:
@@ -179,12 +168,10 @@ export function DisableGatewayModal({
               className="bg-[#f5f3ef] rounded-[4px] px-4 py-3 flex items-center justify-between text-xs text-[#1b1c1a] cursor-pointer hover:bg-[#eae8e4] transition-colors"
             >
               <span>{selectedReason}</span>
-              <img
-                alt=""
-                className={`w-[9px] h-[5.5px] transition-transform ${
+              <ChevronDown
+                className={`size-3.5 transition-transform text-[#837565] ${
                   isDropdownOpen ? "rotate-180" : ""
                 }`}
-                src="/figma/payment-gateways/select-chevron.svg"
               />
             </div>
 
@@ -226,11 +213,7 @@ export function DisableGatewayModal({
             onClick={handleConfirm}
             className="bg-[#ba1a1a] hover:bg-[#a01616] text-[#fff3e9] text-xs font-bold rounded-[4px] h-10 px-6 flex items-center gap-1.5 transition-colors cursor-pointer"
           >
-            <img
-              alt=""
-              className="size-[16.5px]"
-              src="/figma/payment-gateways/disable-power.svg"
-            />
+            <Power className="size-4" />
             <span>تأكيد التعطيل</span>
           </button>
         </div>

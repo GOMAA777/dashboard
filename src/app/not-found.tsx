@@ -1,6 +1,5 @@
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
 import type { Metadata } from "next";
 import {
   Home,
@@ -10,6 +9,7 @@ import {
   MessageSquare,
   ArrowRight,
   Compass,
+  Scale,
 } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -28,14 +28,7 @@ export default function NotFound() {
       <header className="relative z-10 w-full max-w-5xl mx-auto flex items-center justify-between py-3 border-b border-[#ded5c6]/60 dark:border-[#2f2a24]">
         <Link href="/" className="flex items-center gap-3 group">
           <div className="w-10 h-10 rounded-full bg-[#faf5eb] dark:bg-[#201c17] border border-[#eeddbb] dark:border-[#382b18] p-1.5 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-            <Image
-              src="/dashboard/logo.png"
-              alt="الجودي"
-              width={34}
-              height={34}
-              className="w-full h-full object-contain"
-              priority
-            />
+            <Scale className="w-6 h-6 text-[#c29547] dark:text-[#d4a759]" />
           </div>
           <div className="text-start">
             <span className="text-base font-extrabold text-[#c29547] dark:text-[#d4a759] tracking-tight block">

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Plus, ArrowLeft } from "lucide-react";
 
 interface AddCustomGatewayCardProps {
   onAdd: () => void;
@@ -14,11 +15,7 @@ export function AddCustomGatewayCard({ onAdd }: AddCustomGatewayCardProps) {
     >
       {/* Plus Icon Container */}
       <div className="bg-[#f0eeea] group-hover:bg-[#fceccf] transition-colors rounded-[16px] size-14 flex items-center justify-center mb-4 shadow-2xs">
-        <img
-          alt="Add"
-          className="size-[16.5px]"
-          src="/figma/payment-gateways/add-custom-icon.svg"
-        />
+        <Plus className="size-5 text-[#9c6402]" />
       </div>
 
       {/* Heading */}
@@ -33,11 +30,7 @@ export function AddCustomGatewayCard({ onAdd }: AddCustomGatewayCardProps) {
 
       {/* Action link */}
       <div className="flex items-center gap-1.5 text-[#7b4e00] text-[12px] font-bold group-hover:gap-2.5 transition-all">
-        <img
-          alt=""
-          className="size-[11px]"
-          src="/figma/payment-gateways/arrow-left-icon.svg"
-        />
+        <ArrowLeft className="size-3.5 transition-transform group-hover:-translate-x-1" />
         <span>بدء التكوين والربط</span>
       </div>
     </div>

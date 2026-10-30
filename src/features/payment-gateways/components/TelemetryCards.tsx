@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Layers, CheckCircle2, ShieldCheck, Check, FileCheck } from "lucide-react";
 
 interface TelemetryCardsProps {
   totalCount: number;
@@ -29,11 +30,7 @@ export function TelemetryCards({
         </div>
         {/* Left side in RTL: Icon */}
         <div className="bg-[#f0eeea] rounded-[8px] size-12 flex items-center justify-center shrink-0">
-          <img
-            alt=""
-            className="w-[19px] h-[18px]"
-            src="/figma/payment-gateways/total-gateways.svg"
-          />
+          <Layers className="size-5 text-[#837565]" />
         </div>
       </div>
 
@@ -58,11 +55,7 @@ export function TelemetryCards({
         </div>
         {/* Left side in RTL: Icon */}
         <div className="bg-[#ecfdf5] rounded-[8px] size-12 flex items-center justify-center shrink-0">
-          <img
-            alt=""
-            className="w-[22px] h-[21px]"
-            src="/figma/payment-gateways/active-gateways.svg"
-          />
+          <CheckCircle2 className="size-5 text-[#047857]" />
         </div>
       </div>
 
@@ -85,11 +78,7 @@ export function TelemetryCards({
         </div>
         {/* Left side in RTL: Icon */}
         <div className="bg-[rgba(156,100,2,0.1)] rounded-[8px] size-12 flex items-center justify-center shrink-0">
-          <img
-            alt=""
-            className="w-4 h-5"
-            src="/figma/payment-gateways/shield-icon.svg"
-          />
+          <ShieldCheck className="size-5 text-[#9c6402]" />
         </div>
       </div>
 
@@ -104,11 +93,7 @@ export function TelemetryCards({
             هيئة الزكاة (ZATCA)
           </span>
           <div className="flex items-center gap-1">
-            <img
-              alt=""
-              className="size-[11.6px] shrink-0"
-              src="/figma/payment-gateways/check-zatca.svg"
-            />
+            <Check className="size-3 text-[#059669]" />
             <span className="text-[#514537] text-[10px] font-bold leading-[14px]">
               المرحلة الثانية (الربط والتكامل)
             </span>
@@ -116,11 +101,7 @@ export function TelemetryCards({
         </div>
         {/* Left side in RTL: Icon */}
         <div className="bg-[#f0eeea] rounded-[8px] size-12 flex items-center justify-center shrink-0">
-          <img
-            alt=""
-            className="w-[18px] h-5"
-            src="/figma/payment-gateways/zatca-icon.svg"
-          />
+          <FileCheck className="size-5 text-[#837565]" />
         </div>
       </div>
     </div>

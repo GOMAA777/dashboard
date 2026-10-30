@@ -443,7 +443,7 @@ export function EmployeePreviewModeView({
             <div className="bg-[#fcfaf7] p-3 rounded-[6px] border border-[#f0ece5] flex items-center gap-3">
               <div className="size-[48px] rounded-[8px] overflow-hidden shrink-0 border border-[#e6e2dc]">
                 <Image
-                  src="/figma/avatar-lawyer-ticket.png"
+                  src="/figma/user-avatar.png"
                   alt="المحامي"
                   width={48}
                   height={48}

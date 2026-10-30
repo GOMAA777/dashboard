@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { Coins, X, Send } from "lucide-react";
 import { toast } from "sonner";
 import { PaymentGatewayItem } from "../types/payment-gateways.types";
 
@@ -79,11 +80,7 @@ export function AddCustomGatewayModal({
           {/* Title and Icon on Start (Right in RTL) */}
           <div className="flex items-center gap-3">
             <div className="bg-[rgba(255,221,182,0.5)] rounded-[4px] size-9 flex items-center justify-center shrink-0">
-              <img
-                alt=""
-                className="size-[18.3px]"
-                src="/figma/payment-gateways/coin-icon.svg"
-              />
+              <Coins className="size-[18.3px] text-[#9c6403]" />
             </div>
             <h2 className="text-[#1b1c1a] text-[22px] font-bold leading-[22.5px]">
               إضافة بوابة مخصصة
@@ -97,11 +94,7 @@ export function AddCustomGatewayModal({
             className="size-8 rounded-[4px] flex items-center justify-center text-[#514537] hover:bg-[#f0eeea] transition-colors cursor-pointer shrink-0"
             aria-label="إغلاق النافذة"
           >
-            <img
-              alt="Close"
-              className="size-[11.6px]"
-              src="/figma/payment-gateways/modal-close.svg"
-            />
+            <X className="size-4" />
           </button>
         </div>
 
@@ -186,11 +179,7 @@ export function AddCustomGatewayModal({
               className="bg-[#9c6403] hover:bg-[#835402] text-[#fff3e9] text-xs font-bold rounded-[4px] h-10 px-6 flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <span>إضافة وتفعيل</span>
-              <img
-                alt=""
-                className="w-[14px] h-[12px]"
-                src="/figma/payment-gateways/send-icon.svg"
-              />
+              <Send className="size-3.5" />
             </button>
             <button
               type="button"

@@ -17,7 +17,6 @@ import {
   Wallet,
   Settings,
   Code,
-  BadgeAlert,
   ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";

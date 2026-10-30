@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Search } from "lucide-react";
 import { GatewayFilterStatus } from "../types/payment-gateways.types";
 
 interface GatewaysFilterBarProps {
@@ -63,11 +64,7 @@ export function GatewaysFilterBar({
 
       {/* Left side in RTL: Search Input */}
       <div className="bg-[#f5f3ef] rounded-[8px] w-full sm:w-[320px] flex items-center px-4 py-2 gap-2.5 focus-within:ring-1 focus-within:ring-[#9c6402]/30 transition-all">
-        <img
-          alt=""
-          className="size-[13.5px] shrink-0 opacity-70"
-          src="/figma/payment-gateways/search-icon.svg"
-        />
+        <Search className="size-[13.5px] shrink-0 text-[#837565]" />
         <input
           type="text"
           value={searchQuery}

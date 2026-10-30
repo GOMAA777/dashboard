@@ -76,7 +76,7 @@ export function SendNotificationView({
       audienceType: initialData?.audienceType || "all",
       specificFirmId: "",
       imageUrl:
-        initialData?.imageUrl || "/figma/notifications/security-2fa-banner.png",
+        initialData?.imageUrl || "/figma/placeholder-banner.png",
       imageFileName: initialData?.imageFileName || "security_update_banner.png",
       imageFileSize: initialData?.imageFileSize || "480 KB",
       imageDimensions: initialData?.imageDimensions || "800 × 450 بكسل",
@@ -261,9 +261,9 @@ export function SendNotificationView({
                       type="button"
                       onClick={() =>
                         handlePresetImageSelect(
-                          "/figma/notifications/zatca-banner.png",
-                          "zatca_banner_update.png",
-                          "420 KB",
+                          "/figma/placeholder-banner.png",
+                          "announcement_banner.png",
+                          "120 KB",
                           "800 × 450 بكسل"
                         )
                       }
@@ -304,7 +304,7 @@ export function SendNotificationView({
                       data-node-id="1:13376"
                     >
                       <Image
-                        src={formValues.imageUrl || "/figma/notifications/security-thumb.png"}
+                        src={formValues.imageUrl || "/figma/placeholder-banner.png"}
                         alt="Preview"
                         width={63}
                         height={52}
@@ -343,7 +343,7 @@ export function SendNotificationView({
                     type="button"
                     onClick={() =>
                       handlePresetImageSelect(
-                        "/figma/notifications/security-2fa-banner.png",
+                        "/figma/placeholder-banner.png",
                         "security_update_banner.png",
                         "480 KB",
                         "800 × 450 بكسل"
@@ -357,7 +357,7 @@ export function SendNotificationView({
                     type="button"
                     onClick={() =>
                       handlePresetImageSelect(
-                        "/figma/notifications/legal-banner.png",
+                        "/figma/placeholder-banner.png",
                         "legal_compliance_banner.png",
                         "510 KB",
                         "800 × 450 بكسل"

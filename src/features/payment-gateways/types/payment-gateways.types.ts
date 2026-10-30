@@ -3,7 +3,7 @@ export interface GatewayMetaItem {
   value: string;
   isSuccess?: boolean;
   isWarning?: boolean;
-  iconSrc?: string;
+  isRecurring?: boolean;
   hasDot?: boolean;
 }
 
