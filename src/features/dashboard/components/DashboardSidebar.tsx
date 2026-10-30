@@ -95,30 +95,18 @@ export function DashboardSidebar({ activeNav }: DashboardSidebarProps = {}) {
         <div
           className={cn(
             "h-[64px] border-b border-[#2c221c] flex items-center shrink-0 transition-all duration-300",
-            isCollapsed ? "justify-center px-2" : "justify-between px-4"
+            isCollapsed ? "justify-center px-2" : "justify-start px-4"
           )}
           data-node-id="1:669"
         >
           {/* Logo Mark + Titles */}
           <div
             className={cn(
-              "flex items-center w-full",
-              isCollapsed ? "justify-center" : "justify-between gap-3"
+              "flex items-center",
+              isCollapsed ? "justify-center w-full" : "justify-start gap-[12px]"
             )}
           >
-            {/* Titles (hidden when collapsed) */}
-            {!isCollapsed && (
-              <div className="flex flex-col items-start text-right overflow-hidden whitespace-nowrap">
-                <span className="font-bold text-[#fdfbf7] text-[18px] leading-[22.5px] font-sans">
-                  الجودي
-                </span>
-                <span className="font-bold text-[#b9b3ae] text-[10px] leading-[14px]">
-                  لوحة الإدارة العليا
-                </span>
-              </div>
-            )}
-
-            {/* Brand Logo */}
+            {/* Brand Logo Icon */}
             <div
               className="size-[34px] flex items-center justify-center shrink-0"
               title={isCollapsed ? "الجودي - لوحة الإدارة العليا" : undefined}
@@ -132,6 +120,18 @@ export function DashboardSidebar({ activeNav }: DashboardSidebarProps = {}) {
                 priority
               />
             </div>
+
+            {/* Logo Word / Titles (hidden when collapsed) */}
+            {!isCollapsed && (
+              <div className="flex flex-col items-start text-right overflow-hidden whitespace-nowrap">
+                <span className="font-bold text-[#fdfbf7] text-[18px] leading-[22.5px] font-sans">
+                  الجودي
+                </span>
+                <span className="font-bold text-[#b9b3ae] text-[10px] leading-[14px]">
+                  لوحة الإدارة العليا
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
