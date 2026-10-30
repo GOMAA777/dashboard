@@ -605,16 +605,16 @@ export function TrialsView() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#fcfbfa] dark:bg-[#121110] text-[#1c1917] dark:text-[#f5f4f0] transition-colors duration-200 relative">
+    <div className="flex min-h-screen bg-[#fcfbfa] dark:bg-[#121110] text-[#1c1917] dark:text-[#f5f4f0] transition-colors duration-200 relative">
       {/* 1. Sidebar */}
       <DashboardSidebar />
 
       {/* 2. Main Body */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden relative">
+      <div className="flex-1 flex flex-col min-w-0 relative">
         <DashboardTopNavbar />
 
-        {/* Scrollable Workspace */}
-        <main className="flex-1 overflow-y-auto scrollbar-thin w-full relative">
+        {/* Workspace */}
+        <main className="flex-1 w-full relative">
           {/* Ambient Emblems */}
           <div
             className="fixed top-28 -left-28 w-[400px] h-[400px] opacity-[0.035] dark:opacity-[0.045] text-[#c29547] pointer-events-none select-none z-0"

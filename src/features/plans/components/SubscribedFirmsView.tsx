@@ -45,6 +45,7 @@ export function SubscribedFirmsView({
   const [renewalFilter, setRenewalFilter] = useState("all");
   const [resourceFilter, setResourceFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Active Menu Dropdown state (rendered via createPortal to prevent table scrollbars)
   const [openMenuFirm, setOpenMenuFirm] = useState<{
@@ -185,6 +186,17 @@ export function SubscribedFirmsView({
       return true;
     });
   }, [firms, activeTab, searchQuery]);
+
+  const totalItems = filteredFirms.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const startItem = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const endItem = Math.min(currentPage * pageSize, totalItems);
+
+  const paginatedFirms = useMemo(() => {
+    if (pageSize >= 9999) return filteredFirms;
+    const start = (currentPage - 1) * pageSize;
+    return filteredFirms.slice(start, start + pageSize);
+  }, [filteredFirms, currentPage, pageSize]);
 
   return (
     <div className="w-full space-y-[20px] font-['Cairo',sans-serif]" dir="rtl">
@@ -489,7 +501,7 @@ export function SubscribedFirmsView({
               </tr>
             </thead>
             <tbody className="divide-y divide-[#f0eeea]">
-              {filteredFirms.map((firm) => (
+              {paginatedFirms.map((firm) => (
                 <tr
                   key={firm.id}
                   className="hover:bg-[#faf8f5] transition-colors"
@@ -700,9 +712,35 @@ export function SubscribedFirmsView({
         </div>
 
         {/* Table Footer with Pagination */}
-        <div className="p-[14px] border-t border-[#f0eeea] flex flex-col sm:flex-row sm:items-center justify-between gap-[12px] text-[12px] text-[#737067]">
-          <div>
-            عرض 1 إلى {filteredFirms.length} من أصل 52 مكتباً مسجلاً في الباقة
+        <div className="p-[14px] border-t border-[#f0eeea] flex flex-col sm:flex-row sm:items-center justify-between gap-[12px] text-[12px] text-[#737067] font-['Cairo']">
+          <div className="flex flex-wrap items-center gap-4">
+            <div>
+              <span>عرض </span>
+              <span className="font-bold text-[#1b1c1a]">{startItem}</span>
+              <span> إلى </span>
+              <span className="font-bold text-[#1b1c1a]">{endItem}</span>
+              <span> من أصل </span>
+              <span className="font-bold text-[#1b1c1a]">{totalItems}</span>
+              <span> مكتباً مسجلاً في الباقة</span>
+            </div>
+
+            <div className="flex items-center gap-1.5 border-s border-[#e2ded7] ps-3">
+              <span className="text-[11px] text-[#737067]">صفوف بالصفحة:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="bg-[#f5f3ef] text-[#1b1c1a] text-[11px] font-bold py-1 px-2 rounded-[4px] border border-[#e2ded7] focus:outline-none cursor-pointer"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={9999}>الكل</option>
+              </select>
+            </div>
           </div>
 
           <div className="flex items-center gap-[4px]">
@@ -716,60 +754,39 @@ export function SubscribedFirmsView({
               <span>السابق</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => setCurrentPage(1)}
-              className={`size-[28px] rounded font-bold text-[12px] flex items-center justify-center cursor-pointer ${
-                currentPage === 1
-                  ? "bg-[#9c6402] text-white"
-                  : "border border-[#e2ded7] bg-white text-[#1b1c1a] hover:bg-[#f5f3ef]"
-              }`}
-            >
-              1
-            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => {
+              if (totalPages > 5 && Math.abs(p - currentPage) > 2 && p !== 1 && p !== totalPages) {
+                if (p === 2 || p === totalPages - 1) {
+                  return (
+                    <span key={p} className="px-[2px] text-[#737067]">
+                      ...
+                    </span>
+                  );
+                }
+                return null;
+              }
+              const isActive = currentPage === p;
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setCurrentPage(p)}
+                  className={`size-[28px] rounded font-bold text-[12px] flex items-center justify-center cursor-pointer transition-colors ${
+                    isActive
+                      ? "bg-[#9c6402] text-white"
+                      : "border border-[#e2ded7] bg-white text-[#1b1c1a] hover:bg-[#f5f3ef]"
+                  }`}
+                >
+                  {p}
+                </button>
+              );
+            })}
 
             <button
               type="button"
-              onClick={() => setCurrentPage(2)}
-              className={`size-[28px] rounded font-bold text-[12px] flex items-center justify-center cursor-pointer ${
-                currentPage === 2
-                  ? "bg-[#9c6402] text-white"
-                  : "border border-[#e2ded7] bg-white text-[#1b1c1a] hover:bg-[#f5f3ef]"
-              }`}
-            >
-              2
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setCurrentPage(3)}
-              className={`size-[28px] rounded font-bold text-[12px] flex items-center justify-center cursor-pointer ${
-                currentPage === 3
-                  ? "bg-[#9c6402] text-white"
-                  : "border border-[#e2ded7] bg-white text-[#1b1c1a] hover:bg-[#f5f3ef]"
-              }`}
-            >
-              3
-            </button>
-
-            <span className="px-[4px] text-[#737067]">...</span>
-
-            <button
-              type="button"
-              onClick={() => setCurrentPage(16)}
-              className={`size-[28px] rounded font-bold text-[12px] flex items-center justify-center cursor-pointer ${
-                currentPage === 16
-                  ? "bg-[#9c6402] text-white"
-                  : "border border-[#e2ded7] bg-white text-[#1b1c1a] hover:bg-[#f5f3ef]"
-              }`}
-            >
-              16
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setCurrentPage((p) => Math.min(16, p + 1))}
-              className="px-[10px] py-[4px] rounded border border-[#e2ded7] bg-white text-[#737067] hover:bg-[#f5f3ef] cursor-pointer flex items-center gap-[4px]"
+              disabled={currentPage >= totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              className="px-[10px] py-[4px] rounded border border-[#e2ded7] bg-white text-[#737067] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-[4px]"
             >
               <span>التالي</span>
               <ChevronLeft className="size-[14px]" />

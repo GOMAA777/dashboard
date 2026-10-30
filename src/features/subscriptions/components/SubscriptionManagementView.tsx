@@ -287,17 +287,17 @@ export function SubscriptionManagementView() {
   };
 
   return (
-    <div className="flex h-screen w-full bg-[#f5f3ef] dark:bg-[#151311] overflow-hidden direction-rtl font-['Cairo',sans-serif]">
+    <div className="flex min-h-screen w-full bg-[#f5f3ef] dark:bg-[#151311] direction-rtl font-['Cairo',sans-serif]">
       {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar activeNav="subscriptions" />
 
       {/* 2. Main Content Area */}
-      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Top Navbar */}
         <DashboardTopNavbar />
 
         {/* Dynamic Page Content */}
-        <main className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+        <main className="flex-1 p-6 flex flex-col gap-6">
           {view === "renew" ? (
             <RenewSubscriptionView
               subscription={selectedSubForAction || activeSubscription}
@@ -378,6 +378,10 @@ export function SubscriptionManagementView() {
                 pageSize={pageSize}
                 totalItems={filteredSubscriptions.length}
                 onPageChange={(p) => setPageIndex(p)}
+                onPageSizeChange={(newSize) => {
+                  setPageSize(newSize);
+                  setPageIndex(0);
+                }}
               />
             </>
           )}

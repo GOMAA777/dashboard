@@ -5,7 +5,6 @@ import {
   ArrowRight,
   User,
   Mail,
-  Phone,
   Shield,
   Lightbulb,
   KeyRound,

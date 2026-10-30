@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 export default function DashboardHomePage() {
   return (
     <div
-      className="flex h-screen overflow-hidden bg-[#fcfbfa] text-[#1b1c1a]"
+      className="flex min-h-screen bg-[#fcfbfa] text-[#1b1c1a]"
       dir="rtl"
       data-node-id="1:3"
       data-name="الرئيسية"
@@ -26,12 +26,12 @@ export default function DashboardHomePage() {
       <DashboardSidebar />
 
       {/* 2. Main Content Viewport */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Top Navbar Header (64px) */}
         <DashboardTopNavbar />
 
-        {/* Scrollable Dashboard Workspace Content */}
-        <main className="flex-1 overflow-y-auto px-[32px] py-[32px] space-y-[24px] scrollbar-thin w-full">
+        {/* Dashboard Workspace Content */}
+        <main className="flex-1 px-[32px] py-[32px] space-y-[24px] w-full">
           {/* Section 1: Page Introduction & Action Bar */}
           <DashboardHeaderSection />
 

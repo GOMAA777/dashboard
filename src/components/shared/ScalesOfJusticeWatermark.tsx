@@ -1,3 +1,9 @@
-export function ScalesOfJusticeWatermark(_props?: { className?: string; panDrop?: number }) {
+interface ScalesOfJusticeWatermarkProps {
+  className?: string;
+  panDrop?: number;
+}
+
+export function ScalesOfJusticeWatermark(props: ScalesOfJusticeWatermarkProps = {}) {
+  void props;
   return null;
 }

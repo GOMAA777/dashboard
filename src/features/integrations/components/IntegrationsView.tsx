@@ -45,17 +45,17 @@ export function IntegrationsView() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#fcfbfa] dark:bg-[#121110] text-[#1c1917] dark:text-[#f5f4f0] transition-colors duration-200 relative">
+    <div className="flex min-h-screen bg-[#fcfbfa] dark:bg-[#121110] text-[#1c1917] dark:text-[#f5f4f0] transition-colors duration-200 relative">
       {/* 1. Main Navigation Sidebar (Right side in RTL) */}
       <DashboardSidebar />
 
       {/* 2. Main Application Body Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden relative">
+      <div className="flex-1 flex flex-col min-w-0 relative">
         {/* Top Navigation Bar with breadcrumbs and actions */}
         <DashboardTopNavbar />
 
-        {/* Scrollable Dashboard Workspace Content */}
-        <main className="flex-1 overflow-y-auto scrollbar-thin w-full relative">
+        {/* Dashboard Workspace Content */}
+        <main className="flex-1 w-full relative">
           {/* Ambient Scales of Justice (ميزان العدالة) Background Emblems */}
           <div
             className="fixed top-28 -left-28 w-[380px] h-[380px] sm:w-[460px] sm:h-[460px] opacity-[0.035] dark:opacity-[0.045] text-[#c29547] dark:text-[#d4a759] pointer-events-none select-none z-0"

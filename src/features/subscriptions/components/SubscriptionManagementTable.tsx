@@ -22,6 +22,7 @@ interface SubscriptionManagementTableProps {
   pageSize: number;
   totalItems: number;
   onPageChange: (newPage: number) => void;
+  onPageSizeChange?: (newSize: number) => void;
 }
 
 export function SubscriptionManagementTable({
@@ -34,6 +35,7 @@ export function SubscriptionManagementTable({
   pageSize,
   totalItems,
   onPageChange,
+  onPageSizeChange,
 }: SubscriptionManagementTableProps) {
   const getStatusBadge = (status: SubscriptionStatus, label: string) => {
     switch (status) {
@@ -303,7 +305,7 @@ export function SubscriptionManagementTable({
       data-name="Main Table Container"
     >
       {/* Table Body Area */}
-      <div className="overflow-x-auto scrollbar-none w-full min-h-[350px]">
+      <div className="overflow-x-auto scrollbar-none w-full">
         <table className="w-full border-collapse text-right">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -366,15 +368,35 @@ export function SubscriptionManagementTable({
         data-node-id="1:5737"
         data-name="Pagination Footer"
       >
-        {/* Right in RTL: Count Summary */}
-        <div className="font-['Cairo'] text-[12px] text-[#514537] dark:text-[#a89f91]">
-          <span>عرض </span>
-          <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{startItem}</span>
-          <span> إلى </span>
-          <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{endItem}</span>
-          <span> من أصل </span>
-          <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{totalItems}</span>
-          <span> مكتب محاماة</span>
+        {/* Right in RTL: Count Summary and Rows Per Page */}
+        <div className="flex flex-wrap items-center gap-4 text-[12px] text-[#514537] dark:text-[#a89f91] font-['Cairo']">
+          <div>
+            <span>عرض </span>
+            <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{startItem}</span>
+            <span> إلى </span>
+            <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{endItem}</span>
+            <span> من أصل </span>
+            <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{totalItems}</span>
+            <span> مكتب محاماة</span>
+          </div>
+
+          {onPageSizeChange && (
+            <div className="flex items-center gap-1.5 border-s border-[#eae8e4] dark:border-[#2f2a24] ps-3">
+              <span className="text-[11px] text-[#837565] dark:text-[#a89f91]">صفوف بالصفحة:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => onPageSizeChange(Number(e.target.value))}
+                className="bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[11px] font-bold py-1 px-2 rounded-[4px] border-none focus:outline-none cursor-pointer"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+                <option value={9999}>الكل</option>
+              </select>
+            </div>
+          )}
         </div>
 
         {/* Left in RTL: Page Controls */}

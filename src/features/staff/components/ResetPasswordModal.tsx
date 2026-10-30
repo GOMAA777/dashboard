@@ -9,7 +9,6 @@ import {
   Eye,
   EyeOff,
   CheckCircle2,
-  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Employee } from "../types/staff.types";

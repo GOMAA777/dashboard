@@ -178,17 +178,17 @@ export function ClientManagementView() {
   };
 
   return (
-    <div className="flex h-screen w-full bg-[#f5f3ef] overflow-hidden direction-rtl font-['Cairo',sans-serif]">
+    <div className="flex min-h-screen w-full bg-[#f5f3ef] direction-rtl font-['Cairo',sans-serif]">
       {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar />
 
       {/* 2. Main Content Area */}
-      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Top Navbar */}
         <DashboardTopNavbar />
 
         {/* Dynamic Page Content */}
-        <main className="flex-1 overflow-y-auto p-[24px] flex flex-col gap-[24px]">
+        <main className="flex-1 p-[24px] flex flex-col gap-[24px]">
           {currentView === "list" && (
             <>
               {/* Header with Title & Add Office Button */}

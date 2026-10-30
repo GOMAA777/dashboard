@@ -46,6 +46,10 @@ export function ClientManagementTable({
   const [planFilter, setPlanFilter] = useState("all");
   const [cityFilter, setCityFilter] = useState("all");
 
+  // Pagination
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+
   const filteredOffices = useMemo(() => {
     return offices.filter((item) => {
       // Tab filter
@@ -72,6 +76,17 @@ export function ClientManagementTable({
       return true;
     });
   }, [offices, activeTab, searchQuery, planFilter, cityFilter]);
+
+  const totalItems = filteredOffices.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const startItem = totalItems === 0 ? 0 : pageIndex * pageSize + 1;
+  const endItem = Math.min((pageIndex + 1) * pageSize, totalItems);
+
+  const paginatedOffices = useMemo(() => {
+    if (pageSize >= 9999) return filteredOffices;
+    const start = pageIndex * pageSize;
+    return filteredOffices.slice(start, start + pageSize);
+  }, [filteredOffices, pageIndex, pageSize]);
 
   const handleDeactivateToggle = (office: ClientOffice) => {
     const isCurrentlyActive = office.accountStatus.type === "active";
@@ -322,7 +337,7 @@ export function ClientManagementTable({
       </div>
 
       {/* Table Data */}
-      <div className="overflow-x-auto scrollbar-none w-full min-h-[350px]">
+      <div className="overflow-x-auto scrollbar-none w-full">
         <table className="w-full text-right border-collapse">
           <thead>
             <tr className="bg-[#f5f3ef] border-b border-[#eae8e4] text-[#514537] text-[12px] leading-[18px] font-semibold">
@@ -337,14 +352,14 @@ export function ClientManagementTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-[#f0eeea]">
-            {filteredOffices.length === 0 ? (
+            {paginatedOffices.length === 0 ? (
               <tr>
                 <td colSpan={8} className="py-[48px] text-center text-[#837565] text-[14px]">
                   لا توجد مكاتب تطابق معايير البحث الحالية
                 </td>
               </tr>
             ) : (
-              filteredOffices.map((office, idx) => (
+              paginatedOffices.map((office) => (
                 <tr
                   key={office.id}
                   className="hover:bg-[#faf9f7] transition-colors group"
@@ -472,70 +487,96 @@ export function ClientManagementTable({
                               handleDeleteOffice(office);
                             }
                           }}
-                          positionClass={
-                            idx >= filteredOffices.length - 2
-                              ? "left-0 bottom-full mb-1"
-                              : "left-0 top-full mt-1"
-                          }
                         />
                       </div>
                     </div>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Pagination Footer */}
-      <div className="p-[16px] border-t border-[#f0eeea] flex flex-col sm:flex-row items-center justify-between gap-[12px] text-[12px] text-[#514537]">
-        <div>
-          <span>عرض 1 إلى 8 من أصل 128 مكتب محاماة مسجل</span>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
 
+        {/* Pagination Footer */}
+        <div className="p-[16px] border-t border-[#f0eeea] flex flex-col sm:flex-row items-center justify-between gap-[12px] text-[12px] text-[#514537] font-['Cairo']">
+          {/* Right in RTL: Count Summary & Rows per page */}
+        <div className="flex flex-wrap items-center gap-4">
+          <div>
+            <span>عرض </span>
+            <span className="font-bold text-[#1b1c1a]">{startItem}</span>
+            <span> إلى </span>
+            <span className="font-bold text-[#1b1c1a]">{endItem}</span>
+            <span> من أصل </span>
+            <span className="font-bold text-[#1b1c1a]">{totalItems}</span>
+            <span> مكتب محاماة مسجل</span>
+          </div>
+
+          <div className="flex items-center gap-1.5 border-s border-[#eae8e4] ps-3">
+            <span className="text-[11px] text-[#837565]">صفوف بالصفحة:</span>
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setPageIndex(0);
+              }}
+              className="bg-[#f5f3ef] text-[#1b1c1a] text-[11px] font-bold py-1 px-2 rounded-[4px] border border-[#eae8e4] focus:outline-none cursor-pointer"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+              <option value={9999}>الكل</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Left in RTL: Page Controls */}
         <div className="flex items-center gap-[4px]">
           <button
             type="button"
-            className="px-[12px] py-[6px] rounded-[4px] border border-[#eae8e4] text-[#837565] hover:bg-[#f5f3ef] transition-colors flex items-center gap-[4px] cursor-pointer"
+            disabled={pageIndex === 0}
+            onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
+            className="px-[12px] py-[6px] rounded-[4px] border border-[#eae8e4] text-[#837565] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-[4px] cursor-pointer"
           >
             <ChevronRight className="size-[13px]" />
             <span>السابق</span>
           </button>
 
-          <button
-            type="button"
-            className="size-[30px] rounded-[4px] bg-[#9c6402] text-white font-bold flex items-center justify-center cursor-pointer shadow-sm"
-          >
-            1
-          </button>
+          {Array.from({ length: totalPages }, (_, i) => i).map((p) => {
+            if (totalPages > 5 && Math.abs(p - pageIndex) > 2 && p !== 0 && p !== totalPages - 1) {
+              if (p === 1 || p === totalPages - 2) {
+                return (
+                  <span key={p} className="px-[2px] text-[#837565]">
+                    ...
+                  </span>
+                );
+              }
+              return null;
+            }
+            const isActive = pageIndex === p;
+            return (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setPageIndex(p)}
+                className={`size-[30px] rounded-[4px] font-semibold text-[12px] flex items-center justify-center cursor-pointer transition-colors ${
+                  isActive
+                    ? "bg-[#9c6402] text-white font-bold shadow-sm"
+                    : "border border-[#eae8e4] text-[#514537] hover:bg-[#f5f3ef]"
+                }`}
+              >
+                {p + 1}
+              </button>
+            );
+          })}
 
           <button
             type="button"
-            className="size-[30px] rounded-[4px] border border-[#eae8e4] text-[#514537] hover:bg-[#f5f3ef] font-semibold flex items-center justify-center cursor-pointer"
-          >
-            2
-          </button>
-
-          <button
-            type="button"
-            className="size-[30px] rounded-[4px] border border-[#eae8e4] text-[#514537] hover:bg-[#f5f3ef] font-semibold flex items-center justify-center cursor-pointer"
-          >
-            3
-          </button>
-
-          <span className="px-[4px] text-[#837565]">...</span>
-
-          <button
-            type="button"
-            className="size-[30px] rounded-[4px] border border-[#eae8e4] text-[#514537] hover:bg-[#f5f3ef] font-semibold flex items-center justify-center cursor-pointer"
-          >
-            16
-          </button>
-
-          <button
-            type="button"
-            className="px-[12px] py-[6px] rounded-[4px] border border-[#eae8e4] text-[#1b1c1a] hover:bg-[#f5f3ef] transition-colors flex items-center gap-[4px] cursor-pointer"
+            disabled={pageIndex >= totalPages - 1}
+            onClick={() => setPageIndex((p) => Math.min(totalPages - 1, p + 1))}
+            className="px-[12px] py-[6px] rounded-[4px] border border-[#eae8e4] text-[#1b1c1a] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-[4px] cursor-pointer"
           >
             <span>التالي</span>
             <ChevronLeft className="size-[13px]" />

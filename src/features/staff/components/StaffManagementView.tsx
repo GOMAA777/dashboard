@@ -148,7 +148,7 @@ export function StaffManagementView() {
               status: "suspended",
               lastLogin: {
                 time: "اليوم",
-                note: "تم إيقاف الجلسة بقرار رقابي",
+                note: reason.trim() ? `سبب الإيقاف: ${reason}` : "تم إيقاف الجلسة بقرار رقابي",
               },
             }
           : e
@@ -160,7 +160,7 @@ export function StaffManagementView() {
         status: "suspended",
         lastLogin: {
           time: "اليوم",
-          note: "تم إيقاف الجلسة بقرار رقابي",
+          note: reason.trim() ? `سبب الإيقاف: ${reason}` : "تم إيقاف الجلسة بقرار رقابي",
         },
       });
     }

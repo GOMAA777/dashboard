@@ -39,6 +39,16 @@ export function StaffTable({
   onResetPassword,
 }: StaffTableProps) {
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const [pageSize, setPageSize] = useState(10);
+  const [pageIndex, setPageIndex] = useState(0);
+
+  const totalItems = employees.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const safePageIndex = Math.min(pageIndex, totalPages - 1);
+  const startIndex = safePageIndex * pageSize;
+  const paginatedEmployees = employees.slice(startIndex, startIndex + pageSize);
+  const startItem = totalItems === 0 ? 0 : startIndex + 1;
+  const endItem = Math.min(startIndex + pageSize, totalItems);
 
   const getRoleIcon = (iconType: IconType) => {
     switch (iconType) {
@@ -110,7 +120,7 @@ export function StaffTable({
                 </td>
               </tr>
             ) : (
-              employees.map((emp) => {
+              paginatedEmployees.map((emp) => {
                 const isSuspended = emp.status === "suspended";
 
                 return (
@@ -341,54 +351,84 @@ export function StaffTable({
       </div>
 
       {/* Pagination Footer */}
-      <div className="bg-[#fcfaf7] border-t border-[#e6e2dc] px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <span className="text-[13px] text-[#79716b]">
-          عرض 1 إلى {employees.length} من أصل 10 موظف
-        </span>
+      <div className="bg-[#fcfaf7] border-t border-[#e6e2dc] px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-[13px] font-['Cairo']">
+        {/* Right in RTL: Count Summary & Rows per page */}
+        <div className="flex flex-wrap items-center gap-4 text-[#79716b]">
+          <div>
+            <span>عرض </span>
+            <span className="font-bold text-[#1b1c1a]">{startItem}</span>
+            <span> إلى </span>
+            <span className="font-bold text-[#1b1c1a]">{endItem}</span>
+            <span> من أصل </span>
+            <span className="font-bold text-[#1b1c1a]">{totalItems}</span>
+            <span> موظف</span>
+          </div>
 
-        <div className="flex items-center gap-1 text-[13px]">
+          <div className="flex items-center gap-1.5 border-s border-[#eae8e4] ps-3">
+            <span className="text-[11px] text-[#837565]">صفوف بالصفحة:</span>
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setPageIndex(0);
+              }}
+              className="bg-[#f5f3ef] text-[#1b1c1a] text-[11px] font-bold py-1 px-2 rounded-[4px] border border-[#eae8e4] focus:outline-none cursor-pointer"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+              <option value={9999}>الكل</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Left in RTL: Page Controls */}
+        <div className="flex items-center gap-1">
           <button
             type="button"
-            disabled
-            className="px-2.5 py-1 text-[#a8a29e] cursor-not-allowed flex items-center gap-1 rounded-[4px]"
+            disabled={safePageIndex === 0}
+            onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
+            className="px-2.5 py-1 text-[#514537] hover:bg-[#f2efe9] disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 rounded-[4px] transition-colors cursor-pointer"
           >
             <ChevronRight className="size-[14px]" />
             <span>السابق</span>
           </button>
 
-          <button
-            type="button"
-            className="size-[28px] rounded-[4px] bg-[#9c6402] text-white font-bold flex items-center justify-center text-[12px]"
-          >
-            1
-          </button>
+          {Array.from({ length: totalPages }, (_, i) => i).map((p) => {
+            if (totalPages > 5 && Math.abs(p - safePageIndex) > 2 && p !== 0 && p !== totalPages - 1) {
+              if (p === 1 || p === totalPages - 2) {
+                return (
+                  <span key={p} className="px-1 text-[#79716b]">
+                    ..
+                  </span>
+                );
+              }
+              return null;
+            }
+            const isActive = safePageIndex === p;
+            return (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setPageIndex(p)}
+                className={`size-[28px] rounded-[4px] font-semibold text-[12px] flex items-center justify-center cursor-pointer transition-colors ${
+                  isActive
+                    ? "bg-[#9c6402] text-white font-bold"
+                    : "hover:bg-[#f2efe9] text-[#514537]"
+                }`}
+              >
+                {p + 1}
+              </button>
+            );
+          })}
 
           <button
             type="button"
-            className="size-[28px] rounded-[4px] hover:bg-[#f2efe9] text-[#514537] flex items-center justify-center text-[12px]"
-          >
-            2
-          </button>
-
-          <button
-            type="button"
-            className="size-[28px] rounded-[4px] hover:bg-[#f2efe9] text-[#514537] flex items-center justify-center text-[12px]"
-          >
-            3
-          </button>
-
-          <span className="px-1 text-[#79716b]">..</span>
-
-          <button
-            type="button"
-            className="size-[28px] rounded-[4px] hover:bg-[#f2efe9] text-[#514537] flex items-center justify-center text-[12px]"
-          >
-            16
-          </button>
-
-          <button
-            type="button"
-            className="px-2.5 py-1 text-[#514537] hover:bg-[#f2efe9] flex items-center gap-1 rounded-[4px]"
+            disabled={safePageIndex >= totalPages - 1}
+            onClick={() => setPageIndex((p) => Math.min(totalPages - 1, p + 1))}
+            className="px-2.5 py-1 text-[#514537] hover:bg-[#f2efe9] disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 rounded-[4px] transition-colors cursor-pointer"
           >
             <span>التالي</span>
             <ChevronLeft className="size-[14px]" />
