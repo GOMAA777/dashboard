@@ -50,7 +50,7 @@ export function LogoutConfirmModal({
                 id="logout-modal-title"
                 className="text-[18px] font-bold text-[#1b1c1a]"
               >
-                تسجيل الخروج من المنصة
+                هل تريد تسجيل الخروج؟
               </h2>
               <p className="text-[12px] text-[#79716b] mt-0.5">
                 لوحة تحكم الجودي لإدارة مكاتب وشركات المحاماة
@@ -115,7 +115,7 @@ export function LogoutConfirmModal({
             onClick={onClose}
             className="px-4 py-2 rounded-[8px] border border-[#d6cfc5] hover:bg-[#ede8e1] text-[#514537] text-[13px] font-semibold transition-colors cursor-pointer"
           >
-            إلغاء التراجع
+            إلغاء
           </button>
           <button
             type="button"
@@ -123,7 +123,7 @@ export function LogoutConfirmModal({
             className="px-4 py-2 rounded-[8px] bg-[#dc2626] hover:bg-[#b91c1c] text-white text-[13px] font-semibold shadow-sm transition-colors flex items-center gap-2 cursor-pointer"
           >
             <LogOut className="size-[15px]" />
-            تأكيد تسجيل الخروج
+            نعم، تسجيل الخروج
           </button>
         </div>
       </div>

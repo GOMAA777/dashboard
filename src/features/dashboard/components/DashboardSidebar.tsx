@@ -22,7 +22,6 @@ import {
   Users,
   Key,
   ChevronLeft,
-  LogIn,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -270,11 +269,11 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
         data-node-id="1:744-user-profile"
       >
         {isCollapsed ? (
-          <>
-            {/* Collapsed Mode: User Avatar Link to Login Page */}
+          <div className="flex flex-col items-center gap-2">
+            {/* Collapsed Mode: User Avatar Link to Profile */}
             <Link
-              href="/login"
-              title="فتح صفحة تسجيل الدخول (/login) - م. عبد العزيز بن فهد"
+              href="/profile"
+              title="الملف الشخصي - م. عبد العزيز بن فهد"
               className="size-[38px] rounded-full overflow-hidden border border-[#9c6402]/40 hover:border-[#9c6402] transition-colors flex items-center justify-center shrink-0 relative group"
             >
               <Image
@@ -287,26 +286,27 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
               <span className="absolute bottom-0 end-0 size-[8px] rounded-full bg-[#10b981] border border-[#16100c]" />
             </Link>
 
-            {/* Collapsed Mode: Logout Icon Button (Click opens question popup) */}
+            {/* Collapsed Mode: Circular Logout Button */}
             <button
               type="button"
               onClick={() => setIsLogoutModalOpen(true)}
               title="تسجيل الخروج"
               aria-label="تسجيل الخروج"
-              className="size-[34px] rounded-[8px] flex items-center justify-center text-[#8e8680] hover:text-[#f87171] hover:bg-[#2c221c] transition-colors cursor-pointer"
+              className="size-[34px] rounded-full bg-[#251b14] border border-[#3b2a1f] hover:border-[#ba1a1a]/40 hover:bg-[#ba1a1a]/20 text-[#8e8680] hover:text-[#f87171] flex items-center justify-center transition-colors cursor-pointer"
             >
-              <LogOut className="size-[16px]" />
+              <LogOut className="size-[15px]" />
             </button>
-          </>
+          </div>
         ) : (
-          <>
-            {/* Expanded Mode: Integrated User Profile Card (Click opens /login) */}
+          /* Expanded Mode: Large Oval / Pill Box Container */
+          <div className="w-full bg-[#221812] border border-[#38271c] hover:border-[#4d3627] rounded-full p-1.5 ps-2.5 pe-1.5 flex items-center justify-between gap-2 shadow-xs transition-colors">
+            {/* User Info Link (Avatar + Name + Role) leading to /profile */}
             <Link
-              href="/login"
-              title="فتح صفحة تسجيل الدخول (/login)"
-              className="flex items-center gap-2.5 p-1.5 rounded-[8px] hover:bg-[#2c221c]/70 transition-colors flex-1 min-w-0 text-right group cursor-pointer"
+              href="/profile"
+              title="فتح الملف الشخصي"
+              className="flex items-center gap-2.5 flex-1 min-w-0 text-right group cursor-pointer"
             >
-              <div className="relative size-[34px] rounded-full overflow-hidden border border-[#9c6402]/40 shrink-0">
+              <div className="relative size-[34px] rounded-full overflow-hidden border border-[#9c6402]/50 shrink-0">
                 <Image
                   src={userAvatarImg}
                   alt="م. عبد العزيز بن فهد"
@@ -317,29 +317,26 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                 <span className="absolute bottom-0 end-0 size-[7px] rounded-full bg-[#10b981] border border-[#16100c]" />
               </div>
               <div className="flex flex-col min-w-0 text-right">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[13px] font-semibold text-[#fdfbf7] truncate group-hover:text-[#e29d38] transition-colors">
-                    م. عبد العزيز بن فهد
-                  </span>
-                  <LogIn className="size-[12px] text-[#8e8680] group-hover:text-[#e29d38] transition-colors shrink-0" />
-                </div>
-                <span className="text-[10px] text-[#8e8680] truncate">
+                <span className="text-[13px] font-semibold text-[#fdfbf7] truncate group-hover:text-[#e29d38] transition-colors leading-[18px]">
+                  م. عبد العزيز بن فهد
+                </span>
+                <span className="text-[10px] text-[#8e8680] truncate leading-[14px]">
                   مشرف النظام العام
                 </span>
               </div>
             </Link>
 
-            {/* Expanded Mode: Logout Icon Button (Click opens question popup modal) */}
+            {/* Single Circular Logout Button */}
             <button
               type="button"
               onClick={() => setIsLogoutModalOpen(true)}
               title="تسجيل الخروج"
               aria-label="تسجيل الخروج"
-              className="size-[32px] rounded-[8px] flex items-center justify-center text-[#8e8680] hover:text-[#f87171] hover:bg-[#2c221c] transition-colors cursor-pointer shrink-0"
+              className="size-[32px] rounded-full bg-[#2d1f17] border border-[#443023] hover:border-[#ba1a1a]/50 hover:bg-[#ba1a1a]/20 text-[#a89f91] hover:text-[#f87171] flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-2xs"
             >
-              <LogOut className="size-[16px]" />
+              <LogOut className="size-[15px]" />
             </button>
-          </>
+          </div>
         )}
       </div>
 
