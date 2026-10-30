@@ -637,7 +637,7 @@ export function LawFirmsView() {
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
         <DashboardTopNavbar />
 
-        <main className="flex-1 overflow-y-auto w-full relative scrollbar-thin">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden w-full relative scrollbar-thin">
           <DashboardPageTransition>
           {/* Ambient Emblems */}
           <div

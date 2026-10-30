@@ -54,10 +54,9 @@ export function UnifiedFilterBar({
   return (
     <div
       className={cn(
-        "bg-white rounded-[8px] p-[16px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] flex items-center justify-between gap-[16px] w-full font-['Cairo',sans-serif] select-none",
+        "bg-white dark:bg-[#221812] rounded-[8px] p-[16px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-wrap md:flex-nowrap items-center justify-between gap-[16px] w-full max-w-full font-['Cairo',sans-serif] select-none",
         className
       )}
-      dir="rtl"
     >
       {/* 3 Unified Filter Controls in a Single Row */}
       <div className="flex items-center gap-[12px] flex-1 max-w-[800px]">
@@ -113,8 +112,7 @@ export function UnifiedFilterBar({
           />
           <SheetContent
             side="left"
-            className="w-[340px] sm:w-[420px] p-0 flex flex-col justify-between bg-white border-e border-[#eae8e4] shadow-2xl font-['Cairo',sans-serif]"
-            dir="rtl"
+            className="w-[340px] sm:w-[420px] p-0 flex flex-col justify-between bg-white dark:bg-[#221812] border-e border-[#eae8e4] dark:border-[#38271c] shadow-2xl font-['Cairo',sans-serif]"
           >
             <SheetHeader className="p-5 border-b border-[#f0eeea] text-start">
               <SheetTitle className="text-[16px] font-bold text-[#1b1c1a] flex items-center gap-2">

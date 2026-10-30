@@ -315,8 +315,8 @@ export function TicketsView() {
         {/* Top Navbar */}
         <DashboardTopNavbar customBreadcrumbs={breadcrumbs} />
 
-        {/* Main Content Container */}
-        <main className="flex-1 overflow-y-auto p-[24px] sm:p-[32px] max-w-[1400px] w-full mx-auto flex flex-col gap-[24px] scrollbar-thin">
+        {/* Main Content Container (Scroll Y only, zero horizontal overflow) */}
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-[16px] sm:p-[24px] md:p-[32px] max-w-[1400px] w-full mx-auto flex flex-col gap-[24px] scrollbar-thin">
           <DashboardPageTransition>
           {/* VIEW 1: Ticket Details View */}
           {selectedTicketForDetails ? (

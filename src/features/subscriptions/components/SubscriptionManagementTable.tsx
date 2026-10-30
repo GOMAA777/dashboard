@@ -304,8 +304,8 @@ export function SubscriptionManagementTable({
       data-node-id="1:5392"
       data-name="Main Table Container"
     >
-      {/* Table Body Area */}
-      <div className="overflow-x-auto scrollbar-none w-full">
+      {/* Table Body Area with sleek horizontal scroll confined inside the container */}
+      <div className="overflow-x-auto scrollbar-thin w-full max-w-full">
         <table className="w-full border-collapse text-right">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (

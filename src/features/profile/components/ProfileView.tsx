@@ -29,7 +29,7 @@ export function ProfileView() {
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
         <DashboardTopNavbar />
 
-        <main className="flex-1 overflow-y-auto w-full relative p-4 sm:p-6 lg:p-8 scrollbar-thin">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden w-full max-w-full relative p-4 sm:p-6 lg:p-8 scrollbar-thin">
           <DashboardPageTransition>
           {/* Ambient Scales of Justice Emblems */}
           <div

@@ -28,12 +28,12 @@ export default function DashboardHomePage() {
         <DashboardSidebar />
 
         {/* 2. Main Content Viewport */}
-        <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+        <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden w-full max-w-full">
           {/* Top Navbar Header (Fixed with Breadcrumbs) */}
           <DashboardTopNavbar />
 
-          {/* Dashboard Workspace Content (Only area that scrolls) */}
-          <main className="flex-1 overflow-y-auto px-[32px] py-[32px] space-y-[24px] w-full scrollbar-thin">
+          {/* Dashboard Workspace Content (Only area that scrolls on Y, zero horizontal scroll) */}
+          <main className="flex-1 overflow-y-auto overflow-x-hidden px-[16px] sm:px-[32px] py-[24px] sm:py-[32px] space-y-[24px] w-full max-w-full scrollbar-thin">
             <DashboardPageTransition>
               {/* Section 1: Page Introduction & Action Bar */}
               <DashboardHeaderSection />

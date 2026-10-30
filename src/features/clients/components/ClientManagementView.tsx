@@ -203,8 +203,8 @@ export function ClientManagementView() {
         {/* Top Navbar */}
         <DashboardTopNavbar customBreadcrumbs={breadcrumbs} />
 
-        {/* Dynamic Page Content */}
-        <main className="flex-1 overflow-y-auto p-[24px] flex flex-col gap-[24px] scrollbar-thin">
+        {/* Dynamic Page Content (Scroll Y only, zero horizontal overflow) */}
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-[24px] flex flex-col gap-[24px] w-full max-w-full scrollbar-thin">
           <DashboardPageTransition>
             {currentView === "list" && (
               <>

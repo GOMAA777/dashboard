@@ -156,8 +156,8 @@ export function PaymentGatewaysPage() {
         {/* Top Navbar */}
         <DashboardTopNavbar customBreadcrumbs={breadcrumbs} />
 
-        {/* Main Content Area matching Figma 1:13869 */}
-        <main className="flex-1 overflow-y-auto w-full p-4 sm:p-6 lg:p-8 max-w-[1360px] mx-auto space-y-6 scrollbar-thin">
+        {/* Main Content Area (Scroll Y only, zero horizontal overflow) */}
+        <main className="flex-1 overflow-y-auto overflow-x-hidden w-full p-4 sm:p-6 lg:p-8 max-w-[1360px] mx-auto space-y-6 scrollbar-thin">
           <DashboardPageTransition>
             <>
               {/* 1. Main Identity & Command Banner (Figma 1:13872) */}

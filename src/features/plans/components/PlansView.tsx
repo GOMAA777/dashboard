@@ -150,8 +150,8 @@ export function PlansView() {
         {/* Top Navbar with Notifications Flyout */}
         <DashboardTopNavbar />
 
-        {/* Dynamic Workspace Container */}
-        <main className="flex-1 overflow-y-auto p-[20px] md:p-[28px] scrollbar-thin">
+        {/* Dynamic Workspace Container (Scroll Y only, zero horizontal overflow) */}
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-[16px] md:p-[28px] w-full max-w-full scrollbar-thin">
           <DashboardPageTransition>
             <div className="w-full space-y-[20px]">
 

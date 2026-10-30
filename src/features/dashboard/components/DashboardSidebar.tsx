@@ -124,7 +124,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
   return (
     <aside
       className={cn(
-        "relative shrink-0 h-screen h-dvh sticky top-0 bg-[#1c140f] flex flex-col justify-between border-e border-[#2c221c] drop-shadow-[0px_1px_4px_rgba(0,0,0,0.04)] select-none z-30 transition-all duration-300 ease-in-out",
+        "relative shrink-0 h-screen h-dvh sticky top-0 bg-white dark:bg-[#1c140f] flex flex-col justify-between border-e border-[#eae8e4] dark:border-[#2c221c] drop-shadow-[0px_1px_4px_rgba(0,0,0,0.04)] select-none z-30 transition-all duration-300 ease-in-out",
         isCollapsed ? "w-[72px]" : "w-[240px]"
       )}
       data-node-id="1:667"
@@ -137,14 +137,14 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
         aria-label={isCollapsed ? (currentLang === "en" ? "Expand sidebar" : "توسيع القائمة الجانبية") : (currentLang === "en" ? "Collapse sidebar" : "تصغير القائمة الجانبية")}
         title={isCollapsed ? (currentLang === "en" ? "Expand sidebar" : "توسيع القائمة الجانبية") : (currentLang === "en" ? "Collapse sidebar" : "تصغير القائمة الجانبية")}
         className={cn(
-          "absolute top-[20px] z-40 size-[26px] bg-[#221812] hover:bg-[#2c1f17] text-[#cdc5bd] hover:text-[#fdfbf7] border border-[#3d2a1d] rounded-full shadow-[0px_2px_5px_rgba(0,0,0,0.35)] flex items-center justify-center transition-colors cursor-pointer focus:outline-none",
+          "absolute top-[20px] z-40 size-[26px] bg-white hover:bg-[#fbf7f0] text-[#514537] hover:text-[#9c6402] border border-[#eae8e4] dark:bg-[#221812] dark:hover:bg-[#2c1f17] dark:text-[#cdc5bd] dark:hover:text-[#fdfbf7] dark:border-[#3d2a1d] rounded-full shadow-[0px_2px_5px_rgba(0,0,0,0.12)] flex items-center justify-center transition-colors cursor-pointer focus:outline-none",
           isRTL ? "-left-[13px]" : "-right-[13px]"
         )}
         style={{
           [isRTL ? "left" : "right"]: "-13px",
         }}
       >
-        <CollapseIcon className="size-[14px] text-[#cdc5bd]" />
+        <CollapseIcon className="size-[14px]" />
       </button>
 
       {/* Top Section: Logo & Nav List */}
@@ -152,7 +152,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
         {/* Brand Header */}
         <div
           className={cn(
-            "h-[64px] border-b border-[#2c221c] flex items-center shrink-0 transition-all duration-300",
+            "h-[64px] border-b border-[#eae8e4] dark:border-[#2c221c] flex items-center shrink-0 transition-all duration-300",
             isCollapsed ? "justify-center px-2" : "justify-start px-4"
           )}
           data-node-id="1:669"
@@ -175,10 +175,10 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
             {/* Logo Word / Titles (hidden when collapsed) */}
             {!isCollapsed && (
               <div className="flex flex-col items-start text-start overflow-hidden whitespace-nowrap gap-[4px]">
-                <span className="font-bold text-[#fdfbf7] text-[18px] leading-[22px] font-sans">
+                <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7] text-[18px] leading-[22px] font-sans">
                   {currentLang === "en" ? "Al Joudy" : "الجودي"}
                 </span>
-                <span className="font-bold text-[#b9b3ae] text-[10px] leading-[14px]">
+                <span className="font-bold text-[#9c6402] dark:text-[#b9b3ae] text-[10px] leading-[14px]">
                   {currentLang === "en" ? "Executive Admin Dashboard" : "لوحة الإدارة العليا"}
                 </span>
               </div>
@@ -204,11 +204,11 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                     type="button"
                     onClick={() => toast.info(currentLang === "en" ? "This section is under construction" : "هذا القسم قيد الإنشاء")}
                     title={itemLabel}
-                    className="size-[44px] rounded-[12px] flex items-center justify-center transition-all duration-200 group text-[#cdc5bd] hover:bg-[#2c221c]/80 hover:text-[#fdfbf7] cursor-pointer"
+                    className="size-[44px] rounded-[12px] flex items-center justify-center transition-all duration-200 group text-[#514537] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/80 dark:hover:text-[#fdfbf7] cursor-pointer"
                   >
                     <item.icon
                       className={cn(
-                        "size-[18px] transition-colors shrink-0 text-[#cdc5bd] group-hover:text-[#fdfbf7]",
+                        "size-[18px] transition-colors shrink-0 text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]",
                         item.sizeClass
                       )}
                     />
@@ -221,20 +221,20 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   key={item.id}
                   type="button"
                   onClick={() => toast.info(currentLang === "en" ? "This section is under construction" : "هذا القسم قيد الإنشاء")}
-                  className="w-full flex items-center gap-[12px] px-[12px] py-[8px] rounded-[12px] transition-colors duration-150 group text-start text-[#cdc5bd] hover:bg-[#2c221c]/60 hover:text-[#fdfbf7] cursor-pointer"
+                  className="w-full flex items-center gap-[12px] px-[12px] py-[8px] rounded-[12px] transition-colors duration-150 group text-start text-[#514537] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/60 dark:hover:text-[#fdfbf7] cursor-pointer"
                 >
                   {/* Icon first (Right in RTL, Left in LTR) */}
                   <div className="size-[20px] flex items-center justify-center shrink-0">
                     <item.icon
                       className={cn(
-                        "shrink-0 transition-colors text-[#cdc5bd] group-hover:text-[#fdfbf7]",
+                        "shrink-0 transition-colors text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]",
                         item.sizeClass
                       )}
                     />
                   </div>
 
                   {/* Word next */}
-                  <span className="text-[14px] leading-[20px] font-semibold flex-1 text-start truncate text-[#cdc5bd] group-hover:text-[#fdfbf7]">
+                  <span className="text-[14px] leading-[20px] font-semibold flex-1 text-start truncate text-[#514537] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]">
                     {itemLabel}
                   </span>
                 </button>
@@ -257,8 +257,8 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   className={cn(
                     "size-[44px] rounded-[12px] flex items-center justify-center transition-all duration-200 group relative",
                     isActive
-                      ? "bg-[#9c6402] text-[#1c140f] shadow-sm"
-                      : "text-[#cdc5bd] hover:bg-[#2c221c]/80 hover:text-[#fdfbf7]"
+                      ? "bg-[#9c6402] text-white dark:text-[#1c140f] shadow-[0px_2px_4px_rgba(156,100,2,0.25)] dark:shadow-none font-bold"
+                      : "text-[#514537] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/80 dark:hover:text-[#fdfbf7]"
                   )}
                   data-node-id={isActive ? "1:679" : undefined}
                 >
@@ -266,8 +266,8 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                     className={cn(
                       "size-[18px] transition-colors shrink-0",
                       isActive
-                        ? "text-[#1c140f]"
-                        : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
+                        ? "text-white dark:text-[#1c140f]"
+                        : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
                     )}
                   />
                 </Link>
@@ -290,8 +290,8 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   className={cn(
                     "flex items-center gap-[12px] px-[12px] py-[8px] rounded-[12px] transition-colors duration-150 group text-start",
                     isActive
-                      ? "bg-[#9c6402] text-[#1c140f]"
-                      : "text-[#cdc5bd] hover:bg-[#2c221c]/60 hover:text-[#fdfbf7]"
+                      ? "bg-[#9c6402] text-white dark:text-[#1c140f] shadow-[0px_2px_4px_rgba(156,100,2,0.25)] dark:shadow-none font-bold"
+                      : "text-[#514537] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/60 dark:hover:text-[#fdfbf7]"
                   )}
                   data-node-id={isActive ? "1:679" : undefined}
                 >
@@ -302,8 +302,8 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                         "shrink-0 transition-colors",
                         item.sizeClass,
                         isActive
-                          ? "text-[#1c140f]"
-                          : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
+                          ? "text-white dark:text-[#1c140f]"
+                          : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
                       )}
                     />
                   </div>
@@ -312,7 +312,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   <span
                     className={cn(
                       "text-[14px] leading-[20px] font-semibold flex-1 text-start truncate",
-                      isActive ? "text-[#1c140f] font-bold" : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
+                      isActive ? "text-white dark:text-[#1c140f] font-bold" : "text-[#514537] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
                     )}
                   >
                     {itemLabel}
@@ -327,8 +327,8 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   className={cn(
                     "flex items-center justify-between px-[12px] py-[8px] rounded-[12px] transition-colors duration-150 group",
                     isActive
-                      ? "bg-[#9c6402] text-[#1c140f]"
-                      : "text-[#cdc5bd] hover:bg-[#2c221c]/60 hover:text-[#fdfbf7]"
+                      ? "bg-[#9c6402] text-white dark:text-[#1c140f] shadow-[0px_2px_4px_rgba(156,100,2,0.25)] dark:shadow-none font-bold"
+                      : "text-[#514537] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/60 dark:hover:text-[#fdfbf7]"
                   )}
                   data-node-id={isActive ? "1:679" : undefined}
                 >
@@ -348,8 +348,8 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                           "shrink-0 transition-colors",
                           item.sizeClass,
                           isActive
-                            ? "text-[#1c140f]"
-                            : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
+                            ? "text-white dark:text-[#1c140f]"
+                            : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
                         )}
                       />
                     </div>
@@ -358,7 +358,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                     <span
                       className={cn(
                         "text-[14px] leading-[20px] font-semibold truncate",
-                        isActive ? "text-[#1c140f] font-bold" : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
+                        isActive ? "text-white dark:text-[#1c140f] font-bold" : "text-[#514537] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
                       )}
                     >
                       {itemLabel}
@@ -381,8 +381,8 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                     className={cn(
                       "size-[24px] rounded-[6px] flex items-center justify-center transition-all cursor-pointer ms-2 shrink-0",
                       isActive
-                        ? "hover:bg-[#835401]/40 text-[#1c140f]"
-                        : "hover:bg-[#2c221c] text-[#cdc5bd] group-hover:text-[#fdfbf7]"
+                        ? "hover:bg-white/20 text-white dark:hover:bg-[#835401]/40 dark:text-[#1c140f]"
+                        : "hover:bg-[#f5f3ef] text-[#837565] group-hover:text-[#9c6402] dark:hover:bg-[#2c221c] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
                     )}
                   >
                     <ChevronDown
@@ -396,15 +396,15 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
 
                 {/* Sub-items for Staff (فريق العمل والأدوار والصلاحيات) */}
                 {item.id === "staff" && isDropdownOpen && (
-                  <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#38271c] my-1">
+                  <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#eae8e4] dark:border-[#38271c] my-1">
                     <Link
                       href="/permissions?tab=staff"
                       onClick={() => handleNavClick("/permissions?tab=staff")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                         activeSubNav === "roles"
-                          ? "text-[#cdc5bd] hover:bg-[#2c221c]/40 hover:text-[#fdfbf7]"
-                          : "text-[#e29d38] font-bold bg-[#2c221c]/60"
+                          ? "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
+                          : "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
                       )}
                     >
                       {/* Connecting dot */}
@@ -412,16 +412,16 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                         className={cn(
                           "size-[6px] rounded-full shrink-0 transition-all",
                           activeSubNav !== "roles"
-                            ? "bg-[#e29d38] shadow-[0_0_6px_#e29d38]"
-                            : "bg-[#625d5d] group-hover:bg-[#a89f91]"
+                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
                         )}
                       />
                       <Users
                         className={cn(
                           "size-[15px] shrink-0",
                           activeSubNav !== "roles"
-                            ? "text-[#e29d38]"
-                            : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
+                            ? "text-[#9c6402] dark:text-[#e29d38]"
+                            : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
                         )}
                       />
                       <span className="truncate">{currentLang === "en" ? "Team Members" : "فريق العمل"}</span>
@@ -432,8 +432,8 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                         activeSubNav === "roles"
-                          ? "text-[#e29d38] font-bold bg-[#2c221c]/60"
-                          : "text-[#cdc5bd] hover:bg-[#2c221c]/40 hover:text-[#fdfbf7]"
+                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                       )}
                     >
                       {/* Connecting dot */}
@@ -441,16 +441,16 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                         className={cn(
                           "size-[6px] rounded-full shrink-0 transition-all",
                           activeSubNav === "roles"
-                            ? "bg-[#e29d38] shadow-[0_0_6px_#e29d38]"
-                            : "bg-[#625d5d] group-hover:bg-[#a89f91]"
+                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
                         )}
                       />
                       <Key
                         className={cn(
                           "size-[15px] shrink-0",
                           activeSubNav === "roles"
-                            ? "text-[#e29d38]"
-                            : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
+                            ? "text-[#9c6402] dark:text-[#e29d38]"
+                            : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
                         )}
                       />
                       <span className="truncate">{currentLang === "en" ? "Roles & Permissions" : "الأدوار والصلاحيات"}</span>
@@ -460,15 +460,15 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
 
                 {/* Sub-items for Support (تذاكر الدعم الفني والأقسام) */}
                 {item.id === "support" && isDropdownOpen && (
-                  <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#38271c] my-1">
+                  <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#eae8e4] dark:border-[#38271c] my-1">
                     <Link
                       href="/tickets?tab=tickets"
                       onClick={() => handleNavClick("/tickets?tab=tickets")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                         activeSubNav === "departments"
-                          ? "text-[#cdc5bd] hover:bg-[#2c221c]/40 hover:text-[#fdfbf7]"
-                          : "text-[#e29d38] font-bold bg-[#2c221c]/60"
+                          ? "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
+                          : "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
                       )}
                     >
                       {/* Connecting dot */}
@@ -476,16 +476,16 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                         className={cn(
                           "size-[6px] rounded-full shrink-0 transition-all",
                           activeSubNav !== "departments"
-                            ? "bg-[#e29d38] shadow-[0_0_6px_#e29d38]"
-                            : "bg-[#625d5d] group-hover:bg-[#a89f91]"
+                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
                         )}
                       />
                       <Ticket
                         className={cn(
                           "size-[15px] shrink-0",
                           activeSubNav !== "departments"
-                            ? "text-[#e29d38]"
-                            : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
+                            ? "text-[#9c6402] dark:text-[#e29d38]"
+                            : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
                         )}
                       />
                       <span className="truncate">{currentLang === "en" ? "Support Tickets" : "تذاكر الدعم الفني"}</span>
@@ -496,8 +496,8 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                         activeSubNav === "departments"
-                          ? "text-[#e29d38] font-bold bg-[#2c221c]/60"
-                          : "text-[#cdc5bd] hover:bg-[#2c221c]/40 hover:text-[#fdfbf7]"
+                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                       )}
                     >
                       {/* Connecting dot */}
@@ -505,16 +505,16 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                         className={cn(
                           "size-[6px] rounded-full shrink-0 transition-all",
                           activeSubNav === "departments"
-                            ? "bg-[#e29d38] shadow-[0_0_6px_#e29d38]"
-                            : "bg-[#625d5d] group-hover:bg-[#a89f91]"
+                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
                         )}
                       />
                       <Users
                         className={cn(
                           "size-[15px] shrink-0",
                           activeSubNav === "departments"
-                            ? "text-[#e29d38]"
-                            : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
+                            ? "text-[#9c6402] dark:text-[#e29d38]"
+                            : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
                         )}
                       />
                       <span className="truncate">{currentLang === "en" ? "Departments" : "الاقسام"}</span>
@@ -522,25 +522,25 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   </div>
                 )}
 
-                {/* Sub-items for System Settings (اعدادت عامة، العملة، اللغة - Figma 1:17270-1:17278) */}
+                {/* Sub-items for System Settings (اعدادت عامة، العملة، اللغة) */}
                 {item.id === "system-settings" && isDropdownOpen && (
-                  <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#38271c] my-1">
+                  <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#eae8e4] dark:border-[#38271c] my-1">
                     <Link
                       href="/settings/general"
                       onClick={() => handleNavClick("/settings/general")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                         activeSubNav === "general" || pathname === "/settings/general"
-                          ? "text-[#e29d38] font-bold bg-[#2c221c]/60"
-                          : "text-[#cdc5bd] hover:bg-[#2c221c]/40 hover:text-[#fdfbf7]"
+                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                       )}
                     >
                       <span
                         className={cn(
                           "size-[6px] rounded-full shrink-0 transition-all",
                           activeSubNav === "general" || pathname === "/settings/general"
-                            ? "bg-[#e29d38] shadow-[0_0_6px_#e29d38]"
-                            : "bg-[#625d5d] group-hover:bg-[#a89f91]"
+                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
                         )}
                       />
                       <span className="truncate">{currentLang === "en" ? "General Settings" : "اعدادت عامة"}</span>
@@ -552,16 +552,16 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                         activeSubNav === "currency" || pathname === "/settings/currency"
-                          ? "text-[#e29d38] font-bold bg-[#2c221c]/60"
-                          : "text-[#cdc5bd] hover:bg-[#2c221c]/40 hover:text-[#fdfbf7]"
+                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                       )}
                     >
                       <span
                         className={cn(
                           "size-[6px] rounded-full shrink-0 transition-all",
                           activeSubNav === "currency" || pathname === "/settings/currency"
-                            ? "bg-[#e29d38] shadow-[0_0_6px_#e29d38]"
-                            : "bg-[#625d5d] group-hover:bg-[#a89f91]"
+                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
                         )}
                       />
                       <span className="truncate">{currentLang === "en" ? "Currencies" : "العملة"}</span>
@@ -573,16 +573,16 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                         activeSubNav === "language" || pathname === "/settings/language"
-                          ? "text-[#e29d38] font-bold bg-[#2c221c]/60"
-                          : "text-[#cdc5bd] hover:bg-[#2c221c]/40 hover:text-[#fdfbf7]"
+                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                       )}
                     >
                       <span
                         className={cn(
                           "size-[6px] rounded-full shrink-0 transition-all",
                           activeSubNav === "language" || pathname === "/settings/language"
-                            ? "bg-[#e29d38] shadow-[0_0_6px_#e29d38]"
-                            : "bg-[#625d5d] group-hover:bg-[#a89f91]"
+                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
                         )}
                       />
                       <span className="truncate">{currentLang === "en" ? "Languages" : "اللغة"}</span>
@@ -590,25 +590,25 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   </div>
                 )}
 
-                {/* Sub-items for Utility (تحديث النظام، معلومات السيرفر - Figma 1:19040-1:19045) */}
+                {/* Sub-items for Utility (تحديث النظام، معلومات السيرفر) */}
                 {item.id === "utility" && isDropdownOpen && (
-                  <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#38271c] my-1">
+                  <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#eae8e4] dark:border-[#38271c] my-1">
                     <Link
                       href="/utility/update"
                       onClick={() => handleNavClick("/utility/update")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                         activeSubNav === "update" || pathname === "/utility/update"
-                          ? "text-[#e29d38] font-bold bg-[#2c221c]/60"
-                          : "text-[#cdc5bd] hover:bg-[#2c221c]/40 hover:text-[#fdfbf7]"
+                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                       )}
                     >
                       <span
                         className={cn(
                           "size-[6px] rounded-full shrink-0 transition-all",
                           activeSubNav === "update" || pathname === "/utility/update"
-                            ? "bg-[#e29d38] shadow-[0_0_6px_#e29d38]"
-                            : "bg-[#625d5d] group-hover:bg-[#a89f91]"
+                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
                         )}
                       />
                       <span className="truncate">{currentLang === "en" ? "System Update" : "تحديث النظام"}</span>
@@ -620,16 +620,16 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                         activeSubNav === "server-info" || pathname === "/utility/server-info"
-                          ? "text-[#e29d38] font-bold bg-[#2c221c]/60"
-                          : "text-[#cdc5bd] hover:bg-[#2c221c]/40 hover:text-[#fdfbf7]"
+                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                       )}
                     >
                       <span
                         className={cn(
                           "size-[6px] rounded-full shrink-0 transition-all",
                           activeSubNav === "server-info" || pathname === "/utility/server-info"
-                            ? "bg-[#e29d38] shadow-[0_0_6px_#e29d38]"
-                            : "bg-[#625d5d] group-hover:bg-[#a89f91]"
+                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
                         )}
                       />
                       <span className="truncate">{currentLang === "en" ? "Server Info" : "معلومات السيرفر"}</span>
@@ -645,7 +645,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
       {/* Bottom User Profile Section with Logout Icon */}
       <div
         className={cn(
-          "border-t border-[#2c221c] bg-[#16100c] shrink-0 transition-all duration-300",
+          "border-t border-[#eae8e4] dark:border-[#2c221c] bg-[#faf8f5] dark:bg-[#16100c] shrink-0 transition-all duration-300",
           isCollapsed ? "p-2 flex flex-col items-center gap-2" : "p-2 flex items-center justify-between gap-1.5"
         )}
         data-node-id="1:744-user-profile"
@@ -657,7 +657,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
               href="/profile"
               onClick={() => handleNavClick("/profile")}
               title={currentLang === "en" ? "Profile - Eng. Abdulaziz Bin Fahad" : "الملف الشخصي - م. عبد العزيز بن فهد"}
-              className="size-[38px] rounded-full overflow-hidden border border-[#9c6402]/40 hover:border-[#9c6402] transition-colors flex items-center justify-center shrink-0 relative group"
+              className="size-[38px] rounded-full overflow-hidden border border-[#9c6402] hover:border-[#b47818] transition-colors flex items-center justify-center shrink-0 relative group"
             >
               <Image
                 src={userAvatarImg}
@@ -666,7 +666,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                 height={38}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform"
               />
-              <span className="absolute bottom-0 end-0 size-[8px] rounded-full bg-[#10b981] border border-[#16100c]" />
+              <span className="absolute bottom-0 end-0 size-[8px] rounded-full bg-[#10b981] border border-white dark:border-[#16100c]" />
             </Link>
 
             {/* Collapsed Mode: Circular Logout Button */}
@@ -675,14 +675,14 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
               onClick={() => setIsLogoutModalOpen(true)}
               title={currentLang === "en" ? "Logout" : "تسجيل الخروج"}
               aria-label={currentLang === "en" ? "Logout" : "تسجيل الخروج"}
-              className="size-[34px] rounded-full bg-[#251b14] border border-[#3b2a1f] hover:border-[#ba1a1a]/40 hover:bg-[#ba1a1a]/20 text-[#8e8680] hover:text-[#f87171] flex items-center justify-center transition-colors cursor-pointer"
+              className="size-[34px] rounded-full bg-white dark:bg-[#251b14] border border-[#eae8e4] dark:border-[#3b2a1f] hover:border-[#ba1a1a]/40 hover:bg-[#ba1a1a]/10 text-[#837565] dark:text-[#8e8680] hover:text-[#ba1a1a] dark:hover:text-[#f87171] flex items-center justify-center transition-colors cursor-pointer shadow-2xs"
             >
               <LogOut className="size-[15px]" />
             </button>
           </div>
         ) : (
           /* Expanded Mode: Large Oval / Pill Box Container */
-          <div className="w-full bg-[#221812] border border-[#38271c] hover:border-[#4d3627] rounded-full p-1.5 ps-2.5 pe-1.5 flex items-center justify-between gap-2 shadow-xs transition-colors">
+          <div className="w-full bg-white dark:bg-[#221812] border border-[#eae8e4] dark:border-[#38271c] hover:border-[#9c6402]/30 dark:hover:border-[#4d3627] rounded-full p-1.5 ps-2.5 pe-1.5 flex items-center justify-between gap-2 shadow-xs transition-colors">
             {/* User Info Link (Avatar + Name + Role) leading to /profile */}
             <Link
               href="/profile"
@@ -690,7 +690,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
               title={currentLang === "en" ? "View Profile" : "فتح الملف الشخصي"}
               className="flex items-center gap-2.5 flex-1 min-w-0 text-start group cursor-pointer"
             >
-              <div className="relative size-[34px] rounded-full overflow-hidden border border-[#9c6402]/50 shrink-0">
+              <div className="relative size-[34px] rounded-full overflow-hidden border border-[#9c6402] shrink-0">
                 <Image
                   src={userAvatarImg}
                   alt={currentLang === "en" ? "Eng. Abdulaziz Bin Fahad" : "م. عبد العزيز بن فهد"}
@@ -698,13 +698,13 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   height={34}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                 />
-                <span className="absolute bottom-0 end-0 size-[7px] rounded-full bg-[#10b981] border border-[#16100c]" />
+                <span className="absolute bottom-0 end-0 size-[7px] rounded-full bg-[#10b981] border border-white dark:border-[#16100c]" />
               </div>
               <div className="flex flex-col min-w-0 text-start">
-                <span className="text-[13px] font-semibold text-[#fdfbf7] truncate group-hover:text-[#e29d38] transition-colors leading-[18px]">
+                <span className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] truncate group-hover:text-[#9c6402] dark:group-hover:text-[#e29d38] transition-colors leading-[18px]">
                   {currentLang === "en" ? "Eng. Abdulaziz Bin Fahad" : "م. عبد العزيز بن فهد"}
                 </span>
-                <span className="text-[10px] text-[#8e8680] truncate leading-[14px]">
+                <span className="text-[10px] text-[#837565] dark:text-[#8e8680] truncate leading-[14px]">
                   {currentLang === "en" ? "General System Admin" : "مشرف النظام العام"}
                 </span>
               </div>
@@ -716,7 +716,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
               onClick={() => setIsLogoutModalOpen(true)}
               title={currentLang === "en" ? "Logout" : "تسجيل الخروج"}
               aria-label={currentLang === "en" ? "Logout" : "تسجيل الخروج"}
-              className="size-[32px] rounded-full bg-[#2d1f17] border border-[#443023] hover:border-[#ba1a1a]/50 hover:bg-[#ba1a1a]/20 text-[#a89f91] hover:text-[#f87171] flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-2xs"
+              className="size-[32px] rounded-full bg-[#f5f3ef] dark:bg-[#2d1f17] border border-[#eae8e4] dark:border-[#443023] hover:border-[#ba1a1a]/50 hover:bg-[#ba1a1a]/10 dark:hover:bg-[#ba1a1a]/20 text-[#837565] dark:text-[#a89f91] hover:text-[#ba1a1a] dark:hover:text-[#f87171] flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-2xs"
             >
               <LogOut className="size-[15px]" />
             </button>

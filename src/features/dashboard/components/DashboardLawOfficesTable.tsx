@@ -288,7 +288,7 @@ export function DashboardLawOfficesTable() {
       </div>
 
       {/* Table Container */}
-      <div className="overflow-x-auto scrollbar-none w-full" data-node-id="1:246">
+      <div className="overflow-x-auto scrollbar-thin w-full max-w-full" data-node-id="1:246">
         <table className="w-full text-start border-collapse min-w-[880px]">
           {/* Header Row */}
           <thead>
