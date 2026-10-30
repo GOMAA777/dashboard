@@ -16,6 +16,7 @@ import {
   CheckCheck,
   ImageIcon,
   Clock,
+  Calendar,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -377,20 +378,28 @@ export function NotificationsListView({
                     {/* Column 1: Notification Title & Meta */}
                     <td className="px-4 py-4 align-top" data-node-id="1:12964">
                       <div className="space-y-1.5">
-                        {/* Status + Date */}
-                        <div className="flex items-center gap-2">
+                        {/* Status + Schedule / Sent Meta */}
+                        <div className="flex flex-wrap items-center gap-2">
                           {renderStatusBadge(item.status, item.statusLabel)}
-                          <span
-                            className="text-[#837565] text-[10px] font-bold"
-                            data-node-id="1:12967"
-                          >
-                            {item.sentAt}
-                          </span>
+                          {item.status === "scheduled" ? (
+                            <span className="inline-flex items-center gap-1.5 bg-[#eff6ff] dark:bg-[#172554] text-[#1d4ed8] dark:text-[#93c5fd] border border-blue-200 dark:border-blue-500/30 text-[11px] font-semibold px-2 py-0.5 rounded-[4px]">
+                              <Calendar className="size-3" />
+                              <span>جدول الإرسال:</span>
+                              <span className="font-mono">{item.scheduledFor || item.sentAt}</span>
+                            </span>
+                          ) : (
+                            <span
+                              className="text-[#837565] dark:text-[#a89f91] text-[11px] font-medium"
+                              data-node-id="1:12967"
+                            >
+                              {item.sentAt}
+                            </span>
+                          )}
                         </div>
 
                         {/* Title */}
                         <h3
-                          className="text-[#1b1c1a] text-[15px] sm:text-[16px] font-semibold leading-[24px]"
+                          className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[15px] sm:text-[16px] font-semibold leading-[24px]"
                           data-node-id="1:12972"
                         >
                           {item.title}
@@ -401,10 +410,10 @@ export function NotificationsListView({
                           className="text-[12px] flex items-center gap-1 text-start"
                           data-node-id="1:12974"
                         >
-                          <span className="text-[#514537]" data-node-id="1:12976">
+                          <span className="text-[#514537] dark:text-[#cdc5bd]" data-node-id="1:12976">
                             الجمهور المستهدف:
                           </span>
-                          <span className="font-bold text-[#1b1c1a]" data-node-id="1:12975">
+                          <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]" data-node-id="1:12975">
                             {item.targetAudienceLabel}
                           </span>
                         </div>

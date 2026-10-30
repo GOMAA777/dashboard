@@ -67,7 +67,7 @@ export function AddLanguageView({ onBack, onSave }: AddLanguageViewProps) {
 
   return (
     <div className="flex-1 flex flex-col min-w-0 overflow-y-auto scrollbar-thin">
-      <main className="flex-1 px-[24px] sm:px-[32px] py-[24px] max-w-[1360px] w-full mx-auto pb-[32px]">
+      <main className="flex-1 overflow-x-hidden px-4 sm:px-6 lg:px-8 py-6 max-w-[1360px] w-full mx-auto pb-28 sm:pb-32">
         {/* Top Banner (Figma 1:18586) */}
         <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] relative mb-[24px] flex items-center justify-between">
           {/* Title & Subtitle */}

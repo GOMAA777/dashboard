@@ -63,7 +63,7 @@ export function AddCurrencyView({ onBack, onSave }: AddCurrencyViewProps) {
 
   return (
     <div className="flex-1 flex flex-col min-w-0 overflow-y-auto scrollbar-thin bg-[#f5f3ef] dark:bg-[#17120e] text-[#1b1c1a] dark:text-[#fdfbf7] transition-colors duration-200">
-      <main className="flex-1 px-[24px] sm:px-[32px] py-[24px] max-w-[1360px] w-full mx-auto pb-[32px]">
+      <main className="flex-1 overflow-x-hidden px-4 sm:px-6 lg:px-8 py-6 max-w-[1360px] w-full mx-auto pb-28 sm:pb-32">
         {/* Top Banner (Figma 1:17618) */}
         <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[24px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] relative mb-[24px] flex items-center justify-between">
           {/* Title & Subtitle */}
