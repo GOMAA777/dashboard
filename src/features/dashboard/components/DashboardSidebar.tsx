@@ -23,13 +23,13 @@ import {
   ChevronLeft,
   ChevronDown,
   LogOut,
-  Scale,
   Ticket,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/use-ui-store";
 import { LogoutConfirmModal } from "./LogoutConfirmModal";
 import { AlJoudyLogo } from "@/components/shared/BrandLogos";
+import { clearAuthSession } from "@/lib/auth-client";
 
 interface NavItem {
   id: string;
@@ -52,7 +52,7 @@ const navItems: NavItem[] = [
   { id: "site-settings", label: "إعدادات الموقع", href: "#", icon: Globe, sizeClass: "size-[17px]", isUnderConstruction: true },
   { id: "mail-settings", label: "إعدادات البريد", href: "#", icon: Mail, sizeClass: "size-[17px]", isUnderConstruction: true },
   { id: "system-settings", label: "إعدادات النظام", href: "#", icon: Settings, sizeClass: "size-[17px]", isUnderConstruction: true },
-  { id: "utility", label: "utility", href: "#", icon: AppWindow, sizeClass: "size-[19px]", isUnderConstruction: true },
+  { id: "utility", label: "فواتير", href: "#", icon: AppWindow, sizeClass: "size-[19px]", isUnderConstruction: true },
 ];
 
 interface DashboardSidebarProps {
@@ -67,19 +67,18 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
   const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
   const toggleSidebarCollapsed = useUIStore((state) => state.toggleSidebarCollapsed);
 
-  const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>(() => ({
-    support: activeNav === "support" || (pathname?.startsWith("/tickets") ?? false),
-    staff: activeNav === "staff" || (pathname?.startsWith("/permissions") ?? false) || (pathname?.startsWith("/staff") ?? false),
-  }));
+  const [userDropdownToggles, setUserDropdownToggles] = useState<Record<string, boolean>>({});
 
-  React.useEffect(() => {
-    if (activeNav === "support" || pathname?.startsWith("/tickets")) {
-      setOpenDropdowns((prev) => (prev.support ? prev : { ...prev, support: true }));
-    }
-    if (activeNav === "staff" || pathname?.startsWith("/permissions") || pathname?.startsWith("/staff")) {
-      setOpenDropdowns((prev) => (prev.staff ? prev : { ...prev, staff: true }));
-    }
-  }, [activeNav, pathname]);
+  const isSupportActive = activeNav === "support" || (pathname?.startsWith("/tickets") ?? false);
+  const isStaffActive =
+    activeNav === "staff" ||
+    (pathname?.startsWith("/permissions") ?? false) ||
+    (pathname?.startsWith("/staff") ?? false);
+
+  const openDropdowns: Record<string, boolean> = {
+    support: userDropdownToggles.support ?? isSupportActive,
+    staff: userDropdownToggles.staff ?? isStaffActive,
+  };
 
   const isMounted = useSyncExternalStore(
     () => () => {},
@@ -90,10 +89,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
   const isCollapsed = isMounted ? sidebarCollapsed : false;
 
   const handleConfirmLogout = () => {
-    try {
-      localStorage.removeItem("aljudy_auth");
-      document.cookie = "aljudy_auth=; path=/; max-age=0";
-    } catch {}
+    clearAuthSession();
     setIsLogoutModalOpen(false);
     toast.success("تم تسجيل الخروج بنجاح");
     router.push("/login");
@@ -306,7 +302,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   <Link
                     href={item.href}
                     onClick={() => {
-                      setOpenDropdowns((prev) => ({ ...prev, [item.id]: true }));
+                      setUserDropdownToggles((prev) => ({ ...prev, [item.id]: true }));
                     }}
                     className="flex items-center gap-[12px] flex-1 min-w-0"
                   >
@@ -340,9 +336,9 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      setOpenDropdowns((prev) => ({
+                      setUserDropdownToggles((prev) => ({
                         ...prev,
-                        [item.id]: !prev[item.id],
+                        [item.id]: !isDropdownOpen,
                       }));
                     }}
                     aria-label={`توسيع أو إغلاق قائمة ${item.label}`}
