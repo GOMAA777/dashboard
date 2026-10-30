@@ -5,6 +5,7 @@ import { useQueryState } from "nuqs";
 import { toast } from "sonner";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
+import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 import { NotificationItem } from "../types/notifications.types";
 import { initialNotificationsList } from "../data/initialNotifications";
 import { NotificationsListView } from "./NotificationsListView";
@@ -194,16 +195,17 @@ export function NotificationsManagementView() {
 
   return (
     <div
-      className="flex min-h-screen bg-background text-foreground transition-colors duration-200 font-sans antialiased"
+      className="flex h-screen h-dvh overflow-hidden bg-background text-foreground transition-colors duration-200 font-sans antialiased"
     >
       {/* Dashboard Sidebar with Notifications highlighted */}
       <DashboardSidebar activeNav="notifications" />
 
       {/* Main Layout Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
         <DashboardTopNavbar />
 
-        <main className="flex-1 p-6 md:p-8 w-full space-y-6">
+        <main className="flex-1 overflow-y-auto p-6 md:p-8 w-full space-y-6 scrollbar-thin">
+          <DashboardPageTransition>
           {view === "list" ? (
             <NotificationsListView
               notifications={notifications}
@@ -219,6 +221,7 @@ export function NotificationsManagementView() {
               initialData={editingDraft}
             />
           )}
+          </DashboardPageTransition>
         </main>
       </div>
 
