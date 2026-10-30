@@ -708,70 +708,70 @@ export function LawFirmsView() {
 
             {/* Top KPI Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-4 sm:p-5 rounded-2xl border border-[#ded5c6]/70 dark:border-[#2f2a24] bg-white dark:bg-[#1a1714] shadow-xs">
+              <div className="p-4 sm:p-5 rounded-2xl border border-[#ded5c6]/70 dark:border-[#38271c] bg-white dark:bg-[#221812] shadow-xs">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-semibold text-[#7c7366] dark:text-[#a8a196]">
+                  <span className="text-xs font-semibold text-[#7c7366] dark:text-[#cdc5bd]">
                     {isAr ? "إجمالي المكاتب" : "Total Law Firms"}
                   </span>
-                  <div className="w-8 h-8 rounded-lg bg-[#faf5eb] dark:bg-[#282218] flex items-center justify-center text-[#c29547]">
+                  <div className="w-8 h-8 rounded-lg bg-[#faf5eb] dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 flex items-center justify-center text-[#c29547] dark:text-[#e29d38]">
                     <Building2 className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-2xl font-black text-[#1c1917] dark:text-[#f5f4f0]">
+                <div className="text-2xl font-black text-[#1c1917] dark:text-[#fdfbf7]">
                   {totalCount}
                 </div>
-                <div className="text-[11px] text-[#8c8279] mt-1">
+                <div className="text-[11px] text-[#8c8279] dark:text-[#8e8680] mt-1">
                   {isAr ? "مسجلة بمنظومة الجودي" : "Registered firms"}
                 </div>
               </div>
 
-              <div className="p-4 sm:p-5 rounded-2xl border border-[#ded5c6]/70 dark:border-[#2f2a24] bg-white dark:bg-[#1a1714] shadow-xs">
+              <div className="p-4 sm:p-5 rounded-2xl border border-[#ded5c6]/70 dark:border-[#38271c] bg-white dark:bg-[#221812] shadow-xs">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-semibold text-[#7c7366] dark:text-[#a8a196]">
+                  <span className="text-xs font-semibold text-[#7c7366] dark:text-[#cdc5bd]">
                     {isAr ? "المكاتب النشطة" : "Active Firms"}
                   </span>
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center text-emerald-600">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 flex items-center justify-center text-emerald-600 dark:text-[#e29d38]">
                     <CheckCircle2 className="w-4 h-4" />
                   </div>
                 </div>
                 <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
                   {activeCount}
                 </div>
-                <div className="text-[11px] text-[#8c8279] mt-1">
+                <div className="text-[11px] text-[#8c8279] dark:text-[#8e8680] mt-1">
                   {isAr ? "اشتراكات مفعلة وجارية" : "Live & operational"}
                 </div>
               </div>
 
-              <div className="p-4 sm:p-5 rounded-2xl border border-[#ded5c6]/70 dark:border-[#2f2a24] bg-white dark:bg-[#1a1714] shadow-xs">
+              <div className="p-4 sm:p-5 rounded-2xl border border-[#ded5c6]/70 dark:border-[#38271c] bg-white dark:bg-[#221812] shadow-xs">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-semibold text-[#7c7366] dark:text-[#a8a196]">
+                  <span className="text-xs font-semibold text-[#7c7366] dark:text-[#cdc5bd]">
                     {isAr ? "تجارب مجانية جارية" : "Trial Firms"}
                   </span>
-                  <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center text-blue-600">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 flex items-center justify-center text-blue-600 dark:text-[#e29d38]">
                     <Clock className="w-4 h-4" />
                   </div>
                 </div>
                 <div className="text-2xl font-black text-blue-600 dark:text-blue-400">
                   {trialCount}
                 </div>
-                <div className="text-[11px] text-[#8c8279] mt-1">
+                <div className="text-[11px] text-[#8c8279] dark:text-[#8e8680] mt-1">
                   {isAr ? "تخضع لمتابعة السيلز" : "Under sales follow-up"}
                 </div>
               </div>
 
-              <div className="p-4 sm:p-5 rounded-2xl border border-[#ded5c6]/70 dark:border-[#2f2a24] bg-white dark:bg-[#1a1714] shadow-xs">
+              <div className="p-4 sm:p-5 rounded-2xl border border-[#ded5c6]/70 dark:border-[#38271c] bg-white dark:bg-[#221812] shadow-xs">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-semibold text-[#7c7366] dark:text-[#a8a196]">
+                  <span className="text-xs font-semibold text-[#7c7366] dark:text-[#cdc5bd]">
                     {isAr ? "المكاتب المعطلة" : "Inactive / Suspended"}
                   </span>
-                  <div className="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center text-rose-600">
+                  <div className="w-8 h-8 rounded-lg bg-rose-50 dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 flex items-center justify-center text-rose-600 dark:text-[#e29d38]">
                     <XCircle className="w-4 h-4" />
                   </div>
                 </div>
                 <div className="text-2xl font-black text-rose-600 dark:text-rose-400">
                   {inactiveCount}
                 </div>
-                <div className="text-[11px] text-[#8c8279] mt-1">
+                <div className="text-[11px] text-[#8c8279] dark:text-[#8e8680] mt-1">
                   {isAr ? "معلقة وموقوفة مؤقتاً" : "Suspended access"}
                 </div>
               </div>

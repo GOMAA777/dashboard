@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useSyncExternalStore } from "react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/use-ui-store";
+import { DashboardStickyActionBar } from "@/components/shared/DashboardStickyActionBar";
 import {
   Key,
   ShieldCheck,
@@ -501,61 +502,54 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
         </div>
       </div>
 
-      {/* FIXED BOTTOM STICKY BAR: Compliance & Actions (Figma 1:12201) */}
-      <div
-        className={cn(
-          "fixed bottom-0 end-0 z-20 bg-white/95 backdrop-blur-md border-t border-[#e6e2dc] shadow-[0px_-4px_10px_rgba(0,0,0,0.04)] py-3 px-6 md:px-8 transition-all duration-300 ease-in-out",
-          isCollapsed ? "start-[72px]" : "start-[240px]"
-        )}
-      >
-        <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-3">
-          {/* Security guarantee note on start */}
-          <div className="flex items-center gap-2.5 text-right">
-            <div className="size-[28px] rounded-full bg-[#f0eeea] flex items-center justify-center text-[#9c6402] shrink-0">
-              <ShieldCheck className="size-[16px]" />
-            </div>
-            <div className="text-[11px] text-[#514537]">
-              <div className="flex items-center gap-1.5 font-bold text-[#1b1c1a]">
-                <span>ضمان الامتثال والرقابة الأمنية</span>
-                <span className="bg-[#f0eeea] text-[#625d5d] text-[10px] font-mono px-1.5 py-0.2 rounded-[2px]">
-                  SEC-ROLE-AUDIT-v2
-                </span>
-              </div>
-              <p className="text-[#837565]">
-                سيتم توثيق إنشاء هذا الدور في سجل التدقيق الأمني الجنائي فور الاعتماد.
-              </p>
-            </div>
+      {/* FLOATING STICKY ACTION BAR: Compliance & Actions (Figma 1:12201) */}
+      <DashboardStickyActionBar>
+        {/* Security guarantee note on start */}
+        <div className="flex items-center gap-2.5 text-right">
+          <div className="size-[28px] rounded-full bg-[#f0eeea] dark:bg-[#2c2017] flex items-center justify-center text-[#9c6402] shrink-0">
+            <ShieldCheck className="size-[16px]" />
           </div>
-
-          {/* Action buttons on end */}
-          <div className="flex items-center gap-2.5 shrink-0">
-            <button
-              type="button"
-              onClick={onBack}
-              className="px-4 py-2 bg-[#f0eeea] hover:bg-[#e6e2dc] text-[#514537] rounded-[6px] text-[13px] font-semibold transition-colors cursor-pointer"
-            >
-              إلغاء
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSave(true)}
-              className="px-4 py-2 bg-white hover:bg-[#f5f3ef] text-[#514537] border border-[#d6cfc7] rounded-[6px] text-[13px] font-semibold transition-colors cursor-pointer"
-            >
-              حفظ كمسودة
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSave(false)}
-              className="px-5 py-2 bg-[#9c6402] hover:bg-[#855402] text-white rounded-[6px] text-[13px] font-bold shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors cursor-pointer flex items-center gap-1.5"
-            >
-              <Check className="size-[15px]" />
-              <span>حفظ وتفعيل الدور</span>
-            </button>
+          <div className="text-[11px] text-[#514537] dark:text-[#cdc5bd]">
+            <div className="flex items-center gap-1.5 font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+              <span>ضمان الامتثال والرقابة الأمنية</span>
+              <span className="bg-[#f0eeea] dark:bg-[#2c2017] text-[#625d5d] dark:text-[#bdafa4] text-[10px] font-mono px-1.5 py-0.2 rounded-[2px]">
+                SEC-ROLE-AUDIT-v2
+              </span>
+            </div>
+            <p className="text-[#837565] dark:text-[#9e9185]">
+              سيتم توثيق إنشاء هذا الدور في سجل التدقيق الأمني الجنائي فور الاعتماد.
+            </p>
           </div>
         </div>
-      </div>
+
+        {/* Action buttons on end */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <button
+            type="button"
+            onClick={onBack}
+            className="px-4 py-2 bg-[#f0eeea] hover:bg-[#e6e2dc] dark:bg-[#2c2017] dark:hover:bg-[#382a1f] text-[#514537] dark:text-[#fdfbf7] border border-transparent dark:border-[#3d2a1d] rounded-[6px] text-[13px] font-semibold transition-colors cursor-pointer"
+          >
+            إلغاء
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleSave(true)}
+            className="px-4 py-2 bg-white hover:bg-[#f5f3ef] dark:bg-[#231a14] dark:hover:bg-[#2c2017] text-[#514537] dark:text-[#fdfbf7] border border-[#d6cfc7] dark:border-[#3d2a1d] rounded-[6px] text-[13px] font-semibold transition-colors cursor-pointer"
+          >
+            حفظ كمسودة
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleSave(false)}
+            className="px-5 py-2 bg-[#9c6402] hover:bg-[#855402] text-white rounded-[6px] text-[13px] font-bold shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors cursor-pointer flex items-center gap-1.5"
+          >
+            <Check className="size-[15px]" />
+            <span>حفظ وتفعيل الدور</span>
+          </button>
+        </div>
+      </DashboardStickyActionBar>
     </div>
   );
 }

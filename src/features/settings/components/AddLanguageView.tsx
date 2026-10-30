@@ -5,6 +5,7 @@ import { ArrowLeft, Check } from "lucide-react";
 import { toast } from "sonner";
 import { LanguageFormData, languageSchema } from "../schemas/language-settings.schema";
 import { LanguageItem } from "../types/language-settings.types";
+import { DashboardStickyActionBar } from "@/components/shared/DashboardStickyActionBar";
 import { cn } from "@/lib/utils";
 
 interface AddLanguageViewProps {
@@ -65,8 +66,8 @@ export function AddLanguageView({ onBack, onSave }: AddLanguageViewProps) {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-w-0" dir="rtl">
-      <main className="flex-1 px-[24px] sm:px-[32px] py-[24px] max-w-[1360px] w-full mx-auto pb-[120px]">
+    <div className="flex-1 flex flex-col min-w-0 overflow-y-auto scrollbar-thin" dir="rtl">
+      <main className="flex-1 px-[24px] sm:px-[32px] py-[24px] max-w-[1360px] w-full mx-auto pb-[32px]">
         {/* Top Banner (Figma 1:18586) */}
         <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] relative mb-[24px] flex items-center justify-between">
           {/* Title & Subtitle */}
@@ -194,30 +195,32 @@ export function AddLanguageView({ onBack, onSave }: AddLanguageViewProps) {
           </div>
         </form>
 
-        {/* Sticky Actions Footer */}
-        <footer className="fixed bottom-0 start-0 end-0 z-30 bg-white border-t border-[#eae8e4] py-[12px] px-[32px] shadow-[0px_-4px_12px_rgba(0,0,0,0.05)]">
-          <div className="max-w-[1360px] mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-[10px]">
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="bg-[#9c6402] hover:bg-[#835401] active:bg-[#6c4501] text-white px-[32px] py-[10px] rounded-[4px] font-semibold text-[14px] flex items-center gap-[8px] transition-all shadow-[0px_1px_2px_rgba(0,0,0,0.05)] cursor-pointer disabled:opacity-70"
-              >
-                <span>{isSubmitting ? "جارٍ الحفظ..." : "حفظ العملة"}</span>
-                <Check className="size-[18px] stroke-[2.5]" />
-              </button>
+        {/* Floating Sticky Action Bar */}
+        <DashboardStickyActionBar>
+          <div className="flex items-center gap-[10px]">
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="bg-[#9c6402] hover:bg-[#835401] active:bg-[#6c4501] text-white px-[32px] py-[10px] rounded-[6px] font-semibold text-[14px] flex items-center gap-[8px] transition-all shadow-[0px_1px_2px_rgba(0,0,0,0.05)] cursor-pointer disabled:opacity-70"
+            >
+              <span>{isSubmitting ? "جارٍ الحفظ..." : "حفظ اللغة"}</span>
+              <Check className="size-[18px] stroke-[2.5]" />
+            </button>
 
-              <button
-                type="button"
-                onClick={onBack}
-                className="bg-[#f0eeea] hover:bg-[#e4e1dc] text-[#1b1c1a] px-[24px] py-[10px] rounded-[4px] font-semibold text-[14px] transition-colors cursor-pointer"
-              >
-                إلغاء
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={onBack}
+              className="bg-[#f0eeea] dark:bg-[#2c2017] hover:bg-[#e4e1dc] dark:hover:bg-[#382a1f] text-[#1b1c1a] dark:text-[#fdfbf7] border border-transparent dark:border-[#3d2a1d] px-[24px] py-[10px] rounded-[6px] font-semibold text-[14px] transition-colors cursor-pointer"
+            >
+              إلغاء
+            </button>
           </div>
-        </footer>
+
+          <span className="text-[12px] text-[#837565] dark:text-[#cdc5bd] hidden sm:inline">
+            سيتم تفعيل حزمة اللغة فور الحفظ وتحديث خيارات الواجهة
+          </span>
+        </DashboardStickyActionBar>
       </main>
     </div>
   );

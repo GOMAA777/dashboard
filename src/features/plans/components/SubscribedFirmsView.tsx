@@ -245,84 +245,84 @@ export function SubscribedFirmsView({
       {/* 2. Four KPI Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px]">
         {/* Card 1: Total */}
-        <div className="bg-white rounded-[8px] border border-[#e2ded7] p-[18px] shadow-2xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-[18px] shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-[10px]">
-            <span className="text-[12px] font-semibold text-[#737067]">
+            <span className="text-[12px] font-semibold text-[#737067] dark:text-[#cdc5bd]">
               إجمالي المكاتب المشتركة
             </span>
-            <div className="p-[8px] rounded-[6px] bg-[#fbf6ee] text-[#9c6402]">
+            <div className="p-[8px] rounded-[6px] bg-[#fbf6ee] dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 text-[#9c6402] dark:text-[#e29d38]">
               <Building2 className="size-[18px]" />
             </div>
           </div>
           <div className="flex items-baseline gap-[6px] mb-[6px]">
-            <span className="text-[28px] font-black text-[#1b1c1a]">52</span>
-            <span className="text-[13px] font-bold text-[#737067]">مكتباً</span>
+            <span className="text-[28px] font-black text-[#1b1c1a] dark:text-[#fdfbf7]">52</span>
+            <span className="text-[13px] font-bold text-[#737067] dark:text-[#8e8680]">مكتباً</span>
           </div>
           <div>
-            <span className="text-[10px] font-bold bg-[#fbf6ee] text-[#9c6402] px-[8px] py-[2px] rounded border border-[#f5e3c8]">
+            <span className="text-[10px] font-bold bg-[#fbf6ee] dark:bg-[#2e1d0f] text-[#9c6402] dark:text-[#fbbf24] px-[8px] py-[2px] rounded-full border border-[#f5e3c8] dark:border-amber-500/40">
               54% من إجمالي المنصة
             </span>
           </div>
         </div>
 
         {/* Card 2: Active */}
-        <div className="bg-white rounded-[8px] border border-[#e2ded7] p-[18px] shadow-2xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-[18px] shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-[10px]">
-            <span className="text-[12px] font-semibold text-[#737067]">
+            <span className="text-[12px] font-semibold text-[#737067] dark:text-[#cdc5bd]">
               اشتراكات نشطة
             </span>
-            <div className="p-[8px] rounded-[6px] bg-[#e8f5e9] text-[#15803d]">
+            <div className="p-[8px] rounded-[6px] bg-[#e8f5e9] dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 text-[#15803d] dark:text-[#e29d38]">
               <ShieldCheck className="size-[18px]" />
             </div>
           </div>
           <div className="flex items-baseline gap-[6px] mb-[6px]">
-            <span className="text-[28px] font-black text-[#1b1c1a]">48</span>
-            <span className="text-[13px] font-bold text-[#737067]">مكتباً</span>
+            <span className="text-[28px] font-black text-[#1b1c1a] dark:text-[#fdfbf7]">48</span>
+            <span className="text-[13px] font-bold text-[#737067] dark:text-[#8e8680]">مكتباً</span>
           </div>
           <div>
-            <span className="text-[10px] font-bold bg-[#e8f5e9] text-[#15803d] px-[8px] py-[2px] rounded border border-[#c8e6c9]">
+            <span className="text-[10px] font-bold bg-[#e8f5e9] dark:bg-[#132c1c] text-[#15803d] dark:text-[#6ee7b7] px-[8px] py-[2px] rounded-full border border-[#c8e6c9] dark:border-emerald-500/40">
               • 92.3% نشط
             </span>
           </div>
         </div>
 
         {/* Card 3: Trial */}
-        <div className="bg-white rounded-[8px] border border-[#e2ded7] p-[18px] shadow-2xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-[18px] shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-[10px]">
-            <span className="text-[12px] font-semibold text-[#737067]">
+            <span className="text-[12px] font-semibold text-[#737067] dark:text-[#cdc5bd]">
               اشتراكات قيد التجربة
             </span>
-            <div className="p-[8px] rounded-[6px] bg-[#e0f2fe] text-[#0369a1]">
+            <div className="p-[8px] rounded-[6px] bg-[#e0f2fe] dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 text-[#0369a1] dark:text-[#e29d38]">
               <Hourglass className="size-[18px]" />
             </div>
           </div>
           <div className="flex items-baseline gap-[6px] mb-[6px]">
-            <span className="text-[28px] font-black text-[#1b1c1a]">3</span>
-            <span className="text-[13px] font-bold text-[#737067]">مكاتب</span>
+            <span className="text-[28px] font-black text-[#1b1c1a] dark:text-[#fdfbf7]">3</span>
+            <span className="text-[13px] font-bold text-[#737067] dark:text-[#8e8680]">مكاتب</span>
           </div>
           <div>
-            <span className="text-[10px] font-bold bg-[#e0f2fe] text-[#0369a1] px-[8px] py-[2px] rounded border border-[#bae6fd]">
+            <span className="text-[10px] font-bold bg-[#e0f2fe] dark:bg-[#1e293b] text-[#0369a1] dark:text-[#93c5fd] px-[8px] py-[2px] rounded-full border border-[#bae6fd] dark:border-blue-500/40">
               فترة تجريبية سارية
             </span>
           </div>
         </div>
 
         {/* Card 4: Overdue/Expiring */}
-        <div className="bg-white rounded-[8px] border border-[#e2ded7] p-[18px] shadow-2xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-[18px] shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-[10px]">
-            <span className="text-[12px] font-semibold text-[#737067]">
+            <span className="text-[12px] font-semibold text-[#737067] dark:text-[#cdc5bd]">
               اشتراكات منتهية أو متأخرة
             </span>
-            <div className="p-[8px] rounded-[6px] bg-[#fee2e2] text-[#b91c1c]">
+            <div className="p-[8px] rounded-[6px] bg-[#fee2e2] dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 text-[#b91c1c] dark:text-[#e29d38]">
               <BellRing className="size-[18px]" />
             </div>
           </div>
           <div className="flex items-baseline gap-[6px] mb-[6px]">
-            <span className="text-[28px] font-black text-[#b91c1c]">1</span>
-            <span className="text-[13px] font-bold text-[#737067]">مكتب واحد</span>
+            <span className="text-[28px] font-black text-[#b91c1c] dark:text-[#f87171]">1</span>
+            <span className="text-[13px] font-bold text-[#737067] dark:text-[#8e8680]">مكتب واحد</span>
           </div>
           <div>
-            <span className="text-[10px] font-bold bg-[#fee2e2] text-[#b91c1c] px-[8px] py-[2px] rounded border border-[#fecaca]">
+            <span className="text-[10px] font-bold bg-[#fee2e2] dark:bg-[#2c1515] text-[#b91c1c] dark:text-[#fca5a5] px-[8px] py-[2px] rounded-full border border-[#fecaca] dark:border-rose-500/40">
               • يتطلب متابعة مالية
             </span>
           </div>

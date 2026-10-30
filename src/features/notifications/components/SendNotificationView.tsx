@@ -4,6 +4,7 @@ import React, { useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/use-ui-store";
+import { DashboardStickyActionBar } from "@/components/shared/DashboardStickyActionBar";
 import {
   ArrowRight,
   Eye,
@@ -722,19 +723,18 @@ export function SendNotificationView({
         </div>
       </div>
 
-      {/* Sticky Bottom Actions Footer (Figma 1:13441) */}
-      <div
-        className={cn(
-          "fixed bottom-0 end-0 z-20 bg-white border-t border-[#eae8e4] px-6 md:px-8 py-3.5 shadow-[0px_-4px_16px_rgba(0,0,0,0.06)] transition-all duration-300 ease-in-out",
-          isCollapsed ? "start-[72px]" : "start-[240px]"
-        )}
-        data-node-id="1:13441"
-      >
-        <div className="w-full flex items-center justify-end gap-2.5">
+      {/* FLOATING STICKY ACTION BAR (Figma 1:13441) */}
+      <DashboardStickyActionBar>
+        <div className="flex items-center gap-2 text-[12px] text-[#514537] dark:text-[#cdc5bd]">
+          <Info className="size-[15px] text-[#9c6402] shrink-0" />
+          <span>سيتم تدقيق محتوى الإشعار والتوزيع اللحظي للمستلمين فور الإرسال.</span>
+        </div>
+
+        <div className="flex items-center justify-end gap-2.5">
           <button
             type="button"
             onClick={onBack}
-            className="bg-[#f0eeea] hover:bg-[#e4e2de] text-[#1b1c1a] text-[14px] font-semibold px-6 py-2.5 rounded-[4px] transition-colors cursor-pointer"
+            className="bg-[#f0eeea] hover:bg-[#e4e2de] dark:bg-[#2c2017] dark:hover:bg-[#382a1f] text-[#1b1c1a] dark:text-[#fdfbf7] border border-transparent dark:border-[#3d2a1d] text-[14px] font-semibold px-6 py-2.5 rounded-[6px] transition-colors cursor-pointer"
             data-node-id="1:13451"
           >
             إلغاء
@@ -742,7 +742,7 @@ export function SendNotificationView({
           <button
             type="button"
             onClick={handleDraftClick}
-            className="bg-[#f0eeea] hover:bg-[#e4e2de] text-[#1b1c1a] text-[14px] font-semibold px-6 py-2.5 rounded-[4px] transition-colors cursor-pointer"
+            className="bg-[#f0eeea] hover:bg-[#e4e2de] dark:bg-[#2c2017] dark:hover:bg-[#382a1f] text-[#1b1c1a] dark:text-[#fdfbf7] border border-transparent dark:border-[#3d2a1d] text-[14px] font-semibold px-6 py-2.5 rounded-[6px] transition-colors cursor-pointer"
             data-node-id="1:13449"
           >
             حفظ كمسودة
@@ -750,14 +750,14 @@ export function SendNotificationView({
           <button
             type="button"
             onClick={handleSubmit(onFormSubmit)}
-            className="bg-[#9c6402] hover:bg-[#855402] text-white text-[14px] font-semibold px-8 py-2.5 rounded-[4px] flex items-center gap-2 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-colors cursor-pointer"
+            className="bg-[#9c6402] hover:bg-[#855402] text-white text-[14px] font-semibold px-8 py-2.5 rounded-[6px] flex items-center gap-2 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-colors cursor-pointer"
             data-node-id="1:13444"
           >
             <Check className="size-4" />
             <span>ارسال الاشعار</span>
           </button>
         </div>
-      </div>
+      </DashboardStickyActionBar>
     </div>
   );
 }

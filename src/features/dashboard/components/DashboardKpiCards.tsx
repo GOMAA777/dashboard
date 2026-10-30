@@ -35,7 +35,7 @@ export function DashboardKpiCards() {
         <div className="flex items-start justify-between w-full" data-node-id="1:98">
           {/* Icon box */}
           <div
-            className="size-[44px] rounded-[4px] bg-[#eae8e4] dark:bg-[#2d1f16] flex items-center justify-center shrink-0"
+            className="size-[44px] rounded-[4px] bg-[#eae8e4] dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 flex items-center justify-center shrink-0"
             data-node-id="1:99"
           >
             <Building2 className="size-[18px] block text-[#9c6402] dark:text-[#e29d38]" />
@@ -95,10 +95,10 @@ export function DashboardKpiCards() {
         <div className="flex items-start justify-between w-full" data-node-id="1:79">
           {/* Icon box */}
           <div
-            className="size-[44px] rounded-[4px] bg-[#ecfdf5] dark:bg-[#12281a] flex items-center justify-center shrink-0"
+            className="size-[44px] rounded-[4px] bg-[#ecfdf5] dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 flex items-center justify-center shrink-0"
             data-node-id="1:80"
           >
-            <BadgeCheck className="w-[22px] h-[21px] block text-[#047857] dark:text-[#6ee7b7]" />
+            <BadgeCheck className="w-[22px] h-[21px] block text-[#047857] dark:text-[#e29d38]" />
           </div>
 
           {/* Title & Value */}
@@ -155,7 +155,7 @@ export function DashboardKpiCards() {
         <div className="flex items-start justify-between w-full" data-node-id="1:56">
           {/* Icon box */}
           <div
-            className="size-[44px] rounded-[4px] bg-[#ffddb6] dark:bg-[#3d2716] flex items-center justify-center shrink-0"
+            className="size-[44px] rounded-[4px] bg-[#ffddb6] dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 flex items-center justify-center shrink-0"
             data-node-id="1:57"
           >
             <Banknote className="w-[22px] h-[16px] block text-[#9c6402] dark:text-[#e29d38]" />
@@ -220,10 +220,10 @@ export function DashboardKpiCards() {
         <div className="flex items-start justify-between w-full" data-node-id="1:37">
           {/* Icon box */}
           <div
-            className="size-[44px] rounded-[4px] bg-[rgba(255,218,214,0.4)] dark:bg-[#381616] flex items-center justify-center shrink-0"
+            className="size-[44px] rounded-[4px] bg-[rgba(255,218,214,0.4)] dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 flex items-center justify-center shrink-0"
             data-node-id="1:38"
           >
-            <Headphones className="w-[20px] h-[18px] block text-[#ba1a1a] dark:text-[#f87171]" />
+            <Headphones className="w-[20px] h-[18px] block text-[#ba1a1a] dark:text-[#e29d38]" />
           </div>
 
           {/* Title & Value */}

@@ -22,6 +22,7 @@ import {
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
 import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
+import { DashboardStickyActionBar } from "@/components/shared/DashboardStickyActionBar";
 import { initialGeneralSettings } from "../data/initialGeneralSettings";
 import { GeneralSettings } from "../types/general-settings.types";
 import { cn } from "@/lib/utils";
@@ -76,7 +77,7 @@ export function GeneralSettingsView() {
         <DashboardTopNavbar />
 
         {/* Scrollable Form Body */}
-        <main className="flex-1 overflow-y-auto px-[24px] sm:px-[32px] py-[24px] max-w-[1360px] w-full mx-auto pb-[120px] scrollbar-thin">
+        <main className="flex-1 overflow-y-auto px-[24px] sm:px-[32px] py-[24px] max-w-[1360px] w-full mx-auto pb-[32px] scrollbar-thin">
           <DashboardPageTransition>
           {/* Main Identity & Command Banner (Figma 1:16870) */}
           <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] relative mb-[24px] flex flex-col md:flex-row items-start md:items-center justify-between gap-[16px]">
@@ -660,45 +661,45 @@ export function GeneralSettingsView() {
               </div>
             </section>
           </div>
+            {/* FLOATING STICKY ACTION BAR (Figma 1:17160) */}
+            <DashboardStickyActionBar>
+              <div className="flex items-center gap-[10px]">
+                {/* Primary Submit Button */}
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="bg-[#9c6402] hover:bg-[#835401] active:bg-[#6c4501] text-white px-[32px] py-[10px] rounded-[6px] font-semibold text-[14px] flex items-center gap-[8px] transition-all shadow-[0px_1px_2px_rgba(0,0,0,0.05)] cursor-pointer disabled:opacity-70"
+                >
+                  <span>{isSaving ? "جارٍ الحفظ..." : "حفظ التغييرات"}</span>
+                  <Check className="size-[18px] stroke-[2.5]" />
+                </button>
+
+                {/* Save Draft */}
+                <button
+                  type="button"
+                  onClick={handleSaveDraft}
+                  className="bg-[#f0eeea] dark:bg-[#2c2017] hover:bg-[#e4e1dc] dark:hover:bg-[#382a1f] text-[#1b1c1a] dark:text-[#fdfbf7] border border-transparent dark:border-[#3d2a1d] px-[24px] py-[10px] rounded-[6px] font-semibold text-[14px] transition-colors cursor-pointer"
+                >
+                  حفظ كمسودة
+                </button>
+
+                {/* Cancel */}
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="bg-[#f0eeea] dark:bg-[#2c2017] hover:bg-[#e4e1dc] dark:hover:bg-[#382a1f] text-[#1b1c1a] dark:text-[#fdfbf7] border border-transparent dark:border-[#3d2a1d] px-[24px] py-[10px] rounded-[6px] font-semibold text-[14px] transition-colors cursor-pointer"
+                >
+                  إلغاء
+                </button>
+              </div>
+
+              <span className="text-[12px] text-[#837565] dark:text-[#cdc5bd] hidden sm:inline">
+                يتم حفظ جميع التعديلات وتطبيقها فوراً عبر خوادم المنصة
+              </span>
+            </DashboardStickyActionBar>
           </DashboardPageTransition>
         </main>
-
-        {/* STICKY BOTTOM ACTIONS FOOTER (Figma 1:17160) */}
-        <footer className="fixed bottom-0 start-0 end-0 z-30 bg-white border-t border-[#eae8e4] py-[12px] px-[32px] shadow-[0px_-4px_12px_rgba(0,0,0,0.05)]">
-          <div className="max-w-[1360px] mx-auto flex items-center justify-between">
-            {/* Action Buttons (Right in RTL) */}
-            <div className="flex items-center gap-[10px]">
-              {/* Primary Submit Button */}
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={isSaving}
-                className="bg-[#9c6402] hover:bg-[#835401] active:bg-[#6c4501] text-white px-[32px] py-[10px] rounded-[4px] font-semibold text-[14px] flex items-center gap-[8px] transition-all shadow-[0px_1px_2px_rgba(0,0,0,0.05)] cursor-pointer disabled:opacity-70"
-              >
-                <span>{isSaving ? "جارٍ الحفظ..." : "حفظ التغييرات"}</span>
-                <Check className="size-[18px] stroke-[2.5]" />
-              </button>
-
-              {/* Save Draft */}
-              <button
-                type="button"
-                onClick={handleSaveDraft}
-                className="bg-[#f0eeea] hover:bg-[#e4e1dc] text-[#1b1c1a] px-[24px] py-[10px] rounded-[4px] font-semibold text-[14px] transition-colors cursor-pointer"
-              >
-                حفظ كمسودة
-              </button>
-
-              {/* Cancel */}
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="bg-[#f0eeea] hover:bg-[#e4e1dc] text-[#1b1c1a] px-[24px] py-[10px] rounded-[4px] font-semibold text-[14px] transition-colors cursor-pointer"
-              >
-                إلغاء
-              </button>
-            </div>
-          </div>
-        </footer>
       </div>
     </div>
   );

@@ -352,73 +352,73 @@ export function NotificationsTemplatesView() {
             {/* Top 4 KPI Metrics */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Total Templates */}
-              <div className="p-4 rounded-3xl bg-white dark:bg-[#1a1714] border border-[#ded5c6] dark:border-[#2f2a24] shadow-xs flex items-center justify-between">
+              <div className="p-4 rounded-3xl bg-white dark:bg-[#221812] border border-[#ded5c6] dark:border-[#38271c] shadow-xs flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-semibold text-[#8c8279] dark:text-[#9e968a]">
+                  <p className="text-xs font-semibold text-[#8c8279] dark:text-[#cdc5bd]">
                     {isAr ? "إجمالي القوالب المعرفة" : "Total Templates"}
                   </p>
-                  <h3 className="text-2xl font-black text-[#2c2825] dark:text-[#f5f4f0] mt-1 font-mono">
+                  <h3 className="text-2xl font-black text-[#2c2825] dark:text-[#fdfbf7] mt-1 font-mono">
                     {totalTemplates}
                   </h3>
-                  <p className="text-[11px] text-[#736b63] dark:text-[#a8a196] mt-0.5">
+                  <p className="text-[11px] text-[#736b63] dark:text-[#8e8680] mt-0.5">
                     {isAr ? "قوالب مسارات الأحداث الآلية" : "Automated event triggers"}
                   </p>
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-[#fff7e6] dark:bg-[#2b2014] border border-[#eeddbb] dark:border-[#604218] flex items-center justify-center text-[#c29547]">
+                <div className="w-12 h-12 rounded-2xl bg-[#fff7e6] dark:bg-[#2d1f16] border border-[#eeddbb] dark:border-[#4d3627]/60 flex items-center justify-center text-[#c29547] dark:text-[#e29d38]">
                   <Mail className="w-6 h-6" />
                 </div>
               </div>
 
               {/* Active Templates */}
-              <div className="p-4 rounded-3xl bg-white dark:bg-[#1a1714] border border-[#ded5c6] dark:border-[#2f2a24] shadow-xs flex items-center justify-between">
+              <div className="p-4 rounded-3xl bg-white dark:bg-[#221812] border border-[#ded5c6] dark:border-[#38271c] shadow-xs flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-semibold text-[#8c8279] dark:text-[#9e968a]">
+                  <p className="text-xs font-semibold text-[#8c8279] dark:text-[#cdc5bd]">
                     {isAr ? "القوالب المفعّلة حالياً" : "Active Templates"}
                   </p>
                   <h3 className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1 font-mono">
                     {activeTemplates}
                   </h3>
-                  <p className="text-[11px] text-[#736b63] dark:text-[#a8a196] mt-0.5">
+                  <p className="text-[11px] text-[#736b63] dark:text-[#8e8680] mt-0.5">
                     {isAr ? "تعمل وتُرسل تلقائياً للمكاتب" : "Active and sending"}
                   </p>
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-[#2d1f16] border border-emerald-200 dark:border-[#4d3627]/60 flex items-center justify-center text-emerald-600 dark:text-[#e29d38]">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
               </div>
 
               {/* Sent this month */}
-              <div className="p-4 rounded-3xl bg-white dark:bg-[#1a1714] border border-[#ded5c6] dark:border-[#2f2a24] shadow-xs flex items-center justify-between">
+              <div className="p-4 rounded-3xl bg-white dark:bg-[#221812] border border-[#ded5c6] dark:border-[#38271c] shadow-xs flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-semibold text-[#8c8279] dark:text-[#9e968a]">
+                  <p className="text-xs font-semibold text-[#8c8279] dark:text-[#cdc5bd]">
                     {isAr ? "إيميلات أرسلت هذا الشهر" : "Dispatched This Month"}
                   </p>
-                  <h3 className="text-2xl font-black text-[#c29547] dark:text-[#d4a759] mt-1 font-mono">
+                  <h3 className="text-2xl font-black text-[#c29547] dark:text-[#e29d38] mt-1 font-mono">
                     {totalSentMonth.toLocaleString()}
                   </h3>
-                  <p className="text-[11px] text-[#736b63] dark:text-[#a8a196] mt-0.5">
+                  <p className="text-[11px] text-[#736b63] dark:text-[#8e8680] mt-0.5">
                     {isAr ? "رسائل ترحيب، فواتير وتنبيهات" : "Auto-dispatched emails"}
                   </p>
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-[#fff7e6] dark:bg-[#2b2014] border border-[#eeddbb] dark:border-[#604218] flex items-center justify-center text-[#c29547]">
+                <div className="w-12 h-12 rounded-2xl bg-[#fff7e6] dark:bg-[#2d1f16] border border-[#eeddbb] dark:border-[#4d3627]/60 flex items-center justify-center text-[#c29547] dark:text-[#e29d38]">
                   <Send className="w-6 h-6" />
                 </div>
               </div>
 
               {/* Delivery Rate */}
-              <div className="p-4 rounded-3xl bg-white dark:bg-[#1a1714] border border-[#ded5c6] dark:border-[#2f2a24] shadow-xs flex items-center justify-between">
+              <div className="p-4 rounded-3xl bg-white dark:bg-[#221812] border border-[#ded5c6] dark:border-[#38271c] shadow-xs flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-semibold text-[#8c8279] dark:text-[#9e968a]">
+                  <p className="text-xs font-semibold text-[#8c8279] dark:text-[#cdc5bd]">
                     {isAr ? "معدل التسليم والوصول" : "Delivery Rate"}
                   </p>
                   <h3 className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1 font-mono">
                     99.4%
                   </h3>
-                  <p className="text-[11px] text-[#736b63] dark:text-[#a8a196] mt-0.5">
+                  <p className="text-[11px] text-[#736b63] dark:text-[#8e8680] mt-0.5">
                     {isAr ? "موثوقية خوادم SMTP والـ SPF" : "High inbox placement"}
                   </p>
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-[#2d1f16] border border-emerald-200 dark:border-[#4d3627]/60 flex items-center justify-center text-emerald-600 dark:text-[#e29d38]">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
               </div>
