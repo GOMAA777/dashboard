@@ -23,6 +23,7 @@ import {
   ChevronLeft,
   LogOut,
   Scale,
+  Ticket,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/use-ui-store";
@@ -54,7 +55,7 @@ const navItems: NavItem[] = [
 
 interface DashboardSidebarProps {
   activeNav?: string;
-  activeSubNav?: "staff" | "roles";
+  activeSubNav?: "staff" | "roles" | "tickets" | "departments";
 }
 
 export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarProps = {}) {
@@ -290,6 +291,36 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                     >
                       <span className="flex-1 text-right">الأدوار والصلاحيات</span>
                       <Key className="size-[15px] ms-2 shrink-0" />
+                    </Link>
+                  </div>
+                )}
+
+                {/* Sub-items for Support (تذاكر الدعم الفني والأقسام) */}
+                {item.id === "support" && isActive && (
+                  <div className="flex flex-col gap-1 pr-3 pl-1 py-1">
+                    <Link
+                      href="/tickets?tab=tickets"
+                      className={cn(
+                        "flex items-center justify-between px-[12px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-right",
+                        activeSubNav === "departments"
+                          ? "text-[#cdc5bd] hover:text-[#fdfbf7]"
+                          : "text-[#e29d38] font-bold"
+                      )}
+                    >
+                      <span className="flex-1 text-right">تذاكر الدعم الفني</span>
+                      <Ticket className="size-[15px] ms-2 shrink-0" />
+                    </Link>
+                    <Link
+                      href="/tickets?tab=departments"
+                      className={cn(
+                        "flex items-center justify-between px-[12px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-right",
+                        activeSubNav === "departments"
+                          ? "text-[#e29d38] font-bold"
+                          : "text-[#cdc5bd] hover:text-[#fdfbf7]"
+                      )}
+                    >
+                      <span className="flex-1 text-right">الاقسام</span>
+                      <Users className="size-[15px] ms-2 shrink-0" />
                     </Link>
                   </div>
                 )}

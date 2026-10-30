@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { Metadata } from "next";
 import { TicketsView } from "@/features/tickets/components/TicketsView";
 
@@ -9,5 +9,9 @@ export const metadata: Metadata = {
 };
 
 export default function TicketsPage() {
-  return <TicketsView />;
+  return (
+    <Suspense fallback={null}>
+      <TicketsView />
+    </Suspense>
+  );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { useQueryState } from "nuqs";
 import { Plus, Ticket as TicketIcon, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
@@ -32,8 +33,12 @@ import { AddDepartmentModal } from "./AddDepartmentModal";
 import { DeleteDepartmentModal } from "./DeleteDepartmentModal";
 
 export function TicketsView() {
-  // Navigation & View Mode
-  const [activeTab, setActiveTab] = useState<TicketTabType>("tickets");
+  // Navigation & View Mode driven by URL query param ?tab=tickets or ?tab=departments
+  const [tabParam, setTabParam] = useQueryState("tab", { defaultValue: "tickets" });
+  const activeTab: TicketTabType = tabParam === "departments" ? "departments" : "tickets";
+  const setActiveTab = (tab: TicketTabType) => {
+    setTabParam(tab);
+  };
   const [isCreatingTicket, setIsCreatingTicket] = useState(false);
   const [selectedTicketForDetails, setSelectedTicketForDetails] = useState<Ticket | null>(null);
 
@@ -276,8 +281,8 @@ export function TicketsView() {
 
   return (
     <div className="flex min-h-screen bg-[#f5f3ef] text-[#1c140f] antialiased select-none" dir="rtl">
-      {/* Sidebar with activeNav="support" */}
-      <DashboardSidebar activeNav="support" />
+      {/* Sidebar with activeNav="support" and activeSubNav={activeTab} */}
+      <DashboardSidebar activeNav="support" activeSubNav={activeTab} />
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Navbar */}
