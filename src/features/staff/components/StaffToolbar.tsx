@@ -14,8 +14,8 @@ interface StaffToolbarProps {
   selectedLastLogin: string;
   onLastLoginChange: (period: string) => void;
   onResetFilters: () => void;
-  isEmptyView: boolean;
-  onToggleEmptyView: () => void;
+  isEmptyView?: boolean;
+  onToggleEmptyView?: () => void;
 }
 
 export function StaffToolbar({
@@ -28,8 +28,6 @@ export function StaffToolbar({
   selectedLastLogin,
   onLastLoginChange,
   onResetFilters,
-  isEmptyView,
-  onToggleEmptyView,
 }: StaffToolbarProps) {
   const hasActiveFilters =
     selectedRole !== "all" ||
@@ -39,6 +37,25 @@ export function StaffToolbar({
 
   const drawerContent = (
     <div className="space-y-4 text-start font-['Cairo',sans-serif]">
+      {/* Role Filter in Drawer */}
+      <div className="space-y-1.5">
+        <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
+          الدور والصلاحية
+        </label>
+        <select
+          value={selectedRole}
+          onChange={(e) => onRoleChange(e.target.value)}
+          className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[12px] border border-transparent dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
+        >
+          <option value="all">كافة الأدوار والصلاحيات</option>
+          {staffRoles.map((r) => (
+            <option key={r.id} value={r.id}>
+              {r.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {/* Status Filter */}
       <div className="space-y-1.5">
         <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
@@ -79,25 +96,17 @@ export function StaffToolbar({
       searchQuery={searchQuery}
       onSearchChange={onSearchChange}
       searchPlaceholder="ابحث بالاسم، البريد الإلكتروني، أو رقم الموظف..."
-      primaryFilterValue={selectedRole}
-      onPrimaryFilterChange={onRoleChange}
+      primaryFilterValue={selectedStatus}
+      onPrimaryFilterChange={onStatusChange}
       primaryFilterOptions={[
-        { label: "جميع الأدوار", value: "all" },
-        ...staffRoles.map((r) => ({ label: r.name, value: r.id })),
+        { label: "الكل", value: "all" },
+        { label: "نشط", value: "active" },
+        { label: "موقوف", value: "suspended" },
       ]}
       hasActiveFilters={hasActiveFilters}
       onReset={onResetFilters}
       drawerTitle="تصفية طاقم العمل"
       drawerContent={drawerContent}
-      actionButton={
-        <button
-          type="button"
-          onClick={onToggleEmptyView}
-          className="text-[12px] text-[#79716b] hover:text-[#9c6402] px-2.5 py-1.5 rounded-[4px] border border-dashed border-[#d6cfc7] hover:border-[#9c6402] transition-colors cursor-pointer"
-        >
-          {isEmptyView ? "عرض الجدول المكتمل" : "معاينة الحالة الفارغة"}
-        </button>
-      }
     />
   );
 }

@@ -135,7 +135,7 @@ export function ClientManagementTable({
 
   return (
     <div
-      className="bg-white rounded-[8px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] overflow-hidden w-full font-['Cairo',sans-serif]"
+      className="bg-white dark:bg-[#221812] rounded-[8px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] overflow-hidden w-full font-['Cairo',sans-serif]"
       data-node-id="1:770"
     >
       {/* Unified Filter Bar with 3 Pills + Comprehensive Drawer */}
@@ -455,7 +455,7 @@ export function ClientManagementTable({
         <div className="flex items-center gap-[4px]">
           <button
             type="button"
-            disabled={pageIndex === 0}
+            disabled={pageIndex === 0 || totalItems === 0}
             onClick={() => setPageIndex(0)}
             title="الصفحة الأولى"
             className="size-[30px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center cursor-pointer"
@@ -465,7 +465,7 @@ export function ClientManagementTable({
 
           <button
             type="button"
-            disabled={pageIndex === 0}
+            disabled={pageIndex === 0 || totalItems === 0}
             onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
             title="الصفحة السابقة"
             className="px-[10px] py-[6px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-[4px] cursor-pointer"
@@ -474,40 +474,50 @@ export function ClientManagementTable({
             <span>السابق</span>
           </button>
 
-          {Array.from({ length: totalPages }, (_, i) => i).map((p) => {
-            if (totalPages > 5 && Math.abs(p - pageIndex) > 2 && p !== 0 && p !== totalPages - 1) {
-              if (p === 1 || p === totalPages - 2) {
-                return (
-                  <span key={p} className="px-[2px] text-[#837565] dark:text-[#8e8680]">
-                    ...
-                  </span>
-                );
+          {totalItems === 0 ? (
+            <button
+              type="button"
+              disabled
+              className="size-[30px] rounded-[4px] font-semibold text-[12px] flex items-center justify-center border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#8e8680] opacity-40 cursor-not-allowed"
+            >
+              1
+            </button>
+          ) : (
+            Array.from({ length: totalPages }, (_, i) => i).map((p) => {
+              if (totalPages > 5 && Math.abs(p - pageIndex) > 2 && p !== 0 && p !== totalPages - 1) {
+                if (p === 1 || p === totalPages - 2) {
+                  return (
+                    <span key={p} className="px-[2px] text-[#837565] dark:text-[#8e8680]">
+                      ...
+                    </span>
+                  );
+                }
+                return null;
               }
-              return null;
-            }
-            const isActive = pageIndex === p;
-            return (
-              <button
-                key={p}
-                type="button"
-                onClick={() => setPageIndex(p)}
-                className={`size-[30px] rounded-[4px] font-semibold text-[12px] flex items-center justify-center cursor-pointer transition-colors ${
-                  isActive
-                    ? "bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] font-bold shadow-sm"
-                    : "border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15]"
-                }`}
-              >
-                {p + 1}
-              </button>
-            );
-          })}
+              const isActive = pageIndex === p;
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setPageIndex(p)}
+                  className={`size-[30px] rounded-[4px] font-semibold text-[12px] flex items-center justify-center cursor-pointer transition-colors ${
+                    isActive
+                      ? "bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] font-bold shadow-sm"
+                      : "border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15]"
+                  }`}
+                >
+                  {p + 1}
+                </button>
+              );
+            })
+          )}
 
           <button
             type="button"
-            disabled={pageIndex >= totalPages - 1}
+            disabled={pageIndex >= totalPages - 1 || totalItems === 0}
             onClick={() => setPageIndex((p) => Math.min(totalPages - 1, p + 1))}
             title="الصفحة التالية"
-            className="px-[10px] py-[6px] rounded-[4px] border border-[#eae8e4] text-[#1b1c1a] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-[4px] cursor-pointer"
+            className="px-[10px] py-[6px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#1b1c1a] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-[4px] cursor-pointer"
           >
             <span>التالي</span>
             <ChevronLeft className="size-[13px]" />
@@ -515,10 +525,10 @@ export function ClientManagementTable({
 
           <button
             type="button"
-            disabled={pageIndex >= totalPages - 1}
+            disabled={pageIndex >= totalPages - 1 || totalItems === 0}
             onClick={() => setPageIndex(totalPages - 1)}
             title="الصفحة الأخيرة"
-            className="size-[30px] rounded-[4px] border border-[#eae8e4] text-[#837565] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center cursor-pointer"
+            className="size-[30px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center cursor-pointer"
           >
             <ChevronsLeft className="size-[14px]" />
           </button>

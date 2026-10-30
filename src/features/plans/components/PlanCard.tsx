@@ -11,6 +11,9 @@ import {
   Link,
   Settings,
   MoreVertical,
+  Pencil,
+  Power,
+  Trash2,
 } from "lucide-react";
 import { PricingPlanItem } from "../types/plan.types";
 
@@ -49,7 +52,7 @@ export function PlanCard({
     >
       {/* Popular Ribbon Tag */}
       {plan.isPopular && (
-        <div className="absolute -top-[13px] start-1/2 -translate-x-1/2 bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] text-[11px] font-bold px-[16px] py-[3px] rounded-full shadow-xs flex items-center gap-[4px] whitespace-nowrap">
+        <div className="absolute -top-[13px] left-1/2 -translate-x-1/2 z-10 bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] text-[11px] font-bold px-[16px] py-[3px] rounded-full shadow-xs flex items-center gap-[4px] whitespace-nowrap">
           <span>★</span>
           <span>الأكثر اختياراً</span>
         </div>
@@ -93,7 +96,7 @@ export function PlanCard({
           </button>
 
           {isMenuOpen && (
-            <div className="absolute end-0 top-full mt-1 w-[160px] bg-white dark:bg-[#1e1c1a] rounded-[6px] shadow-lg border border-[#e2ded7] dark:border-[#38271c] py-[4px] z-20 text-start animate-in fade-in duration-100 font-['Cairo',sans-serif]">
+            <div className="absolute end-0 top-full mt-1 w-[180px] bg-white dark:bg-[#1e1c1a] rounded-[6px] shadow-lg border border-[#e2ded7] dark:border-[#38271c] py-[6px] z-20 text-start animate-in fade-in duration-100 font-['Cairo',sans-serif]">
               <button
                 type="button"
                 onClick={() => {
@@ -101,9 +104,10 @@ export function PlanCard({
                   if (onViewDetails) onViewDetails(plan);
                   else onEdit(plan);
                 }}
-                className="w-full text-start px-[12px] py-[6px] text-[12px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#faf8f5] dark:hover:bg-[#2c2621] cursor-pointer"
+                className="w-full text-start px-[12px] py-[7px] text-[12px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#faf8f5] dark:hover:bg-[#2c2621] flex items-center gap-[8px] cursor-pointer"
               >
-                تعديل الباقة
+                <Pencil className="size-[14px] text-[#837565] dark:text-[#cdc5bd]" />
+                <span>تعديل الباقة</span>
               </button>
 
               <button
@@ -113,9 +117,10 @@ export function PlanCard({
                   if (onViewSubscribers) onViewSubscribers(plan);
                   else if (onViewDetails) onViewDetails(plan);
                 }}
-                className="w-full text-start px-[12px] py-[6px] text-[12px] font-semibold text-[#514537] dark:text-[#cdc5bd] hover:bg-[#faf8f5] dark:hover:bg-[#2c2621] cursor-pointer"
+                className="w-full text-start px-[12px] py-[7px] text-[12px] font-semibold text-[#514537] dark:text-[#cdc5bd] hover:bg-[#faf8f5] dark:hover:bg-[#2c2621] flex items-center gap-[8px] cursor-pointer"
               >
-                عرض المشتركين ({plan.subscribedFirmsCount})
+                <Users className="size-[14px] text-[#837565] dark:text-[#cdc5bd]" />
+                <span>عرض المشتركين ({plan.subscribedFirmsCount})</span>
               </button>
 
               <button
@@ -124,9 +129,10 @@ export function PlanCard({
                   setIsMenuOpen(false);
                   if (onToggleActive) onToggleActive(plan);
                 }}
-                className="w-full text-start px-[12px] py-[6px] text-[12px] font-semibold text-[#9c6402] dark:text-[#e29d38] hover:bg-[#fbf6ee] dark:hover:bg-[#2d1f16] cursor-pointer"
+                className="w-full text-start px-[12px] py-[7px] text-[12px] font-semibold text-[#9c6402] dark:text-[#e29d38] hover:bg-[#fbf6ee] dark:hover:bg-[#2d1f16] flex items-center gap-[8px] cursor-pointer"
               >
-                {plan.isActive ? "تعطيل الباقة" : "تفعيل الباقة"}
+                <Power className="size-[14px] text-[#9c6402] dark:text-[#e29d38]" />
+                <span>{plan.isActive ? "تعطيل الباقة" : "تفعيل الباقة"}</span>
               </button>
 
               <button
@@ -135,9 +141,10 @@ export function PlanCard({
                   setIsMenuOpen(false);
                   if (onDelete) onDelete(plan);
                 }}
-                className="w-full text-start px-[12px] py-[6px] text-[12px] font-semibold text-[#b91c1c] dark:text-[#f87171] hover:bg-[#fee2e2]/40 dark:hover:bg-[#311616] border-t border-[#f0eeea] dark:border-[#2f2a24] cursor-pointer"
+                className="w-full text-start px-[12px] py-[7px] text-[12px] font-semibold text-[#b91c1c] dark:text-[#f87171] hover:bg-[#fee2e2]/40 dark:hover:bg-[#311616] border-t border-[#f0eeea] dark:border-[#2f2a24] mt-[4px] pt-[7px] flex items-center gap-[8px] cursor-pointer"
               >
-                حذف الباقة
+                <Trash2 className="size-[14px] text-[#b91c1c] dark:text-[#f87171]" />
+                <span>حذف الباقة</span>
               </button>
             </div>
           )}

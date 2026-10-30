@@ -60,22 +60,22 @@ export function UnifiedFilterBar({
         className
       )}
     >
-      {/* 3 Unified Filter Controls in a Single Row */}
-      <div className="flex flex-wrap sm:flex-nowrap items-center gap-[12px] flex-1">
-        {/* 1. Search Input */}
-        <div className="relative flex-1 min-w-[200px] max-w-[420px]">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder={searchPlaceholder}
-            className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder-[#837565] dark:placeholder-[#8e8680] text-[13px] rounded-[6px] pe-[36px] ps-[14px] border border-transparent dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] transition-all font-sans"
-          />
-          <div className="absolute top-1/2 -translate-y-1/2 end-[12px] pointer-events-none text-[#837565] dark:text-[#8e8680]">
-            <Search className="size-[15px]" />
-          </div>
+      {/* 1. Search Input (Start / Right in RTL) */}
+      <div className="relative w-full sm:w-[300px] md:w-[340px] shrink-0">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder={searchPlaceholder}
+          className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder-[#837565] dark:placeholder-[#8e8680] text-[13px] rounded-[6px] pe-[36px] ps-[14px] border border-transparent dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] transition-all font-sans"
+        />
+        <div className="absolute top-1/2 -translate-y-1/2 end-[12px] pointer-events-none text-[#837565] dark:text-[#8e8680]">
+          <Search className="size-[15px]" />
         </div>
+      </div>
 
+      {/* 2 & 3 & 4. Filter Controls & Actions Group (End / Left in RTL via ms-auto) */}
+      <div className="flex flex-wrap items-center gap-[10px] ms-auto">
         {/* 2. Primary Tabs / Segmented Pills (Direct switching) OR Select Dropdown */}
         {primaryFilterMode === "select" ? (
           <div className="relative shrink-0">
@@ -185,10 +185,10 @@ export function UnifiedFilterBar({
             </SheetFooter>
           </SheetContent>
         </Sheet>
-      </div>
 
-      {/* Optional Page Action Button (e.g. Add Staff, New Role, Export) */}
-      {actionButton && <div className="shrink-0">{actionButton}</div>}
+        {/* Optional Page Action Button (e.g. Add Staff, New Role, Export) */}
+        {actionButton && <div className="shrink-0">{actionButton}</div>}
+      </div>
     </div>
   );
 }
