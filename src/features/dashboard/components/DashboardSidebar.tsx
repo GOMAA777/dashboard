@@ -21,6 +21,7 @@ import {
   Users,
   Key,
   ChevronLeft,
+  ChevronDown,
   LogOut,
   Scale,
   Ticket,
@@ -65,6 +66,20 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
   const toggleSidebarCollapsed = useUIStore((state) => state.toggleSidebarCollapsed);
+
+  const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>(() => ({
+    support: activeNav === "support" || (pathname?.startsWith("/tickets") ?? false),
+    staff: activeNav === "staff" || (pathname?.startsWith("/permissions") ?? false) || (pathname?.startsWith("/staff") ?? false),
+  }));
+
+  React.useEffect(() => {
+    if (activeNav === "support" || pathname?.startsWith("/tickets")) {
+      setOpenDropdowns((prev) => (prev.support ? prev : { ...prev, support: true }));
+    }
+    if (activeNav === "staff" || pathname?.startsWith("/permissions") || pathname?.startsWith("/staff")) {
+      setOpenDropdowns((prev) => (prev.staff ? prev : { ...prev, staff: true }));
+    }
+  }, [activeNav, pathname]);
 
   const isMounted = useSyncExternalStore(
     () => () => {},
@@ -182,15 +197,10 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   key={item.id}
                   type="button"
                   onClick={() => toast.info("هذا القسم قيد الإنشاء")}
-                  className="w-full flex items-center justify-between px-[12px] py-[8px] rounded-[12px] transition-colors duration-150 group text-right text-[#cdc5bd] hover:bg-[#2c221c]/60 hover:text-[#fdfbf7] cursor-pointer"
+                  className="w-full flex items-center gap-[12px] px-[12px] py-[8px] rounded-[12px] transition-colors duration-150 group text-right text-[#cdc5bd] hover:bg-[#2c221c]/60 hover:text-[#fdfbf7] cursor-pointer"
                 >
-                  {/* Label on start (right in RTL) */}
-                  <span className="text-[14px] leading-[20px] font-semibold flex-1 text-right truncate text-[#cdc5bd] group-hover:text-[#fdfbf7]">
-                    {item.label}
-                  </span>
-
-                  {/* Icon on end */}
-                  <div className="size-[22px] flex items-center justify-center shrink-0 ms-2">
+                  {/* Icon first (Right in RTL) */}
+                  <div className="size-[20px] flex items-center justify-center shrink-0">
                     <item.icon
                       className={cn(
                         "shrink-0 transition-colors text-[#cdc5bd] group-hover:text-[#fdfbf7]",
@@ -198,6 +208,11 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       )}
                     />
                   </div>
+
+                  {/* Word next */}
+                  <span className="text-[14px] leading-[20px] font-semibold flex-1 text-right truncate text-[#cdc5bd] group-hover:text-[#fdfbf7]">
+                    {item.label}
+                  </span>
                 </button>
               );
             }
@@ -234,30 +249,24 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
               );
             }
 
-            return (
-              <React.Fragment key={item.id}>
+            const hasSubmenu = item.id === "support" || item.id === "staff";
+            const isDropdownOpen = !!openDropdowns[item.id];
+
+            if (!hasSubmenu) {
+              return (
                 <Link
+                  key={item.id}
                   href={item.href}
                   className={cn(
-                    "flex items-center justify-between px-[12px] py-[8px] rounded-[12px] transition-colors duration-150 group text-right",
+                    "flex items-center gap-[12px] px-[12px] py-[8px] rounded-[12px] transition-colors duration-150 group text-right",
                     isActive
                       ? "bg-[#9c6402] text-[#1c140f]"
                       : "text-[#cdc5bd] hover:bg-[#2c221c]/60 hover:text-[#fdfbf7]"
                   )}
                   data-node-id={isActive ? "1:679" : undefined}
                 >
-                  {/* Label on start (right in RTL) */}
-                  <span
-                    className={cn(
-                      "text-[14px] leading-[20px] font-semibold flex-1 text-right truncate",
-                      isActive ? "text-[#1c140f] font-bold" : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
-                    )}
-                  >
-                    {item.label}
-                  </span>
-
-                  {/* Icon on end */}
-                  <div className="size-[22px] flex items-center justify-center shrink-0 ms-2">
+                  {/* Icon first (Right in RTL) */}
+                  <div className="size-[20px] flex items-center justify-center shrink-0">
                     <item.icon
                       className={cn(
                         "shrink-0 transition-colors",
@@ -268,64 +277,212 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       )}
                     />
                   </div>
-                </Link>
 
-                {/* Sub-items for Staff (فريق العمل والأدوار والصلاحيات) matching Figma 1:8875 and 1:11530 */}
-                {item.id === "staff" && isActive && (
-                  <div className="flex flex-col gap-1 pr-3 pl-1 py-1">
+                  {/* Word next */}
+                  <span
+                    className={cn(
+                      "text-[14px] leading-[20px] font-semibold flex-1 text-right truncate",
+                      isActive ? "text-[#1c140f] font-bold" : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
+                    )}
+                  >
+                    {item.label}
+                  </span>
+                </Link>
+              );
+            }
+
+            return (
+              <React.Fragment key={item.id}>
+                <div
+                  className={cn(
+                    "flex items-center justify-between px-[12px] py-[8px] rounded-[12px] transition-colors duration-150 group",
+                    isActive
+                      ? "bg-[#9c6402] text-[#1c140f]"
+                      : "text-[#cdc5bd] hover:bg-[#2c221c]/60 hover:text-[#fdfbf7]"
+                  )}
+                  data-node-id={isActive ? "1:679" : undefined}
+                >
+                  {/* Main Link (Icon + Word) */}
+                  <Link
+                    href={item.href}
+                    onClick={() => {
+                      setOpenDropdowns((prev) => ({ ...prev, [item.id]: true }));
+                    }}
+                    className="flex items-center gap-[12px] flex-1 min-w-0"
+                  >
+                    {/* Icon first (Right in RTL) */}
+                    <div className="size-[20px] flex items-center justify-center shrink-0">
+                      <item.icon
+                        className={cn(
+                          "shrink-0 transition-colors",
+                          item.sizeClass,
+                          isActive
+                            ? "text-[#1c140f]"
+                            : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
+                        )}
+                      />
+                    </div>
+
+                    {/* Word next */}
+                    <span
+                      className={cn(
+                        "text-[14px] leading-[20px] font-semibold truncate",
+                        isActive ? "text-[#1c140f] font-bold" : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
+                      )}
+                    >
+                      {item.label}
+                    </span>
+                  </Link>
+
+                  {/* Dropdown Chevron Arrow Button (Left in RTL) */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setOpenDropdowns((prev) => ({
+                        ...prev,
+                        [item.id]: !prev[item.id],
+                      }));
+                    }}
+                    aria-label={`توسيع أو إغلاق قائمة ${item.label}`}
+                    title={`توسيع أو إغلاق قائمة ${item.label}`}
+                    className={cn(
+                      "size-[24px] rounded-[6px] flex items-center justify-center transition-all cursor-pointer ms-2 shrink-0",
+                      isActive
+                        ? "hover:bg-[#835401]/40 text-[#1c140f]"
+                        : "hover:bg-[#2c221c] text-[#cdc5bd] group-hover:text-[#fdfbf7]"
+                    )}
+                  >
+                    <ChevronDown
+                      className={cn(
+                        "size-[16px] transition-transform duration-200 shrink-0",
+                        isDropdownOpen ? "rotate-180" : "rotate-0"
+                      )}
+                    />
+                  </button>
+                </div>
+
+                {/* Sub-items for Staff (فريق العمل والأدوار والصلاحيات) */}
+                {item.id === "staff" && isDropdownOpen && (
+                  <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#38271c] my-1">
                     <Link
                       href="/permissions?tab=staff"
                       className={cn(
-                        "flex items-center justify-between px-[12px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-right",
+                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-right group",
                         activeSubNav === "roles"
-                          ? "text-[#cdc5bd] hover:text-[#fdfbf7]"
-                          : "text-[#e29d38] font-bold"
+                          ? "text-[#cdc5bd] hover:bg-[#2c221c]/40 hover:text-[#fdfbf7]"
+                          : "text-[#e29d38] font-bold bg-[#2c221c]/60"
                       )}
                     >
-                      <span className="flex-1 text-right">فريق العمل</span>
-                      <Users className="size-[15px] ms-2 shrink-0" />
+                      {/* Connecting dot */}
+                      <span
+                        className={cn(
+                          "size-[6px] rounded-full shrink-0 transition-all",
+                          activeSubNav !== "roles"
+                            ? "bg-[#e29d38] shadow-[0_0_6px_#e29d38]"
+                            : "bg-[#625d5d] group-hover:bg-[#a89f91]"
+                        )}
+                      />
+                      <Users
+                        className={cn(
+                          "size-[15px] shrink-0",
+                          activeSubNav !== "roles"
+                            ? "text-[#e29d38]"
+                            : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
+                        )}
+                      />
+                      <span className="truncate">فريق العمل</span>
                     </Link>
                     <Link
                       href="/permissions?tab=roles"
                       className={cn(
-                        "flex items-center justify-between px-[12px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-right",
+                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-right group",
                         activeSubNav === "roles"
-                          ? "text-[#e29d38] font-bold"
-                          : "text-[#cdc5bd] hover:text-[#fdfbf7]"
+                          ? "text-[#e29d38] font-bold bg-[#2c221c]/60"
+                          : "text-[#cdc5bd] hover:bg-[#2c221c]/40 hover:text-[#fdfbf7]"
                       )}
                     >
-                      <span className="flex-1 text-right">الأدوار والصلاحيات</span>
-                      <Key className="size-[15px] ms-2 shrink-0" />
+                      {/* Connecting dot */}
+                      <span
+                        className={cn(
+                          "size-[6px] rounded-full shrink-0 transition-all",
+                          activeSubNav === "roles"
+                            ? "bg-[#e29d38] shadow-[0_0_6px_#e29d38]"
+                            : "bg-[#625d5d] group-hover:bg-[#a89f91]"
+                        )}
+                      />
+                      <Key
+                        className={cn(
+                          "size-[15px] shrink-0",
+                          activeSubNav === "roles"
+                            ? "text-[#e29d38]"
+                            : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
+                        )}
+                      />
+                      <span className="truncate">الأدوار والصلاحيات</span>
                     </Link>
                   </div>
                 )}
 
                 {/* Sub-items for Support (تذاكر الدعم الفني والأقسام) */}
-                {item.id === "support" && isActive && (
-                  <div className="flex flex-col gap-1 pr-3 pl-1 py-1">
+                {item.id === "support" && isDropdownOpen && (
+                  <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#38271c] my-1">
                     <Link
                       href="/tickets?tab=tickets"
                       className={cn(
-                        "flex items-center justify-between px-[12px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-right",
+                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-right group",
                         activeSubNav === "departments"
-                          ? "text-[#cdc5bd] hover:text-[#fdfbf7]"
-                          : "text-[#e29d38] font-bold"
+                          ? "text-[#cdc5bd] hover:bg-[#2c221c]/40 hover:text-[#fdfbf7]"
+                          : "text-[#e29d38] font-bold bg-[#2c221c]/60"
                       )}
                     >
-                      <span className="flex-1 text-right">تذاكر الدعم الفني</span>
-                      <Ticket className="size-[15px] ms-2 shrink-0" />
+                      {/* Connecting dot */}
+                      <span
+                        className={cn(
+                          "size-[6px] rounded-full shrink-0 transition-all",
+                          activeSubNav !== "departments"
+                            ? "bg-[#e29d38] shadow-[0_0_6px_#e29d38]"
+                            : "bg-[#625d5d] group-hover:bg-[#a89f91]"
+                        )}
+                      />
+                      <Ticket
+                        className={cn(
+                          "size-[15px] shrink-0",
+                          activeSubNav !== "departments"
+                            ? "text-[#e29d38]"
+                            : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
+                        )}
+                      />
+                      <span className="truncate">تذاكر الدعم الفني</span>
                     </Link>
                     <Link
                       href="/tickets?tab=departments"
                       className={cn(
-                        "flex items-center justify-between px-[12px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-right",
+                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-right group",
                         activeSubNav === "departments"
-                          ? "text-[#e29d38] font-bold"
-                          : "text-[#cdc5bd] hover:text-[#fdfbf7]"
+                          ? "text-[#e29d38] font-bold bg-[#2c221c]/60"
+                          : "text-[#cdc5bd] hover:bg-[#2c221c]/40 hover:text-[#fdfbf7]"
                       )}
                     >
-                      <span className="flex-1 text-right">الاقسام</span>
-                      <Users className="size-[15px] ms-2 shrink-0" />
+                      {/* Connecting dot */}
+                      <span
+                        className={cn(
+                          "size-[6px] rounded-full shrink-0 transition-all",
+                          activeSubNav === "departments"
+                            ? "bg-[#e29d38] shadow-[0_0_6px_#e29d38]"
+                            : "bg-[#625d5d] group-hover:bg-[#a89f91]"
+                        )}
+                      />
+                      <Users
+                        className={cn(
+                          "size-[15px] shrink-0",
+                          activeSubNav === "departments"
+                            ? "text-[#e29d38]"
+                            : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
+                        )}
+                      />
+                      <span className="truncate">الاقسام</span>
                     </Link>
                   </div>
                 )}
