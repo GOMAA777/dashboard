@@ -24,7 +24,27 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ar" dir="rtl" className={cn(cairo.variable, "font-sans")}>
+    <html lang="ar" dir="rtl" suppressHydrationWarning className={cn(cairo.variable, "font-sans")}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                var t = localStorage.getItem('app-theme');
+                if (t === 'dark') {
+                  document.documentElement.classList.add('dark');
+                } else if (t === 'light') {
+                  document.documentElement.classList.remove('dark');
+                }
+                var d = localStorage.getItem('app-direction');
+                if (d === 'ltr' || d === 'rtl') {
+                  document.documentElement.dir = d;
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
       <body className="min-h-screen bg-background text-foreground antialiased selection:bg-[#f3e3c3] selection:text-[#78541c]">
         <Suspense fallback={null}>
           <NuqsAdapter>

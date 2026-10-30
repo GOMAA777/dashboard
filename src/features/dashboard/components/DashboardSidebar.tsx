@@ -98,7 +98,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
   return (
     <aside
       className={cn(
-        "relative shrink-0 h-screen h-dvh sticky top-0 bg-[#1c140f] flex flex-col justify-between border-s border-[#2c221c] drop-shadow-[0px_1px_4px_rgba(0,0,0,0.04)] select-none z-30 transition-all duration-300 ease-in-out",
+        "relative shrink-0 h-screen h-dvh sticky top-0 bg-[#1c140f] flex flex-col justify-between border-e border-[#2c221c] drop-shadow-[0px_1px_4px_rgba(0,0,0,0.04)] select-none z-30 transition-all duration-300 ease-in-out",
         isCollapsed ? "w-[72px]" : "w-[240px]"
       )}
       data-node-id="1:667"
@@ -110,12 +110,12 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
         onClick={toggleSidebarCollapsed}
         aria-label={isCollapsed ? "توسيع القائمة الجانبية" : "تصغير القائمة الجانبية"}
         title={isCollapsed ? "توسيع القائمة الجانبية" : "تصغير القائمة الجانبية"}
-        className="absolute top-[20px] left-0 -translate-x-1/2 z-40 size-[26px] bg-white hover:bg-[#f5f3ef] text-[#514537] hover:text-[#1b1c1a] border border-[#ded5c6] rounded-full shadow-[0px_2px_5px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all cursor-pointer focus:outline-none"
+        className="absolute top-[20px] rtl:left-0 rtl:-translate-x-1/2 ltr:right-0 ltr:translate-x-1/2 z-40 size-[26px] bg-white hover:bg-[#f5f3ef] text-[#514537] hover:text-[#1b1c1a] border border-[#ded5c6] rounded-full shadow-[0px_2px_5px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all cursor-pointer focus:outline-none"
       >
         <ChevronLeft
           className={cn(
             "size-[14px] text-[#514537] transition-transform duration-300",
-            isCollapsed && "rotate-180"
+            isCollapsed ? "rtl:rotate-180 ltr:rotate-0" : "rtl:rotate-0 ltr:rotate-180"
           )}
         />
       </button>
