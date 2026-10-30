@@ -7,7 +7,6 @@ export default function Loading() {
   return (
     <div
       className="flex h-screen h-dvh w-full bg-[#fcfbfa] dark:bg-[#151311] text-[#1b1c1a] dark:text-[#fdfbf7] overflow-hidden"
-      dir="rtl"
     >
       {/* 1. Global Navigation Sidebar remains fixed */}
       <DashboardSidebar />

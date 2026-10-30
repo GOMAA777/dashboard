@@ -39,7 +39,6 @@ export function DisableGatewayModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
       <div
         className="w-full max-w-[512px] bg-white rounded-[16px] overflow-hidden shadow-[0px_20px_50px_0px_rgba(28,20,15,0.28)] flex flex-col animate-in zoom-in-95 duration-150 text-start"
-        dir="rtl"
       >
         {/* Top Accent Line */}
         <div className="h-[6px] w-full bg-[#ba1a1a]" />

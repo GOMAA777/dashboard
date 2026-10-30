@@ -49,7 +49,6 @@ export function CancelSubscriptionModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs font-['Cairo']">
       <div
         className="bg-white dark:bg-[#1e1c1a] border border-[#d6c4b1]/40 dark:border-[#38332c] rounded-[8px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95"
-        dir="rtl"
         data-node-id="1:7101"
         data-name="إلغاء اشتراك المكتب؟"
       >
@@ -71,12 +70,12 @@ export function CancelSubscriptionModal({
           </button>
 
           <div className="flex items-center gap-3">
-            <h2 className="font-bold text-[22px] text-[#1b1c1a] dark:text-[#fdfbf7] leading-[26px]">
-              إلغاء اشتراك المكتب؟
-            </h2>
             <div className="size-10 rounded-[12px] bg-[#fef2f2] dark:bg-[#311616] flex items-center justify-center text-[#dc2626] shrink-0">
               <AlertCircle className="w-5 h-5" />
             </div>
+            <h2 className="font-bold text-[22px] text-[#1b1c1a] dark:text-[#fdfbf7] leading-[26px]">
+              إلغاء اشتراك المكتب؟
+            </h2>
           </div>
         </div>
 
@@ -92,14 +91,14 @@ export function CancelSubscriptionModal({
                 {subId}
               </span>
               <div className="flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-[#9c6402]" />
                 <span className="font-bold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7]">
                   {firmName}
                 </span>
-                <Building2 className="w-4 h-4 text-[#9c6402]" />
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 text-right">
+            <div className="grid grid-cols-3 gap-2 text-start">
               <div>
                 <span className="text-[11px] text-[#514537] dark:text-[#a89f91] block">
                   نهاية الفترة الحالية
@@ -157,7 +156,7 @@ export function CancelSubscriptionModal({
                   )}
                 </div>
               </div>
-              <div className="flex-1 text-right">
+              <div className="flex-1 text-start">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7]">
                     الإلغاء عند نهاية الفترة الحالية ({renewalDate})
@@ -188,7 +187,7 @@ export function CancelSubscriptionModal({
                   )}
                 </div>
               </div>
-              <div className="flex-1 text-right">
+              <div className="flex-1 text-start">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7]">
                     إلغاء فوري من اللحظة

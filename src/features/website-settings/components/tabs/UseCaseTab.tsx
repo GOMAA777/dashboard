@@ -45,7 +45,7 @@ export function UseCaseTab() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="بحث... (Search)"
-            className="w-full bg-[#fafaf9]/70 border border-[#e7e5e4] rounded-[8px] ps-[14px] pe-[36px] py-[8px] text-[13px] text-[#292524] placeholder-[#a8a29e] focus:outline-none focus:border-[#9c6402] focus:bg-white transition-all text-right"
+            className="w-full bg-[#fafaf9]/70 border border-[#e7e5e4] rounded-[8px] ps-[14px] pe-[36px] py-[8px] text-[13px] text-[#292524] placeholder-[#a8a29e] focus:outline-none focus:border-[#9c6402] focus:bg-white transition-all text-start"
           />
           <Search className="absolute top-1/2 -translate-y-1/2 end-[12px] size-[15px] text-[#a8a29e]" />
         </div>
@@ -53,7 +53,7 @@ export function UseCaseTab() {
 
       {/* Table */}
       <div className="overflow-x-auto rounded-[8px] border border-[#f5f5f4]">
-        <table className="w-full text-right border-collapse">
+        <table className="w-full text-start border-collapse">
           <thead>
             <tr className="bg-[#fefce8]/60 text-[#78350f] text-[13px] font-bold border-b border-[#f3efe6]">
               <th className="py-[12px] px-[16px] w-[50px] text-center">#</th>

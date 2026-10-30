@@ -39,7 +39,6 @@ export function SendSuccessModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-[2px] animate-in fade-in duration-200"
-      dir="rtl"
     >
       <div
         className="bg-white rounded-[8px] shadow-[0px_20px_50px_0px_rgba(28,20,15,0.22)] w-full max-w-[544px] overflow-hidden border border-[#eae8e4] relative scale-in-95 duration-150"
@@ -132,7 +131,7 @@ export function SendSuccessModal({
 
           {/* Notification Summary Card */}
           <div
-            className="bg-[#f5f3ef] rounded-[8px] p-4 text-right space-y-3.5 border border-[#eae8e4]"
+            className="bg-[#f5f3ef] rounded-[8px] p-4 text-start space-y-3.5 border border-[#eae8e4]"
             data-node-id="1:13667"
           >
             {/* Subject */}

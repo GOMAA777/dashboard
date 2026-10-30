@@ -87,7 +87,7 @@ export function CurrencySettingsView() {
   };
 
   return (
-    <div className="flex h-screen h-dvh bg-[#f5f3ef] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00]" dir="rtl">
+    <div className="flex h-screen h-dvh bg-[#f5f3ef] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00]">
       {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar activeNav="system-settings" activeSubNav="currency" />
 
@@ -107,7 +107,7 @@ export function CurrencySettingsView() {
                 {/* Top Identity & Command Banner (Figma 1:17292) */}
             <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] relative mb-[24px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]">
               {/* Title & Description */}
-              <div className="flex flex-col gap-[4px] text-right">
+              <div className="flex flex-col gap-[4px] text-start">
                 <h1 className="text-[28px] leading-[38px] font-bold text-[#1b1c1a]">
                   إعدادات العملة
                 </h1>
@@ -209,7 +209,7 @@ export function CurrencySettingsView() {
               ) : (
                 <>
                   <div className="overflow-x-auto">
-                    <table className="w-full text-right border-collapse">
+                    <table className="w-full text-start border-collapse">
                       <thead>
                         <tr className="bg-[#f5f3ef]/70 text-[#514537] text-[13px] font-semibold border-b border-[#eae8e4]">
                           <th className="py-[14px] px-[20px] w-[60px]">#</th>

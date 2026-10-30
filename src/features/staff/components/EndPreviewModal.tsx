@@ -23,7 +23,6 @@ export function EndPreviewModal({
   return (
     <div
       className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
-      dir="rtl"
     >
       <div
         className="bg-white rounded-[12px] border border-[#e6e2dc] shadow-2xl max-w-[560px] w-full overflow-hidden"
@@ -39,7 +38,7 @@ export function EndPreviewModal({
             <X className="size-[18px]" />
           </button>
 
-          <div className="flex items-start gap-3 text-right">
+          <div className="flex items-start gap-3 text-start">
             <div>
               <h2 className="text-[20px] font-bold text-[#1b1c1a]">
                 إنهاء المعاينة والعودة لحساب المشرف؟
@@ -57,11 +56,11 @@ export function EndPreviewModal({
 
         {/* Content */}
         <div className="px-6 py-2 space-y-4">
-          <p className="text-[13px] text-[#514537] leading-[22px] text-right">
+          <p className="text-[13px] text-[#514537] leading-[22px] text-start">
             أنت على وشك مغادرة وضع المعاينة بصفة الموظف ({employeeName}) واستعادة هوية المشرف العام بكامل الصلاحيات الإدارية والمالية.
           </p>
 
-          <div className="bg-[#fcfaf7] p-4 rounded-[8px] border border-[#f0ece5] space-y-3 text-right">
+          <div className="bg-[#fcfaf7] p-4 rounded-[8px] border border-[#f0ece5] space-y-3 text-start">
             {/* Field 1 */}
             <div className="flex items-center justify-between text-[13px]">
               <span className="text-[#79716b]">الحساب المستعاد:</span>

@@ -17,6 +17,7 @@ import {
   Settings,
   Code,
   ArrowRight,
+  ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 import { RoleItem, PermissionModule } from "../types/roles.types";
@@ -212,14 +213,14 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
   };
 
   return (
-    <div className="space-y-6 pb-24" dir="rtl" data-node-id="1:12201">
+    <div className="space-y-6 pb-24" data-node-id="1:12201">
       {/* Back button */}
       <button
         type="button"
         onClick={onBack}
         className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#837565] hover:text-[#1b1c1a] transition-colors cursor-pointer"
       >
-        <ArrowRight className="size-[15px]" />
+        <ArrowLeft className="size-[15px] rtl:rotate-180" />
         <span>العودة لقائمة الأدوار والصلاحيات</span>
       </button>
 
@@ -253,7 +254,7 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
             className="bg-white border border-[#e6e2dc] rounded-[6px] px-3 py-1.5 flex items-center gap-2 shadow-2xs"
             data-node-id="1:12214"
           >
-            <div className="text-right flex flex-col items-end">
+            <div className="text-start flex flex-col items-end">
               <span className="text-[10px] text-[#837565]">الصلاحيات المحددة</span>
               <div className="text-[13px] font-bold text-[#1b1c1a] flex items-center gap-1">
                 <span className="text-[#9c6402]">{selectedPermissions.size}</span>
@@ -266,7 +267,7 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
           </div>
 
           {/* Risk Level indicator */}
-          <div className="px-2.5 py-1 text-right flex flex-col items-end" data-node-id="1:12208">
+          <div className="px-2.5 py-1 text-start flex flex-col items-end" data-node-id="1:12208">
             <span className="text-[10px] text-[#837565]">مستوى المخاطر</span>
             <div className="flex items-center gap-1.5 mt-0.5">
               <div
@@ -302,7 +303,7 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Role Name */}
-          <div className="space-y-1.5 text-right" data-node-id="1:12239">
+          <div className="space-y-1.5 text-start" data-node-id="1:12239">
             <label className="block text-[13px] font-semibold text-[#1b1c1a]">
               اسم الدور الوظيفي <span className="text-red-500">*</span>
             </label>
@@ -312,7 +313,7 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
                 value={roleName}
                 onChange={(e) => setRoleName(e.target.value)}
                 placeholder="مثال: مسؤول العملاء، أخصائي مراجعة..."
-                className="w-full h-[42px] pe-9 ps-3 text-[13px] bg-[#fdfbf7] border border-[#d6cfc7] rounded-[6px] text-[#1b1c1a] placeholder:text-[#948b83] focus:outline-none focus:ring-1 focus:ring-[#9c6402] focus:border-[#9c6402] transition-colors text-right"
+                className="w-full h-[42px] pe-9 ps-3 text-[13px] bg-[#fdfbf7] border border-[#d6cfc7] rounded-[6px] text-[#1b1c1a] placeholder:text-[#948b83] focus:outline-none focus:ring-1 focus:ring-[#9c6402] focus:border-[#9c6402] transition-colors text-start"
               />
               <UserCheck className="size-[15px] text-[#948b83] absolute top-1/2 -translate-y-1/2 end-3 pointer-events-none" />
             </div>
@@ -322,7 +323,7 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
           </div>
 
           {/* Role Slug */}
-          <div className="space-y-1.5 text-right" data-node-id="1:12251">
+          <div className="space-y-1.5 text-start" data-node-id="1:12251">
             <label className="block text-[13px] font-semibold text-[#1b1c1a]">
               المعرّف البرمجي للنظام (Slug)<span className="text-red-500">*</span>
             </label>
@@ -332,7 +333,7 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
                 value={roleSlug}
                 onChange={(e) => setRoleSlug(e.target.value)}
                 placeholder="e.g. compliance_audit_specialist"
-                className="w-full h-[42px] pe-9 ps-3 text-[13px] font-mono bg-[#fdfbf7] border border-[#d6cfc7] rounded-[6px] text-[#1b1c1a] placeholder:text-[#948b83] focus:outline-none focus:ring-1 focus:ring-[#9c6402] focus:border-[#9c6402] transition-colors text-right"
+                className="w-full h-[42px] pe-9 ps-3 text-[13px] font-mono bg-[#fdfbf7] border border-[#d6cfc7] rounded-[6px] text-[#1b1c1a] placeholder:text-[#948b83] focus:outline-none focus:ring-1 focus:ring-[#9c6402] focus:border-[#9c6402] transition-colors text-start"
               />
               <Code className="size-[15px] text-[#948b83] absolute top-1/2 -translate-y-1/2 end-3 pointer-events-none" />
             </div>
@@ -350,7 +351,7 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
       >
         {/* Matrix Header & Filter */}
         <div className="p-6 border-b border-[#f0eeea] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-          <div className="text-right">
+          <div className="text-start">
             <div className="flex items-center gap-2">
               <div className="bg-[#fff8e1] size-[32px] rounded-[6px] flex items-center justify-center text-[#9c6402]">
                 <Key className="size-[16px]" />
@@ -374,7 +375,7 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
               value={searchFilter}
               onChange={(e) => setSearchFilter(e.target.value)}
               placeholder="تصفية الأقسام أو الصلاحيات..."
-              className="w-full h-[36px] pe-9 ps-3 text-[12px] bg-[#f5f3ef] border border-[#d6cfc7]/60 rounded-[4px] text-[#1b1c1a] placeholder:text-[#837565] focus:outline-none focus:ring-1 focus:ring-[#9c6402] focus:border-[#9c6402] transition-colors text-right"
+              className="w-full h-[36px] pe-9 ps-3 text-[12px] bg-[#f5f3ef] border border-[#d6cfc7]/60 rounded-[4px] text-[#1b1c1a] placeholder:text-[#837565] focus:outline-none focus:ring-1 focus:ring-[#9c6402] focus:border-[#9c6402] transition-colors text-start"
             />
             <Search className="size-[14px] text-[#837565] absolute top-1/2 -translate-y-1/2 end-3 pointer-events-none" />
           </div>
@@ -382,7 +383,7 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
 
         {/* Matrix Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-right border-collapse">
+          <table className="w-full text-start border-collapse">
             <thead>
               <tr className="bg-[#f0eeea] border-b border-[#e6e2dc] text-[#514537] text-[12px] font-bold">
                 <th className="py-3 px-6 w-[340px]" data-node-id="1:12285">
@@ -495,7 +496,7 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
       {/* FLOATING STICKY ACTION BAR: Compliance & Actions (Figma 1:12201) */}
       <DashboardStickyActionBar>
         {/* Security guarantee note on start */}
-        <div className="flex items-center gap-2.5 text-right">
+        <div className="flex items-center gap-2.5 text-start">
           <div className="size-[28px] rounded-full bg-[#f0eeea] dark:bg-[#2c2017] flex items-center justify-center text-[#9c6402] shrink-0">
             <ShieldCheck className="size-[16px]" />
           </div>

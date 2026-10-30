@@ -7,7 +7,6 @@ export default function Loading() {
   return (
     <div
       className="flex h-screen h-dvh w-full bg-[#fcfbfa] dark:bg-[#151311] text-[#1b1c1a] dark:text-[#fdfbf7] overflow-hidden"
-      dir="rtl"
     >
       <DashboardSidebar activeNav="staff" activeSubNav="roles" />
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">

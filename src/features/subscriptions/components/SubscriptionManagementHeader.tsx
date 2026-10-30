@@ -17,7 +17,7 @@ export function SubscriptionManagementHeader({
       data-name="Main Identity & Command Banner"
     >
       {/* Right in RTL: Title & Subtitle */}
-      <div className="flex flex-col items-start text-right">
+      <div className="flex flex-col items-start text-start">
         <h1 className="font-['Cairo'] font-bold text-[28px] text-[#1b1c1a] dark:text-[#fdfbf7] leading-[38px]">
           إدارة الاشتراكات
         </h1>

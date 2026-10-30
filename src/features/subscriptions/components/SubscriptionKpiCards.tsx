@@ -44,10 +44,10 @@ export function SubscriptionKpiCards({
         </div>
 
         <div className="pt-3 flex items-center justify-end gap-1.5 border-t border-[#f0eeea]/60 dark:border-[#38271c] mt-3">
+          <Scale className="w-3 h-3 text-[#9c6402] dark:text-[#e29d38]" />
           <span className="font-['Cairo'] font-bold text-[10px] text-[#514537] dark:text-[#cdc5bd]">
             موزعة عبر 4 باقات قانونية معتمدة
           </span>
-          <Scale className="w-3 h-3 text-[#9c6402] dark:text-[#e29d38]" />
         </div>
       </div>
 
@@ -108,10 +108,10 @@ export function SubscriptionKpiCards({
         </div>
 
         <div className="pt-3 flex items-center justify-end gap-1.5 border-t border-[#f0eeea]/60 dark:border-[#38271c] mt-3">
+          <Clock className="w-3 h-3 text-[#b45309] dark:text-[#e29d38]" />
           <span className="font-['Cairo'] font-bold text-[10px] text-[#92400e] dark:text-[#fbbf24]">
             تتطلب متابعة وإشعار تجديد فوري
           </span>
-          <Clock className="w-3 h-3 text-[#b45309] dark:text-[#e29d38]" />
         </div>
       </div>
 

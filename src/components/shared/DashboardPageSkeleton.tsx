@@ -16,7 +16,6 @@ export function DashboardPageSkeleton({
   return (
     <div
       className={cn("w-full space-y-6 select-none animate-in fade-in duration-300", className)}
-      dir="rtl"
       aria-label="جاري تحميل محتوى الصفحة..."
       role="status"
     >

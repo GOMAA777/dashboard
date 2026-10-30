@@ -67,7 +67,7 @@ export function GeneralSettingsView() {
   };
 
   return (
-    <div className="flex h-screen h-dvh bg-[#f5f3ef] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00]" dir="rtl">
+    <div className="flex h-screen h-dvh bg-[#f5f3ef] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00]">
       {/* 1. Global Navigation Sidebar with activeNav='system-settings' and activeSubNav='general' */}
       <DashboardSidebar activeNav="system-settings" activeSubNav="general" />
 
@@ -82,7 +82,7 @@ export function GeneralSettingsView() {
           {/* Main Identity & Command Banner (Figma 1:16870) */}
           <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] relative mb-[24px] flex flex-col md:flex-row items-start md:items-center justify-between gap-[16px]">
             {/* Title & Description (Right in RTL) */}
-            <div className="flex flex-col gap-[4px] text-right">
+            <div className="flex flex-col gap-[4px] text-start">
               <h1 className="text-[28px] leading-[38px] font-bold text-[#1b1c1a]">
                 الإعدادات العامة
               </h1>
@@ -105,7 +105,7 @@ export function GeneralSettingsView() {
                 </button>
 
                 {/* Text Messages */}
-                <div className="flex flex-col text-right">
+                <div className="flex flex-col text-start">
                   <span className="text-[14px] font-bold text-[#1b1c1a] leading-[20px]">
                     تم الحفظ بنجاح
                   </span>
@@ -142,7 +142,7 @@ export function GeneralSettingsView() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-[24px] gap-y-[20px] pt-[8px]">
                 {/* 1.1 عنوان النظام (System Title) */}
                 <div className="flex flex-col gap-[6px]">
-                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-right flex items-center gap-[2px]">
+                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-start flex items-center gap-[2px]">
                     <span>عنوان النظام</span>
                     <span className="text-[#ba1a1a]">*</span>
                   </label>
@@ -152,14 +152,14 @@ export function GeneralSettingsView() {
                     onChange={(e) => setFormData({ ...formData, systemTitle: e.target.value })}
                     className="w-full bg-[#f5f3ef] text-[#1b1c1a] text-[14px] font-normal rounded-[4px] px-[16px] py-[10px] border border-transparent focus:border-[#9c6402] focus:bg-white focus:outline-none transition-all"
                   />
-                  <p className="text-[10px] font-bold text-[#837565] text-right leading-[14px]">
+                  <p className="text-[10px] font-bold text-[#837565] text-start leading-[14px]">
                     يظهر في شريط العنوان أعلى صفحات المتصفح وكعنوان رئيسي للمنصة.
                   </p>
                 </div>
 
                 {/* 1.2 اسم الشركة أو المنشأة (Company / Firm Name) */}
                 <div className="flex flex-col gap-[6px]">
-                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-right flex items-center gap-[2px]">
+                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-start flex items-center gap-[2px]">
                     <span>اسم الشركة أو المنشأة</span>
                     <span className="text-[#ba1a1a]">*</span>
                   </label>
@@ -169,14 +169,14 @@ export function GeneralSettingsView() {
                     onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
                     className="w-full bg-[#f5f3ef] text-[#1b1c1a] text-[14px] font-normal rounded-[4px] px-[16px] py-[10px] border border-transparent focus:border-[#9c6402] focus:bg-white focus:outline-none transition-all"
                   />
-                  <p className="text-[10px] font-bold text-[#837565] text-right leading-[14px]">
+                  <p className="text-[10px] font-bold text-[#837565] text-start leading-[14px]">
                     الاسم القانوني المعتمد في إصدار الفواتير والعقود الرسمية.
                   </p>
                 </div>
 
                 {/* 1.3 العبارة التعريفية (Slogan) - Col span 2 */}
                 <div className="flex flex-col gap-[6px] md:col-span-2">
-                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-right">
+                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-start">
                     العبارة التعريفية (Slogan)
                   </label>
                   <input
@@ -189,7 +189,7 @@ export function GeneralSettingsView() {
 
                 {/* 1.4 رقم الهاتف المعتمد (Phone Number) */}
                 <div className="flex flex-col gap-[6px]">
-                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-right flex items-center gap-[2px]">
+                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-start flex items-center gap-[2px]">
                     <span>رقم الهاتف المعتمد</span>
                     <span className="text-[#ba1a1a]">*</span>
                   </label>
@@ -199,11 +199,11 @@ export function GeneralSettingsView() {
                       dir="ltr"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full bg-[#f5f3ef] text-[#1b1c1a] text-[14px] font-normal rounded-[4px] ps-[16px] pe-[40px] py-[10px] text-right border border-transparent focus:border-[#9c6402] focus:bg-white focus:outline-none transition-all"
+                      className="w-full bg-[#f5f3ef] text-[#1b1c1a] text-[14px] font-normal rounded-[4px] ps-[16px] pe-[40px] py-[10px] text-start border border-transparent focus:border-[#9c6402] focus:bg-white focus:outline-none transition-all"
                     />
                     <Phone className="absolute top-1/2 -translate-y-1/2 end-[14px] size-[15px] text-[#837565]" />
                   </div>
-                  <p className="text-[10px] font-bold text-[#837565] text-right leading-[14px]">
+                  <p className="text-[10px] font-bold text-[#837565] text-start leading-[14px]">
                     يُستخدم للتواصل الرسمي وإرسال تنبيهات الأمان الحرجة.
                   </p>
                 </div>
@@ -211,7 +211,7 @@ export function GeneralSettingsView() {
                 {/* 1.5 البريد الإلكتروني الرسمي (Official Email) */}
                 <div className="flex flex-col gap-[6px]">
                   <div className="flex items-center justify-between">
-                    <label className="text-[14px] font-semibold text-[#1b1c1a] text-right flex items-center gap-[2px]">
+                    <label className="text-[14px] font-semibold text-[#1b1c1a] text-start flex items-center gap-[2px]">
                       <span>البريد الإلكتروني الرسمي</span>
                       <span className="text-[#ba1a1a]">*</span>
                     </label>
@@ -227,11 +227,11 @@ export function GeneralSettingsView() {
                       dir="ltr"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full bg-[#f5f3ef] text-[#1b1c1a] text-[14px] font-normal rounded-[4px] ps-[16px] pe-[40px] py-[10px] text-right border border-transparent focus:border-[#9c6402] focus:bg-white focus:outline-none transition-all"
+                      className="w-full bg-[#f5f3ef] text-[#1b1c1a] text-[14px] font-normal rounded-[4px] ps-[16px] pe-[40px] py-[10px] text-start border border-transparent focus:border-[#9c6402] focus:bg-white focus:outline-none transition-all"
                     />
                     <Mail className="absolute top-1/2 -translate-y-1/2 end-[14px] size-[16px] text-[#837565]" />
                   </div>
-                  <p className="text-[10px] font-bold text-[#837565] text-right leading-[14px]">
+                  <p className="text-[10px] font-bold text-[#837565] text-start leading-[14px]">
                     صندوق الوارد للإشعارات الآلية وإدارة المستخدمين.
                   </p>
                 </div>
@@ -239,7 +239,7 @@ export function GeneralSettingsView() {
                 {/* 1.6 كود التفعيل ورخصة النظام (License Code) - Col span 2 */}
                 <div className="flex flex-col gap-[6px] md:col-span-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-[14px] font-semibold text-[#1b1c1a] text-right">
+                    <label className="text-[14px] font-semibold text-[#1b1c1a] text-start">
                       كود التفعيل ورخصة النظام
                     </label>
                     {/* License Active Badge */}
@@ -264,8 +264,8 @@ export function GeneralSettingsView() {
                       onClick={handleCopyLicense}
                       className="absolute top-1/2 -translate-y-1/2 start-[10px] bg-white hover:bg-[#f5f3ef] border border-[#ded5c6] text-[#514537] rounded-[4px] px-[10px] py-[4px] text-[10px] font-bold flex items-center gap-[4px] transition-colors shadow-sm"
                     >
-                      <span>{copiedCode ? "تم النسخ" : "نسخ الكود"}</span>
                       <Copy className="size-[12px]" />
+                      <span>{copiedCode ? "تم النسخ" : "نسخ الكود"}</span>
                     </button>
                   </div>
                 </div>
@@ -293,7 +293,7 @@ export function GeneralSettingsView() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-[24px] gap-y-[20px] pt-[8px]">
                 {/* 2.1 المنطقة الزمنية (Timezone) */}
                 <div className="flex flex-col gap-[6px]">
-                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-right flex items-center gap-[2px]">
+                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-start flex items-center gap-[2px]">
                     <span>المنطقة الزمنية (Timezone)</span>
                     <span className="text-[#ba1a1a]">*</span>
                   </label>
@@ -318,14 +318,14 @@ export function GeneralSettingsView() {
                     </select>
                     <ChevronDown className="absolute top-1/2 -translate-y-1/2 start-[16px] size-[16px] text-[#837565] pointer-events-none" />
                   </div>
-                  <p className="text-[10px] font-bold text-[#837565] text-right leading-[14px]">
+                  <p className="text-[10px] font-bold text-[#837565] text-start leading-[14px]">
                     تعتمد عليها جدولة الجلسات القضائية وتواريخ انتهاء المهام.
                   </p>
                 </div>
 
                 {/* 2.2 اللغة الافتراضية للواجهة (Default Language) */}
                 <div className="flex flex-col gap-[6px]">
-                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-right flex items-center gap-[2px]">
+                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-start flex items-center gap-[2px]">
                     <span>اللغة الافتراضية للواجهة</span>
                     <span className="text-[#ba1a1a]">*</span>
                   </label>
@@ -347,14 +347,14 @@ export function GeneralSettingsView() {
                     </select>
                     <ChevronDown className="absolute top-1/2 -translate-y-1/2 start-[16px] size-[16px] text-[#837565] pointer-events-none" />
                   </div>
-                  <p className="text-[10px] font-bold text-[#837565] text-right leading-[14px]">
+                  <p className="text-[10px] font-bold text-[#837565] text-start leading-[14px]">
                     يمكن لكل مستخدم تخصيص لغته الشخصية من حسابه الفردي لاحقاً.
                   </p>
                 </div>
 
                 {/* 2.3 الدولة والمقر الرئيسي (Country) */}
                 <div className="flex flex-col gap-[6px]">
-                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-right flex items-center gap-[2px]">
+                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-start flex items-center gap-[2px]">
                     <span>الدولة والمقر الرئيسي</span>
                     <span className="text-[#ba1a1a]">*</span>
                   </label>
@@ -389,7 +389,7 @@ export function GeneralSettingsView() {
 
                 {/* 2.4 العملة الافتراضية (Default Currency) */}
                 <div className="flex flex-col gap-[6px]">
-                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-right flex items-center gap-[2px]">
+                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-start flex items-center gap-[2px]">
                     <span>العملة الافتراضية</span>
                     <span className="text-[#ba1a1a]">*</span>
                   </label>
@@ -406,7 +406,7 @@ export function GeneralSettingsView() {
                     </select>
                     <ChevronDown className="absolute top-1/2 -translate-y-1/2 start-[16px] size-[16px] text-[#837565] pointer-events-none" />
                   </div>
-                  <p className="text-[10px] font-bold text-[#837565] text-right leading-[14px]">
+                  <p className="text-[10px] font-bold text-[#837565] text-start leading-[14px]">
                     تُطبق على فواتير الأتعاب، السندات، وتقارير العوائد.
                   </p>
                 </div>
@@ -442,7 +442,7 @@ export function GeneralSettingsView() {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-[24px] pt-[8px]">
                 {/* 3.1 شعار المنصة والشركة (Logo Customization) - 7 cols */}
                 <div className="lg:col-span-7 flex flex-col gap-[8px]">
-                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-right">
+                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-start">
                     شعار المنصة والشركة
                   </label>
                   <div className="bg-[#f5f3ef] rounded-[8px] p-[20px] flex items-center gap-[24px]">
@@ -458,7 +458,7 @@ export function GeneralSettingsView() {
                     </div>
 
                     {/* Actions & Specs */}
-                    <div className="flex-1 flex flex-col gap-[12px] text-right">
+                    <div className="flex-1 flex flex-col gap-[12px] text-start">
                       {/* Action Buttons */}
                       <div className="flex items-center gap-[8px]">
                         <button
@@ -466,16 +466,16 @@ export function GeneralSettingsView() {
                           onClick={() => toast.info("اختر ملف الشعار الجديد بدقة 512×512")}
                           className="bg-white hover:bg-[#faf9f6] text-[#1b1c1a] text-[12px] font-semibold px-[16px] py-[8px] rounded-[4px] border border-[#eae8e4] flex items-center gap-[6px] transition-colors shadow-sm"
                         >
-                          <span>تغيير الشعار</span>
                           <Upload className="size-[14px]" />
+                          <span>تغيير الشعار</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => toast.error("لا يمكن حذف الشعار الرئيسي الافتراضي")}
                           className="bg-[rgba(186,26,26,0.1)] hover:bg-[rgba(186,26,26,0.18)] text-[#ba1a1a] text-[12px] font-semibold px-[12px] py-[8px] rounded-[4px] flex items-center gap-[6px] transition-colors"
                         >
-                          <span>حذف</span>
                           <Trash2 className="size-[13px]" />
+                          <span>حذف</span>
                         </button>
                       </div>
 
@@ -489,7 +489,7 @@ export function GeneralSettingsView() {
 
                 {/* 3.2 اللون الأساسي للعلامة التجارية (Primary Brand Color) - 5 cols */}
                 <div className="lg:col-span-5 flex flex-col gap-[8px]">
-                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-right">
+                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-start">
                     اللون الأساسي للعلامة التجارية
                   </label>
                   <div className="bg-[#f5f3ef] rounded-[8px] p-[20px] flex flex-col gap-[16px]">
@@ -516,7 +516,7 @@ export function GeneralSettingsView() {
                     </div>
 
                     {/* Quick Swatches Row */}
-                    <div className="flex flex-col gap-[8px] text-right">
+                    <div className="flex flex-col gap-[8px] text-start">
                       <span className="text-[10px] font-semibold text-[#514537]">
                         الألوان الملكية المعتمدة:
                       </span>
@@ -569,7 +569,7 @@ export function GeneralSettingsView() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-[24px] pt-[8px]">
                 {/* 4.1 فيديو دليل إعداد Telegram */}
                 <div className="flex flex-col gap-[6px]">
-                  <div className="flex items-center gap-[6px] text-right">
+                  <div className="flex items-center gap-[6px] text-start">
                     <span className="size-[8px] rounded-full bg-[#0ea5e9]" />
                     <label className="text-[14px] font-semibold text-[#1b1c1a]">
                       فيديو دليل إعداد Telegram
@@ -593,14 +593,14 @@ export function GeneralSettingsView() {
                       <ExternalLink className="size-[13px]" />
                     </a>
                   </div>
-                  <p className="text-[10px] font-bold text-[#837565] text-right leading-[14px]">
+                  <p className="text-[10px] font-bold text-[#837565] text-start leading-[14px]">
                     توجيه المحامين لربط البوت التفاعلي لملخصات القضايا اليومية.
                   </p>
                 </div>
 
                 {/* 4.2 فيديو دليل إعداد WhatsApp */}
                 <div className="flex flex-col gap-[6px]">
-                  <div className="flex items-center gap-[6px] text-right">
+                  <div className="flex items-center gap-[6px] text-start">
                     <span className="size-[8px] rounded-full bg-[#10b981]" />
                     <label className="text-[14px] font-semibold text-[#1b1c1a]">
                       فيديو دليل إعداد WhatsApp
@@ -624,14 +624,14 @@ export function GeneralSettingsView() {
                       <ExternalLink className="size-[13px]" />
                     </a>
                   </div>
-                  <p className="text-[10px] font-bold text-[#837565] text-right leading-[14px]">
+                  <p className="text-[10px] font-bold text-[#837565] text-start leading-[14px]">
                     مرجع إعداد الحساب الرسمي للأعمال وإرسال إخطارات الجلسات.
                   </p>
                 </div>
 
                 {/* 4.3 رابط توثيق API للمطورين */}
                 <div className="flex flex-col gap-[6px]">
-                  <div className="flex items-center text-right">
+                  <div className="flex items-center text-start">
                     <label className="text-[14px] font-semibold text-[#1b1c1a]">
                       رابط توثيق API للمطورين
                     </label>
@@ -654,7 +654,7 @@ export function GeneralSettingsView() {
                       <ExternalLink className="size-[13px]" />
                     </a>
                   </div>
-                  <p className="text-[10px] font-bold text-[#837565] text-right leading-[14px]">
+                  <p className="text-[10px] font-bold text-[#837565] text-start leading-[14px]">
                     مستندات RESTful API لربط الأنظمة القضائية والمالية.
                   </p>
                 </div>
@@ -671,8 +671,8 @@ export function GeneralSettingsView() {
                   disabled={isSaving}
                   className="bg-[#9c6402] hover:bg-[#835401] active:bg-[#6c4501] text-white px-[32px] py-[10px] rounded-[6px] font-semibold text-[14px] flex items-center gap-[8px] transition-all shadow-[0px_1px_2px_rgba(0,0,0,0.05)] cursor-pointer disabled:opacity-70"
                 >
-                  <span>{isSaving ? "جارٍ الحفظ..." : "حفظ التغييرات"}</span>
                   <Check className="size-[18px] stroke-[2.5]" />
+                  <span>{isSaving ? "جارٍ الحفظ..." : "حفظ التغييرات"}</span>
                 </button>
 
                 {/* Save Draft */}

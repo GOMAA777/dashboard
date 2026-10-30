@@ -60,7 +60,7 @@ export function TicketDetailsModal({
         data-node-id="1:15540"
       >
         {/* Ticket Title & Metadata */}
-        <div className="flex flex-col gap-[6px] text-right">
+        <div className="flex flex-col gap-[6px] text-start">
           <div className="flex items-center gap-[8px] flex-wrap">
             <span className="font-mono font-bold text-[#625d5d] text-[12px] bg-[#f0eeea] px-[8px] py-[2px] rounded-[3px]">
               {ticket.ticketNumber}
@@ -173,7 +173,7 @@ export function TicketDetailsModal({
               </div>
             </div>
 
-            <p className="text-[#1b1c1a] font-normal text-[14px] leading-[26px] text-right whitespace-pre-line">
+            <p className="text-[#1b1c1a] font-normal text-[14px] leading-[26px] text-start whitespace-pre-line">
               {ticket.description}
             </p>
           </div>
@@ -184,7 +184,7 @@ export function TicketDetailsModal({
             data-node-id="1:15598"
           >
             <div className="border-b border-[#eae8e4] pb-[12px]">
-              <h3 className="text-[#1b1c1a] font-bold text-[16px] leading-[24px] text-right">
+              <h3 className="text-[#1b1c1a] font-bold text-[16px] leading-[24px] text-start">
                 المرفقات والملفات الفنية المرفوعة ({ticket.attachments.length})
               </h3>
             </div>
@@ -233,8 +233,8 @@ export function TicketDetailsModal({
                     </div>
 
                     <div className="flex items-center gap-[4px] text-[#047857] text-[10px] font-bold">
-                      <span>{file.verifiedStatus}</span>
                       <ShieldCheck className="size-[12px]" />
+                      <span>{file.verifiedStatus}</span>
                     </div>
                   </div>
                 </div>
@@ -258,7 +258,7 @@ export function TicketDetailsModal({
               {ticket.messages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`p-[16px] rounded-[8px] flex flex-col gap-[8px] text-right ${
+                  className={`p-[16px] rounded-[8px] flex flex-col gap-[8px] text-start ${
                     msg.isStaff
                       ? "bg-[rgba(255,221,182,0.15)] border border-[#9c6402]/20 me-[24px]"
                       : "bg-[#f5f3ef] border border-[#eae8e4] ms-[24px]"
@@ -342,7 +342,7 @@ export function TicketDetailsModal({
               {ticket.auditEvents.map((evt) => (
                 <div
                   key={evt.id}
-                  className="flex items-start justify-between text-right border-b border-[#eae8e4]/40 pb-[8px] last:border-0"
+                  className="flex items-start justify-between text-start border-b border-[#eae8e4]/40 pb-[8px] last:border-0"
                 >
                   <span className="text-[#837565] text-[11px] font-mono shrink-0">
                     {evt.timestamp}
@@ -377,7 +377,7 @@ export function TicketDetailsModal({
               </h3>
             </div>
 
-            <div className="flex flex-col gap-[10px] text-right">
+            <div className="flex flex-col gap-[10px] text-start">
               <div>
                 <span className="font-bold text-[#1b1c1a] text-[14px] block">
                   {ticket.client.firm}
@@ -388,13 +388,13 @@ export function TicketDetailsModal({
               </div>
 
               <div className="flex flex-col gap-[6px] pt-[4px] border-t border-[#eae8e4]/60 text-[12px] text-[#514537]">
-                <div className="flex items-center gap-[6px] justify-end">
-                  <span>{ticket.client.email}</span>
+                <div className="flex items-center gap-[6px]">
                   <Mail className="size-[13px] text-[#837565]" />
+                  <span>{ticket.client.email}</span>
                 </div>
-                <div className="flex items-center gap-[6px] justify-end">
-                  <span dir="ltr">{ticket.client.phone}</span>
+                <div className="flex items-center gap-[6px]">
                   <Phone className="size-[13px] text-[#837565]" />
+                  <span dir="ltr">{ticket.client.phone}</span>
                 </div>
               </div>
             </div>
@@ -413,7 +413,7 @@ export function TicketDetailsModal({
               <h3 className="text-[#1b1c1a] font-bold text-[15px]">الموظف المكلف</h3>
             </div>
 
-            <div className="flex items-center gap-[12px] text-right">
+            <div className="flex items-center gap-[12px] text-start">
               <div className="bg-[#9c6402] text-white font-bold text-[12px] size-[40px] rounded-[10px] flex items-center justify-center shrink-0">
                 {ticket.assignee.initials}
               </div>
@@ -433,13 +433,13 @@ export function TicketDetailsModal({
 
           {/* Card 3: Ticket Info & SLA Matrix */}
           <div className="bg-white rounded-[8px] p-[20px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 flex flex-col gap-[14px]">
-            <div className="border-b border-[#eae8e4] pb-[10px] text-right">
+            <div className="border-b border-[#eae8e4] pb-[10px] text-start">
               <h3 className="text-[#1b1c1a] font-bold text-[15px]">
                 اتفاقية مستوى الخدمة (SLA)
               </h3>
             </div>
 
-            <div className="flex flex-col gap-[10px] text-right text-[12px]">
+            <div className="flex flex-col gap-[10px] text-start text-[12px]">
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-[#1b1c1a]">{ticket.channelLabel}</span>
                 <span className="text-[#514537]">قناة البلاغ:</span>

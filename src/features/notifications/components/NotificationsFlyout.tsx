@@ -131,7 +131,6 @@ export function NotificationsFlyout({ isOpen, onClose }: NotificationsFlyoutProp
       ref={containerRef}
       className="absolute end-0 start-auto rtl:left-0 rtl:right-auto ltr:right-0 ltr:left-auto top-full mt-2 w-[420px] max-w-[calc(100vw-32px)] bg-white rounded-[8px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] border border-[#eae8e4] overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150 font-['Cairo',sans-serif]"
       data-node-id="1:24656"
-      dir="rtl"
     >
       {/* 1. Dropdown Header (Figma 1:24657) */}
       <div className="bg-white border-b border-[#f0eeea] p-[16px] flex flex-col gap-[10px]">
@@ -249,7 +248,7 @@ export function NotificationsFlyout({ isOpen, onClose }: NotificationsFlyoutProp
               </div>
 
               {/* Content Body */}
-              <div className="flex-1 flex flex-col gap-[3px] text-right">
+              <div className="flex-1 flex flex-col gap-[3px] text-start">
                 {/* Title & Timestamp Row */}
                 <div className="flex items-center justify-between gap-[8px]">
                   <h3 className="text-[13px] font-bold text-[#1b1c1a] leading-[18px] group-hover:text-[#9c6402] transition-colors">

@@ -51,37 +51,37 @@ export function SectionTitlesTab() {
           </div>
           <div className="flex flex-col gap-[12px]">
             <div>
-              <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+              <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
                 عنوان قسم الشركاء (Partner Section Title)
               </label>
               <input
                 type="text"
                 value={data.partnerSectionTitle}
                 onChange={(e) => handleChange("partnerSectionTitle", e.target.value)}
-                className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-right"
+                className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-start"
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-[14px]">
               <div>
-                <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+                <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
                   عنوان قسم قصتنا (Story Section Title)
                 </label>
                 <input
                   type="text"
                   value={data.storySectionTitle}
                   onChange={(e) => handleChange("storySectionTitle", e.target.value)}
-                  className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-right"
+                  className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-start"
                 />
               </div>
               <div>
-                <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+                <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
                   الوصف الفرعي لقسم قصتنا (Story Section Subtitle)
                 </label>
                 <input
                   type="text"
                   value={data.storySectionSubtitle}
                   onChange={(e) => handleChange("storySectionSubtitle", e.target.value)}
-                  className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-right"
+                  className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-start"
                 />
               </div>
             </div>
@@ -96,37 +96,37 @@ export function SectionTitlesTab() {
           </div>
           <div className="flex flex-col gap-[12px]">
             <div>
-              <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+              <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
                 عنوان قسم المزايا الفريدة (Unique Feature Section Title)
               </label>
               <input
                 type="text"
                 value={data.uniqueFeatureSectionTitle}
                 onChange={(e) => handleChange("uniqueFeatureSectionTitle", e.target.value)}
-                className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-right"
+                className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-start"
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-[14px]">
               <div>
-                <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+                <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
                   عنوان قسم المميزات (Feature Section Title)
                 </label>
                 <input
                   type="text"
                   value={data.featureSectionTitle}
                   onChange={(e) => handleChange("featureSectionTitle", e.target.value)}
-                  className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-right"
+                  className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-start"
                 />
               </div>
               <div>
-                <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+                <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
                   الوصف الفرعي لقسم المميزات (Feature Section Subtitle)
                 </label>
                 <input
                   type="text"
                   value={data.featureSectionSubtitle}
                   onChange={(e) => handleChange("featureSectionSubtitle", e.target.value)}
-                  className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-right"
+                  className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-start"
                 />
               </div>
             </div>
@@ -141,47 +141,47 @@ export function SectionTitlesTab() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-[14px]">
             <div>
-              <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+              <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
                 عنوان قسم آراء العملاء (Testimonial Section Title)
               </label>
               <input
                 type="text"
                 value={data.testimonialSectionTitle}
                 onChange={(e) => handleChange("testimonialSectionTitle", e.target.value)}
-                className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-right"
+                className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-start"
               />
             </div>
             <div>
-              <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+              <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
                 الوصف الفرعي لقسم آراء العملاء (Testimonial Section Subtitle)
               </label>
               <input
                 type="text"
                 value={data.testimonialSectionSubtitle}
                 onChange={(e) => handleChange("testimonialSectionSubtitle", e.target.value)}
-                className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-right"
+                className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-start"
               />
             </div>
             <div>
-              <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+              <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
                 عنوان قسم خطط الأسعار (Pricing Section Title)
               </label>
               <input
                 type="text"
                 value={data.pricingSectionTitle}
                 onChange={(e) => handleChange("pricingSectionTitle", e.target.value)}
-                className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-right"
+                className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-start"
               />
             </div>
             <div>
-              <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+              <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
                 الوصف الفرعي لقسم خطط الأسعار (Pricing Section Subtitle)
               </label>
               <input
                 type="text"
                 value={data.pricingSectionSubtitle}
                 onChange={(e) => handleChange("pricingSectionSubtitle", e.target.value)}
-                className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-right"
+                className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-start"
               />
             </div>
           </div>
@@ -195,37 +195,37 @@ export function SectionTitlesTab() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-[14px]">
             <div>
-              <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+              <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
                 عنوان قسم المزايا التنافسية (Advantage Section Title)
               </label>
               <input
                 type="text"
                 value={data.advantageSectionTitle}
                 onChange={(e) => handleChange("advantageSectionTitle", e.target.value)}
-                className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-right"
+                className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-start"
               />
             </div>
             <div>
-              <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+              <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
                 الوصف الفرعي لقسم المزايا التنافسية (Advantage Section Subtitle)
               </label>
               <input
                 type="text"
                 value={data.advantageSectionSubtitle}
                 onChange={(e) => handleChange("advantageSectionSubtitle", e.target.value)}
-                className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-right"
+                className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-start"
               />
             </div>
           </div>
           <div>
-            <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+            <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
               عنوان قسم الأسئلة الشائعة (FAQ Section Title)
             </label>
             <input
               type="text"
               value={data.faqSectionTitle}
               onChange={(e) => handleChange("faqSectionTitle", e.target.value)}
-              className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-right"
+              className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-start"
             />
           </div>
         </div>
@@ -239,8 +239,8 @@ export function SectionTitlesTab() {
               disabled={isSaving}
               className="bg-[#9c6402] hover:bg-[#835401] active:bg-[#6c4501] text-white px-[28px] py-[10px] rounded-[8px] text-[13px] font-semibold flex items-center gap-[8px] shadow-xs transition-all cursor-pointer disabled:opacity-75"
             >
-              <span>{isSaving ? "جارٍ الحفظ..." : "حفظ وتحديث"}</span>
               <Check className="size-[16px]" />
+              <span>{isSaving ? "جارٍ الحفظ..." : "حفظ وتحديث"}</span>
             </button>
             <button
               type="button"
@@ -313,21 +313,21 @@ export function SectionTitlesTab() {
 
           {/* Cards Sample */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-[14px] w-full pt-[14px]">
-            <div className="bg-white border border-[#f3efe6] rounded-[8px] p-[16px] text-right flex flex-col gap-[6px]">
+            <div className="bg-white border border-[#f3efe6] rounded-[8px] p-[16px] text-start flex flex-col gap-[6px]">
               <div className="size-[32px] rounded-[6px] bg-[#fef3c7] text-[#92400e] flex items-center justify-center">
                 <Sparkles className="size-[16px]" />
               </div>
               <h4 className="text-[13px] font-bold text-[#1c1917]">تسويق عبر واتساب</h4>
               <p className="text-[11px] text-[#78716c] leading-[18px]">حملات ذكية متصلة مع عملائك بدقة عالية واستجابة فورية.</p>
             </div>
-            <div className="bg-white border border-[#f3efe6] rounded-[8px] p-[16px] text-right flex flex-col gap-[6px]">
+            <div className="bg-white border border-[#f3efe6] rounded-[8px] p-[16px] text-start flex flex-col gap-[6px]">
               <div className="size-[32px] rounded-[6px] bg-[#fef3c7] text-[#92400e] flex items-center justify-center">
                 <Scale className="size-[16px]" />
               </div>
               <h4 className="text-[13px] font-bold text-[#1c1917]">إدارة ملفات القضايا</h4>
               <p className="text-[11px] text-[#78716c] leading-[18px]">متابعة الجلسات والمواعيد القضائية بشكل آلي بالكامل.</p>
             </div>
-            <div className="bg-white border border-[#f3efe6] rounded-[8px] p-[16px] text-right flex flex-col gap-[6px]">
+            <div className="bg-white border border-[#f3efe6] rounded-[8px] p-[16px] text-start flex flex-col gap-[6px]">
               <div className="size-[32px] rounded-[6px] bg-[#fef3c7] text-[#92400e] flex items-center justify-center">
                 <ShieldCheck className="size-[16px]" />
               </div>

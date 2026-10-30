@@ -16,10 +16,9 @@ export function PlansManagementHeader({
     <div
       className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] flex flex-col md:flex-row md:items-center justify-between gap-[16px] w-full font-['Cairo',sans-serif]"
       data-node-id="1:2463"
-      dir="rtl"
     >
       {/* Right / Start (in RTL): Title & Description */}
-      <div className="flex flex-col text-right">
+      <div className="flex flex-col text-start">
         <h1 className="text-[26px] leading-[36px] font-bold text-[#1b1c1a]">
           الباقات والأسعار
         </h1>

@@ -106,7 +106,7 @@ export function SubscriptionRowActionMenu({
   };
 
   return (
-    <div className="relative inline-block text-right">
+    <div className="relative inline-block text-start">
       <button
         ref={buttonRef}
         type="button"
@@ -133,7 +133,6 @@ export function SubscriptionRowActionMenu({
               zIndex: 9999,
             }}
             className="w-44 bg-white dark:bg-[#1e1c1a] rounded-[6px] shadow-[0px_8px_24px_rgba(0,0,0,0.14)] border border-[#f0eeea] dark:border-[#2f2a24] py-1 text-[12px] font-['Cairo'] animate-in fade-in-50 zoom-in-95 select-none"
-            dir="rtl"
           >
             <button
               type="button"
@@ -141,10 +140,10 @@ export function SubscriptionRowActionMenu({
                 setIsOpen(false);
                 onViewDetails(subscription);
               }}
-              className="w-full flex items-center justify-between px-3 py-2 text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] transition-colors cursor-pointer"
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] transition-colors cursor-pointer"
             >
+              <Eye className="w-3.5 h-3.5 text-[#9c6402] shrink-0" />
               <span>عرض التفاصيل</span>
-              <Eye className="w-3.5 h-3.5 text-[#9c6402]" />
             </button>
 
             <button
@@ -153,10 +152,10 @@ export function SubscriptionRowActionMenu({
                 setIsOpen(false);
                 onEdit?.(subscription);
               }}
-              className="w-full flex items-center justify-between px-3 py-2 text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] transition-colors cursor-pointer"
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] transition-colors cursor-pointer"
             >
+              <Edit3 className="w-3.5 h-3.5 text-[#514537] dark:text-[#a89f91] shrink-0" />
               <span>تعديل الباقة</span>
-              <Edit3 className="w-3.5 h-3.5 text-[#514537] dark:text-[#a89f91]" />
             </button>
 
             <button
@@ -165,10 +164,10 @@ export function SubscriptionRowActionMenu({
                 setIsOpen(false);
                 onRenew?.(subscription);
               }}
-              className="w-full flex items-center justify-between px-3 py-2 text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] transition-colors cursor-pointer"
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] transition-colors cursor-pointer"
             >
+              <RefreshCw className="w-3.5 h-3.5 text-[#059669] shrink-0" />
               <span>تجديد فوري</span>
-              <RefreshCw className="w-3.5 h-3.5 text-[#059669]" />
             </button>
 
             <div className="h-px bg-[#f0eeea] dark:bg-[#2f2a24] my-1" />
@@ -179,10 +178,10 @@ export function SubscriptionRowActionMenu({
                 setIsOpen(false);
                 onCancel?.(subscription);
               }}
-              className="w-full flex items-center justify-between px-3 py-2 text-[#dc2626] dark:text-[#f87171] hover:bg-[#fef2f2] dark:hover:bg-[#311616] transition-colors cursor-pointer"
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-[#dc2626] dark:text-[#f87171] hover:bg-[#fef2f2] dark:hover:bg-[#311616] transition-colors cursor-pointer"
             >
+              <XCircle className="w-3.5 h-3.5 text-[#dc2626] dark:text-[#f87171] shrink-0" />
               <span>إلغاء الاشتراك</span>
-              <XCircle className="w-3.5 h-3.5 text-[#dc2626] dark:text-[#f87171]" />
             </button>
           </div>,
           document.body

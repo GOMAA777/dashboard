@@ -9,7 +9,7 @@ interface CurrencyEmptyStateProps {
 
 export function CurrencyEmptyState({ onAddCurrency }: CurrencyEmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-[48px] px-[20px] text-center" dir="rtl">
+    <div className="flex flex-col items-center justify-center py-[48px] px-[20px] text-center">
       {/* Icon Graphic Container (Figma 1:17887) */}
       <div className="relative size-[96px] rounded-[20px] bg-[#fbf6ee] border border-[#f0e6d6] flex items-center justify-center mb-[24px] shadow-sm">
         <RefreshCw className="size-[42px] text-[#9c6402] stroke-[1.75]" />
@@ -40,7 +40,7 @@ export function CurrencyEmptyState({ onAddCurrency }: CurrencyEmptyStateProps) {
       </button>
 
       {/* Regulatory Info Box */}
-      <div className="bg-[#f5f3ef] border border-[#eae8e4] rounded-[8px] p-[16px] max-w-[760px] w-full flex items-start gap-[12px] text-right">
+      <div className="bg-[#f5f3ef] border border-[#eae8e4] rounded-[8px] p-[16px] max-w-[760px] w-full flex items-start gap-[12px] text-start">
         <div className="size-[24px] rounded-full bg-white flex items-center justify-center text-[#9c6402] shrink-0 mt-[2px] shadow-xs">
           <Info className="size-[14px]" />
         </div>

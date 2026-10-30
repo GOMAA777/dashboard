@@ -31,7 +31,6 @@ export function LoginAsEmployeeModal({
   return (
     <div
       className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
-      dir="rtl"
     >
       <div
         className="bg-white rounded-[12px] border border-[#e6e2dc] shadow-2xl max-w-[580px] w-full overflow-hidden"
@@ -47,7 +46,7 @@ export function LoginAsEmployeeModal({
             <X className="size-[18px]" />
           </button>
 
-          <div className="flex items-start gap-3 text-right">
+          <div className="flex items-start gap-3 text-start">
             <div>
               <div className="flex items-center gap-2 justify-end">
                 <span className="text-[11px] font-bold text-[#8e5927] bg-[#fbf5ed] px-2 py-0.5 rounded-[4px] border border-[#f2e2ce]">
@@ -78,7 +77,7 @@ export function LoginAsEmployeeModal({
             </span>
 
             <div className="flex items-center gap-3">
-              <div className="text-right">
+              <div className="text-start">
                 <h3 className="font-bold text-[14px] text-[#1b1c1a]">
                   {employee.name}
                 </h3>
@@ -112,7 +111,7 @@ export function LoginAsEmployeeModal({
           </div>
 
           {/* Info notice box */}
-          <div className="bg-[#faf8f5] border border-[#e8e2d8] rounded-[8px] p-3.5 flex items-start gap-2.5 text-right">
+          <div className="bg-[#faf8f5] border border-[#e8e2d8] rounded-[8px] p-3.5 flex items-start gap-2.5 text-start">
             <Info className="size-[17px] text-[#9c6402] shrink-0 mt-0.5" />
             <p className="text-[12px] text-[#514537] leading-[20px]">
               ستتمكن من معاينة النظام وفقًا لصلاحيات هذا الموظف للمساعدة في تشخيص مشكلات الوصول وحل التذاكر.
@@ -152,10 +151,10 @@ export function LoginAsEmployeeModal({
           <button
             type="button"
             onClick={onConfirm}
-            className="px-5 py-2.5 rounded-[6px] bg-[#9c6402] hover:bg-[#855402] text-white text-[13px] font-bold flex items-center gap-2 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors"
+            className="px-5 py-2.5 rounded-[6px] bg-[#9c6402] hover:bg-[#855402] text-white text-[13px] font-bold flex items-center gap-2 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors cursor-pointer"
           >
+            <ArrowLeft className="size-[15px] rtl:rotate-0 ltr:rotate-180" />
             <span>بدء المعاينة</span>
-            <ArrowLeft className="size-[15px]" />
           </button>
 
           <button

@@ -264,7 +264,7 @@ export function ClientManagementTable({
 
       {/* Table Data */}
       <div className="overflow-x-auto scrollbar-none w-full">
-        <table className="w-full text-right border-collapse">
+        <table className="w-full text-start border-collapse">
           <thead>
             <tr className="bg-[#f5f3ef] dark:bg-[#281c15] border-b border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[18px] font-semibold">
               <th className="py-[12px] px-[16px] whitespace-nowrap">اسم المكتب والترخيص</th>

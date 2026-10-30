@@ -13,7 +13,7 @@ export function TelemetryCards({
   activeCount,
 }: TelemetryCardsProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full" dir="rtl">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
       {/* 1. Total Gateways Card */}
       <div className="bg-white dark:bg-[#221812] rounded-[16px] p-5 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] flex items-center justify-between border border-[#eae8e4]/60 dark:border-[#38271c] text-start">
         {/* Right side in RTL: Text */}

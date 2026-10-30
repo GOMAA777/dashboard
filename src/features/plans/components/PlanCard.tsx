@@ -46,7 +46,6 @@ export function PlanCard({
           ? "border-2 border-[#9c6402] dark:border-[#e29d38] shadow-[0px_8px_24px_rgba(156,100,2,0.12)] dark:shadow-[0px_8px_24px_rgba(0,0,0,0.4)] pt-[24px]"
           : "border border-[#eae8e4] dark:border-[#38271c] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] pt-[20px]"
       } px-[20px] pb-[20px]`}
-      dir="rtl"
     >
       {/* Popular Ribbon Tag */}
       {plan.isPopular && (
@@ -94,7 +93,7 @@ export function PlanCard({
           </button>
 
           {isMenuOpen && (
-            <div className="absolute end-0 top-full mt-1 w-[160px] bg-white dark:bg-[#1e1c1a] rounded-[6px] shadow-lg border border-[#e2ded7] dark:border-[#38271c] py-[4px] z-20 text-right animate-in fade-in duration-100 font-['Cairo',sans-serif]">
+            <div className="absolute end-0 top-full mt-1 w-[160px] bg-white dark:bg-[#1e1c1a] rounded-[6px] shadow-lg border border-[#e2ded7] dark:border-[#38271c] py-[4px] z-20 text-start animate-in fade-in duration-100 font-['Cairo',sans-serif]">
               <button
                 type="button"
                 onClick={() => {
@@ -102,7 +101,7 @@ export function PlanCard({
                   if (onViewDetails) onViewDetails(plan);
                   else onEdit(plan);
                 }}
-                className="w-full text-right px-[12px] py-[6px] text-[12px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#faf8f5] dark:hover:bg-[#2c2621] cursor-pointer"
+                className="w-full text-start px-[12px] py-[6px] text-[12px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#faf8f5] dark:hover:bg-[#2c2621] cursor-pointer"
               >
                 تعديل الباقة
               </button>
@@ -114,7 +113,7 @@ export function PlanCard({
                   if (onViewSubscribers) onViewSubscribers(plan);
                   else if (onViewDetails) onViewDetails(plan);
                 }}
-                className="w-full text-right px-[12px] py-[6px] text-[12px] font-semibold text-[#514537] dark:text-[#cdc5bd] hover:bg-[#faf8f5] dark:hover:bg-[#2c2621] cursor-pointer"
+                className="w-full text-start px-[12px] py-[6px] text-[12px] font-semibold text-[#514537] dark:text-[#cdc5bd] hover:bg-[#faf8f5] dark:hover:bg-[#2c2621] cursor-pointer"
               >
                 عرض المشتركين ({plan.subscribedFirmsCount})
               </button>
@@ -125,7 +124,7 @@ export function PlanCard({
                   setIsMenuOpen(false);
                   if (onToggleActive) onToggleActive(plan);
                 }}
-                className="w-full text-right px-[12px] py-[6px] text-[12px] font-semibold text-[#9c6402] dark:text-[#e29d38] hover:bg-[#fbf6ee] dark:hover:bg-[#2d1f16] cursor-pointer"
+                className="w-full text-start px-[12px] py-[6px] text-[12px] font-semibold text-[#9c6402] dark:text-[#e29d38] hover:bg-[#fbf6ee] dark:hover:bg-[#2d1f16] cursor-pointer"
               >
                 {plan.isActive ? "تعطيل الباقة" : "تفعيل الباقة"}
               </button>
@@ -136,7 +135,7 @@ export function PlanCard({
                   setIsMenuOpen(false);
                   if (onDelete) onDelete(plan);
                 }}
-                className="w-full text-right px-[12px] py-[6px] text-[12px] font-semibold text-[#b91c1c] dark:text-[#f87171] hover:bg-[#fee2e2]/40 dark:hover:bg-[#311616] border-t border-[#f0eeea] dark:border-[#2f2a24] cursor-pointer"
+                className="w-full text-start px-[12px] py-[6px] text-[12px] font-semibold text-[#b91c1c] dark:text-[#f87171] hover:bg-[#fee2e2]/40 dark:hover:bg-[#311616] border-t border-[#f0eeea] dark:border-[#2f2a24] cursor-pointer"
               >
                 حذف الباقة
               </button>
@@ -146,7 +145,7 @@ export function PlanCard({
       </div>
 
       {/* Plan Title & Subtitle */}
-      <div className="flex flex-col text-right mb-[16px]">
+      <div className="flex flex-col text-start mb-[16px]">
         <h2 className="text-[20px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[28px]">
           {plan.name}
         </h2>
@@ -156,7 +155,7 @@ export function PlanCard({
       </div>
 
       {/* Pricing Block */}
-      <div className="bg-[#f5f3ef]/60 dark:bg-[#281c15] border border-transparent dark:border-[#38271c] rounded-[6px] p-[16px] flex flex-col text-right mb-[16px]">
+      <div className="bg-[#f5f3ef]/60 dark:bg-[#281c15] border border-transparent dark:border-[#38271c] rounded-[6px] p-[16px] flex flex-col text-start mb-[16px]">
         <div className="flex items-baseline gap-[6px]">
           {plan.isEnterprise && (
             <span className="text-[12px] font-bold text-[#514537] dark:text-[#cdc5bd]">يبدأ من</span>
@@ -185,7 +184,7 @@ export function PlanCard({
       </div>
 
       {/* Limits & Features Checklist */}
-      <div className="flex flex-col gap-[10px] text-right text-[12px] text-[#1b1c1a] dark:text-[#fdfbf7] flex-1 mb-[20px]">
+      <div className="flex flex-col gap-[10px] text-start text-[12px] text-[#1b1c1a] dark:text-[#fdfbf7] flex-1 mb-[20px]">
         <span className="text-[11px] font-bold text-[#837565] dark:text-[#8e8680] mb-[2px]">
           الحدود والمميزات المتضمنة:
         </span>

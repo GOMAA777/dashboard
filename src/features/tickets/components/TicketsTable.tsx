@@ -125,7 +125,7 @@ export function TicketsTable({
       data-name="Main Content Envelope"
     >
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-right">
+        <table className="w-full border-collapse text-start">
           {/* Header Row */}
           <thead>
             <tr className="bg-[#f0eeea] h-[54px] border-b border-[#eae8e4] text-[#514537] text-[11px] font-bold tracking-[0.5px]">
@@ -286,7 +286,7 @@ export function TicketsTable({
 
                         {/* Dropdown Menu */}
                         {isMenuOpen && (
-                          <div className="absolute start-0 sm:end-0 mt-[4px] w-[180px] bg-white rounded-[8px] shadow-[0px_8px_24px_rgba(0,0,0,0.12)] border border-[#eae8e4] py-[4px] z-50 text-right">
+                          <div className="absolute start-0 sm:end-0 mt-[4px] w-[180px] bg-white rounded-[8px] shadow-[0px_8px_24px_rgba(0,0,0,0.12)] border border-[#eae8e4] py-[4px] z-50 text-start">
                             <button
                               type="button"
                               onClick={() => {

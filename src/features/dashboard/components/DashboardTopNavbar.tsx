@@ -152,10 +152,10 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
           <div className="flex items-center gap-[8px] ps-[4px]" data-node-id="1:643">
             <div className="flex flex-col text-start">
               <span className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[17.5px] font-sans">
-                م. عبد العزيز بن فهد
+                {currentLanguage === "en" ? "Eng. Abdulaziz Bin Fahad" : "م. عبد العزيز بن فهد"}
               </span>
               <span className="text-[10px] font-semibold text-[#514537] dark:text-[#8e8680] leading-[12.5px]">
-                مشرف النظام العام
+                {currentLanguage === "en" ? "System Super Admin" : "مشرف النظام العام"}
               </span>
             </div>
 
@@ -165,7 +165,7 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
             >
               <Image
                 src={userAvatarImg}
-                alt="م. عبد العزيز بن فهد"
+                alt={currentLanguage === "en" ? "Eng. Abdulaziz Bin Fahad" : "م. عبد العزيز بن فهد"}
                 width={32}
                 height={32}
                 className="w-full h-full object-cover"
@@ -183,7 +183,7 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
         {/* Subtle Platform Status indicator */}
         <div className="hidden md:flex items-center gap-2 text-[11px] text-[#8e8680] dark:text-[#a89f91]">
           <span className="size-1.5 rounded-full bg-[#10b981] animate-pulse" />
-          <span>منصة الجودي السحابية</span>
+          <span>{currentLanguage === "en" ? "El-Joudy Cloud Platform" : "منصة الجودي السحابية"}</span>
         </div>
       </div>
     </header>

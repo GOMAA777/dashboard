@@ -111,7 +111,7 @@ export function SubscriptionManagementTable({
       {
         accessorKey: "id",
         header: () => (
-          <div className="text-right font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
+          <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
             رقم الاشتراك
           </div>
         ),
@@ -124,7 +124,7 @@ export function SubscriptionManagementTable({
               <button
                 type="button"
                 onClick={() => onViewDetails(sub)}
-                className="font-['Cairo'] font-bold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] hover:text-[#9c6402] dark:hover:text-[#f59e0b] tracking-tight transition-colors text-right cursor-pointer"
+                className="font-['Cairo'] font-bold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] hover:text-[#9c6402] dark:hover:text-[#f59e0b] tracking-tight transition-colors text-start cursor-pointer"
               >
                 {sub.id}
               </button>
@@ -135,14 +135,14 @@ export function SubscriptionManagementTable({
       {
         accessorKey: "firm.name",
         header: () => (
-          <div className="text-right font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
+          <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
             اسم المكتب والترخيص
           </div>
         ),
         cell: ({ row }) => {
           const { firm } = row.original;
           return (
-            <div className="flex flex-col items-start text-right">
+            <div className="flex flex-col items-start text-start">
               <span className="font-['Cairo'] font-semibold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] leading-snug">
                 {firm.name}
               </span>
@@ -158,14 +158,14 @@ export function SubscriptionManagementTable({
       {
         accessorKey: "planName",
         header: () => (
-          <div className="text-right font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
+          <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
             الباقة والدورة
           </div>
         ),
         cell: ({ row }) => {
           const sub = row.original;
           return (
-            <div className="flex flex-col items-start text-right">
+            <div className="flex flex-col items-start text-start">
               <span className="font-['Cairo'] font-semibold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7]">
                 {sub.planName}
               </span>
@@ -179,7 +179,7 @@ export function SubscriptionManagementTable({
       {
         accessorKey: "startDate",
         header: () => (
-          <div className="text-right font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
+          <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
             تاريخ البداية
           </div>
         ),
@@ -192,7 +192,7 @@ export function SubscriptionManagementTable({
       {
         accessorKey: "renewalDate",
         header: () => (
-          <div className="text-right font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd] leading-[16px]">
+          <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd] leading-[16px]">
             <div>موعد التجديد</div>
             <div>القادم</div>
           </div>
@@ -201,7 +201,7 @@ export function SubscriptionManagementTable({
           const sub = row.original;
           const isUrgent = sub.daysUrgency === "urgent";
           return (
-            <div className="flex flex-col items-start text-right">
+            <div className="flex flex-col items-start text-start">
               <span className="font-['Cairo'] text-[13px] text-[#514537] dark:text-[#d1c9bd]">
                 {sub.renewalDate}
               </span>
@@ -223,7 +223,7 @@ export function SubscriptionManagementTable({
       {
         accessorKey: "paymentMethod",
         header: () => (
-          <div className="text-right font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
+          <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
             طريقة الدفع
           </div>
         ),
@@ -234,7 +234,7 @@ export function SubscriptionManagementTable({
               <div className="bg-[#f0eeea] dark:bg-[#2c2621] px-1.5 py-0.5 rounded-[2px] text-[#514537] dark:text-[#a89f91] font-['Cairo'] font-bold text-[9px] shrink-0">
                 {pm.badgeLabel}
               </div>
-              <div className="flex flex-col items-start text-right">
+              <div className="flex flex-col items-start text-start">
                 <span className="font-['Cairo'] text-[12px] text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-1">
                   {pm.cardNumber && <span dir="ltr">{pm.cardNumber}</span>}
                 </span>
@@ -249,7 +249,7 @@ export function SubscriptionManagementTable({
       {
         accessorKey: "status",
         header: () => (
-          <div className="text-right font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
+          <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
             الحالة
           </div>
         ),
@@ -312,7 +312,7 @@ export function SubscriptionManagementTable({
     >
       {/* Table Body Area - Clean responsive container without forced scrollbars */}
       <div className="overflow-x-auto w-full max-w-full">
-        <table className="w-full border-collapse text-right">
+        <table className="w-full border-collapse text-start">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr

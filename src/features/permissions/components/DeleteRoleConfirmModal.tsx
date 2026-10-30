@@ -20,7 +20,6 @@ export function DeleteRoleConfirmModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
-      dir="rtl"
       data-node-id="1:12141"
     >
       <div
@@ -49,7 +48,7 @@ export function DeleteRoleConfirmModal({
         </div>
 
         {/* Body */}
-        <div className="p-6 space-y-5 text-right">
+        <div className="p-6 space-y-5 text-start">
           {/* Role Summary Card */}
           <div className="bg-[#f5f3ef] rounded-[8px] p-4 border border-[#e6e2dc] space-y-3">
             <div className="flex items-start justify-between">

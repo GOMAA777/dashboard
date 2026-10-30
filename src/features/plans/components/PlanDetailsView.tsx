@@ -57,7 +57,7 @@ export function PlanDetailsView({
     "للفرق القانونية النامية والمكاتب المتوسطة التي تتطلب أدوات أتمتة العمليات القضائية والربط";
 
   return (
-    <div className="w-full space-y-[24px] font-['Cairo',sans-serif]" dir="rtl">
+    <div className="w-full space-y-[24px] font-['Cairo',sans-serif]">
       {/* 1. Top Identity & Command Banner */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-[16px] pb-[8px]">
         {/* Right: Plan Code, Title & Description */}
@@ -521,7 +521,7 @@ export function PlanDetailsView({
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-right text-[13px]">
+          <table className="w-full text-start text-[13px]">
             <thead>
               <tr className="border-b border-[#f0eeea] dark:border-[#38271c] text-[#737067] dark:text-[#cdc5bd] text-[12px] font-semibold">
                 <th className="py-[12px] px-[12px]">اسم المنشأة القانونية</th>

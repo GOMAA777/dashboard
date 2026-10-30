@@ -49,7 +49,6 @@ export function SystemUpdateView() {
   return (
     <div
       className="flex h-screen bg-[#f5f3ef] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00]"
-      dir="rtl"
     >
       {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar activeNav="utility" activeSubNav="update" />
@@ -61,7 +60,7 @@ export function SystemUpdateView() {
         <main className="flex-1 overflow-y-auto px-[24px] sm:px-[32px] py-[24px] max-w-[1360px] w-full mx-auto pb-[80px] scrollbar-thin">
           {/* Main Identity & Command Banner (Figma 1:18816) */}
           <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] relative mb-[24px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]">
-            <div className="flex flex-col gap-[4px] text-right">
+            <div className="flex flex-col gap-[4px] text-start">
               <h1 className="text-[28px] leading-[38px] font-bold text-[#1b1c1a]">
                 تحديث النظام
               </h1>
@@ -74,7 +73,7 @@ export function SystemUpdateView() {
           {/* Quick Stats Grid - Enterprise Context (Figma 1:18826) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-[16px] mb-[24px]">
             {/* Stat 1: حالة النسخة الاحتياطية */}
-            <div className="bg-white rounded-[8px] p-[16px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#eae8e4] flex flex-col gap-[4px] text-right">
+            <div className="bg-white rounded-[8px] p-[16px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#eae8e4] flex flex-col gap-[4px] text-start">
               <div className="flex items-center justify-between mb-[4px]">
                 <HardDrive className="size-[16px] text-[#837565]" />
                 <span className="text-[10px] font-bold text-[#837565]">
@@ -90,7 +89,7 @@ export function SystemUpdateView() {
             </div>
 
             {/* Stat 2: آخر فحص تلقائي */}
-            <div className="bg-white rounded-[8px] p-[16px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#eae8e4] flex flex-col gap-[4px] text-right">
+            <div className="bg-white rounded-[8px] p-[16px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#eae8e4] flex flex-col gap-[4px] text-start">
               <div className="flex items-center justify-between mb-[4px]">
                 <Clock className="size-[16px] text-[#837565]" />
                 <span className="text-[10px] font-bold text-[#837565]">
@@ -106,7 +105,7 @@ export function SystemUpdateView() {
             </div>
 
             {/* Stat 3: بيئة التشغيل */}
-            <div className="bg-white rounded-[8px] p-[16px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#eae8e4] flex flex-col gap-[4px] text-right">
+            <div className="bg-white rounded-[8px] p-[16px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#eae8e4] flex flex-col gap-[4px] text-start">
               <div className="flex items-center justify-between mb-[4px]">
                 <Server className="size-[16px] text-[#837565]" />
                 <span className="text-[10px] font-bold text-[#837565]">
@@ -135,7 +134,7 @@ export function SystemUpdateView() {
                     <Monitor className="size-[20px]" />
                   </div>
                   {/* Right Titles in RTL */}
-                  <div className="flex flex-col text-right">
+                  <div className="flex flex-col text-start">
                     <span className="text-[10px] font-bold text-[#837565]">
                       النسخة المشغّلة بالنظام
                     </span>
@@ -157,7 +156,7 @@ export function SystemUpdateView() {
                 </div>
 
                 {/* Details Footer */}
-                <div className="flex flex-col gap-[6px] text-right text-[12px] text-[#514537] border-t border-[#eae8e4] pt-[12px]">
+                <div className="flex flex-col gap-[6px] text-start text-[12px] text-[#514537] border-t border-[#eae8e4] pt-[12px]">
                   <div className="flex items-center gap-[6px] justify-start">
                     <Calendar className="size-[13px] text-[#837565]" />
                     <span>تاريخ التثبيت: {versionInfo.installedDate}</span>
@@ -181,7 +180,7 @@ export function SystemUpdateView() {
                     <CloudDownload className="size-[22px]" />
                   </div>
                   {/* Right Titles in RTL */}
-                  <div className="flex flex-col text-right">
+                  <div className="flex flex-col text-start">
                     <span className="text-[10px] font-bold text-[#7b4e00]">
                       الحزمة السحابية الصادرة
                     </span>
@@ -203,7 +202,7 @@ export function SystemUpdateView() {
                 </div>
 
                 {/* Details Footer */}
-                <div className="flex flex-col gap-[6px] text-right text-[12px] text-[#514537] border-t border-[#fce9d3] pt-[12px]">
+                <div className="flex flex-col gap-[6px] text-start text-[12px] text-[#514537] border-t border-[#fce9d3] pt-[12px]">
                   <div className="flex items-center gap-[6px] justify-start">
                     <Calendar className="size-[13px] text-[#837565]" />
                     <span>تاريخ الإصدار: {versionInfo.latestReleaseDate}</span>
@@ -220,7 +219,7 @@ export function SystemUpdateView() {
             </div>
 
             {/* Pre-Update Guidance Banner (Figma 1:18914) */}
-            <div className="bg-[#f5f3ef] rounded-[8px] p-[16px] border border-[#eae8e4] flex flex-col gap-[8px] text-right">
+            <div className="bg-[#f5f3ef] rounded-[8px] p-[16px] border border-[#eae8e4] flex flex-col gap-[8px] text-start">
               <div className="flex items-center gap-[8px]">
                 <ShieldCheck className="size-[18px] text-[#9c6402]" />
                 <h4 className="text-[16px] font-semibold text-[#1b1c1a]">
@@ -256,8 +255,8 @@ export function SystemUpdateView() {
                 onClick={handleStartUpdate}
                 className="bg-[#9c6402] hover:bg-[#835401] active:bg-[#6c4501] text-white w-full max-w-[620px] h-[48px] rounded-[4px] font-semibold text-[17px] flex items-center justify-center gap-[8px] transition-all shadow-sm cursor-pointer disabled:opacity-75"
               >
-                <span>{isUpdating ? "جارٍ تحديث النظام..." : "تحديث النظام الآن"}</span>
                 <Download className="size-[18px]" />
+                <span>{isUpdating ? "جارٍ تحديث النظام..." : "تحديث النظام الآن"}</span>
               </button>
 
               {/* Warning note */}

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { DashboardStickyActionBar } from "@/components/shared/DashboardStickyActionBar";
 import {
+  ArrowLeft,
   ArrowRight,
   Eye,
   Check,
@@ -117,7 +118,7 @@ export function SendNotificationView({
   };
 
   return (
-    <div className="space-y-6 pb-24" dir="rtl">
+    <div className="space-y-6 pb-24">
       {/* Main Identity & Command Banner (Figma 1:13242) */}
       <div
         className="bg-white rounded-[8px] p-6 border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
@@ -144,8 +145,8 @@ export function SendNotificationView({
           className="bg-white hover:bg-[#f5f3ef] text-[#1b1c1a] border border-[#e6e2dc] px-4 py-2 rounded-[4px] font-semibold text-[14px] flex items-center gap-2 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-colors shrink-0 cursor-pointer"
           data-node-id="1:13245"
         >
+          <ArrowLeft className="size-4 rtl:rotate-180" />
           <span>العودة</span>
-          <ArrowRight className="size-4" />
         </button>
       </div>
 
@@ -268,7 +269,7 @@ export function SendNotificationView({
 
                   {/* Image info & preview */}
                   <div className="flex items-center gap-3" data-node-id="1:13365">
-                    <div className="text-right">
+                    <div className="text-start">
                       <div className="flex items-center justify-end gap-2">
                         <span className="text-[#1b1c1a] text-[14px] font-bold max-w-[240px] truncate">
                           {formValues.imageFileName || "security_update_banner.png"}
@@ -441,7 +442,7 @@ export function SendNotificationView({
                     </h3>
                   </div>
                   <p
-                    className="text-[12px] text-[#514537] leading-[18px] text-right"
+                    className="text-[12px] text-[#514537] leading-[18px] text-start"
                     data-node-id="1:13426"
                   >
                     بث تعميم رسمي لكافة المحامين، الشركاء، والإداريين ذوي الصلاحية عبر لوحات تحكم المكاتب الرسمية.
@@ -489,7 +490,7 @@ export function SendNotificationView({
                     </h3>
                   </div>
                   <p
-                    className="text-[12px] text-[#514537] leading-[18px] text-right"
+                    className="text-[12px] text-[#514537] leading-[18px] text-start"
                     data-node-id="1:13438"
                   >
                     تخصيص الإشعار لفرع أو مكتب معين لمعالجة تنبيه انفرادي أو متابعة تعاقدية.
@@ -549,13 +550,13 @@ export function SendNotificationView({
                 محاكاة لوحة وتطبيق المستلم
               </span>
               <div className="flex items-center gap-2" data-node-id="1:13263">
+                <Eye className="size-4 text-[#9c6402]" />
                 <span
                   className="text-[18px] font-semibold text-[#1b1c1a]"
                   data-node-id="1:13265"
                 >
                   معاينة البث المباشر
                 </span>
-                <Eye className="size-4 text-[#9c6402]" />
               </div>
             </div>
 
@@ -570,7 +571,7 @@ export function SendNotificationView({
                   className="size-2 rounded-full bg-[#7b4e00] mt-1 shrink-0"
                   data-node-id="1:13271"
                 />
-                <div className="flex items-center gap-2 text-right">
+                <div className="flex items-center gap-2 text-start">
                   <div>
                     <h4
                       className="text-[12px] font-bold text-[#1b1c1a]"
@@ -622,7 +623,7 @@ export function SendNotificationView({
               )}
 
               {/* Preview Title & Content */}
-              <div className="space-y-1 text-right" data-node-id="1:13286">
+              <div className="space-y-1 text-start" data-node-id="1:13286">
                 <h4
                   className="text-[16px] sm:text-[18px] font-bold text-[#1b1c1a] leading-[24px]"
                   data-node-id="1:13288"
@@ -652,7 +653,7 @@ export function SendNotificationView({
 
             {/* Preview Info Footnote */}
             <div
-              className="flex items-center gap-2 text-right text-[#514537] text-[10px] font-bold pt-1"
+              className="flex items-center gap-2 text-start text-[#514537] text-[10px] font-bold pt-1"
               data-node-id="1:13298"
             >
               <Info className="size-3.5 text-[#837565] shrink-0" />
@@ -668,7 +669,7 @@ export function SendNotificationView({
             data-node-id="1:13303"
           >
             <h3
-              className="text-[14px] font-bold text-[#1b1c1a] text-right"
+              className="text-[14px] font-bold text-[#1b1c1a] text-start"
               data-node-id="1:13305"
             >
               ملخص التوزيع والجاهزية
@@ -687,8 +688,8 @@ export function SendNotificationView({
                   {formValues.audienceType === "all" ? "842 مكتب نشط" : "1 مكتب محدد"}
                 </span>
                 <div className="flex items-center gap-2 text-[#1b1c1a] text-[12px] font-medium">
-                  <span data-node-id="1:13312">المكاتب المستهدفة</span>
                   <Building2 className="size-4 text-[#7b4e00]" />
+                  <span data-node-id="1:13312">المكاتب المستهدفة</span>
                 </div>
               </div>
 
@@ -704,8 +705,8 @@ export function SendNotificationView({
                   فوري (&lt; 2.4 ثانية)
                 </span>
                 <div className="flex items-center gap-2 text-[#1b1c1a] text-[12px] font-medium">
-                  <span data-node-id="1:13320">زمن التسليم المتوقع</span>
                   <Timer className="size-4 text-[#047857]" />
+                  <span data-node-id="1:13320">زمن التسليم المتوقع</span>
                 </div>
               </div>
             </div>

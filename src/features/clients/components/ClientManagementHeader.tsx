@@ -14,7 +14,7 @@ export function ClientManagementHeader({ onAddOffice }: ClientManagementHeaderPr
       data-node-id="1:754"
     >
       {/* Right Column: Title, Badge, Subtitle */}
-      <div className="flex flex-col items-start text-right">
+      <div className="flex flex-col items-start text-start">
         <div className="flex items-center gap-[10px]">
           <h1 className="text-[26px] leading-[36px] font-bold text-[#1b1c1a]">
             إدارة العملاء

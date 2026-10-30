@@ -32,7 +32,6 @@ export function DeactivateEmployeeModal({
   return (
     <div
       className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
-      dir="rtl"
     >
       <div
         className="bg-white rounded-[12px] border border-[#e6e2dc] shadow-2xl max-w-[580px] w-full overflow-hidden"
@@ -48,7 +47,7 @@ export function DeactivateEmployeeModal({
             <X className="size-[18px]" />
           </button>
 
-          <div className="flex items-start gap-3 text-right">
+          <div className="flex items-start gap-3 text-start">
             <div>
               <h2 className="text-[20px] font-bold text-[#1b1c1a]">
                 إيقاف حساب الموظف؟
@@ -74,7 +73,7 @@ export function DeactivateEmployeeModal({
             </span>
 
             <div className="flex items-center gap-3">
-              <div className="text-right">
+              <div className="text-start">
                 <h3 className="font-bold text-[14px] text-[#1b1c1a]">
                   {employee.name}
                 </h3>
@@ -108,7 +107,7 @@ export function DeactivateEmployeeModal({
           </div>
 
           {/* Warning Banner */}
-          <div className="bg-[#fef2f2] border border-[#fee2e2] rounded-[8px] p-4 flex items-start gap-3 text-right">
+          <div className="bg-[#fef2f2] border border-[#fee2e2] rounded-[8px] p-4 flex items-start gap-3 text-start">
             <AlertTriangle className="size-[18px] text-[#b91c1c] shrink-0 mt-0.5" />
             <p className="text-[12px] text-[#991b1b] leading-[20px]">
               لن يتمكن الموظف من تسجيل الدخول إلى النظام بعد إيقاف حسابه فورياً، مع تعليق كافة الصلاحيات والجلسات النشطة وإنهاء جلسات الويب والجوال المفتوحة.
@@ -116,7 +115,7 @@ export function DeactivateEmployeeModal({
           </div>
 
           {/* Reason Textarea */}
-          <div className="text-right">
+          <div className="text-start">
             <div className="flex items-center justify-between text-[12px] font-bold text-[#1b1c1a] mb-1.5">
               <span>سبب الإيقاف (اختياري)</span>
               <span className="text-[11px] font-normal text-[#79716b]">

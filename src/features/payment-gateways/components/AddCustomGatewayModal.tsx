@@ -72,8 +72,7 @@ export function AddCustomGatewayModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
       <div
-        className="w-full max-w-[512px] bg-white rounded-[8px] overflow-hidden shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] flex flex-col animate-in zoom-in-95 duration-150 text-right"
-        dir="rtl"
+        className="w-full max-w-[512px] bg-white rounded-[8px] overflow-hidden shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] flex flex-col animate-in zoom-in-95 duration-150 text-start"
       >
         {/* Header */}
         <div className="bg-white flex items-center justify-between pb-4 pt-6 px-8 w-full">
@@ -178,8 +177,8 @@ export function AddCustomGatewayModal({
               type="submit"
               className="bg-[#9c6403] hover:bg-[#835402] text-[#fff3e9] text-xs font-bold rounded-[4px] h-10 px-6 flex items-center gap-1.5 transition-colors cursor-pointer"
             >
-              <span>إضافة وتفعيل</span>
               <Send className="size-3.5" />
+              <span>إضافة وتفعيل</span>
             </button>
             <button
               type="button"

@@ -35,7 +35,6 @@ export function DeletePlanDialog({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-[16px] animate-in fade-in duration-200"
-      dir="rtl"
     >
       <div
         className="relative w-full max-w-[500px] bg-white rounded-[10px] shadow-2xl border border-[#e2ded7] overflow-hidden font-['Cairo',sans-serif]"

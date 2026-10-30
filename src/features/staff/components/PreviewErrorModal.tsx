@@ -32,7 +32,6 @@ export function PreviewErrorModal({
   return (
     <div
       className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
-      dir="rtl"
     >
       <div
         className="bg-white rounded-[12px] border border-[#e6e2dc] shadow-2xl max-w-[620px] w-full overflow-hidden"
@@ -48,7 +47,7 @@ export function PreviewErrorModal({
             <X className="size-[18px]" />
           </button>
 
-          <div className="flex items-start gap-3 text-right">
+          <div className="flex items-start gap-3 text-start">
             <div>
               <div className="flex items-center gap-2 justify-end">
                 <span className="text-[11px] font-bold text-[#b91c1c] bg-[#fef2f2] px-2.5 py-0.5 rounded-[4px] border border-[#fecaca]">
@@ -84,7 +83,7 @@ export function PreviewErrorModal({
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="text-right">
+              <div className="text-start">
                 <h3 className="font-bold text-[14px] text-[#1b1c1a]">
                   {employee.name}
                 </h3>
@@ -113,7 +112,7 @@ export function PreviewErrorModal({
           </div>
 
           {/* Reasons List */}
-          <div className="bg-[#fcfaf7] border border-[#f0ece5] rounded-[8px] p-4 text-right">
+          <div className="bg-[#fcfaf7] border border-[#f0ece5] rounded-[8px] p-4 text-start">
             <div className="flex items-center gap-1.5 text-[12px] font-bold text-[#b91c1c] mb-3">
               <AlertCircle className="size-[15px]" />
               <span>أسباب رفض الدخول والمحاكاة الرقابية:</span>
@@ -139,7 +138,7 @@ export function PreviewErrorModal({
           </div>
 
           {/* Corrective Action Box */}
-          <div className="bg-[#fffbeb] border border-[#fef3c7] rounded-[8px] p-4 flex items-start gap-3 text-right">
+          <div className="bg-[#fffbeb] border border-[#fef3c7] rounded-[8px] p-4 flex items-start gap-3 text-start">
             <Lightbulb className="size-[18px] text-[#d97706] shrink-0 mt-0.5" />
             <div className="text-[12px] text-[#92400e] leading-[20px]">
               <span className="font-bold block mb-0.5">الإجراء التصحيحي الموصى به</span>
@@ -153,10 +152,10 @@ export function PreviewErrorModal({
           <button
             type="button"
             onClick={onViewEmployee}
-            className="px-5 py-2.5 rounded-[6px] bg-[#9c6402] hover:bg-[#855402] text-white text-[13px] font-bold flex items-center gap-2 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors"
+            className="px-5 py-2.5 rounded-[6px] bg-[#9c6402] hover:bg-[#855402] text-white text-[13px] font-bold flex items-center gap-2 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors cursor-pointer"
           >
+            <ArrowLeft className="size-[15px] rtl:rotate-180" />
             <span>العودة لملف الموظف</span>
-            <ArrowLeft className="size-[15px]" />
           </button>
 
           <button

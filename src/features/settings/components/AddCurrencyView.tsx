@@ -62,12 +62,12 @@ export function AddCurrencyView({ onBack, onSave }: AddCurrencyViewProps) {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 overflow-y-auto scrollbar-thin" dir="rtl">
+    <div className="flex-1 flex flex-col min-w-0 overflow-y-auto scrollbar-thin">
       <main className="flex-1 px-[24px] sm:px-[32px] py-[24px] max-w-[1360px] w-full mx-auto pb-[32px]">
         {/* Top Banner (Figma 1:17618) */}
         <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] relative mb-[24px] flex items-center justify-between">
           {/* Title & Subtitle */}
-          <div className="flex flex-col gap-[4px] text-right">
+          <div className="flex flex-col gap-[4px] text-start">
             <h1 className="text-[28px] leading-[38px] font-bold text-[#1b1c1a]">
               إضافة عملة جديدة
             </h1>
@@ -82,8 +82,8 @@ export function AddCurrencyView({ onBack, onSave }: AddCurrencyViewProps) {
             onClick={onBack}
             className="bg-white hover:bg-[#f5f3ef] border border-[#ded5c6] text-[#1b1c1a] rounded-[4px] px-[16px] py-[8px] font-semibold text-[14px] flex items-center gap-[6px] transition-colors shadow-xs cursor-pointer"
           >
+            <ArrowLeft className="size-[16px] rtl:rotate-180" />
             <span>العودة</span>
-            <ArrowLeft className="size-[16px] -scale-x-100" />
           </button>
         </div>
 
@@ -109,7 +109,7 @@ export function AddCurrencyView({ onBack, onSave }: AddCurrencyViewProps) {
           </div>
 
           {/* Regulatory Note Box */}
-          <div className="bg-[#f5f3ef] rounded-[8px] p-[16px] border border-[#eae8e4] flex flex-col gap-[4px] text-right">
+          <div className="bg-[#f5f3ef] rounded-[8px] p-[16px] border border-[#eae8e4] flex flex-col gap-[4px] text-start">
             <span className="text-[12px] font-bold text-[#1b1c1a]">
               ملاحظة تنظيمية حول عملة الأساس
             </span>
@@ -122,7 +122,7 @@ export function AddCurrencyView({ onBack, onSave }: AddCurrencyViewProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-[24px] gap-y-[20px]">
             {/* Row 1, Col 1 (Right): اسم العملة */}
             <div className="flex flex-col gap-[6px]">
-              <div className="flex items-center justify-between text-right">
+              <div className="flex items-center justify-between text-start">
                 <label className="text-[14px] font-semibold text-[#1b1c1a] flex items-center gap-[2px]">
                   <span>اسم العملة</span>
                   <span className="text-[#ba1a1a]">*</span>
@@ -145,9 +145,9 @@ export function AddCurrencyView({ onBack, onSave }: AddCurrencyViewProps) {
                 <Tag className="absolute top-1/2 -translate-y-1/2 end-[14px] size-[16px] text-[#837565]" />
               </div>
               {errors.name ? (
-                <p className="text-[11px] font-medium text-[#ba1a1a] text-right">{errors.name}</p>
+                <p className="text-[11px] font-medium text-[#ba1a1a] text-start">{errors.name}</p>
               ) : (
-                <p className="text-[10px] font-bold text-[#837565] text-right leading-[14px]">
+                <p className="text-[10px] font-bold text-[#837565] text-start leading-[14px]">
                   يظهر هذا الاسم في السندات وسندات القبض ومذكرات الدفع.
                 </p>
               )}
@@ -155,7 +155,7 @@ export function AddCurrencyView({ onBack, onSave }: AddCurrencyViewProps) {
 
             {/* Row 1, Col 2 (Left): سعر الصرف مقابل الدولار */}
             <div className="flex flex-col gap-[6px]">
-              <div className="flex items-center justify-between text-right">
+              <div className="flex items-center justify-between text-start">
                 <label className="text-[14px] font-semibold text-[#1b1c1a] flex items-center gap-[2px]">
                   <span>سعر الصرف مقابل الدولار (USD)</span>
                   <span className="text-[#ba1a1a]">*</span>
@@ -175,16 +175,16 @@ export function AddCurrencyView({ onBack, onSave }: AddCurrencyViewProps) {
                   onChange={(e) => setFormData({ ...formData, exchangeRate: e.target.value })}
                   placeholder="3.7500 أو 0.2723"
                   className={cn(
-                    "w-full bg-[#f5f3ef] text-[#1b1c1a] text-[14px] rounded-[4px] ps-[84px] pe-[40px] py-[10px] text-right border border-transparent focus:border-[#9c6402] focus:bg-white focus:outline-none transition-all font-mono",
+                    "w-full bg-[#f5f3ef] text-[#1b1c1a] text-[14px] rounded-[4px] ps-[84px] pe-[40px] py-[10px] text-start border border-transparent focus:border-[#9c6402] focus:bg-white focus:outline-none transition-all font-mono",
                     errors.exchangeRate && "border-[#ba1a1a]"
                   )}
                 />
                 <ArrowLeftRight className="absolute top-1/2 -translate-y-1/2 end-[14px] size-[16px] text-[#837565]" />
               </div>
               {errors.exchangeRate ? (
-                <p className="text-[11px] font-medium text-[#ba1a1a] text-right">{errors.exchangeRate}</p>
+                <p className="text-[11px] font-medium text-[#ba1a1a] text-start">{errors.exchangeRate}</p>
               ) : (
-                <p className="text-[10px] font-bold text-[#837565] text-right leading-[14px]">
+                <p className="text-[10px] font-bold text-[#837565] text-start leading-[14px]">
                   يُرجى اعتماد السعر المعتمد من مؤسسة النقد أو البنك المركزي.
                 </p>
               )}
@@ -192,7 +192,7 @@ export function AddCurrencyView({ onBack, onSave }: AddCurrencyViewProps) {
 
             {/* Row 2, Col 1 (Right): كود العملة (ISO Code) */}
             <div className="flex flex-col gap-[6px]">
-              <div className="flex items-center justify-between text-right">
+              <div className="flex items-center justify-between text-start">
                 <label className="text-[14px] font-semibold text-[#1b1c1a] flex items-center gap-[2px]">
                   <span>كود العملة (ISO Code)</span>
                   <span className="text-[#ba1a1a]">*</span>
@@ -212,16 +212,16 @@ export function AddCurrencyView({ onBack, onSave }: AddCurrencyViewProps) {
                   onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
                   placeholder="BHD أو QAR أو AED"
                   className={cn(
-                    "w-full bg-[#f5f3ef] text-[#1b1c1a] text-[14px] rounded-[4px] ps-[40px] pe-[54px] py-[10px] text-right border border-transparent focus:border-[#9c6402] focus:bg-white focus:outline-none transition-all uppercase font-mono",
+                    "w-full bg-[#f5f3ef] text-[#1b1c1a] text-[14px] rounded-[4px] ps-[40px] pe-[54px] py-[10px] text-start border border-transparent focus:border-[#9c6402] focus:bg-white focus:outline-none transition-all uppercase font-mono",
                     errors.code && "border-[#ba1a1a]"
                   )}
                 />
                 <Globe className="absolute top-1/2 -translate-y-1/2 start-[14px] size-[16px] text-[#837565]" />
               </div>
               {errors.code ? (
-                <p className="text-[11px] font-medium text-[#ba1a1a] text-right">{errors.code}</p>
+                <p className="text-[11px] font-medium text-[#ba1a1a] text-start">{errors.code}</p>
               ) : (
-                <p className="text-[10px] font-bold text-[#837565] text-right leading-[14px]">
+                <p className="text-[10px] font-bold text-[#837565] text-start leading-[14px]">
                   معيار ISO 4217 المستخدم للمطابقة مع بوابات الدفع الإلكتروني.
                 </p>
               )}
@@ -229,7 +229,7 @@ export function AddCurrencyView({ onBack, onSave }: AddCurrencyViewProps) {
 
             {/* Row 2, Col 2 (Left): رمز العملة */}
             <div className="flex flex-col gap-[6px]">
-              <div className="flex items-center justify-between text-right">
+              <div className="flex items-center justify-between text-start">
                 <label className="text-[14px] font-semibold text-[#1b1c1a] flex items-center gap-[2px]">
                   <span>رمز العملة</span>
                   <span className="text-[#ba1a1a]">*</span>
@@ -251,9 +251,9 @@ export function AddCurrencyView({ onBack, onSave }: AddCurrencyViewProps) {
                 />
               </div>
               {errors.symbol ? (
-                <p className="text-[11px] font-medium text-[#ba1a1a] text-right">{errors.symbol}</p>
+                <p className="text-[11px] font-medium text-[#ba1a1a] text-start">{errors.symbol}</p>
               ) : (
-                <p className="text-[10px] font-bold text-[#837565] text-right leading-[14px]">
+                <p className="text-[10px] font-bold text-[#837565] text-start leading-[14px]">
                   الرمز الذي سيظهر بجانب المبالغ في الجداول والفواتير المعروضة.
                 </p>
               )}
@@ -262,7 +262,7 @@ export function AddCurrencyView({ onBack, onSave }: AddCurrencyViewProps) {
             {/* Row 3: حالة العملة في النظام (Full Width Box) */}
             <div className="md:col-span-2 bg-[#f5f3ef] rounded-[8px] p-[16px] border border-[#eae8e4] flex flex-col sm:flex-row sm:items-center justify-between gap-[16px]">
               {/* Text Label on Right */}
-              <div className="flex flex-col text-right">
+              <div className="flex flex-col text-start">
                 <span className="text-[14px] font-bold text-[#1b1c1a]">
                   حالة العملة في النظام
                 </span>
@@ -314,8 +314,8 @@ export function AddCurrencyView({ onBack, onSave }: AddCurrencyViewProps) {
               disabled={isSubmitting}
               className="bg-[#9c6402] hover:bg-[#835401] active:bg-[#6c4501] text-white px-[32px] py-[10px] rounded-[6px] font-semibold text-[14px] flex items-center gap-[8px] transition-all shadow-[0px_1px_2px_rgba(0,0,0,0.05)] cursor-pointer disabled:opacity-70"
             >
-              <span>{isSubmitting ? "جارٍ الحفظ..." : "حفظ العملة"}</span>
               <Check className="size-[18px] stroke-[2.5]" />
+              <span>{isSubmitting ? "جارٍ الحفظ..." : "حفظ العملة"}</span>
             </button>
 
             <button

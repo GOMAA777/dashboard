@@ -10,7 +10,6 @@ export function RolesEmptyState({ onAddRole }: RolesEmptyStateProps) {
     <div
       className="bg-white rounded-[8px] p-8 md:p-14 border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col items-center justify-center text-center"
       data-node-id="1:11321"
-      dir="rtl"
     >
       {/* Icon with warm badge */}
       <div className="relative mb-5" data-node-id="1:11360">
@@ -51,7 +50,7 @@ export function RolesEmptyState({ onAddRole }: RolesEmptyStateProps) {
 
       {/* Pro Tip Box */}
       <div
-        className="mt-8 bg-[#f5f3ef] border border-[#e6e2dc] rounded-[8px] p-4 max-w-[680px] w-full flex items-start gap-3 text-right"
+        className="mt-8 bg-[#f5f3ef] border border-[#e6e2dc] rounded-[8px] p-4 max-w-[680px] w-full flex items-start gap-3 text-start"
         data-node-id="1:11375"
       >
         <div className="size-[28px] rounded-full bg-[#ffeed9] flex items-center justify-center text-[#9c6402] shrink-0 mt-0.5">

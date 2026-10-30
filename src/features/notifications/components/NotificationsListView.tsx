@@ -140,7 +140,7 @@ export function NotificationsListView({
   };
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-6">
       {/* Main Identity & Command Banner (Figma 1:12876) */}
       <div
         className="bg-white rounded-[8px] p-6 border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
@@ -299,7 +299,7 @@ export function NotificationsListView({
         data-node-id="1:12929"
       >
         <div className="overflow-x-auto">
-          <table className="w-full text-right border-collapse">
+          <table className="w-full text-start border-collapse">
             {/* Table Header Row (Figma 1:12931) */}
             <thead>
               <tr
@@ -307,7 +307,7 @@ export function NotificationsListView({
                 data-node-id="1:12931"
               >
                 <th
-                  className="px-4 py-3 text-right font-bold w-[540px]"
+                  className="px-4 py-3 text-start font-bold w-[540px]"
                   data-node-id="1:12938"
                 >
                   عنوان الإشعار
@@ -319,7 +319,7 @@ export function NotificationsListView({
                   صورة الإشعار
                 </th>
                 <th
-                  className="px-4 py-3 text-right font-bold w-[260px]"
+                  className="px-4 py-3 text-start font-bold w-[260px]"
                   data-node-id="1:12934"
                 >
                   رابط الإجراء الوارد
@@ -372,7 +372,7 @@ export function NotificationsListView({
 
                         {/* Audience */}
                         <div
-                          className="text-[12px] flex items-center gap-1 text-right"
+                          className="text-[12px] flex items-center gap-1 text-start"
                           data-node-id="1:12974"
                         >
                           <span className="text-[#514537]" data-node-id="1:12976">

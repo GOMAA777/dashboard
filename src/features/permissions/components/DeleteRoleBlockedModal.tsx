@@ -20,7 +20,6 @@ export function DeleteRoleBlockedModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
-      dir="rtl"
       data-node-id="1:11997"
     >
       <div
@@ -55,7 +54,7 @@ export function DeleteRoleBlockedModal({
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 space-y-4 text-right">
+        <div className="p-6 space-y-4 text-start">
           {/* 1. Role Info Card */}
           <div className="bg-[#f5f3ef] rounded-[8px] p-4 border border-[#e6e2dc] space-y-3">
             <div className="flex items-start justify-between">

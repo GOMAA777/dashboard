@@ -146,12 +146,11 @@ export function AddClientOfficeView({
     <div
       className="w-full flex flex-col gap-[24px] font-['Cairo',sans-serif]"
       data-node-id="1:1427"
-      dir="rtl"
     >
       {/* Top Action & Title Header */}
       <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] flex flex-col sm:flex-row sm:items-center justify-between gap-[16px] w-full">
         {/* Right: Title & Subtitle */}
-        <div className="flex flex-col items-start text-right">
+        <div className="flex flex-col items-start text-start">
           <h1 className="text-[26px] leading-[36px] font-bold text-[#1b1c1a]">
             {isEditMode ? "تعديل بيانات المكتب" : "إضافة مكتب جديد"}
           </h1>
@@ -186,7 +185,7 @@ export function AddClientOfficeView({
             </span>
 
             <div className="flex items-center gap-[10px]">
-              <div className="flex flex-col text-right">
+              <div className="flex flex-col text-start">
                 <h2 className="text-[17px] font-semibold text-[#1b1c1a] leading-[24px]">
                   بيانات المكتب والمنشأة القانونية
                 </h2>
@@ -203,7 +202,7 @@ export function AddClientOfficeView({
           {/* Form Fields Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px] pt-[4px]">
             {/* 1. اسم صاحب المكتب */}
-            <div className="flex flex-col gap-[6px] text-right">
+            <div className="flex flex-col gap-[6px] text-start">
               <label className="text-[13px] font-semibold text-[#1b1c1a]">
                 اسم صاحب المكتب <span className="text-[#7b4e00] font-bold">*</span>
               </label>
@@ -224,7 +223,7 @@ export function AddClientOfficeView({
             </div>
 
             {/* 2. اسم المكتب أو الشركة المهنية */}
-            <div className="flex flex-col gap-[6px] text-right">
+            <div className="flex flex-col gap-[6px] text-start">
               <label className="text-[13px] font-semibold text-[#1b1c1a]">
                 اسم المكتب أو الشركة المهنية <span className="text-[#7b4e00] font-bold">*</span>
               </label>
@@ -245,7 +244,7 @@ export function AddClientOfficeView({
             </div>
 
             {/* 3. رقم الترخيص العدلي */}
-            <div className="flex flex-col gap-[6px] text-right">
+            <div className="flex flex-col gap-[6px] text-start">
               <div className="flex items-center justify-between">
                 <span className="bg-[#f0eeea] text-[#514537] text-[10px] font-bold px-[6px] py-[2px] rounded-[2px]">
                   اختياري
@@ -270,7 +269,7 @@ export function AddClientOfficeView({
             </div>
 
             {/* 4. البريد الإلكتروني الرسمي */}
-            <div className="flex flex-col gap-[6px] text-right">
+            <div className="flex flex-col gap-[6px] text-start">
               <label className="text-[13px] font-semibold text-[#1b1c1a]">
                 البريد الإلكتروني الرسمي للمكتب <span className="text-[#7b4e00] font-bold">*</span>
               </label>
@@ -280,7 +279,7 @@ export function AddClientOfficeView({
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-[44px] bg-[#f5f3ef] border border-transparent focus:border-[#9c6402] rounded-[4px] ps-[38px] pe-[14px] text-[14px] text-[#1b1c1a] focus:outline-none direction-ltr text-right"
+                  className="w-full h-[44px] bg-[#f5f3ef] border border-transparent focus:border-[#9c6402] rounded-[4px] ps-[38px] pe-[14px] text-[14px] text-[#1b1c1a] focus:outline-none direction-ltr text-start"
                   placeholder="contact@alajlan-law.sa"
                 />
                 <Mail className="size-[15px] text-[#837565] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -291,7 +290,7 @@ export function AddClientOfficeView({
             </div>
 
             {/* 5. رقم الجوال / الهاتف للتواصل */}
-            <div className="flex flex-col gap-[6px] text-right">
+            <div className="flex flex-col gap-[6px] text-start">
               <label className="text-[13px] font-semibold text-[#1b1c1a]">
                 رقم الجوال / الهاتف للتواصل <span className="text-[#7b4e00] font-bold">*</span>
               </label>
@@ -305,7 +304,7 @@ export function AddClientOfficeView({
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full h-[44px] bg-[#f5f3ef] border border-transparent focus:border-[#9c6402] rounded-[4px] ps-[38px] pe-[14px] text-[14px] text-[#1b1c1a] focus:outline-none direction-ltr text-right"
+                    className="w-full h-[44px] bg-[#f5f3ef] border border-transparent focus:border-[#9c6402] rounded-[4px] ps-[38px] pe-[14px] text-[14px] text-[#1b1c1a] focus:outline-none direction-ltr text-start"
                     placeholder="50 123 4567"
                   />
                   <Phone className="size-[14px] text-[#837565] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -317,7 +316,7 @@ export function AddClientOfficeView({
             </div>
 
             {/* 6. المدينة / المقر الرئيسي */}
-            <div className="flex flex-col gap-[6px] text-right">
+            <div className="flex flex-col gap-[6px] text-start">
               <label className="text-[13px] font-semibold text-[#1b1c1a]">
                 المدينة / المقر الرئيسي <span className="text-[#7b4e00] font-bold">*</span>
               </label>
@@ -341,7 +340,7 @@ export function AddClientOfficeView({
           </div>
 
           {/* Identity / Logo Upload Area */}
-          <div className="flex flex-col gap-[8px] pt-[8px] text-right">
+          <div className="flex flex-col gap-[8px] pt-[8px] text-start">
             <div className="flex items-center justify-between">
               <span className="bg-[#f0eeea] text-[#514537] text-[10px] font-bold px-[6px] py-[2px] rounded-[2px]">
                 اختياري
@@ -356,7 +355,7 @@ export function AddClientOfficeView({
                 2 MB كحد أقصى
               </span>
 
-              <div className="flex-1 flex flex-col items-center sm:items-start text-right">
+              <div className="flex-1 flex flex-col items-center sm:items-start text-start">
                 <div className="flex items-center gap-[8px]">
                   <span className="text-[13px] font-semibold text-[#1b1c1a]">
                     اسحب الشعار وأفلته هنا
@@ -388,7 +387,7 @@ export function AddClientOfficeView({
           {/* Section Header Bar */}
           <div className="bg-[#f5f3ef]/50 rounded-[4px] px-[20px] py-[10px] flex items-center justify-between">
             <div className="flex items-center gap-[10px] ms-auto">
-              <div className="flex flex-col text-right">
+              <div className="flex flex-col text-start">
                 <h2 className="text-[17px] font-semibold text-[#1b1c1a] leading-[24px]">
                   بيانات الحساب والاشتراك السحابي
                 </h2>
@@ -403,7 +402,7 @@ export function AddClientOfficeView({
           </div>
 
           {/* Initial Password Field */}
-          <div className="flex flex-col gap-[6px] text-right">
+          <div className="flex flex-col gap-[6px] text-start">
             <label className="text-[13px] font-semibold text-[#1b1c1a]">
               كلمة المرور الأولية للحساب <span className="text-[#7b4e00] font-bold">*</span>
             </label>
@@ -413,7 +412,7 @@ export function AddClientOfficeView({
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full h-[44px] bg-[#f5f3ef] border border-transparent focus:border-[#9c6402] rounded-[4px] ps-[40px] pe-[14px] text-[14px] text-[#1b1c1a] focus:outline-none direction-ltr text-right font-mono"
+                className="w-full h-[44px] bg-[#f5f3ef] border border-transparent focus:border-[#9c6402] rounded-[4px] ps-[40px] pe-[14px] text-[14px] text-[#1b1c1a] focus:outline-none direction-ltr text-start font-mono"
               />
               <button
                 type="button"
@@ -439,7 +438,7 @@ export function AddClientOfficeView({
           </div>
 
           {/* Subscription Plan Radio Cards */}
-          <div className="flex flex-col gap-[8px] pt-[8px] text-right">
+          <div className="flex flex-col gap-[8px] pt-[8px] text-start">
             <label className="text-[13px] font-semibold text-[#1b1c1a]">
               نوع وخطة الاشتراك <span className="text-[#7b4e00] font-bold">*</span>
             </label>
@@ -460,7 +459,7 @@ export function AddClientOfficeView({
                   </span>
 
                   <div className="flex items-center gap-[8px]">
-                    <div className="flex flex-col text-right">
+                    <div className="flex flex-col text-start">
                       <span className="text-[16px] font-bold text-[#1b1c1a] leading-[22px]">
                         باقة مدفوعة
                       </span>
@@ -502,7 +501,7 @@ export function AddClientOfficeView({
                   </span>
 
                   <div className="flex items-center gap-[8px]">
-                    <div className="flex flex-col text-right">
+                    <div className="flex flex-col text-start">
                       <span className="text-[16px] font-bold text-[#1b1c1a] leading-[22px]">
                         تجربة مجانية
                       </span>
@@ -535,7 +534,7 @@ export function AddClientOfficeView({
           <div className="bg-[#f5f3ef] rounded-[8px] p-[20px] flex flex-col gap-[16px]">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px]">
               {/* الباقة المعتمدة */}
-              <div className="flex flex-col gap-[6px] text-right">
+              <div className="flex flex-col gap-[6px] text-start">
                 <label className="text-[13px] font-semibold text-[#1b1c1a]">
                   الباقة المعتمدة
                 </label>
@@ -564,7 +563,7 @@ export function AddClientOfficeView({
               </div>
 
               {/* دورة الفوترة والتحصيل */}
-              <div className="flex flex-col gap-[6px] text-right">
+              <div className="flex flex-col gap-[6px] text-start">
                 <label className="text-[13px] font-semibold text-[#1b1c1a]">
                   دورة الفوترة والتحصيل
                 </label>
@@ -593,7 +592,7 @@ export function AddClientOfficeView({
 
         {/* System Feedback & Notification Banner */}
         <div className="bg-[#f5f3ef] rounded-[8px] p-[16px] flex items-start gap-[12px]">
-          <div className="flex-1 flex flex-col text-right">
+          <div className="flex-1 flex flex-col text-start">
             <span className="text-[13px] font-semibold text-[#1b1c1a]">
               {isEditMode ? "تحديث سجل المنشأة:" : "إشعار التشغيل الآلي للمكتب:"}
             </span>

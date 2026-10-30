@@ -50,7 +50,6 @@ export function AddSubscriptionModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
       <div
         className="bg-white dark:bg-[#1e1c1a] rounded-[12px] shadow-2xl border border-[#f0eeea] dark:border-[#2f2a24] w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 font-['Cairo']"
-        dir="rtl"
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-[#f0eeea] dark:border-[#2f2a24] bg-[#faf9f7] dark:bg-[#25221e]">

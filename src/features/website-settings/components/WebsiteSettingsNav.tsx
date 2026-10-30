@@ -81,13 +81,13 @@ export function WebsiteSettingsNav({ activeTab, onSelectTab }: WebsiteSettingsNa
             type="button"
             onClick={() => onSelectTab(item.id)}
             className={cn(
-              "w-full flex items-center justify-between px-[12px] py-[9px] rounded-[6px] text-right transition-all cursor-pointer",
+              "w-full flex items-center justify-between px-[12px] py-[9px] rounded-[6px] text-start transition-all cursor-pointer",
               isActive
                 ? "bg-[#f4ecdf] text-[#9c6402] border-r-4 border-[#9c6402] font-bold"
                 : "text-[#5e5851] hover:bg-[#faf9f6] hover:text-[#1b1c1a] font-medium"
             )}
           >
-            <div className="flex flex-col text-right">
+            <div className="flex flex-col text-start">
               <span className="text-[13px] leading-[19px]">
                 {item.labelAr}
               </span>

@@ -90,7 +90,7 @@ export function LanguageSettingsView() {
   };
 
   return (
-    <div className="flex h-screen h-dvh bg-[#f5f3ef] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00]" dir="rtl">
+    <div className="flex h-screen h-dvh bg-[#f5f3ef] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00]">
       {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar activeNav="system-settings" activeSubNav="language" />
 
@@ -108,7 +108,7 @@ export function LanguageSettingsView() {
             {/* Top Identity & Command Banner (Figma 1:18083) */}
             <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] relative mb-[24px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]">
               {/* Title & Description */}
-              <div className="flex flex-col gap-[4px] text-right">
+              <div className="flex flex-col gap-[4px] text-start">
                 <h1 className="text-[28px] leading-[38px] font-bold text-[#1b1c1a]">
                   إعدادات اللغة
                 </h1>
@@ -131,7 +131,7 @@ export function LanguageSettingsView() {
             {/* Informational System Default Banner (Figma 1:18083) */}
             <div className="bg-white rounded-[8px] p-[20px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] mb-[24px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]">
               {/* Right Side: Translation Icon & Information */}
-              <div className="flex items-center gap-[16px] text-right">
+              <div className="flex items-center gap-[16px] text-start">
                 <div className="size-[48px] rounded-[10px] bg-[rgba(255,221,182,0.4)] text-[#9c6402] flex items-center justify-center shrink-0">
                   <Languages className="size-[24px]" />
                 </div>
@@ -240,7 +240,7 @@ export function LanguageSettingsView() {
               ) : (
                 <>
                   <div className="overflow-x-auto">
-                    <table className="w-full text-right border-collapse">
+                    <table className="w-full text-start border-collapse">
                       <thead>
                         <tr className="bg-[#f5f3ef]/70 text-[#514537] text-[13px] font-semibold border-b border-[#eae8e4]">
                           <th className="py-[14px] px-[20px] w-[60px]">#</th>

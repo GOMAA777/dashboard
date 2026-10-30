@@ -12,6 +12,7 @@ import {
   mockWaitingSubscriptionDetails,
 } from "../data/initialSubscriptions";
 import {
+  ArrowLeft,
   ArrowRight,
   Building2,
   MapPin,
@@ -95,7 +96,6 @@ export function SubscriptionDetailsView({
   return (
     <div
       className="flex flex-col gap-6 w-full font-['Cairo'] pb-12"
-      dir="rtl"
       data-name="Subscription Details Main View"
     >
       {/* Top Header & State Switcher Strip */}
@@ -106,7 +106,7 @@ export function SubscriptionDetailsView({
             onClick={onBack}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] bg-[#f5f3ef] dark:bg-[#2c2621] hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold transition-colors cursor-pointer"
           >
-            <ArrowRight className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
             <span>العودة إلى إدارة الاشتراكات</span>
           </button>
           <div className="h-4 w-px bg-[#e5e2dc] dark:bg-[#38332c]" />
@@ -348,8 +348,8 @@ export function SubscriptionDetailsView({
             type="button"
             className="w-full mt-4 py-2 bg-[#f0eeea] dark:bg-[#2c2621] hover:bg-[#eae8e4] text-[#1b1c1a] dark:text-[#fdfbf7] rounded-[4px] text-[12px] font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
-            <span>عرض ملف المكتب الكامل</span>
             <ExternalLink className="w-3.5 h-3.5" />
+            <span>عرض ملف المكتب الكامل</span>
           </button>
         </div>
 
@@ -1115,7 +1115,7 @@ export function SubscriptionDetailsView({
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-right border-collapse text-[12px]">
+              <table className="w-full text-start border-collapse text-[12px]">
                 <thead>
                   <tr className="bg-[#f5f3ef] dark:bg-[#2c2621] text-[#625d5d] dark:text-[#a89f91] font-bold border-b border-[#eae8e4] dark:border-[#38332c]">
                     <th className="p-3">رقم الفاتورة والمرجع</th>

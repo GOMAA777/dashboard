@@ -45,7 +45,6 @@ export function DeactivateOfficeModal({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs font-['Cairo',sans-serif]"
       data-node-id="1:2299"
-      dir="rtl"
     >
       <div className="relative w-full max-w-[560px] bg-white rounded-[12px] p-[24px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] border border-[#eae8e4] flex flex-col gap-[16px] animate-in fade-in zoom-in-95 duration-150">
         {/* Header: Warning Icon + Title + Close Button */}
@@ -61,7 +60,7 @@ export function DeactivateOfficeModal({
 
           {/* Icon & Title (Right) */}
           <div className="flex items-center gap-[12px]">
-            <div className="flex flex-col text-right">
+            <div className="flex flex-col text-start">
               <h2 className="text-[20px] font-bold text-[#1c140f] leading-[28px]">
                 تعطيل حساب المكتب؟
               </h2>
@@ -80,7 +79,7 @@ export function DeactivateOfficeModal({
               <span>نشط حالياً</span>
             </span>
 
-            <div className="flex flex-col text-right">
+            <div className="flex flex-col text-start">
               <span className="text-[#514537] text-[10px] font-bold">
                 المنشأة القانونية المستهدفة
               </span>
@@ -104,7 +103,7 @@ export function DeactivateOfficeModal({
         </div>
 
         {/* Impact Description */}
-        <p className="text-[#1b1c1a] text-[13px] leading-[20px] text-right">
+        <p className="text-[#1b1c1a] text-[13px] leading-[20px] text-start">
           سيتم تعطيل وصول المكتب إلى المنصة وفق سياسة الحسابات. تأكد من مراجعة أثر التعطيل الفوري قبل المتابعة:
         </p>
 
@@ -112,7 +111,7 @@ export function DeactivateOfficeModal({
         <div className="flex flex-col gap-[8px]">
           {/* Point 1 */}
           <div className="bg-[#f5f3ef]/70 rounded-[4px] p-[10px] flex items-start gap-[10px]">
-            <div className="flex-1 flex flex-col text-right">
+            <div className="flex-1 flex flex-col text-start">
               <span className="text-[12px] font-bold text-[#1b1c1a]">
                 إيقاف فوري لتسجيل الدخول
               </span>
@@ -127,7 +126,7 @@ export function DeactivateOfficeModal({
 
           {/* Point 2 */}
           <div className="bg-[#f5f3ef]/70 rounded-[4px] p-[10px] flex items-start gap-[10px]">
-            <div className="flex-1 flex flex-col text-right">
+            <div className="flex-1 flex flex-col text-start">
               <span className="text-[12px] font-bold text-[#1b1c1a]">
                 فصل الحساب عن دورة الفوترة المالية
               </span>
@@ -142,7 +141,7 @@ export function DeactivateOfficeModal({
 
           {/* Point 3 */}
           <div className="bg-[#f5f3ef]/70 rounded-[4px] p-[10px] flex items-start gap-[10px]">
-            <div className="flex-1 flex flex-col text-right">
+            <div className="flex-1 flex flex-col text-start">
               <span className="text-[12px] font-bold text-[#1b1c1a]">
                 حفظ البيانات والأرشيف القضائي
               </span>
@@ -157,7 +156,7 @@ export function DeactivateOfficeModal({
         </div>
 
         {/* Reason for Deactivation & Notes Form Control */}
-        <div className="flex flex-col gap-[8px] text-right pt-[2px]">
+        <div className="flex flex-col gap-[8px] text-start pt-[2px]">
           <div className="flex items-center gap-[4px] justify-start">
             <span className="text-[12px] font-semibold text-[#1b1c1a]">سبب التعطيل</span>
             <span className="text-[11px] text-[#837565] font-normal">(اختياري للتوثيق الإداري)</span>

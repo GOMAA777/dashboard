@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import {
+  ArrowLeft,
   ArrowRight,
   User,
   Mail,
@@ -99,7 +100,7 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
   };
 
   return (
-    <div className="space-y-6 pb-20" dir="rtl" data-node-id="1:9529">
+    <div className="space-y-6 pb-20" data-node-id="1:9529">
       {/* Header Banner */}
       <div className="bg-white rounded-[8px] p-6 border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between">
         <div>
@@ -114,10 +115,10 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
         <button
           type="button"
           onClick={onBack}
-          className="h-[38px] px-4 rounded-[6px] border border-[#d6cfc7] bg-white hover:bg-[#f5f3ef] text-[#514537] text-[13px] font-medium flex items-center gap-2 transition-colors shrink-0"
+          className="h-[38px] px-4 rounded-[6px] border border-[#d6cfc7] bg-white hover:bg-[#f5f3ef] text-[#514537] text-[13px] font-medium flex items-center gap-2 transition-colors shrink-0 cursor-pointer"
         >
+          <ArrowLeft className="size-[15px] rtl:rotate-180" />
           <span>العودة</span>
-          <ArrowRight className="size-[15px]" />
         </button>
       </div>
 

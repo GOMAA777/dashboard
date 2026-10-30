@@ -31,14 +31,14 @@ export function SeoTab() {
     <div className="bg-white rounded-[12px] p-[24px] border border-[rgba(231,229,228,0.8)] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] flex flex-col gap-[24px]">
       {/* 1. Language */}
       <div>
-        <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+        <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
           Language (لغة الإعدادات المستهدفة)
         </label>
         <div className="relative">
           <select
             value={data.language}
             onChange={(e) => handleChange("language", e.target.value)}
-            className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] text-[#1c1917] text-[13px] rounded-[8px] ps-[14px] pe-[36px] py-[9px] appearance-none cursor-pointer focus:outline-none focus:border-[#9c6402] focus:bg-white text-right"
+            className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] text-[#1c1917] text-[13px] rounded-[8px] ps-[14px] pe-[36px] py-[9px] appearance-none cursor-pointer focus:outline-none focus:border-[#9c6402] focus:bg-white text-start"
           >
             <option value="English">English</option>
             <option value="العربية">العربية (Arabic)</option>
@@ -49,14 +49,14 @@ export function SeoTab() {
 
       {/* 2. Author Name */}
       <div>
-        <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+        <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
           Author name (اسم الكاتب / المؤسسة)
         </label>
         <input
           type="text"
           value={data.authorName}
           onChange={(e) => handleChange("authorName", e.target.value)}
-          className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-right"
+          className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-start"
         />
       </div>
 
@@ -72,26 +72,26 @@ export function SeoTab() {
           type="text"
           value={data.metaTitle}
           onChange={(e) => handleChange("metaTitle", e.target.value)}
-          className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-right"
+          className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-start"
         />
       </div>
 
       {/* 4. Meta Keywords */}
       <div>
-        <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+        <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
           Meta keywords (الكلمات المفتاحية مفصولة بفواصل)
         </label>
         <input
           type="text"
           value={data.metaKeywords}
           onChange={(e) => handleChange("metaKeywords", e.target.value)}
-          className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-right"
+          className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-start"
         />
       </div>
 
       {/* 5. Meta Image */}
       <div>
-        <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+        <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
           Image (1200x630) (صورة الميتا الأساسية)
         </label>
         <div className="flex items-center border border-[#e7e5e4] rounded-[8px] overflow-hidden bg-[#fafaf9]/60 mb-[8px]">
@@ -113,14 +113,14 @@ export function SeoTab() {
 
       {/* 6. Meta Description */}
       <div>
-        <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+        <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
           Meta description (الوصف المختصر لمحركات البحث)
         </label>
         <textarea
           rows={3}
           value={data.metaDescription}
           onChange={(e) => handleChange("metaDescription", e.target.value)}
-          className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-right resize-none leading-[22px]"
+          className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-start resize-none leading-[22px]"
         />
         <div className="flex items-center justify-between text-[11px] text-[#a8a29e] mt-[4px]">
           <span>الموصى به: 150-160 حرف لأفضل ظهور في نتائج Google.</span>
@@ -139,33 +139,33 @@ export function SeoTab() {
 
         {/* OG Title */}
         <div>
-          <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+          <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
             Title (عنوان المشاركة المجتمعية - og:title)
           </label>
           <input
             type="text"
             value={data.ogTitle}
             onChange={(e) => handleChange("ogTitle", e.target.value)}
-            className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-right"
+            className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-start"
           />
         </div>
 
         {/* OG Description */}
         <div>
-          <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+          <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
             Description (وصف المشاركة الاجتماعية - og:description)
           </label>
           <textarea
             rows={2}
             value={data.ogDescription}
             onChange={(e) => handleChange("ogDescription", e.target.value)}
-            className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-right resize-none"
+            className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-start resize-none"
           />
         </div>
 
         {/* OG Image */}
         <div>
-          <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+          <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
             Image (1200x630) (صورة بطاقة المشاركة - og:image)
           </label>
           <div className="flex items-center border border-[#e7e5e4] rounded-[8px] overflow-hidden bg-[#fafaf9]/60 mb-[8px]">

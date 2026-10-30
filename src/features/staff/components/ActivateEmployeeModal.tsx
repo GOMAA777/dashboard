@@ -30,7 +30,6 @@ export function ActivateEmployeeModal({
   return (
     <div
       className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
-      dir="rtl"
     >
       <div
         className="bg-white rounded-[12px] border border-[#e6e2dc] shadow-2xl max-w-[580px] w-full overflow-hidden"
@@ -46,7 +45,7 @@ export function ActivateEmployeeModal({
             <X className="size-[18px]" />
           </button>
 
-          <div className="flex items-start gap-3 text-right">
+          <div className="flex items-start gap-3 text-start">
             <div>
               <h2 className="text-[20px] font-bold text-[#1b1c1a]">
                 تفعيل حساب الموظف؟
@@ -72,7 +71,7 @@ export function ActivateEmployeeModal({
             </span>
 
             <div className="flex items-center gap-3">
-              <div className="text-right">
+              <div className="text-start">
                 <h3 className="font-bold text-[14px] text-[#1b1c1a]">
                   {employee.name}
                 </h3>
@@ -106,7 +105,7 @@ export function ActivateEmployeeModal({
           </div>
 
           {/* Info box */}
-          <div className="bg-[#faf8f5] border border-[#e8e2d8] rounded-[8px] p-4 flex items-start gap-3 text-right">
+          <div className="bg-[#faf8f5] border border-[#e8e2d8] rounded-[8px] p-4 flex items-start gap-3 text-start">
             <ShieldCheck className="size-[18px] text-[#9c6402] shrink-0 mt-0.5" />
             <p className="text-[12px] text-[#514537] leading-[21px]">
               سيتمكن الموظف من تسجيل الدخول فوراً وفقاً للصلاحيات الممنوحة لحسابه في موديول الأدوار، وإعادة تفعيل التحقق الثنائي عبر رسالة نصية قصيرة ورمز الدخول المؤقت.

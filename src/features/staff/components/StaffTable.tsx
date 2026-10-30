@@ -80,10 +80,9 @@ export function StaffTable({
     <div
       className="bg-white rounded-[8px] border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] overflow-hidden"
       data-node-id="1:8992"
-      dir="rtl"
     >
       <div className="overflow-x-auto">
-        <table className="w-full text-right border-collapse">
+        <table className="w-full text-start border-collapse">
           {/* Table Header */}
           <thead>
             <tr
@@ -156,7 +155,7 @@ export function StaffTable({
                           <button
                             type="button"
                             onClick={() => onViewDetails(emp)}
-                            className="font-bold text-[14px] text-[#1b1c1a] hover:text-[#9c6402] transition-colors text-right leading-[20px]"
+                            className="font-bold text-[14px] text-[#1b1c1a] hover:text-[#9c6402] transition-colors text-start leading-[20px]"
                           >
                             {emp.name}
                           </button>
@@ -274,7 +273,7 @@ export function StaffTable({
                           {/* Dropdown Menu */}
                           {activeMenuId === emp.id && (
                             <div
-                              className="absolute end-0 top-full mt-1 w-[190px] bg-white rounded-[8px] border border-[#e6e2dc] shadow-lg py-1 z-20 text-right"
+                              className="absolute end-0 top-full mt-1 w-[190px] bg-white rounded-[8px] border border-[#e6e2dc] shadow-lg py-1 z-20 text-start"
                               onMouseLeave={() => setActiveMenuId(null)}
                             >
                               <button
@@ -283,7 +282,7 @@ export function StaffTable({
                                   setActiveMenuId(null);
                                   onViewDetails(emp);
                                 }}
-                                className="w-full px-3 py-2 text-[13px] text-[#1b1c1a] hover:bg-[#f5f3ef] flex items-center gap-2 text-right"
+                                className="w-full px-3 py-2 text-[13px] text-[#1b1c1a] hover:bg-[#f5f3ef] flex items-center gap-2 text-start"
                               >
                                 <Eye className="size-[14px] text-[#9c6402]" />
                                 <span>عرض تفاصيل الموظف</span>
@@ -295,7 +294,7 @@ export function StaffTable({
                                   setActiveMenuId(null);
                                   onLoginAsEmployee(emp);
                                 }}
-                                className="w-full px-3 py-2 text-[13px] text-[#1b1c1a] hover:bg-[#f5f3ef] flex items-center gap-2 text-right"
+                                className="w-full px-3 py-2 text-[13px] text-[#1b1c1a] hover:bg-[#f5f3ef] flex items-center gap-2 text-start"
                               >
                                 <LogIn className="size-[14px] text-[#9c6402]" />
                                 <span>الدخول كالموظف</span>
@@ -307,7 +306,7 @@ export function StaffTable({
                                   setActiveMenuId(null);
                                   onResetPassword(emp);
                                 }}
-                                className="w-full px-3 py-2 text-[13px] text-[#1b1c1a] hover:bg-[#f5f3ef] flex items-center gap-2 text-right"
+                                className="w-full px-3 py-2 text-[13px] text-[#1b1c1a] hover:bg-[#f5f3ef] flex items-center gap-2 text-start"
                               >
                                 <KeyRound className="size-[14px] text-[#79716b]" />
                                 <span>إعادة تعيين كلمة المرور</span>
@@ -322,7 +321,7 @@ export function StaffTable({
                                     setActiveMenuId(null);
                                     onActivate(emp);
                                   }}
-                                  className="w-full px-3 py-2 text-[13px] text-[#1b7340] hover:bg-[#e8f5e9] flex items-center gap-2 text-right"
+                                  className="w-full px-3 py-2 text-[13px] text-[#1b7340] hover:bg-[#e8f5e9] flex items-center gap-2 text-start"
                                 >
                                   <UserCheck className="size-[14px]" />
                                   <span>تفعيل حساب الموظف</span>
@@ -334,7 +333,7 @@ export function StaffTable({
                                     setActiveMenuId(null);
                                     onDeactivate(emp);
                                   }}
-                                  className="w-full px-3 py-2 text-[13px] text-[#b91c1c] hover:bg-[#fee2e2] flex items-center gap-2 text-right"
+                                  className="w-full px-3 py-2 text-[13px] text-[#b91c1c] hover:bg-[#fee2e2] flex items-center gap-2 text-start"
                                 >
                                   <UserX className="size-[14px]" />
                                   <span>إيقاف حساب الموظف</span>

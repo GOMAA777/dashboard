@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/breadcrumb";
 import { cn } from "@/lib/utils";
 
+import { useUIStore } from "@/stores/use-ui-store";
+
 export interface BreadcrumbSegment {
   label: string;
   href?: string;
@@ -25,25 +27,35 @@ interface DashboardBreadcrumbProps {
 }
 
 // Known route translations for the platform
-const ROUTE_LABELS: Record<string, string> = {
-  "": "الرئيسية",
-  "law-firms": "مكاتب المحاماة",
-  "subscriptions": "إدارة الاشتراكات",
-  "plans": "باقات الاشتراك",
-  "invoices": "الفواتير وطرق الدفع",
-  "roles": "الأدوار والصلاحيات",
-  "permissions": "مصفوفة الصلاحيات",
-  "tickets": "الدعم الفني والتذاكر",
-  "accounts": "الحسابات المالية",
-  "staff": "طاقم العمل",
-  "profile": "الملف الشخصي",
-  "notifications": "مركز الإشعارات",
-  "settings": "إعدادات النظام",
-  "general": "الإعدادات العامة",
+const ROUTE_LABELS: Record<string, { ar: string; en: string }> = {
+  "": { ar: "الرئيسية", en: "Dashboard" },
+  "law-firms": { ar: "مكاتب المحاماة", en: "Law Firms" },
+  "subscriptions": { ar: "إدارة الاشتراكات", en: "Subscriptions" },
+  "plans": { ar: "باقات الاشتراك", en: "Plans & Pricing" },
+  "invoices": { ar: "المعاملات المالية", en: "Invoices & Finance" },
+  "roles": { ar: "الأدوار والصلاحيات", en: "Roles & Permissions" },
+  "permissions": { ar: "طاقم العمل والصلاحيات", en: "Staff & Permissions" },
+  "tickets": { ar: "الدعم الفني والتذاكر", en: "Technical Support" },
+  "accounts": { ar: "إدارة العملاء", en: "Client Management" },
+  "staff": { ar: "طاقم العمل", en: "Staff" },
+  "profile": { ar: "الملف الشخصي", en: "Profile" },
+  "notifications": { ar: "مركز الإشعارات", en: "Notifications" },
+  "settings": { ar: "إعدادات النظام", en: "System Settings" },
+  "general": { ar: "الإعدادات العامة", en: "General Settings" },
+  "currency": { ar: "إعدادات العملة", en: "Currency Settings" },
+  "language": { ar: "إعدادات اللغة", en: "Language Settings" },
+  "website-settings": { ar: "إعدادات الموقع", en: "Site Settings" },
+  "website": { ar: "إعدادات الموقع", en: "Site Settings" },
+  "utility": { ar: "تحديث النظام", en: "System Update" },
+  "update": { ar: "تحديث النظام", en: "System Update" },
+  "server-info": { ar: "معلومات السيرفر", en: "Server Information" },
+  "seo": { ar: "تهيئة محركات البحث (SEO)", en: "Search Engine Optimization (SEO)" },
 };
 
 export function DashboardBreadcrumb({ customItems, className }: DashboardBreadcrumbProps) {
   const pathname = usePathname();
+  const language = useUIStore((state) => state.language);
+  const isEn = language === "en";
 
   // If custom items are provided, render them directly
   if (customItems && customItems.length > 0) {
@@ -85,6 +97,7 @@ export function DashboardBreadcrumb({ customItems, className }: DashboardBreadcr
 
   // Otherwise, automatically derive from current pathname
   const segments = (pathname || "").split("/").filter(Boolean);
+  const homeLabel = isEn ? "Dashboard" : "الرئيسية";
 
   // If on root dashboard page
   if (segments.length === 0) {
@@ -94,7 +107,7 @@ export function DashboardBreadcrumb({ customItems, className }: DashboardBreadcr
           <BreadcrumbItem>
             <BreadcrumbPage className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-1.5">
               <Home className="size-3.5 text-[#9c6402]" />
-              <span>الرئيسية</span>
+              <span>{homeLabel}</span>
             </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
@@ -103,13 +116,14 @@ export function DashboardBreadcrumb({ customItems, className }: DashboardBreadcr
   }
 
   const breadcrumbs: { label: string; href?: string }[] = [
-    { label: "الرئيسية", href: "/" },
+    { label: homeLabel, href: "/" },
   ];
 
   let accumulatedPath = "";
   segments.forEach((seg, idx) => {
     accumulatedPath += `/${seg}`;
-    const label = ROUTE_LABELS[seg] || decodeURIComponent(seg);
+    const route = ROUTE_LABELS[seg];
+    const label = route ? (isEn ? route.en : route.ar) : decodeURIComponent(seg);
     const isLast = idx === segments.length - 1;
     breadcrumbs.push({
       label,

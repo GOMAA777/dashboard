@@ -135,7 +135,7 @@ export function CreateTicketView({
         className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]"
         data-node-id="1:14984"
       >
-        <div className="flex flex-col gap-[4px] text-right">
+        <div className="flex flex-col gap-[4px] text-start">
           <h1 className="text-[#1b1c1a] font-bold text-[24px] sm:text-[28px] leading-[38px]">
             إنشاء تذكرة جديدة
           </h1>

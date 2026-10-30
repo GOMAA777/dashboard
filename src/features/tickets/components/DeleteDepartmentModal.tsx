@@ -25,7 +25,7 @@ export function DeleteDepartmentModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs antialiased">
       <div
-        className="bg-white rounded-[8px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] w-full max-w-[480px] overflow-hidden flex flex-col relative text-right animate-in fade-in zoom-in-95 duration-150"
+        className="bg-white rounded-[8px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] w-full max-w-[480px] overflow-hidden flex flex-col relative text-start animate-in fade-in zoom-in-95 duration-150"
         data-node-id="1:16818"
         data-name="حذف القسم"
       >
@@ -55,7 +55,7 @@ export function DeleteDepartmentModal({
         {/* Modal Content Body */}
         <div className="flex flex-col gap-[14px] p-[20px]">
           {/* Core Warning Copy */}
-          <div className="flex flex-col gap-[4px] text-right">
+          <div className="flex flex-col gap-[4px] text-start">
             <h3 className="text-[#1b1c1a] font-semibold text-[15px] leading-[24px]">
               هل أنت متأكد من رغبتك في حذف هذا القسم نهائياً؟
             </h3>
@@ -75,20 +75,20 @@ export function DeleteDepartmentModal({
               </span>
             </div>
 
-            <div className="flex items-center justify-end gap-[8px] pt-[2px]">
+            <div className="flex items-center gap-[8px] pt-[2px]">
+              <AlertTriangle className="size-[16px] text-[#ba1a1a] shrink-0" />
               <span className="font-bold text-[#1b1c1a] text-[14px]">
                 {department.name}
               </span>
-              <AlertTriangle className="size-[16px] text-[#ba1a1a] shrink-0" />
             </div>
 
-            <p className="text-[#514537] text-[11px] leading-[16px] text-right pt-[4px]">
+            <p className="text-[#514537] text-[11px] leading-[16px] text-start pt-[4px]">
               سيتم إزالة القسم فوراً من الهيكل التنظيمي وخيارات إسناد التذاكر والمهام لجميع المستشارين.
             </p>
           </div>
 
           {/* Verification Checkbox */}
-          <label className="flex items-start gap-[10px] pt-[4px] cursor-pointer text-right">
+          <label className="flex items-start gap-[10px] pt-[4px] cursor-pointer text-start">
             <input
               type="checkbox"
               checked={isAcknowledged}

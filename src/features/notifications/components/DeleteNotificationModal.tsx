@@ -24,7 +24,6 @@ export function DeleteNotificationModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-[2px] animate-in fade-in duration-200"
-      dir="rtl"
     >
       <div
         className="bg-white rounded-[8px] shadow-[0px_20px_25px_-5px_rgba(0,0,0,0.1),0px_8px_10px_-6px_rgba(0,0,0,0.1)] w-full max-w-[512px] overflow-hidden border border-[#eae8e4] relative scale-in-95 duration-150"

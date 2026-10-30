@@ -96,7 +96,7 @@ export function DepartmentsSection({
         className="bg-white dark:bg-[#221812] rounded-[8px] p-[24px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 dark:border-[#38271c] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]"
         data-node-id="1:16262"
       >
-        <div className="flex flex-col gap-[4px] text-right">
+        <div className="flex flex-col gap-[4px] text-start">
           <h1 className="text-[#1b1c1a] dark:text-[#fdfbf7] font-bold text-[24px] sm:text-[28px] leading-[38px]">
             الأقسام
           </h1>
@@ -216,7 +216,7 @@ export function DepartmentsSection({
         data-node-id="1:16310"
       >
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-right">
+          <table className="w-full border-collapse text-start">
             <thead>
               <tr className="bg-[#f0eeea] dark:bg-[#281c15] h-[56px] border-b border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[12px] font-bold tracking-[0.6px] uppercase">
                 <th className="px-[24px] py-[14px] font-bold text-start whitespace-nowrap w-[160px]">

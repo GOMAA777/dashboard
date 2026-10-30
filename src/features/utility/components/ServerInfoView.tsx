@@ -42,7 +42,6 @@ export function ServerInfoView() {
   return (
     <div
       className="flex h-screen bg-[#f5f3ef] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00]"
-      dir="rtl"
     >
       {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar activeNav="utility" activeSubNav="server-info" />
@@ -54,7 +53,7 @@ export function ServerInfoView() {
         <main className="flex-1 overflow-y-auto px-[24px] sm:px-[32px] py-[24px] max-w-[1360px] w-full mx-auto pb-[80px] scrollbar-thin">
           {/* Main Identity & Command Banner (Figma 1:19057) */}
           <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] relative mb-[24px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]">
-            <div className="flex flex-col gap-[4px] text-right">
+            <div className="flex flex-col gap-[4px] text-start">
               <h1 className="text-[28px] leading-[38px] font-bold text-[#1b1c1a]">
                 معلومات السيرفر
               </h1>
@@ -155,7 +154,7 @@ export function ServerInfoView() {
 
             {/* Structured Server Directives Table (Figma 1:19103) */}
             <div className="overflow-x-auto">
-              <table className="w-full text-right border-collapse">
+              <table className="w-full text-start border-collapse">
                 <thead>
                   <tr className="bg-[#f5f3ef]/70 text-[#514537] text-[13px] font-bold border-b border-[#eae8e4]">
                     <th className="py-[14px] px-[20px] w-[60px] text-center">#</th>

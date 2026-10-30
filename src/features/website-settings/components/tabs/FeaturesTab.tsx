@@ -27,7 +27,7 @@ export function FeaturesTab() {
   return (
     <div className="bg-white rounded-[12px] p-[24px] border border-[rgba(231,229,228,0.8)] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] flex flex-col gap-[20px]">
       <div className="overflow-x-auto rounded-[8px] border border-[#f5f5f4]">
-        <table className="w-full text-right border-collapse">
+        <table className="w-full text-start border-collapse">
           <thead>
             <tr className="bg-[#fefce8]/60 text-[#78350f] text-[13px] font-bold border-b border-[#f3efe6]">
               <th className="py-[12px] px-[16px] w-[50px] text-center">#</th>

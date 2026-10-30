@@ -48,7 +48,6 @@ export function ChangeSubscriptionPlanModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs font-['Cairo']">
       <div
         className="bg-white dark:bg-[#1e1c1a] border border-[#d6c4b1]/40 dark:border-[#38332c] rounded-[8px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95"
-        dir="rtl"
         data-node-id="1:6978"
         data-name="تغيير باقة الاشتراك"
       >
@@ -66,7 +65,7 @@ export function ChangeSubscriptionPlanModal({
             <X className="w-4 h-4" />
           </button>
 
-          <div className="flex flex-col items-end text-right">
+          <div className="flex flex-col items-end text-start">
             <h2 className="font-bold text-[22px] text-[#1b1c1a] dark:text-[#fdfbf7] leading-[26px]">
               تغيير باقة الاشتراك
             </h2>
@@ -120,7 +119,7 @@ export function ChangeSubscriptionPlanModal({
                     3,500
                   </span>
                 </div>
-                <div className="text-[10px] text-[#837565] dark:text-[#a89f91] text-right">
+                <div className="text-[10px] text-[#837565] dark:text-[#a89f91] text-start">
                   حتى 5 محامين
                 </div>
               </div>
@@ -148,7 +147,7 @@ export function ChangeSubscriptionPlanModal({
                     9,200
                   </span>
                 </div>
-                <div className="text-[10px] text-[#837565] dark:text-[#a89f91] text-right font-bold">
+                <div className="text-[10px] text-[#837565] dark:text-[#a89f91] text-start font-bold">
                   10 محامين
                 </div>
               </div>
@@ -179,7 +178,7 @@ export function ChangeSubscriptionPlanModal({
                     14,500
                   </span>
                 </div>
-                <div className="text-[10px] text-[#7b4e00] dark:text-[#fbbf24] text-right font-medium">
+                <div className="text-[10px] text-[#7b4e00] dark:text-[#fbbf24] text-start font-medium">
                   15 محامياً
                 </div>
               </div>
@@ -263,7 +262,7 @@ export function ChangeSubscriptionPlanModal({
                     : "border-[#e4e2de] dark:border-[#38332c] hover:bg-[#faf9f7]"
                 }`}
               >
-                <div className="text-right">
+                <div className="text-start">
                   <div className="font-bold text-[12px] text-[#1b1c1a] dark:text-[#fdfbf7]">
                     تطبيق فوري مع التسوية
                   </div>
@@ -287,7 +286,7 @@ export function ChangeSubscriptionPlanModal({
                     : "border-[#e4e2de] dark:border-[#38332c] hover:bg-[#faf9f7]"
                 }`}
               >
-                <div className="text-right">
+                <div className="text-start">
                   <div className="font-bold text-[12px] text-[#1b1c1a] dark:text-[#fdfbf7]">
                     عند التجديد القادم
                   </div>

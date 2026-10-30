@@ -74,7 +74,6 @@ export function WebsiteSettingsView({ initialTab = "menu" }: WebsiteSettingsView
   return (
     <div
       className="flex h-screen h-dvh bg-[#f5f3ef] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00]"
-      dir="rtl"
     >
       {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar activeNav="site-settings" />
@@ -87,7 +86,7 @@ export function WebsiteSettingsView({ initialTab = "menu" }: WebsiteSettingsView
           <DashboardPageTransition>
             {/* Main Identity & Command Banner (Figma 1:19876) */}
             <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] relative mb-[24px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]">
-              <div className="flex flex-col gap-[4px] text-right">
+              <div className="flex flex-col gap-[4px] text-start">
                 <h1 className="text-[28px] leading-[38px] font-bold text-[#1b1c1a]">
                   إعدادات الموقع
                 </h1>

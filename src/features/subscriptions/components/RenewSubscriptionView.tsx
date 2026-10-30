@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import {
+  ArrowLeft,
   ArrowRight,
   Building2,
   Calendar,
@@ -68,7 +69,6 @@ export function RenewSubscriptionView({
   return (
     <div
       className="flex flex-col gap-6 w-full font-['Cairo'] pb-12 animate-in fade-in duration-200"
-      dir="rtl"
       data-node-id="1:6544"
       data-name="إضافة اشتراك / تجديد اشتراك المكتب"
     >
@@ -77,7 +77,7 @@ export function RenewSubscriptionView({
         className="bg-white dark:bg-[#1e1c1a] flex flex-col md:flex-row items-start md:items-center justify-between p-6 rounded-[8px] border border-[#f0eeea] dark:border-[#2f2a24] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] w-full gap-4"
         data-node-id="1:6547"
       >
-        <div className="flex flex-col items-start text-right">
+        <div className="flex flex-col items-start text-start">
           <h1 className="font-['Cairo'] font-bold text-[28px] text-[#1b1c1a] dark:text-[#fdfbf7] leading-[38px]">
             إضافة اشتراك / تجديد اشتراك المكتب
           </h1>
@@ -92,8 +92,8 @@ export function RenewSubscriptionView({
           className="bg-white dark:bg-[#2c2621] hover:bg-[#faf9f7] text-[#1b1c1a] dark:text-[#fdfbf7] border border-[#e4e2de] dark:border-[#38332c] px-4 py-2 rounded-[4px] font-semibold text-[14px] flex items-center gap-2 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-colors cursor-pointer"
           data-node-id="1:6550"
         >
-          <span>العودة </span>
-          <ArrowRight className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
+          <span>العودة</span>
         </button>
       </div>
 
@@ -228,7 +228,7 @@ export function RenewSubscriptionView({
                       : "border-[#e4e2de] dark:border-[#38332c] hover:bg-[#faf9f7]"
                   }`}
                 >
-                  <div className="text-right">
+                  <div className="text-start">
                     <div className="font-bold text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7]">
                       سنوي (12 شهراً)
                     </div>
@@ -257,7 +257,7 @@ export function RenewSubscriptionView({
                       : "border-[#e4e2de] dark:border-[#38332c] hover:bg-[#faf9f7]"
                   }`}
                 >
-                  <div className="text-right">
+                  <div className="text-start">
                     <div className="font-bold text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7]">
                       شهري (1 شهر)
                     </div>
@@ -349,7 +349,7 @@ export function RenewSubscriptionView({
                   )}
                 </div>
               </div>
-              <div className="flex-1 text-right">
+              <div className="flex-1 text-start">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7]">
                     قيد الانتظار (في انتظار المطابقة والتدقيق المالي)
@@ -380,7 +380,7 @@ export function RenewSubscriptionView({
                   )}
                 </div>
               </div>
-              <div className="flex-1 text-right">
+              <div className="flex-1 text-start">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7]">
                     نشط (تفعيل فوري معتمد ومباشر)
@@ -604,7 +604,7 @@ export function RenewSubscriptionView({
                 </button>
               </div>
 
-              <div className="flex items-center gap-2 text-right">
+              <div className="flex items-center gap-2 text-start">
                 <div>
                   <div className="font-bold text-[12px] text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-1 justify-end">
                     <span>سند_تحويل_مكتب_العجلان.pdf</span>

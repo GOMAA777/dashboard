@@ -25,10 +25,10 @@ export function DashboardWelcomeBanner({
       <div className="flex items-start gap-3">
         <div>
           <div className="flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-[#c29547] dark:text-[#d4a759] shrink-0" />
             <h2 className="text-xl md:text-2xl font-bold text-[#1c1917] dark:text-[#f5f4f0] tracking-tight">
               {t.welcome}
             </h2>
-            <BarChart3 className="w-5 h-5 text-[#c29547] dark:text-[#d4a759] shrink-0" />
           </div>
           <p className="text-xs text-[#8c827a] dark:text-[#9e968a] mt-1 font-medium">
             {t.lastUpdate}

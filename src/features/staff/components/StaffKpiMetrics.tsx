@@ -8,7 +8,7 @@ interface StaffKpiMetricsProps {
 
 export function StaffKpiMetrics({ kpis }: StaffKpiMetricsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4" dir="rtl">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
       {/* KPI 1: إجمالي الموظفين */}
       <div
         className="bg-white dark:bg-[#221812] rounded-[8px] p-4 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col justify-between h-[120px]"
@@ -16,7 +16,7 @@ export function StaffKpiMetrics({ kpis }: StaffKpiMetricsProps) {
       >
         <div className="flex items-start justify-between">
           {/* Text & Value */}
-          <div className="text-right">
+          <div className="text-start">
             <span className="text-[14px] font-medium text-[#79716b] dark:text-[#cdc5bd] leading-[20px] block">
               إجمالي الموظفين
             </span>
@@ -49,7 +49,7 @@ export function StaffKpiMetrics({ kpis }: StaffKpiMetricsProps) {
         data-node-id="1:8930"
       >
         <div className="flex items-start justify-between">
-          <div className="text-right">
+          <div className="text-start">
             <span className="text-[14px] font-medium text-[#79716b] dark:text-[#cdc5bd] leading-[20px] block">
               الموظفون النشطون
             </span>
@@ -80,7 +80,7 @@ export function StaffKpiMetrics({ kpis }: StaffKpiMetricsProps) {
         data-node-id="1:8912"
       >
         <div className="flex items-start justify-between">
-          <div className="text-right">
+          <div className="text-start">
             <span className="text-[14px] font-medium text-[#79716b] dark:text-[#cdc5bd] leading-[20px] block">
               الحسابات الموقوفة
             </span>
@@ -111,7 +111,7 @@ export function StaffKpiMetrics({ kpis }: StaffKpiMetricsProps) {
         data-node-id="1:8894"
       >
         <div className="flex items-start justify-between">
-          <div className="text-right">
+          <div className="text-start">
             <span className="text-[14px] font-medium text-[#79716b] dark:text-[#cdc5bd] leading-[20px] block">
               سجلوا الدخول اليوم
             </span>

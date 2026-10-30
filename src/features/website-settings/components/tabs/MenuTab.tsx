@@ -61,12 +61,12 @@ export function MenuTab() {
       </div>
 
       {/* 2. Notice Box for Section IDs */}
-      <div className="bg-[#f4ecdf] rounded-[8px] p-[16px] text-right">
+      <div className="bg-[#f4ecdf] rounded-[8px] p-[16px] text-start">
         <p className="text-[13px] leading-[22px] text-[#9c6402] mb-[6px]">
           <span className="font-bold">تنبيه هام (Note): </span>
           <span>لقسم &quot;الهدف&quot; (Target)، يرجى استخدام المعرفات التالية للربط التلقائي بالأقسام:</span>
         </p>
-        <p className="font-mono font-bold text-[12px] text-[#7b4e00] leading-[20px] direction-ltr text-right">
+        <p className="font-mono font-bold text-[12px] text-[#7b4e00] leading-[20px] direction-ltr text-start">
           #advantage, #cta, #faq, #partner, #features, #growth, #pricing, #stories, #testimonials, #unique_feature
         </p>
       </div>
@@ -106,7 +106,7 @@ export function MenuTab() {
                 value={item.label}
                 onChange={(e) => handleItemChange(item.id, "label", e.target.value)}
                 placeholder="اسم القائمة"
-                className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[14px] text-[#292524] font-medium focus:outline-none focus:border-[#9c6402] focus:bg-white transition-all text-right"
+                className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[14px] text-[#292524] font-medium focus:outline-none focus:border-[#9c6402] focus:bg-white transition-all text-start"
               />
             </div>
 
@@ -126,8 +126,8 @@ export function MenuTab() {
           disabled={isSaving}
           className="bg-[#9c6402] hover:bg-[#835401] active:bg-[#6c4501] text-white px-[28px] py-[10px] rounded-[8px] text-[13px] font-semibold flex items-center gap-[8px] shadow-xs transition-all cursor-pointer disabled:opacity-75"
         >
-          <span>{isSaving ? "جارٍ الحفظ..." : "حفظ وتحديث (Update)"}</span>
           <Check className="size-[16px]" />
+          <span>{isSaving ? "جارٍ الحفظ..." : "حفظ وتحديث (Update)"}</span>
         </button>
       </div>
     </div>

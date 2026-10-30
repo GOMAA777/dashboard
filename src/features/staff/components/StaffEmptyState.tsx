@@ -10,7 +10,6 @@ export function StaffEmptyState({ onAddEmployee }: StaffEmptyStateProps) {
     <div
       className="bg-white rounded-[8px] border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] p-8 sm:p-14 flex flex-col items-center justify-center text-center"
       data-node-id="1:8718"
-      dir="rtl"
     >
       {/* Icon Graphic */}
       <div className="relative mb-6">
@@ -51,7 +50,7 @@ export function StaffEmptyState({ onAddEmployee }: StaffEmptyStateProps) {
       </button>
 
       {/* Compliance / Security Note Box */}
-      <div className="w-full max-w-[700px] bg-[#faf8f5] border border-[#e8e2d8] rounded-[8px] p-4 text-right flex items-start gap-3">
+      <div className="w-full max-w-[700px] bg-[#faf8f5] border border-[#e8e2d8] rounded-[8px] p-4 text-start flex items-start gap-3">
         <div className="size-[32px] rounded-[6px] bg-[#f3ede3] flex items-center justify-center shrink-0 mt-0.5">
           <ShieldCheck className="size-[18px] text-[#9c6402]" />
         </div>

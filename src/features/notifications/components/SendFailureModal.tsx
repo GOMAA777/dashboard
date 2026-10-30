@@ -26,7 +26,6 @@ export function SendFailureModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-[2px] animate-in fade-in duration-200"
-      dir="rtl"
     >
       <div
         className="bg-white rounded-[8px] shadow-[0px_20px_50px_0px_rgba(28,20,15,0.22)] w-full max-w-[544px] overflow-hidden border border-[#eae8e4] relative scale-in-95 duration-150"
@@ -65,7 +64,7 @@ export function SendFailureModal({
           </div>
 
           {/* Error Callout Banner */}
-          <div className="bg-[#ffdad6]/40 border border-[#ffdad6] rounded-[4px] p-3 text-right text-[12px] text-[#93000a] flex items-center gap-2">
+          <div className="bg-[#ffdad6]/40 border border-[#ffdad6] rounded-[4px] p-3 text-start text-[12px] text-[#93000a] flex items-center gap-2">
             <span className="size-2 rounded-full bg-[#ba1a1a] shrink-0" />
             <span className="leading-[18px]">
               فشل الاتصال المؤقت ببوابة البث المباشر (Gateway Timeout • ERR-NTF-504) — لم يتم الخصم أو تكرار الإشعار للمستلمين
@@ -73,7 +72,7 @@ export function SendFailureModal({
           </div>
 
           {/* Notification Summary Card */}
-          <div className="bg-[#f5f3ef] rounded-[8px] p-4 text-right space-y-3 border border-[#eae8e4]">
+          <div className="bg-[#f5f3ef] rounded-[8px] p-4 text-start space-y-3 border border-[#eae8e4]">
             {/* Title */}
             <div className="border-b border-[#eae8e4] pb-2">
               <span className="text-[#837565] text-[10px] font-semibold">

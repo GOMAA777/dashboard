@@ -24,7 +24,6 @@ export function DeleteLanguageModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200"
-      dir="rtl"
     >
       {/* Modal Card (Figma 1:18783) */}
       <div className="bg-white rounded-[16px] shadow-[0px_20px_50px_0px_rgba(28,20,15,0.28)] w-full max-w-[480px] overflow-hidden flex flex-col border border-[#eae8e4] animate-in zoom-in-95 duration-200">
@@ -54,7 +53,7 @@ export function DeleteLanguageModal({
         {/* Main Modal Body Content (Figma 1:18796) */}
         <div className="px-[24px] py-[8px]">
           <div className="bg-[#f5f3ef] rounded-[8px] p-[14px] flex items-center justify-between gap-[14px]">
-            <div className="flex flex-col text-right gap-[2px]">
+            <div className="flex flex-col text-start gap-[2px]">
               <p className="text-[14px] font-bold text-[#1b1c1a] leading-[22px]">
                 هل أنت متأكد من حذف اللغة «{language.name} {language.nativeName ? `${language.nativeName} - ` : ""}{language.code}»؟
               </p>
@@ -77,8 +76,8 @@ export function DeleteLanguageModal({
             onClick={() => onConfirm(language)}
             className="bg-[#ba1a1a] hover:bg-[#991515] active:bg-[#7a1111] text-[#fff3e9] h-[40px] px-[24px] py-[8px] rounded-[4px] font-bold text-[12px] flex items-center gap-[6px] transition-colors shadow-sm disabled:opacity-60 cursor-pointer"
           >
-            <span>{isDeleting ? "جارٍ الحذف..." : "حذف اللغة"}</span>
             <Trash2 className="size-[14px]" />
+            <span>{isDeleting ? "جارٍ الحذف..." : "حذف اللغة"}</span>
           </button>
 
           {/* Cancel Button */}

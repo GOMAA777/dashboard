@@ -30,40 +30,40 @@ export function HeroSectionTab() {
     <div className="bg-white rounded-[12px] p-[24px] border border-[rgba(231,229,228,0.8)] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] flex flex-col gap-[24px]">
       {/* 1. Title */}
       <div>
-        <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+        <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
           Title (العنوان الرئيسي)
         </label>
         <input
           type="text"
           value={data.title}
           onChange={(e) => handleChange("title", e.target.value)}
-          className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[14px] text-[#1c1917] font-medium focus:outline-none focus:border-[#9c6402] focus:bg-white text-right"
+          className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[14px] text-[#1c1917] font-medium focus:outline-none focus:border-[#9c6402] focus:bg-white text-start"
         />
       </div>
 
       {/* 2. Subtitle */}
       <div>
-        <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+        <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
           Subtitle (العنوان الفرعي)
         </label>
         <input
           type="text"
           value={data.subtitle}
           onChange={(e) => handleChange("subtitle", e.target.value)}
-          className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-right"
+          className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-start"
         />
       </div>
 
       {/* 3. Description */}
       <div>
-        <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+        <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
           Description (الوصف التفصيلي)
         </label>
         <textarea
           rows={3}
           value={data.description}
           onChange={(e) => handleChange("description", e.target.value)}
-          className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-right resize-none"
+          className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-start resize-none"
         />
       </div>
 
@@ -94,18 +94,18 @@ export function HeroSectionTab() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-[14px]">
           <div>
-            <label className="block text-[12px] text-[#78716c] mb-[4px] text-right">
+            <label className="block text-[12px] text-[#78716c] mb-[4px] text-start">
               Action button label
             </label>
             <input
               type="text"
               value={data.actionButtonLabel}
               onChange={(e) => handleChange("actionButtonLabel", e.target.value)}
-              className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-right"
+              className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-start"
             />
           </div>
           <div>
-            <label className="block text-[12px] text-[#78716c] mb-[4px] text-right">
+            <label className="block text-[12px] text-[#78716c] mb-[4px] text-start">
               Action button URL
             </label>
             <input
@@ -150,7 +150,7 @@ export function HeroSectionTab() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-[14px]">
           <div>
-            <label className="block text-[12px] text-[#78716c] mb-[4px] text-right">
+            <label className="block text-[12px] text-[#78716c] mb-[4px] text-start">
               Secondary action button label
             </label>
             <input
@@ -160,11 +160,11 @@ export function HeroSectionTab() {
                 handleChange("secondaryActionButtonLabel", e.target.value)
               }
               placeholder="نص الزر الثانوي"
-              className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-right"
+              className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-start"
             />
           </div>
           <div>
-            <label className="block text-[12px] text-[#78716c] mb-[4px] text-right">
+            <label className="block text-[12px] text-[#78716c] mb-[4px] text-start">
               Secondary action button URL
             </label>
             <input
@@ -182,7 +182,7 @@ export function HeroSectionTab() {
 
       {/* 6. Image Upload & Preview */}
       <div className="flex flex-col gap-[12px] pt-[8px] border-t border-[#f5f5f4]">
-        <label className="block text-[12px] font-semibold text-[#57534e] text-right">
+        <label className="block text-[12px] font-semibold text-[#57534e] text-start">
           Image (صورة الهيرو الحالية والمرفقة)
         </label>
         <div className="flex items-center border border-[#e7e5e4] rounded-[8px] overflow-hidden bg-[#fafaf9]/60">
@@ -215,8 +215,8 @@ export function HeroSectionTab() {
           disabled={isSaving}
           className="bg-[#9c6402] hover:bg-[#835401] active:bg-[#6c4501] text-white px-[32px] py-[10px] rounded-[8px] text-[13px] font-semibold flex items-center gap-[8px] shadow-xs transition-all cursor-pointer disabled:opacity-75"
         >
-          <span>{isSaving ? "جارٍ التحديث..." : "تحديث"}</span>
           <Check className="size-[16px]" />
+          <span>{isSaving ? "جارٍ التحديث..." : "تحديث"}</span>
         </button>
       </div>
     </div>

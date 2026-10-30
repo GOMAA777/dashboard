@@ -66,12 +66,12 @@ export function AddLanguageView({ onBack, onSave }: AddLanguageViewProps) {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 overflow-y-auto scrollbar-thin" dir="rtl">
+    <div className="flex-1 flex flex-col min-w-0 overflow-y-auto scrollbar-thin">
       <main className="flex-1 px-[24px] sm:px-[32px] py-[24px] max-w-[1360px] w-full mx-auto pb-[32px]">
         {/* Top Banner (Figma 1:18586) */}
         <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] relative mb-[24px] flex items-center justify-between">
           {/* Title & Subtitle */}
-          <div className="flex flex-col gap-[4px] text-right">
+          <div className="flex flex-col gap-[4px] text-start">
             <h1 className="text-[28px] leading-[38px] font-bold text-[#1b1c1a]">
               إضافة لغة جديدة
             </h1>
@@ -86,8 +86,8 @@ export function AddLanguageView({ onBack, onSave }: AddLanguageViewProps) {
             onClick={onBack}
             className="bg-white hover:bg-[#f5f3ef] border border-[#ded5c6] text-[#1b1c1a] rounded-[4px] px-[16px] py-[8px] font-semibold text-[14px] flex items-center gap-[6px] transition-colors shadow-xs cursor-pointer"
           >
+            <ArrowLeft className="size-[16px] rtl:rotate-180" />
             <span>العودة</span>
-            <ArrowLeft className="size-[16px] -scale-x-100" />
           </button>
         </div>
 
@@ -95,7 +95,7 @@ export function AddLanguageView({ onBack, onSave }: AddLanguageViewProps) {
         <form onSubmit={handleSubmit} className="bg-white rounded-[8px] p-[24px] sm:p-[40px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] flex flex-col gap-[28px]">
           {/* Field 1: اسم اللغة */}
           <div className="flex flex-col gap-[6px]">
-            <div className="flex items-center justify-between text-right">
+            <div className="flex items-center justify-between text-start">
               <label className="text-[14px] font-semibold text-[#1b1c1a] flex items-center gap-[2px]">
                 <span>اسم اللغة</span>
                 <span className="text-[#ba1a1a]">*</span>
@@ -115,13 +115,13 @@ export function AddLanguageView({ onBack, onSave }: AddLanguageViewProps) {
               )}
             />
             {errors.name && (
-              <p className="text-[11px] font-medium text-[#ba1a1a] text-right">{errors.name}</p>
+              <p className="text-[11px] font-medium text-[#ba1a1a] text-start">{errors.name}</p>
             )}
           </div>
 
           {/* Field 2: كود اللغة (Locale) */}
           <div className="flex flex-col gap-[6px]">
-            <div className="flex items-center justify-between text-right">
+            <div className="flex items-center justify-between text-start">
               <label className="text-[14px] font-semibold text-[#1b1c1a] flex items-center gap-[2px]">
                 <span>كود اللغة (Locale)</span>
                 <span className="text-[#ba1a1a]">*</span>
@@ -137,14 +137,14 @@ export function AddLanguageView({ onBack, onSave }: AddLanguageViewProps) {
               onChange={(e) => setFormData({ ...formData, code: e.target.value })}
               placeholder="مثال: ar أو en أو fr"
               className={cn(
-                "w-full bg-[#f5f3ef] text-[#1b1c1a] text-[14px] rounded-[4px] px-[16px] py-[10px] text-right border border-transparent focus:border-[#9c6402] focus:bg-white focus:outline-none transition-all font-mono",
+                "w-full bg-[#f5f3ef] text-[#1b1c1a] text-[14px] rounded-[4px] px-[16px] py-[10px] text-start border border-transparent focus:border-[#9c6402] focus:bg-white focus:outline-none transition-all font-mono",
                 errors.code && "border-[#ba1a1a]"
               )}
             />
             {errors.code ? (
-              <p className="text-[11px] font-medium text-[#ba1a1a] text-right">{errors.code}</p>
+              <p className="text-[11px] font-medium text-[#ba1a1a] text-start">{errors.code}</p>
             ) : (
-              <p className="text-[10px] font-bold text-[#837565] text-right leading-[14px]">
+              <p className="text-[10px] font-bold text-[#837565] text-start leading-[14px]">
                 يتكون من حرفين صغيرين وفق المعيار الدولي الموحد
               </p>
             )}
@@ -153,7 +153,7 @@ export function AddLanguageView({ onBack, onSave }: AddLanguageViewProps) {
           {/* Field 3: حالة اللغة في النظام */}
           <div className="bg-[#f5f3ef] rounded-[8px] p-[16px] border border-[#eae8e4] flex flex-col sm:flex-row sm:items-center justify-between gap-[16px]">
             {/* Text Label on Right */}
-            <div className="flex flex-col text-right">
+            <div className="flex flex-col text-start">
               <span className="text-[14px] font-bold text-[#1b1c1a]">
                 حالة اللغة في النظام
               </span>
@@ -204,8 +204,8 @@ export function AddLanguageView({ onBack, onSave }: AddLanguageViewProps) {
               disabled={isSubmitting}
               className="bg-[#9c6402] hover:bg-[#835401] active:bg-[#6c4501] text-white px-[32px] py-[10px] rounded-[6px] font-semibold text-[14px] flex items-center gap-[8px] transition-all shadow-[0px_1px_2px_rgba(0,0,0,0.05)] cursor-pointer disabled:opacity-70"
             >
-              <span>{isSubmitting ? "جارٍ الحفظ..." : "حفظ اللغة"}</span>
               <Check className="size-[18px] stroke-[2.5]" />
+              <span>{isSubmitting ? "جارٍ الحفظ..." : "حفظ اللغة"}</span>
             </button>
 
             <button

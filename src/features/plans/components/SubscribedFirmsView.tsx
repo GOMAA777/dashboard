@@ -200,7 +200,7 @@ export function SubscribedFirmsView({
   }, [filteredFirms, currentPage, pageSize]);
 
   return (
-    <div className="w-full space-y-[20px] font-['Cairo',sans-serif]" dir="rtl">
+    <div className="w-full space-y-[20px] font-['Cairo',sans-serif]">
       {/* 1. Top Identity & Action Header */}
       <div className="bg-white rounded-[8px] p-[20px] md:p-[24px] shadow-2xs border border-[#f0eeea] flex flex-col md:flex-row md:items-center justify-between gap-[16px]">
         {/* Right: Title & Badge */}
@@ -420,7 +420,7 @@ export function SubscribedFirmsView({
       {/* 4. Comprehensive Data Table */}
       <div className="bg-white rounded-[8px] border border-[#e2ded7] shadow-2xs overflow-hidden">
         <div className="overflow-x-auto scrollbar-none">
-          <table className="w-full text-right text-[12px]">
+          <table className="w-full text-start text-[12px]">
             <thead>
               <tr className="bg-[#faf8f5] border-b border-[#f0eeea] text-[#737067] font-semibold">
                 <th className="py-[12px] px-[14px]">اسم المنشأة والمكتب</th>
@@ -755,8 +755,7 @@ export function SubscribedFirmsView({
             ...(openMenuFirm.coords.bottom !== undefined ? { bottom: `${openMenuFirm.coords.bottom}px` } : {}),
             zIndex: 9999,
           }}
-          className="w-[190px] bg-white rounded-[6px] shadow-[0px_8px_24px_rgba(0,0,0,0.14)] border border-[#e2ded7] p-[4px] text-right animate-in fade-in-50 zoom-in-95 select-none font-['Cairo',sans-serif]"
-          dir="rtl"
+          className="w-[190px] bg-white rounded-[6px] shadow-[0px_8px_24px_rgba(0,0,0,0.14)] border border-[#e2ded7] p-[4px] text-start animate-in fade-in-50 zoom-in-95 select-none font-['Cairo',sans-serif]"
         >
           <button
             type="button"

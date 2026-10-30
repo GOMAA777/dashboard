@@ -40,11 +40,11 @@ export function TicketsStatsCards({
             <AlertCircle className="size-[20px]" />
           </div>
           <div className="flex flex-col items-end">
-            <span className="font-medium text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[16px] text-right">
+            <span className="font-medium text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[16px] text-start">
               التذاكر المفتوحة
             </span>
             <div className="pt-[4px]">
-              <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7] text-[28px] leading-[38px] text-right">
+              <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7] text-[28px] leading-[38px] text-start">
                 {displayOpen}
               </span>
             </div>
@@ -75,11 +75,11 @@ export function TicketsStatsCards({
             <RotateCw className="size-[19px]" />
           </div>
           <div className="flex flex-col items-end">
-            <span className="font-medium text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[16px] text-right">
+            <span className="font-medium text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[16px] text-start">
               جاري العمل عليها
             </span>
             <div className="pt-[4px]">
-              <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7] text-[28px] leading-[38px] text-right">
+              <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7] text-[28px] leading-[38px] text-start">
                 {displayInProgress}
               </span>
             </div>
@@ -110,11 +110,11 @@ export function TicketsStatsCards({
             <Clock className="size-[19px]" />
           </div>
           <div className="flex flex-col items-end">
-            <span className="font-medium text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[16px] text-right">
+            <span className="font-medium text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[16px] text-start">
               التذاكر المعلقة
             </span>
             <div className="pt-[4px]">
-              <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7] text-[28px] leading-[38px] text-right">
+              <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7] text-[28px] leading-[38px] text-start">
                 {displayPending}
               </span>
             </div>
@@ -145,11 +145,11 @@ export function TicketsStatsCards({
             <CheckCircle2 className="size-[20px]" />
           </div>
           <div className="flex flex-col items-end">
-            <span className="font-medium text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[16px] text-right">
+            <span className="font-medium text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[16px] text-start">
               التذاكر المغلقة
             </span>
             <div className="pt-[4px]">
-              <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7] text-[28px] leading-[38px] text-right">
+              <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7] text-[28px] leading-[38px] text-start">
                 {displayClosed}
               </span>
             </div>

@@ -27,29 +27,29 @@ export function AIChatTab() {
     <div className="bg-white rounded-[12px] p-[24px] border border-[rgba(231,229,228,0.8)] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] flex flex-col gap-[24px]">
       {/* 1. Title */}
       <div>
-        <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+        <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
           Title (العنوان الرئيسي)
         </label>
         <input
           type="text"
           value={data.title}
           onChange={(e) => handleChange("title", e.target.value)}
-          className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[14px] text-[#1c1917] font-medium focus:outline-none focus:border-[#9c6402] focus:bg-white text-right font-sans"
+          className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[14px] text-[#1c1917] font-medium focus:outline-none focus:border-[#9c6402] focus:bg-white text-start font-sans"
         />
       </div>
 
       {/* 2. Description */}
       <div>
-        <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+        <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
           Description (الوصف الإرشادي للزائر)
         </label>
         <textarea
           rows={3}
           value={data.description}
           onChange={(e) => handleChange("description", e.target.value)}
-          className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-right resize-none font-sans"
+          className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-start resize-none font-sans"
         />
-        <p className="text-[12px] text-[#a8a29e] mt-[4px] text-right">
+        <p className="text-[12px] text-[#a8a29e] mt-[4px] text-start">
           يظهر هذا النص أعلى رمز الاستجابة السريعة (QR) لإرشاد الموكلين حول كيفية بدء المحادثة التفاعلية الفورية.
         </p>
       </div>
@@ -57,18 +57,18 @@ export function AIChatTab() {
       {/* 3. Action Button Label & URL */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-[14px]">
         <div>
-          <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+          <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
             Action button label (نص زر الإجراء)
           </label>
           <input
             type="text"
             value={data.actionButtonLabel}
             onChange={(e) => handleChange("actionButtonLabel", e.target.value)}
-            className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-right font-sans"
+            className="w-full bg-[#fafaf9]/60 border border-[#e7e5e4] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] focus:outline-none focus:border-[#9c6402] focus:bg-white text-start font-sans"
           />
         </div>
         <div>
-          <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-right">
+          <label className="block text-[12px] font-semibold text-[#57534e] mb-[6px] text-start">
             Action button URL (رابط الزر)
           </label>
           <div className="relative">
@@ -85,7 +85,7 @@ export function AIChatTab() {
 
       {/* 4. QR Image & Specifications */}
       <div className="flex flex-col gap-[12px] pt-[8px] border-t border-[#f5f5f4]">
-        <label className="block text-[12px] font-semibold text-[#57534e] text-right">
+        <label className="block text-[12px] font-semibold text-[#57534e] text-start">
           QR Image (صورة رمز الاستجابة السريعة QR Code)
         </label>
         <div className="flex items-center border border-[#e7e5e4] rounded-[8px] overflow-hidden bg-[#fafaf9]/60">
@@ -101,7 +101,7 @@ export function AIChatTab() {
         {/* Specs and Preview Box */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px] items-center mt-[4px]">
           {/* Specifications */}
-          <div className="bg-[#fafaf9] border border-[#f5f5f4] rounded-[8px] p-[16px] text-right">
+          <div className="bg-[#fafaf9] border border-[#f5f5f4] rounded-[8px] p-[16px] text-start">
             <h4 className="text-[12px] font-bold text-[#44403c] mb-[8px]">
               المواصفات الموصى بها لرمز الاستجابة السريعة:
             </h4>

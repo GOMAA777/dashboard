@@ -47,7 +47,6 @@ export function DeleteOfficeModal({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs font-['Cairo',sans-serif]"
       data-node-id="1:2377"
-      dir="rtl"
     >
       <div className="relative w-full max-w-[590px] bg-white rounded-[12px] p-[24px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] border border-[#eae8e4] flex flex-col gap-[14px] animate-in fade-in zoom-in-95 duration-150 max-h-[92vh] overflow-y-auto">
         {/* Header: Trash Icon + Title + Close Button */}
@@ -63,7 +62,7 @@ export function DeleteOfficeModal({
 
           {/* Icon & Title (Right) */}
           <div className="flex items-center gap-[12px]">
-            <div className="flex flex-col text-right">
+            <div className="flex flex-col text-start">
               <h2 className="text-[20px] font-bold text-[#1c140f] leading-[28px]">
                 حذف المكتب نهائيًا؟
               </h2>
@@ -82,7 +81,7 @@ export function DeleteOfficeModal({
               <span>نشط حالياً</span>
             </span>
 
-            <div className="flex flex-col text-right">
+            <div className="flex flex-col text-start">
               <span className="text-[#514537] text-[10px] font-bold">
                 المنشأة القانونية المستهدفة
               </span>
@@ -107,7 +106,7 @@ export function DeleteOfficeModal({
 
         {/* Critical Alert Banner */}
         <div className="bg-[#fff5f5] border border-[#fed7d7] rounded-[6px] p-[12px] flex items-start gap-[10px]">
-          <div className="flex-1 flex flex-col text-right">
+          <div className="flex-1 flex flex-col text-start">
             <div className="flex items-center gap-[4px]">
               <span className="text-[12px] font-bold text-[#ba1a1a]">تنبيه هام:</span>
               <span className="text-[12px] text-[#514537] leading-[18px]">
@@ -125,7 +124,7 @@ export function DeleteOfficeModal({
         <div className="flex flex-col gap-[8px]">
           {/* Point 1 */}
           <div className="bg-[#f5f3ef] rounded-[4px] p-[10px] flex items-start gap-[10px]">
-            <div className="flex-1 flex flex-col text-right">
+            <div className="flex-1 flex flex-col text-start">
               <span className="text-[12px] font-bold text-[#1b1c1a]">
                 إلغاء اشتراك المكتب ومقاعد المحامين فوراً
               </span>
@@ -140,7 +139,7 @@ export function DeleteOfficeModal({
 
           {/* Point 2 */}
           <div className="bg-[#f5f3ef] rounded-[4px] p-[10px] flex items-start gap-[10px]">
-            <div className="flex-1 flex flex-col text-right">
+            <div className="flex-1 flex flex-col text-start">
               <span className="text-[12px] font-bold text-[#1b1c1a]">
                 إيقاف الربط المباشر مع بوابة ناجز القضائية
               </span>
@@ -155,7 +154,7 @@ export function DeleteOfficeModal({
 
           {/* Point 3 */}
           <div className="bg-[#f5f3ef] rounded-[4px] p-[10px] flex items-start gap-[10px]">
-            <div className="flex-1 flex flex-col text-right">
+            <div className="flex-1 flex flex-col text-start">
               <span className="text-[12px] font-bold text-[#1b1c1a]">
                 أرشفة البيانات وفصل مفاتيح الوصول السحابي
               </span>
@@ -170,7 +169,7 @@ export function DeleteOfficeModal({
         </div>
 
         {/* Regulatory Compliance Warning */}
-        <div className="bg-[#f0eeea] border-r-3 border-[#7b4e00] rounded-[4px] p-[12px] flex flex-col gap-[3px] text-right">
+        <div className="bg-[#f0eeea] border-r-3 border-[#7b4e00] rounded-[4px] p-[12px] flex flex-col gap-[3px] text-start">
           <div className="flex items-center gap-[6px]">
             <span className="text-[11px] font-bold text-[#1b1c1a]">
               تنبيه نظامي بخصوص الامتثال والحفظ المالي:
@@ -184,7 +183,7 @@ export function DeleteOfficeModal({
 
         {/* Acknowledgment Checkbox */}
         <label className="bg-[#f5f3ef] hover:bg-[#eae8e4]/70 rounded-[4px] p-[12px] flex items-center justify-between gap-[10px] cursor-pointer transition-colors">
-          <div className="flex-1 text-right">
+          <div className="flex-1 text-start">
             <span className="text-[12px] font-semibold text-[#1b1c1a] leading-[18px]">
               أقر بعلمي بتبعات الحذف النهائي وفصل حساب المنشأة القانونية وإلغاء التراخيص المرتبطة بها نهائياً.
             </span>

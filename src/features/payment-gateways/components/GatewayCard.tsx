@@ -38,7 +38,7 @@ export function GatewayCard({
   } = gateway;
 
   return (
-    <div className="bg-white rounded-[16px] p-6 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] border border-[#eae8e4]/80 flex flex-col justify-between h-full transition-all hover:shadow-md" dir="rtl">
+    <div className="bg-white rounded-[16px] p-6 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] border border-[#eae8e4]/80 flex flex-col justify-between h-full transition-all hover:shadow-md">
       {/* Top Section */}
       <div className="flex flex-col gap-4">
         {/* Header: Brand Icon on Right, Toggle Switch on Left */}
@@ -187,8 +187,8 @@ export function GatewayCard({
           onClick={() => onOpenSettings(gateway)}
           className="bg-[#f5f3ef] hover:bg-[#eae8e4] text-[#1c140f] rounded-[8px] py-2 px-3 text-xs font-semibold w-full flex items-center justify-center gap-2 transition-colors cursor-pointer"
         >
-          <span>إعدادات البوابة</span>
           <Settings className="size-[15px] text-[#514537]" />
+          <span>إعدادات البوابة</span>
         </button>
       </div>
     </div>

@@ -137,13 +137,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
         onClick={toggleSidebarCollapsed}
         aria-label={isCollapsed ? (currentLang === "en" ? "Expand sidebar" : "توسيع القائمة الجانبية") : (currentLang === "en" ? "Collapse sidebar" : "تصغير القائمة الجانبية")}
         title={isCollapsed ? (currentLang === "en" ? "Expand sidebar" : "توسيع القائمة الجانبية") : (currentLang === "en" ? "Collapse sidebar" : "تصغير القائمة الجانبية")}
-        className={cn(
-          "absolute top-[20px] z-40 size-[26px] bg-white hover:bg-[#fbf7f0] text-[#514537] hover:text-[#9c6402] border border-[#eae8e4] dark:bg-[#221812] dark:hover:bg-[#2c1f17] dark:text-[#cdc5bd] dark:hover:text-[#fdfbf7] dark:border-[#3d2a1d] rounded-full shadow-[0px_2px_5px_rgba(0,0,0,0.12)] flex items-center justify-center transition-colors cursor-pointer focus:outline-none",
-          isRTL ? "-left-[13px]" : "-right-[13px]"
-        )}
-        style={{
-          [isRTL ? "left" : "right"]: "-13px",
-        }}
+        className="absolute top-[20px] -end-[13px] z-40 size-[26px] bg-white hover:bg-[#fbf7f0] text-[#514537] hover:text-[#9c6402] border border-[#eae8e4] dark:bg-[#221812] dark:hover:bg-[#2c1f17] dark:text-[#cdc5bd] dark:hover:text-[#fdfbf7] dark:border-[#3d2a1d] rounded-full shadow-[0px_2px_5px_rgba(0,0,0,0.12)] flex items-center justify-center transition-colors cursor-pointer focus:outline-none"
       >
         <CollapseIcon className="size-[14px]" />
       </button>

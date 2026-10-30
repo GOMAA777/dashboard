@@ -35,7 +35,6 @@ export function ReassignEmployeesModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
-      dir="rtl"
       data-node-id="1:12092"
     >
       <div
@@ -69,7 +68,7 @@ export function ReassignEmployeesModal({
         </div>
 
         {/* Body */}
-        <div className="p-6 space-y-5 text-right">
+        <div className="p-6 space-y-5 text-start">
           {/* Current Source Role Banner */}
           <div className="bg-[#f5f3ef] rounded-[8px] p-3.5 border border-[#e6e2dc] flex items-center justify-between">
             <span className="bg-[#e6e2dc] text-[#514537] text-[12px] font-bold px-2.5 py-1 rounded-[4px] flex items-center gap-1.5">
@@ -92,7 +91,7 @@ export function ReassignEmployeesModal({
               <select
                 value={selectedTargetId}
                 onChange={(e) => setSelectedTargetId(e.target.value)}
-                className="w-full h-[42px] pe-3 ps-9 text-[13px] bg-[#fdfbf7] border border-[#d6cfc7] rounded-[6px] text-[#1b1c1a] appearance-none focus:outline-none focus:ring-1 focus:ring-[#9c6402] focus:border-[#9c6402] cursor-pointer text-right font-medium"
+                className="w-full h-[42px] pe-3 ps-9 text-[13px] bg-[#fdfbf7] border border-[#d6cfc7] rounded-[6px] text-[#1b1c1a] appearance-none focus:outline-none focus:ring-1 focus:ring-[#9c6402] focus:border-[#9c6402] cursor-pointer text-start font-medium"
               >
                 {eligibleTargetRoles.map((role) => (
                   <option key={role.id} value={role.id}>

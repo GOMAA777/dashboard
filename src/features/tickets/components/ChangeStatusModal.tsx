@@ -61,7 +61,7 @@ export function ChangeStatusModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs antialiased">
       <div
-        className="bg-white rounded-[12px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] w-full max-w-[520px] overflow-hidden flex flex-col relative text-right animate-in fade-in zoom-in-95 duration-150"
+        className="bg-white rounded-[12px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] w-full max-w-[520px] overflow-hidden flex flex-col relative text-start animate-in fade-in zoom-in-95 duration-150"
         data-node-id="1:15432"
         data-name="تغيير حالة التذكرة"
       >

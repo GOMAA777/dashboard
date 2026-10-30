@@ -62,10 +62,9 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
     <div
       className="bg-white dark:bg-[#221812] rounded-b-[8px] border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] overflow-hidden"
       data-node-id="1:11626"
-      dir="rtl"
     >
       <div className="overflow-x-auto">
-        <table className="w-full text-right border-collapse">
+        <table className="w-full text-start border-collapse">
           {/* Header Row */}
           <thead>
             <tr
@@ -111,7 +110,7 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
                       {getRoleIcon(role.iconType)}
                     </div>
 
-                    <div className="flex flex-col items-start text-right">
+                    <div className="flex flex-col items-start text-start">
                       <div className="flex items-center gap-2">
                         <span className="text-[17px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[26px]">
                           {role.name}
@@ -241,7 +240,7 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
 
       {/* Pagination Footer (Figma 1:11855) */}
       <div
-        className="bg-white dark:bg-[#221812] border-t border-[#e6e2dc] dark:border-[#38271c] p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-right"
+        className="bg-white dark:bg-[#221812] border-t border-[#e6e2dc] dark:border-[#38271c] p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-start"
         data-node-id="1:11855"
       >
         {/* Total counts text & Rows per page */}

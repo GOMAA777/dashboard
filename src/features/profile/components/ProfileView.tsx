@@ -10,6 +10,7 @@ import {
   Calendar,
   Construction,
   ArrowRight,
+  ArrowLeft,
   Sparkles,
   Lock,
 } from "lucide-react";
@@ -39,10 +40,10 @@ export function ProfileView() {
             <ScalesOfJusticeWatermark className="w-full h-full" />
           </div>
 
-          <div className="relative z-10 max-w-4xl mx-auto space-y-6 text-right">
+          <div className="relative z-10 max-w-4xl mx-auto space-y-6 text-start">
             {/* Under Construction Notice Banner */}
             <div className="bg-[#fffbeb] border border-[#fef3c7] rounded-[16px] p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-3.5 text-right w-full sm:w-auto">
+              <div className="flex items-center gap-3.5 text-start w-full sm:w-auto">
                 <div className="size-12 rounded-[12px] bg-[#fef3c7] text-[#b45309] flex items-center justify-center shrink-0 shadow-2xs">
                   <Construction className="size-6 animate-bounce" />
                 </div>
@@ -65,8 +66,8 @@ export function ProfileView() {
                 href="/"
                 className="bg-[#9c6402] hover:bg-[#855401] text-white text-xs font-semibold px-4 py-2 rounded-[8px] flex items-center gap-1.5 transition-colors shrink-0 self-end sm:self-auto cursor-pointer"
               >
+                <ArrowLeft className="size-4 rtl:rotate-180" />
                 <span>العودة للوحة التحكم</span>
-                <ArrowRight className="size-4 rotate-180" />
               </Link>
             </div>
 
@@ -86,7 +87,7 @@ export function ProfileView() {
                 </div>
 
                 {/* Identity Info */}
-                <div className="flex-1 text-center sm:text-right space-y-2">
+                <div className="flex-1 text-center sm:text-start space-y-2">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div>
                       <h1 className="text-2xl font-bold text-[#1c140f]">
@@ -123,7 +124,7 @@ export function ProfileView() {
                   <div className="size-10 rounded-[8px] bg-white border border-[#eae8e4] flex items-center justify-center text-[#9c6402] shrink-0">
                     <Mail className="size-5" />
                   </div>
-                  <div className="text-right">
+                  <div className="text-start">
                     <span className="text-[10px] text-[#837565] font-bold block">
                       البريد الإلكتروني المعتمد
                     </span>
@@ -137,7 +138,7 @@ export function ProfileView() {
                   <div className="size-10 rounded-[8px] bg-white border border-[#eae8e4] flex items-center justify-center text-[#9c6402] shrink-0">
                     <Phone className="size-5" />
                   </div>
-                  <div className="text-right">
+                  <div className="text-start">
                     <span className="text-[10px] text-[#837565] font-bold block">
                       رقم الهاتف المسجل
                     </span>
@@ -151,7 +152,7 @@ export function ProfileView() {
                   <div className="size-10 rounded-[8px] bg-white border border-[#eae8e4] flex items-center justify-center text-[#9c6402] shrink-0">
                     <Calendar className="size-5" />
                   </div>
-                  <div className="text-right">
+                  <div className="text-start">
                     <span className="text-[10px] text-[#837565] font-bold block">
                       تاريخ بدء الإشراف
                     </span>
@@ -165,7 +166,7 @@ export function ProfileView() {
                   <div className="size-10 rounded-[8px] bg-white border border-[#eae8e4] flex items-center justify-center text-[#9c6402] shrink-0">
                     <Sparkles className="size-5" />
                   </div>
-                  <div className="text-right">
+                  <div className="text-start">
                     <span className="text-[10px] text-[#837565] font-bold block">
                       مستوى الوصول والتصريح
                     </span>

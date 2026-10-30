@@ -53,7 +53,6 @@ export function ResetPasswordModal({
   return (
     <div
       className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
-      dir="rtl"
     >
       <div
         className="bg-white rounded-[12px] border border-[#e6e2dc] shadow-2xl max-w-[580px] w-full overflow-hidden"
@@ -69,7 +68,7 @@ export function ResetPasswordModal({
             <X className="size-[18px]" />
           </button>
 
-          <div className="flex items-start gap-3 text-right">
+          <div className="flex items-start gap-3 text-start">
             <div>
               <h2 className="text-[20px] font-bold text-[#1b1c1a]">
                 إعادة تعيين كلمة المرور
@@ -95,7 +94,7 @@ export function ResetPasswordModal({
             </span>
 
             <div className="flex items-center gap-3">
-              <div className="text-right">
+              <div className="text-start">
                 <h3 className="font-bold text-[14px] text-[#1b1c1a]">
                   {employee.name}
                 </h3>
@@ -130,14 +129,14 @@ export function ResetPasswordModal({
 
           {/* Method Selection */}
           <div className="space-y-3 pt-1">
-            <span className="text-[12px] font-bold text-[#1b1c1a] block text-right">
+            <span className="text-[12px] font-bold text-[#1b1c1a] block text-start">
               طريقة تعيين كلمة المرور المعتمدة:
             </span>
 
             {/* Option 1: Email Link */}
             <div
               onClick={() => setMethod("link")}
-              className={`p-4 rounded-[8px] border transition-all cursor-pointer text-right ${
+              className={`p-4 rounded-[8px] border transition-all cursor-pointer text-start ${
                 method === "link"
                   ? "border-[#9c6402] bg-[#fdfbf7] shadow-sm"
                   : "border-[#e6e2dc] bg-white hover:border-[#d6cfc7]"
@@ -196,7 +195,7 @@ export function ResetPasswordModal({
             {/* Option 2: Manual Password */}
             <div
               onClick={() => setMethod("manual")}
-              className={`p-4 rounded-[8px] border transition-all cursor-pointer text-right ${
+              className={`p-4 rounded-[8px] border transition-all cursor-pointer text-start ${
                 method === "manual"
                   ? "border-[#9c6402] bg-[#fdfbf7] shadow-sm"
                   : "border-[#e6e2dc] bg-white hover:border-[#d6cfc7]"
@@ -255,7 +254,7 @@ export function ResetPasswordModal({
                     </div>
                   </div>
 
-                  <p className="text-[11px] text-[#79716b] text-right">
+                  <p className="text-[11px] text-[#79716b] text-start">
                     يجب أن تحتوي على 8 خانات على الأقل تتضمن أحرفاً كبيرة وصغيرة وأرقاماً ورموزاً.
                   </p>
                 </div>

@@ -39,7 +39,6 @@ export function DeactivatePlanDialog({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-[16px] animate-in fade-in duration-200"
-      dir="rtl"
     >
       <div
         className="relative w-full max-w-[560px] bg-white rounded-[10px] shadow-2xl border border-[#e2ded7] overflow-hidden font-['Cairo',sans-serif]"
@@ -116,8 +115,8 @@ export function DeactivatePlanDialog({
                   }}
                   className="text-[12px] font-bold text-[#9c6402] hover:text-[#855402] flex items-center gap-[4px] cursor-pointer"
                 >
-                  <span>عرض المكاتب المشتركة ({subscribersCount} مكتباً)</span>
                   <ExternalLink className="size-[12px]" />
+                  <span>عرض المكاتب المشتركة ({subscribersCount} مكتباً)</span>
                 </button>
               )}
             </div>

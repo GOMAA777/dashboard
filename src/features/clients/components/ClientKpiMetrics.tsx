@@ -12,7 +12,7 @@ export function ClientKpiMetrics() {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px] w-full" data-node-id="1:760">
       {/* 1. إجمالي المكاتب */}
       <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[20px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex items-center justify-between">
-        <div className="flex flex-col items-start text-right">
+        <div className="flex flex-col items-start text-start">
           <span className="text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[18px] font-normal">
             إجمالي المكاتب
           </span>
@@ -32,7 +32,7 @@ export function ClientKpiMetrics() {
 
       {/* 2. الحسابات النشطة */}
       <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[20px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex items-center justify-between">
-        <div className="flex flex-col items-start text-right">
+        <div className="flex flex-col items-start text-start">
           <span className="text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[18px] font-normal">
             الحسابات النشطة
           </span>
@@ -55,7 +55,7 @@ export function ClientKpiMetrics() {
 
       {/* 3. تحت التجربة */}
       <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[20px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex items-center justify-between">
-        <div className="flex flex-col items-start text-right">
+        <div className="flex flex-col items-start text-start">
           <span className="text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[18px] font-normal">
             تحت التجربة
           </span>
@@ -79,7 +79,7 @@ export function ClientKpiMetrics() {
 
       {/* 4. الحسابات المعطلة */}
       <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[20px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex items-center justify-between">
-        <div className="flex flex-col items-start text-right">
+        <div className="flex flex-col items-start text-start">
           <span className="text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[18px] font-normal">
             الحسابات المعطلة
           </span>

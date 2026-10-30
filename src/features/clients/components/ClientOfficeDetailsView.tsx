@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import {
+  ArrowLeft,
   ArrowRight,
   Scale,
   Calendar,
@@ -70,7 +71,6 @@ export function ClientOfficeDetailsView({
     <div
       className="w-full flex flex-col gap-[24px] font-['Cairo',sans-serif]"
       data-node-id="1:1778"
-      dir="rtl"
     >
       {/* 1. TOP PROFILE HEADER & SUMMARY CARD */}
       <div
@@ -91,7 +91,7 @@ export function ClientOfficeDetailsView({
           </div>
 
           {/* Details & Status Badges */}
-          <div className="flex flex-col items-start text-right">
+          <div className="flex flex-col items-start text-start">
             <h1 className="text-[26px] leading-[36px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
               {officeName}
             </h1>
@@ -152,7 +152,7 @@ export function ClientOfficeDetailsView({
             onClick={onBack}
             className="bg-white dark:bg-[#281c15] hover:bg-[#f5f3ef] dark:hover:bg-[#38271c] border border-[#eae8e4] dark:border-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] px-[12px] py-[8px] rounded-[4px] text-[13px] font-semibold flex items-center gap-[6px] shadow-sm transition-colors cursor-pointer"
           >
-            <ArrowRight className="size-[14px]" />
+            <ArrowLeft className="size-[14px] rtl:rotate-180" />
             <span>العودة للقائمة</span>
           </button>
 
@@ -223,13 +223,13 @@ export function ClientOfficeDetailsView({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
               {/* Email */}
               <div className="bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] rounded-[4px] p-[12px] flex items-center justify-between">
-                <div className="flex flex-col text-right">
+                <div className="flex flex-col text-start">
                   <span className="text-[#837565] dark:text-[#8e8680] text-[10px] font-bold">
                     البريد الإلكتروني الرسمي
                   </span>
                   <a
                     href={`mailto:${email}`}
-                    className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold hover:underline direction-ltr text-right mt-[2px]"
+                    className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold hover:underline direction-ltr text-start mt-[2px]"
                   >
                     {email}
                   </a>
@@ -241,11 +241,11 @@ export function ClientOfficeDetailsView({
 
               {/* Mobile Phone */}
               <div className="bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] rounded-[4px] p-[12px] flex items-center justify-between">
-                <div className="flex flex-col text-right">
+                <div className="flex flex-col text-start">
                   <span className="text-[#837565] dark:text-[#8e8680] text-[10px] font-bold">
                     رقم الجوال
                   </span>
-                  <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold direction-ltr text-right mt-[2px]">
+                  <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold direction-ltr text-start mt-[2px]">
                     {phone}
                   </span>
                 </div>
@@ -256,11 +256,11 @@ export function ClientOfficeDetailsView({
 
               {/* Landline */}
               <div className="bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] rounded-[4px] p-[12px] flex items-center justify-between">
-                <div className="flex flex-col text-right">
+                <div className="flex flex-col text-start">
                   <span className="text-[#837565] dark:text-[#8e8680] text-[10px] font-bold">
                     الهاتف المكتبي المباشر
                   </span>
-                  <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold direction-ltr text-right mt-[2px]">
+                  <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold direction-ltr text-start mt-[2px]">
                     011 482 9900
                   </span>
                 </div>
@@ -271,7 +271,7 @@ export function ClientOfficeDetailsView({
 
               {/* Physical Address */}
               <div className="bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] rounded-[4px] p-[12px] flex items-center justify-between">
-                <div className="flex flex-col text-right">
+                <div className="flex flex-col text-start">
                   <span className="text-[#837565] dark:text-[#8e8680] text-[10px] font-bold">
                     المقر والمكتب الرئيسي
                   </span>
@@ -308,7 +308,7 @@ export function ClientOfficeDetailsView({
                 <div className="h-full bg-[#9c6402] dark:bg-[#e29d38] rounded-full w-[80%]" />
               </div>
 
-              <span className="text-[#837565] dark:text-[#8e8680] text-[10px] font-bold text-right">
+              <span className="text-[#837565] dark:text-[#8e8680] text-[10px] font-bold text-start">
                 متبقي اضافة 3 محامين شاغرة
               </span>
             </div>
@@ -343,7 +343,7 @@ export function ClientOfficeDetailsView({
                   <Receipt className="size-[20px]" />
                 </div>
 
-                <div className="flex flex-col text-right">
+                <div className="flex flex-col text-start">
                   <div className="flex items-center gap-[8px]">
                     <span className="text-[14px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                       INV-2024-0891
@@ -433,7 +433,7 @@ export function ClientOfficeDetailsView({
                 </span>
               </div>
 
-              <p className="text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[18px] text-right">
+              <p className="text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[18px] text-start">
                 يرغب المكتب بتمكين خيار السحب التلقائي للضبوط والمذكرات القضائية عبر الربط المباشر مع API ناجز، بالإضافة لرفع المساحة لـ 200 GB.
               </p>
 
@@ -492,7 +492,7 @@ export function ClientOfficeDetailsView({
                   خصم سنوي 15%
                 </span>
 
-                <div className="flex flex-col text-right">
+                <div className="flex flex-col text-start">
                   <span className="text-[#ffddb6] dark:text-[#f3c27e] text-[10px] font-bold tracking-[0.5px] uppercase">
                     الخطة المعتمدة
                   </span>
@@ -503,7 +503,7 @@ export function ClientOfficeDetailsView({
               </div>
 
               {/* Price */}
-              <div className="flex items-baseline gap-[6px] text-right">
+              <div className="flex items-baseline gap-[6px] text-start">
                 <span className="text-[32px] font-bold leading-[34px] text-white dark:text-[#fdfbf7]">
                   750
                 </span>
@@ -514,13 +514,13 @@ export function ClientOfficeDetailsView({
 
               {/* Renewal dates */}
               <div className="border-t border-white/10 pt-[8px] grid grid-cols-2 gap-[8px] text-[10px]">
-                <div className="flex flex-col text-right">
+                <div className="flex flex-col text-start">
                   <span className="text-[#cdc5bd]">موعد التجديد:</span>
                   <span className="text-[#ffddb6] dark:text-[#f3c27e] font-bold text-[11px] mt-[1px]">
                     15 نوفمبر 2024 (22 يوماً)
                   </span>
                 </div>
-                <div className="flex flex-col text-right">
+                <div className="flex flex-col text-start">
                   <span className="text-[#cdc5bd]">تاريخ البدء:</span>
                   <span className="text-white font-bold text-[11px] mt-[1px]">
                     15 أكتوبر 2023
@@ -536,14 +536,14 @@ export function ClientOfficeDetailsView({
               </span>
 
               <div className="flex items-center gap-[6px] text-[12px] text-[#1b1c1a] dark:text-[#fdfbf7]">
-                <span>التجديد التلقائي عبر البطاقة:</span>
                 <CheckCircle2 className="size-[14px] text-[#065f46] dark:text-[#10b981]" />
+                <span>التجديد التلقائي عبر البطاقة:</span>
               </div>
             </div>
 
             {/* Resource Consumption Progress Rings / Bars */}
             <div className="flex flex-col gap-[10px] pt-[4px]">
-              <h4 className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] text-right">
+              <h4 className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] text-start">
                 استهلاك موارد المنشأة الحالية
               </h4>
 
@@ -627,8 +627,8 @@ export function ClientOfficeDetailsView({
                 </button>
 
                 <div className="flex items-center gap-[4px] text-[10px] text-[#837565] dark:text-[#8e8680] font-bold">
-                  <span>مرئية لمشرفي النظام فقط</span>
                   <Eye className="size-[12px]" />
+                  <span>مرئية لمشرفي النظام فقط</span>
                 </div>
               </div>
             </div>
@@ -641,7 +641,7 @@ export function ClientOfficeDetailsView({
                   س
                 </div>
 
-                <div className="flex-1 flex flex-col gap-[2px] text-right">
+                <div className="flex-1 flex flex-col gap-[2px] text-start">
                   <div className="flex items-center justify-between text-[11px]">
                     <span className="text-[#837565] dark:text-[#8e8680]">أمس 02:15 م</span>
                     <div className="flex items-center gap-[4px]">
@@ -661,7 +661,7 @@ export function ClientOfficeDetailsView({
                   ع
                 </div>
 
-                <div className="flex-1 flex flex-col gap-[2px] text-right">
+                <div className="flex-1 flex flex-col gap-[2px] text-start">
                   <div className="flex items-center justify-between text-[11px]">
                     <span className="text-[#837565] dark:text-[#8e8680]">18 أكتوبر 2024</span>
                     <div className="flex items-center gap-[4px]">
@@ -681,7 +681,7 @@ export function ClientOfficeDetailsView({
                   <Check className="size-[14px]" />
                 </div>
 
-                <div className="flex-1 flex flex-col gap-[2px] text-right">
+                <div className="flex-1 flex flex-col gap-[2px] text-start">
                   <div className="flex items-center justify-between text-[11px]">
                     <span className="text-[#837565] dark:text-[#8e8680]">15 أكتوبر 2024</span>
                     <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">النظام الآلي</span>

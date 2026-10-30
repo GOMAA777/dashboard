@@ -33,7 +33,6 @@ export function NotificationDetailsModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-[2px] animate-in fade-in duration-200"
-      dir="rtl"
     >
       <div className="bg-white rounded-[12px] shadow-[0px_20px_48px_0px_rgba(28,20,15,0.22)] w-full max-w-[620px] overflow-hidden border border-[#eae8e4] relative scale-in-95 duration-150 max-h-[90vh] flex flex-col">
         {/* Top Gold Accent Line */}
@@ -192,8 +191,8 @@ export function NotificationDetailsModal({
               }}
               className="bg-[#9c6402] hover:bg-[#855402] text-white text-[13px] font-bold px-5 py-2 rounded-[6px] flex items-center gap-1.5 transition-colors cursor-pointer"
             >
+              <ArrowLeft className="size-4 rtl:rotate-0 ltr:rotate-180" />
               <span>متابعة إرسال المسودة</span>
-              <ArrowLeft className="size-4" />
             </button>
           )}
         </div>

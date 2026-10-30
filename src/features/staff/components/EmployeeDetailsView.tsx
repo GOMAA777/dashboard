@@ -3,6 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import {
+  ArrowLeft,
   ArrowRight,
   Edit3,
   LogIn,
@@ -46,16 +47,16 @@ export function EmployeeDetailsView({
   const isSuspended = employee.status === "suspended";
 
   return (
-    <div className="space-y-6 pb-20" dir="rtl" data-node-id="1:9815">
+    <div className="space-y-6 pb-20" data-node-id="1:9815">
       {/* Top Back bar */}
       <div className="flex items-center justify-start">
         <button
           type="button"
           onClick={onBack}
-          className="h-[38px] px-4 rounded-[6px] border border-[#d6cfc7] bg-white hover:bg-[#f5f3ef] text-[#514537] text-[13px] font-medium flex items-center gap-2 transition-colors shrink-0 shadow-sm"
+          className="h-[38px] px-4 rounded-[6px] border border-[#d6cfc7] bg-white hover:bg-[#f5f3ef] text-[#514537] text-[13px] font-medium flex items-center gap-2 transition-colors shrink-0 shadow-sm cursor-pointer"
         >
+          <ArrowLeft className="size-[15px] rtl:rotate-180" />
           <span>العودة لطاقم العمل</span>
-          <ArrowRight className="size-[15px]" />
         </button>
       </div>
 
@@ -481,7 +482,7 @@ export function EmployeeDetailsView({
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-right border-collapse text-[13px]">
+          <table className="w-full text-start border-collapse text-[13px]">
             <thead>
               <tr className="bg-[#fcfaf7] border-b border-[#e6e2dc] text-[#514537] font-semibold">
                 <th className="py-3 px-4 font-bold min-w-[170px]">التاريخ والوقت</th>

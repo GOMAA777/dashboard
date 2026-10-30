@@ -57,7 +57,7 @@ export function EmployeePreviewModeView({
   };
 
   return (
-    <div className="space-y-6 pb-20" dir="rtl" data-node-id="1:10398">
+    <div className="space-y-6 pb-20" data-node-id="1:10398">
       {/* Top Simulation Banner */}
       <div className="bg-[#fef3c7] border-2 border-[#fcd34d] rounded-[10px] p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-md">
         {/* Right side: Employee preview info */}
@@ -66,7 +66,7 @@ export function EmployeePreviewModeView({
             <ShieldAlert className="size-[22px]" />
           </div>
 
-          <div className="text-right">
+          <div className="text-start">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-bold text-[16px] text-[#78350f]">
                 أنت الآن تعرض النظام بصفة: {employee.name}
@@ -104,7 +104,7 @@ export function EmployeePreviewModeView({
         {/* Stat 1 */}
         <div className="bg-white rounded-[8px] p-5 border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] relative overflow-hidden flex flex-col justify-between h-[120px]">
           <div className="flex items-start justify-between">
-            <div className="text-right">
+            <div className="text-start">
               <span className="text-[13px] font-semibold text-[#79716b] block">
                 تذاكر مسندة للموظف
               </span>
@@ -125,7 +125,7 @@ export function EmployeePreviewModeView({
         {/* Stat 2 */}
         <div className="bg-white rounded-[8px] p-5 border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] relative overflow-hidden flex flex-col justify-between h-[120px]">
           <div className="flex items-start justify-between">
-            <div className="text-right">
+            <div className="text-start">
               <span className="text-[13px] font-semibold text-[#79716b] block">
                 التذاكر ذات الأولوية القصوى
               </span>
@@ -146,7 +146,7 @@ export function EmployeePreviewModeView({
         {/* Stat 3 */}
         <div className="bg-white rounded-[8px] p-5 border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] relative overflow-hidden flex flex-col justify-between h-[120px]">
           <div className="flex items-start justify-between">
-            <div className="text-right">
+            <div className="text-start">
               <span className="text-[13px] font-semibold text-[#79716b] block">
                 مغلقة بنجاح هذا الشهر
               </span>
@@ -216,7 +216,7 @@ export function EmployeePreviewModeView({
 
             {/* Tickets Table */}
             <div className="overflow-x-auto">
-              <table className="w-full text-right border-collapse text-[13px]">
+              <table className="w-full text-start border-collapse text-[13px]">
                 <thead>
                   <tr className="bg-[#fcfaf7] border-b border-[#e6e2dc] text-[#514537] font-semibold">
                     <th className="py-3 px-4 font-bold min-w-[200px]">معرف التذكرة والجهة القانونية</th>
@@ -429,7 +429,7 @@ export function EmployeePreviewModeView({
         {/* Left Side (1 Col): Ticket Detail Review & Inspector */}
         <div className="space-y-4">
           {/* Card: تفاصيل التذكرة المحددة */}
-          <div className="bg-white rounded-[8px] p-5 border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] text-right space-y-4">
+          <div className="bg-white rounded-[8px] p-5 border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] text-start space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-[#f2efe9]">
               <span className="font-mono text-[11px] font-bold text-[#8e5927] bg-[#fbf5ed] px-2 py-0.5 rounded-[4px] border border-[#f2e2ce]">
                 TCK-2024-8841
@@ -450,7 +450,7 @@ export function EmployeePreviewModeView({
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="text-right">
+              <div className="text-start">
                 <span className="font-bold text-[13px] text-[#1b1c1a] block">
                   أ. عبد المحسن الرويلي
                 </span>
@@ -523,7 +523,7 @@ export function EmployeePreviewModeView({
           </div>
 
           {/* Active Employee Persona Card */}
-          <div className="bg-[#fcfaf7] p-4 rounded-[8px] border border-[#f0ece5] flex items-center gap-3 text-right">
+          <div className="bg-[#fcfaf7] p-4 rounded-[8px] border border-[#f0ece5] flex items-center gap-3 text-start">
             <div className="size-[48px] rounded-full overflow-hidden shrink-0 border border-[#e6e2dc]">
               {employee.avatarImage ? (
                 <Image

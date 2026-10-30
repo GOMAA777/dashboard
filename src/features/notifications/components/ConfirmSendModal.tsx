@@ -25,7 +25,6 @@ export function ConfirmSendModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-[2px] animate-in fade-in duration-200"
-      dir="rtl"
     >
       <div
         className="bg-white border border-[rgba(214,196,177,0.6)] rounded-[16px] shadow-[0px_20px_48px_0px_rgba(28,20,15,0.22)] w-full max-w-[576px] overflow-hidden relative scale-in-95 duration-150"
