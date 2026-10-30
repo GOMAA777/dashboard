@@ -4,7 +4,6 @@ import React, { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  AlertCircle,
   ArrowLeft,
   ArrowRight,
   CheckCircle2,

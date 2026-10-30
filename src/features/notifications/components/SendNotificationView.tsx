@@ -1,9 +1,7 @@
 "use client";
 
-import React, { useState, useSyncExternalStore } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
-import { useUIStore } from "@/stores/use-ui-store";
 import { DashboardStickyActionBar } from "@/components/shared/DashboardStickyActionBar";
 import {
   ArrowRight,
@@ -49,14 +47,6 @@ export function SendNotificationView({
   onSaveDraft,
   initialData,
 }: SendNotificationViewProps) {
-  const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
-  const isMounted = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false
-  );
-  const isCollapsed = isMounted ? sidebarCollapsed : false;
-
   const {
     register,
     handleSubmit,

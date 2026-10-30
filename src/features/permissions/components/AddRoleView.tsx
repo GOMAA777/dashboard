@@ -1,6 +1,4 @@
-import React, { useState, useMemo, useSyncExternalStore } from "react";
-import { cn } from "@/lib/utils";
-import { useUIStore } from "@/stores/use-ui-store";
+import React, { useState, useMemo } from "react";
 import { DashboardStickyActionBar } from "@/components/shared/DashboardStickyActionBar";
 import {
   Key,
@@ -31,14 +29,6 @@ interface AddRoleViewProps {
 }
 
 export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProps) {
-  const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
-  const isMounted = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false
-  );
-  const isCollapsed = isMounted ? sidebarCollapsed : false;
-
   // Form fields
   const [roleName, setRoleName] = useState(initialRole?.name || "مستشار مراجعة الامتثال والتوثيق");
   const [roleSlug, setRoleSlug] = useState(initialRole?.slug || "compliance_audit_specialist");

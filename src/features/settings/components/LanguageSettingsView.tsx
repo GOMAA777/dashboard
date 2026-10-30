@@ -24,6 +24,7 @@ import { AddLanguageView } from "./AddLanguageView";
 import { DeleteLanguageModal } from "./DeleteLanguageModal";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
 
 export function LanguageSettingsView() {
   const [languages, setLanguages] = useState<LanguageItem[]>(initialLanguages);
@@ -365,21 +366,16 @@ export function LanguageSettingsView() {
                         عرض {startItem} إلى {endItem} من أصل {filteredLanguages.length} لغات مسجلة بالنظام
                       </span>
 
-                      <div className="flex items-center gap-[6px]">
+                      <div className="flex items-center gap-2 border-s border-[#eae8e4] ps-3">
                         <span className="text-[11px] text-[#837565]">صفوف بالصفحة:</span>
-                        <select
+                        <PageSizeDropdown
                           value={pageSize}
-                          onChange={(e) => {
-                            setPageSize(Number(e.target.value));
+                          onChange={(newSize) => {
+                            setPageSize(newSize);
                             setPageIndex(0);
                           }}
-                          className="bg-[#f5f3ef] text-[#1b1c1a] text-[11px] font-bold py-1 px-2 rounded-[4px] border border-[#eae8e4] focus:outline-none cursor-pointer"
-                        >
-                          <option value={5}>5</option>
-                          <option value={10}>10</option>
-                          <option value={20}>20</option>
-                          <option value={50}>50</option>
-                        </select>
+                          options={[5, 10, 20, 50]}
+                        />
                       </div>
                     </div>
 

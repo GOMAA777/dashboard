@@ -18,6 +18,7 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import { TicketDepartment, DepartmentFilterStatus } from "../types/tickets.types";
+import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
 
 interface DepartmentsSectionProps {
   departments: TicketDepartment[];
@@ -326,21 +327,16 @@ export function DepartmentsSection({
               <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{filteredDepartments.length}</span> قسم
             </div>
 
-            <div className="flex items-center gap-[6px]">
+            <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
               <span className="text-[11px] text-[#837565]">صفوف بالصفحة:</span>
-              <select
+              <PageSizeDropdown
                 value={pageSize}
-                onChange={(e) => {
-                  setPageSize(Number(e.target.value));
+                onChange={(newSize) => {
+                  setPageSize(newSize);
                   setPageIndex(0);
                 }}
-                className="bg-[#f5f3ef] text-[#1b1c1a] text-[11px] font-bold py-1 px-2 rounded-[4px] border border-[#eae8e4] focus:outline-none cursor-pointer"
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-              </select>
+                options={[5, 10, 20, 50]}
+              />
             </div>
           </div>
 

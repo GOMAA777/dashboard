@@ -11,7 +11,10 @@ export function HeroSectionTab() {
   const [data, setData] = useState<HeroSectionData>(initialHeroSection);
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleChange = (field: keyof HeroSectionData, value: any) => {
+  const handleChange = <K extends keyof HeroSectionData>(
+    field: K,
+    value: HeroSectionData[K]
+  ) => {
     setData((prev) => ({ ...prev, [field]: value }));
   };
 
