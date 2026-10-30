@@ -49,7 +49,7 @@ export function ClientManagementTable({
 
   // Pagination
   const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSize] = useState(5);
+  const [pageSize, setPageSize] = useState(6);
 
   const filteredOffices = useMemo(() => {
     const list = offices.filter((item) => {
@@ -86,14 +86,15 @@ export function ClientManagementTable({
 
   const totalItems = filteredOffices.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-  const startItem = totalItems === 0 ? 0 : pageIndex * pageSize + 1;
-  const endItem = Math.min((pageIndex + 1) * pageSize, totalItems);
+  const safePageIndex = Math.min(pageIndex, Math.max(0, totalPages - 1));
+  const startItem = totalItems === 0 ? 0 : safePageIndex * pageSize + 1;
+  const endItem = Math.min((safePageIndex + 1) * pageSize, totalItems);
 
   const paginatedOffices = useMemo(() => {
     if (pageSize >= 9999) return filteredOffices;
-    const start = pageIndex * pageSize;
+    const start = safePageIndex * pageSize;
     return filteredOffices.slice(start, start + pageSize);
-  }, [filteredOffices, pageIndex, pageSize]);
+  }, [filteredOffices, safePageIndex, pageSize]);
 
   const handleDeactivateToggle = (office: ClientOffice) => {
     const isCurrentlyActive = office.accountStatus.type === "active";
