@@ -4,7 +4,6 @@ import React, { useState, useMemo } from "react";
 import {
   Plus,
   Search,
-  ChevronDown,
   PenSquare,
   Trash2,
   Lock,
@@ -252,7 +251,7 @@ export function LanguageSettingsView() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#eae8e4] text-[14px] text-[#1b1c1a]">
-                        {filteredLanguages.map((language) => (
+                        {pagedLanguages.map((language) => (
                           <tr
                             key={language.id}
                             className="hover:bg-[#faf9f6] transition-colors"
@@ -361,48 +360,86 @@ export function LanguageSettingsView() {
 
                   {/* Pagination Footer */}
                   <div className="p-[16px] px-[20px] border-t border-[#eae8e4] flex flex-col sm:flex-row items-center justify-between gap-[12px]">
-                    <span className="text-[13px] text-[#514537]">
-                      عرض 1 إلى {filteredLanguages.length} من أصل {languages.length} لغات مسجلة بالنظام
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[13px] text-[#514537]">
+                        عرض {startItem} إلى {endItem} من أصل {filteredLanguages.length} لغات مسجلة بالنظام
+                      </span>
+
+                      <div className="flex items-center gap-[6px]">
+                        <span className="text-[11px] text-[#837565]">صفوف بالصفحة:</span>
+                        <select
+                          value={pageSize}
+                          onChange={(e) => {
+                            setPageSize(Number(e.target.value));
+                            setPageIndex(0);
+                          }}
+                          className="bg-[#f5f3ef] text-[#1b1c1a] text-[11px] font-bold py-1 px-2 rounded-[4px] border border-[#eae8e4] focus:outline-none cursor-pointer"
+                        >
+                          <option value={5}>5</option>
+                          <option value={10}>10</option>
+                          <option value={20}>20</option>
+                          <option value={50}>50</option>
+                        </select>
+                      </div>
+                    </div>
 
                     <div className="flex items-center gap-[4px]">
                       <button
                         type="button"
-                        disabled
-                        className="px-[12px] py-[6px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] bg-[#f5f3ef] text-[#837565] opacity-60 cursor-not-allowed"
+                        disabled={safePageIndex === 0}
+                        onClick={() => setPageIndex(0)}
+                        title="الصفحة الأولى"
+                        className="size-[32px] rounded-[4px] border border-[#eae8e4] text-[#837565] hover:bg-[#eae8e4] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
                       >
-                        السابق
+                        <ChevronsRight className="size-[14px]" />
                       </button>
+
                       <button
                         type="button"
-                        className="size-[32px] text-[12px] font-bold rounded-[4px] bg-[#9c6402] text-white flex items-center justify-center shadow-xs"
+                        disabled={safePageIndex === 0}
+                        onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
+                        className="px-[12px] py-[6px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] bg-[#f5f3ef] text-[#514537] hover:bg-[#eae8e4] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-[4px]"
                       >
-                        1
+                        <ChevronRight className="size-[12px]" />
+                        <span>السابق</span>
                       </button>
+
+                      {Array.from({ length: totalPages }, (_, i) => i).map((p) => {
+                        const isActive = safePageIndex === p;
+                        return (
+                          <button
+                            key={p}
+                            type="button"
+                            onClick={() => setPageIndex(p)}
+                            className={`size-[32px] text-[12px] font-bold rounded-[4px] flex items-center justify-center transition-colors cursor-pointer ${
+                              isActive
+                                ? "bg-[#9c6402] text-white shadow-xs"
+                                : "border border-[#eae8e4] text-[#1b1c1a] hover:bg-[#f5f3ef]"
+                            }`}
+                          >
+                            {p + 1}
+                          </button>
+                        );
+                      })}
+
                       <button
                         type="button"
-                        className="size-[32px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] text-[#1b1c1a] hover:bg-[#f5f3ef] flex items-center justify-center transition-colors"
+                        disabled={safePageIndex >= totalPages - 1}
+                        onClick={() => setPageIndex((p) => Math.min(totalPages - 1, p + 1))}
+                        className="px-[12px] py-[6px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] bg-white text-[#1b1c1a] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-[4px]"
                       >
-                        2
+                        <span>التالي</span>
+                        <ChevronLeft className="size-[12px]" />
                       </button>
+
                       <button
                         type="button"
-                        className="size-[32px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] text-[#1b1c1a] hover:bg-[#f5f3ef] flex items-center justify-center transition-colors"
+                        disabled={safePageIndex >= totalPages - 1}
+                        onClick={() => setPageIndex(totalPages - 1)}
+                        title="الصفحة الأخيرة"
+                        className="size-[32px] rounded-[4px] border border-[#eae8e4] text-[#837565] hover:bg-[#eae8e4] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
                       >
-                        3
-                      </button>
-                      <span className="px-[4px] text-[#837565]">...</span>
-                      <button
-                        type="button"
-                        className="size-[32px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] text-[#1b1c1a] hover:bg-[#f5f3ef] flex items-center justify-center transition-colors"
-                      >
-                        16
-                      </button>
-                      <button
-                        type="button"
-                        className="px-[12px] py-[6px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] bg-white text-[#1b1c1a] hover:bg-[#f5f3ef] transition-colors cursor-pointer"
-                      >
-                        التالي
+                        <ChevronsLeft className="size-[14px]" />
                       </button>
                     </div>
                   </div>

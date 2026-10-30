@@ -4,7 +4,6 @@ import React, { useState, useMemo } from "react";
 import {
   Plus,
   Search,
-  ChevronDown,
   PenSquare,
   Trash2,
   ChevronLeft,
