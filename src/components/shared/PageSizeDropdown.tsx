@@ -9,13 +9,15 @@ export interface PageSizeDropdownProps {
   onChange: (newSize: number) => void;
   options?: number[];
   className?: string;
+  dropdownPlacement?: "top" | "bottom";
 }
 
 export function PageSizeDropdown({
   value,
   onChange,
-  options = [5, 10, 20, 50],
+  options = [5, 6, 8, 10, 20, 50, 9999],
   className,
+  dropdownPlacement = "top",
 }: PageSizeDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -44,6 +46,11 @@ export function PageSizeDropdown({
     };
   }, [isOpen]);
 
+  const formatOptionLabel = (opt: number) => {
+    if (opt >= 9999) return "عرض الكل";
+    return `${opt} صفوف`;
+  };
+
   return (
     <div
       className={cn("relative inline-block font-['Cairo',sans-serif]", className)}
@@ -54,9 +61,9 @@ export function PageSizeDropdown({
         onClick={() => setIsOpen((prev) => !prev)}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        className="h-[32px] px-3 rounded-[6px] border border-[#e5e2dc] dark:border-[#38271c] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] font-bold text-[12px] flex items-center justify-between gap-3 transition-colors cursor-pointer select-none"
+        className="h-[32px] px-2.5 rounded-[6px] border border-[#e5e2dc] dark:border-[#38271c] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] font-bold text-[12px] flex items-center justify-between gap-2.5 transition-colors cursor-pointer select-none"
       >
-        <span>{value}</span>
+        <span>{formatOptionLabel(value)}</span>
         <ChevronDown
           className={cn(
             "w-3.5 h-3.5 text-[#837565] dark:text-[#8e8680] transition-transform duration-200",
@@ -68,7 +75,12 @@ export function PageSizeDropdown({
       {isOpen && (
         <div
           role="listbox"
-          className="absolute bottom-full mb-1.5 start-0 z-50 min-w-[76px] rounded-[6px] border border-[#e5e2dc] dark:border-[#38271c] bg-white dark:bg-[#221812] p-1 shadow-lg font-['Cairo'] animate-in fade-in zoom-in-95"
+          className={cn(
+            "absolute z-50 min-w-[96px] rounded-[6px] border border-[#e5e2dc] dark:border-[#38271c] bg-white dark:bg-[#221812] p-1 shadow-lg font-['Cairo'] animate-in fade-in zoom-in-95",
+            dropdownPlacement === "bottom"
+              ? "top-full mt-1.5 start-0"
+              : "bottom-full mb-1.5 start-0"
+          )}
         >
           {options.map((option) => {
             const isSelected = option === value;
@@ -83,15 +95,15 @@ export function PageSizeDropdown({
                   setIsOpen(false);
                 }}
                 className={cn(
-                  "w-full px-2.5 py-1.5 rounded-[4px] text-[12px] font-semibold text-start flex items-center justify-between cursor-pointer transition-colors",
+                  "w-full px-2.5 py-1.5 rounded-[4px] text-[12px] font-semibold text-start flex items-center justify-between cursor-pointer transition-colors whitespace-nowrap",
                   isSelected
                     ? "bg-[#9c6402]/10 dark:bg-[rgba(226,157,56,0.18)] text-[#9c6402] dark:text-[#e29d38] font-bold"
                     : "text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15]"
                 )}
               >
-                <span>{option}</span>
+                <span>{formatOptionLabel(option)}</span>
                 {isSelected && (
-                  <Check className="w-3.5 h-3.5 text-[#9c6402] dark:text-[#e29d38]" />
+                  <Check className="w-3.5 h-3.5 text-[#9c6402] dark:text-[#e29d38] shrink-0" />
                 )}
               </button>
             );

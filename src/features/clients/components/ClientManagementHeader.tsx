@@ -10,20 +10,20 @@ interface ClientManagementHeaderProps {
 export function ClientManagementHeader({ onAddOffice }: ClientManagementHeaderProps) {
   return (
     <div
-      className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] flex flex-col sm:flex-row sm:items-center justify-between gap-[16px] w-full"
+      className="bg-white dark:bg-[#221812] rounded-[8px] p-[24px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col sm:flex-row sm:items-center justify-between gap-[16px] w-full shrink-0"
       data-node-id="1:754"
     >
       {/* Right Column: Title, Badge, Subtitle */}
       <div className="flex flex-col items-start text-start">
         <div className="flex items-center gap-[10px]">
-          <h1 className="text-[26px] leading-[36px] font-bold text-[#1b1c1a]">
+          <h1 className="text-[26px] leading-[36px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
             إدارة العملاء
           </h1>
-          <span className="bg-[#eae8e4] text-[#514537] text-[11px] leading-[16px] font-bold px-[10px] py-[3px] rounded-full">
+          <span className="bg-[#eae8e4] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[11px] leading-[16px] font-bold px-[10px] py-[3px] rounded-full">
             مكاتب المحاماة
           </span>
         </div>
-        <p className="text-[#514537] text-[13px] leading-[20px] font-normal mt-[4px]">
+        <p className="text-[#514537] dark:text-[#8e8680] text-[13px] leading-[20px] font-normal mt-[4px]">
           إدارة وتدقيق مكاتب المحاماة المسجلة ومتابعة بيانات التراخيص العدلية وحالة الاشتراكات الفعالة
         </p>
       </div>
