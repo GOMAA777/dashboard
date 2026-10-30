@@ -212,7 +212,7 @@ export function NotificationsManagementView() {
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
         <DashboardTopNavbar customBreadcrumbs={breadcrumbs} />
 
-        <main className="flex-1 overflow-y-auto p-6 md:p-8 w-full space-y-6 scrollbar-thin">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 w-full space-y-6 scrollbar-thin">
           <DashboardPageTransition>
           {view === "list" ? (
             <NotificationsListView

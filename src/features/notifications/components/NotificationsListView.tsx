@@ -15,6 +15,8 @@ import {
   ChevronsRight,
   CheckCheck,
   ImageIcon,
+  Clock,
+  Calendar,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -110,30 +112,30 @@ export function NotificationsListView({
     switch (status) {
       case "sent":
         return (
-          <span className="bg-[#ecfdf5] text-[#065f46] text-[10px] font-bold px-1.5 py-0.5 rounded-[2px] flex items-center gap-1.5 shrink-0">
+          <span className="bg-[#ecfdf5] dark:bg-[#132c21] text-[#065f46] dark:text-[#6ee7b7] border border-emerald-200 dark:border-emerald-500/30 text-[11px] font-bold px-2 py-0.5 rounded-[4px] inline-flex items-center gap-1.5 shrink-0 shadow-2xs">
+            <span className="size-1.5 rounded-full bg-[#059669] dark:bg-[#10b981]" />
             <span>{label}</span>
-            <span className="size-1.5 rounded-full bg-[#059669]" />
           </span>
         );
       case "active":
         return (
-          <span className="bg-[#fffbeb] text-[#b45309] text-[10px] font-bold px-1.5 py-0.5 rounded-[2px] flex items-center gap-1.5 shrink-0">
-            <span>{label}</span>
-            <span className="size-1.5 rounded-full bg-[#d97706]" />
+          <span className="bg-[#fffbeb] dark:bg-[#2d1f14] text-[#b45309] dark:text-[#f59e0b] border border-amber-200 dark:border-amber-500/30 text-[11px] font-bold px-2 py-0.5 rounded-[4px] inline-flex items-center gap-1.5 shrink-0 shadow-2xs">
+            <span className="size-1.5 rounded-full bg-[#d97706] dark:bg-[#f59e0b] animate-pulse" />
+            <span>نشط حالياً</span>
           </span>
         );
       case "scheduled":
         return (
-          <span className="bg-[#f3f4f6] text-[#4b5563] text-[10px] font-bold px-1.5 py-0.5 rounded-[2px] flex items-center gap-1.5 shrink-0">
-            <span>{label}</span>
-            <span className="size-1.5 rounded-full bg-[#9ca3af]" />
+          <span className="bg-[#eff6ff] dark:bg-[#172554] text-[#1d4ed8] dark:text-[#93c5fd] border border-blue-200 dark:border-blue-500/30 text-[11px] font-bold px-2 py-0.5 rounded-[4px] inline-flex items-center gap-1.5 shrink-0 shadow-2xs">
+            <Clock className="size-3 text-[#1d4ed8] dark:text-[#93c5fd]" />
+            <span>مجدول للإرسال</span>
           </span>
         );
       case "draft":
         return (
-          <span className="bg-[#e4e2de] text-[#514537] text-[10px] font-medium px-2 py-0.5 rounded-[2px] flex items-center gap-1.5 shrink-0">
-            <span>{label}</span>
-            <span className="size-1.5 rounded-full bg-[#837565]" />
+          <span className="bg-[#f5f3ef] dark:bg-[#281c15] text-[#78716c] dark:text-[#d6cfc7] border border-[#e7e5e4] dark:border-[#44372e] text-[11px] font-medium px-2 py-0.5 rounded-[4px] inline-flex items-center gap-1.5 shrink-0">
+            <span className="size-1.5 rounded-full bg-[#837565] dark:text-[#a89f91]" />
+            <span>مسودة</span>
           </span>
         );
     }
