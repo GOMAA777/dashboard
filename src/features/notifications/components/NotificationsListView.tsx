@@ -173,19 +173,32 @@ export function NotificationsListView({
         </button>
       </div>
 
-      {/* Tabs and Search / Filter Header (Figma 1:12891) */}
+      {/* Search & Filter Header (Search Right, Filter Left in RTL) */}
       <div
-        className="bg-white dark:bg-[#1c1510] rounded-[8px] p-6 border border-[#e6e2dc] dark:border-[#2e231b] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] space-y-4"
+        className="bg-white dark:bg-[#1c1510] rounded-[8px] p-4 sm:p-5 border border-[#e6e2dc] dark:border-[#2e231b] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-wrap lg:flex-nowrap items-center justify-between gap-4 font-['Cairo',sans-serif]"
         data-node-id="1:12891"
       >
-        {/* Tab Pills & Page View Size Row (Figma 1:12892) */}
-        <div
-          className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4"
-          data-node-id="1:12892"
-        >
-          {/* Right Tabs (Visual Right in RTL) */}
+        {/* Search Input on the RIGHT (Start in RTL) */}
+        <div className="relative w-full sm:w-[320px] md:w-[360px] shrink-0" data-node-id="1:12923">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
+            placeholder="ابحث بعنوان الإشعار أو نص الرابط..."
+            className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder-[#837565] dark:placeholder-[#8e8680] text-[13px] rounded-[6px] pe-[36px] ps-[14px] border border-transparent dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] transition-all font-sans"
+            data-node-id="1:12924"
+          />
+          <Search className="size-4 text-[#837565] dark:text-[#8e8680] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none" />
+        </div>
+
+        {/* Filter Tabs & Page Size on the LEFT (End in RTL via ms-auto) */}
+        <div className="flex flex-wrap items-center gap-3 ms-auto">
+          {/* Tab Pills */}
           <div
-            className="bg-[#f5f3ef] p-1 rounded-[12px] flex items-center gap-1.5 overflow-x-auto self-start sm:self-auto"
+            className="bg-[#f5f3ef] dark:bg-[#281c15] p-1 rounded-[8px] border border-[#eae8e4] dark:border-[#38271c] flex items-center gap-1.5 overflow-x-auto"
             data-node-id="1:12901"
           >
             {/* Tab: All */}
@@ -195,19 +208,19 @@ export function NotificationsListView({
                 setActiveTab("all");
                 setCurrentPage(1);
               }}
-              className={`flex items-center gap-2 px-4 py-1.5 rounded-[12px] text-[14px] font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-[6px] text-[13px] font-semibold transition-all cursor-pointer ${
                 activeTab === "all"
-                  ? "bg-white text-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-                  : "text-[#514537] hover:text-[#1b1c1a]"
+                  ? "bg-white dark:bg-[#1a120d] text-[#9c6402] dark:text-[#e29d38] shadow-xs"
+                  : "text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
               }`}
               data-node-id="1:12917"
             >
               <span>الكل</span>
               <span
-                className={`text-[10px] font-bold px-1.5 py-0.2 rounded-[12px] ${
+                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-[4px] ${
                   activeTab === "all"
-                    ? "bg-[#f0eeea] text-[#7b4e00]"
-                    : "bg-[#f0eeea] text-[#514537]"
+                    ? "bg-[#f0eeea] dark:bg-[#38271c] text-[#7b4e00] dark:text-[#ffddb6]"
+                    : "bg-[#e4e2de] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd]"
                 }`}
                 data-node-id="1:12919"
               >
@@ -222,15 +235,19 @@ export function NotificationsListView({
                 setActiveTab("active");
                 setCurrentPage(1);
               }}
-              className={`flex items-center gap-2 px-4 py-1.5 rounded-[12px] text-[14px] font-medium transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-[6px] text-[13px] font-semibold transition-all cursor-pointer ${
                 activeTab === "active"
-                  ? "bg-white text-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] font-semibold"
-                  : "text-[#514537] hover:text-[#1b1c1a]"
+                  ? "bg-white dark:bg-[#1a120d] text-[#9c6402] dark:text-[#e29d38] shadow-xs"
+                  : "text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
               }`}
               data-node-id="1:12912"
             >
               <span>نشطة ومستلمة</span>
-              <span className="bg-[#f0eeea] text-[#514537] text-[10px] font-bold px-1.5 py-0.2 rounded-[12px]">
+              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-[4px] ${
+                activeTab === "active"
+                  ? "bg-[#f0eeea] dark:bg-[#38271c] text-[#7b4e00] dark:text-[#ffddb6]"
+                  : "bg-[#e4e2de] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd]"
+              }`}>
                 {tabCounts.activeAndReceived}
               </span>
             </button>
@@ -242,15 +259,19 @@ export function NotificationsListView({
                 setActiveTab("scheduled");
                 setCurrentPage(1);
               }}
-              className={`flex items-center gap-2 px-4 py-1.5 rounded-[12px] text-[14px] font-medium transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-[6px] text-[13px] font-semibold transition-all cursor-pointer ${
                 activeTab === "scheduled"
-                  ? "bg-white text-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] font-semibold"
-                  : "text-[#514537] hover:text-[#1b1c1a]"
+                  ? "bg-white dark:bg-[#1a120d] text-[#9c6402] dark:text-[#e29d38] shadow-xs"
+                  : "text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
               }`}
               data-node-id="1:12907"
             >
               <span>مجدولة</span>
-              <span className="bg-[#f0eeea] text-[#514537] text-[10px] font-bold px-1.5 py-0.2 rounded-[12px]">
+              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-[4px] ${
+                activeTab === "scheduled"
+                  ? "bg-[#f0eeea] dark:bg-[#38271c] text-[#7b4e00] dark:text-[#ffddb6]"
+                  : "bg-[#e4e2de] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd]"
+              }`}>
                 {tabCounts.scheduled}
               </span>
             </button>
@@ -262,35 +283,39 @@ export function NotificationsListView({
                 setActiveTab("draft");
                 setCurrentPage(1);
               }}
-              className={`flex items-center gap-2 px-4 py-1.5 rounded-[12px] text-[14px] font-medium transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-[6px] text-[13px] font-semibold transition-all cursor-pointer ${
                 activeTab === "draft"
-                  ? "bg-white text-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] font-semibold"
-                  : "text-[#514537] hover:text-[#1b1c1a]"
+                  ? "bg-white dark:bg-[#1a120d] text-[#9c6402] dark:text-[#e29d38] shadow-xs"
+                  : "text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
               }`}
               data-node-id="1:12902"
             >
               <span>مسودة</span>
-              <span className="bg-[#f0eeea] text-[#514537] text-[10px] font-bold px-1.5 py-0.2 rounded-[12px]">
+              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-[4px] ${
+                activeTab === "draft"
+                  ? "bg-[#f0eeea] dark:bg-[#38271c] text-[#7b4e00] dark:text-[#ffddb6]"
+                  : "bg-[#e4e2de] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd]"
+              }`}>
                 {tabCounts.drafts}
               </span>
             </button>
           </div>
-        </div>
 
-        {/* Filter Row & Search Bar (Figma 1:12922) */}
-        <div className="relative w-full" data-node-id="1:12923">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
-            placeholder="ابحث بعنوان الإشعار أو نص الرابط..."
-            className="w-full bg-[#f5f3ef] border border-transparent focus:border-[#9c6402] rounded-[4px] py-2 pr-10 pl-4 text-[12px] text-[#1b1c1a] placeholder:text-[#837565] focus:outline-none transition-colors"
-            data-node-id="1:12924"
-          />
-          <Search className="size-4 text-[#837565] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          {/* Page Size Dropdown */}
+          <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
+            <span className="text-[12px] font-semibold text-[#837565] dark:text-[#8e8680] whitespace-nowrap">
+              الترقيم:
+            </span>
+            <PageSizeDropdown
+              value={pageSize}
+              onChange={(newSize) => {
+                setPageSize(newSize);
+                setCurrentPage(1);
+              }}
+              options={[5, 10, 20, 50]}
+              dropdownPlacement="bottom"
+            />
+          </div>
         </div>
       </div>
 
