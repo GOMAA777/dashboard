@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Search, ChevronDown } from "lucide-react";
+import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
 
 interface PlansToolbarProps {
   searchQuery: string;
@@ -26,73 +26,34 @@ export function PlansToolbar({
   onSortByChange,
   counts,
 }: PlansToolbarProps) {
-  return (
-    <div
-      className="bg-white rounded-[8px] p-[16px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] flex flex-col lg:flex-row lg:items-center justify-between gap-[16px] w-full font-['Cairo',sans-serif]"
-      dir="rtl"
-    >
-      {/* Right / Start: Search Input */}
-      <div className="relative flex-1 max-w-[420px]">
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="ابحث باسم الباقة أو المميزات أو السعة..."
-          className="w-full h-[40px] bg-[#f5f3ef] text-[#1b1c1a] placeholder-[#837565] text-[13px] rounded-[4px] pe-[36px] ps-[14px] focus:outline-none focus:ring-1 focus:ring-[#9c6402]/30 transition-all"
-        />
-        <div className="absolute top-1/2 -translate-y-1/2 end-[12px] pointer-events-none text-[#837565]">
-          <Search className="size-[15px]" />
-        </div>
-      </div>
+  const hasActiveFilters =
+    statusFilter !== "all" ||
+    billingCycle !== "monthly" ||
+    sortBy !== "price_desc" ||
+    Boolean(searchQuery);
 
-      {/* Center & Left controls */}
-      <div className="flex flex-wrap items-center gap-[12px]">
-        {/* Status Filter Tabs */}
-        <div className="flex items-center gap-[4px] bg-[#f5f3ef] p-[3px] rounded-[4px]">
-          <button
-            type="button"
-            onClick={() => onStatusFilterChange("all")}
-            className={`px-[12px] py-[6px] rounded-[4px] text-[12px] font-bold transition-all cursor-pointer ${
-              statusFilter === "all"
-                ? "bg-white text-[#7b4e00] shadow-2xs"
-                : "text-[#514537] hover:text-[#1b1c1a]"
-            }`}
-          >
-            الكل ({counts.all})
-          </button>
-          <button
-            type="button"
-            onClick={() => onStatusFilterChange("active")}
-            className={`px-[12px] py-[6px] rounded-[4px] text-[12px] font-bold transition-all cursor-pointer ${
-              statusFilter === "active"
-                ? "bg-white text-[#7b4e00] shadow-2xs"
-                : "text-[#514537] hover:text-[#1b1c1a]"
-            }`}
-          >
-            مفعلة ({counts.active})
-          </button>
-          <button
-            type="button"
-            onClick={() => onStatusFilterChange("inactive")}
-            className={`px-[12px] py-[6px] rounded-[4px] text-[12px] font-bold transition-all cursor-pointer ${
-              statusFilter === "inactive"
-                ? "bg-white text-[#7b4e00] shadow-2xs"
-                : "text-[#514537] hover:text-[#1b1c1a]"
-            }`}
-          >
-            معطلة ({counts.inactive})
-          </button>
-        </div>
+  const handleReset = () => {
+    onSearchChange("");
+    onStatusFilterChange("all");
+    onBillingCycleChange("monthly");
+    onSortByChange("price_desc");
+  };
 
-        {/* Billing Cycle Switch */}
-        <div className="flex items-center gap-[4px] bg-[#f5f3ef] p-[3px] rounded-[4px]">
+  const drawerContent = (
+    <div className="space-y-5 text-start font-['Cairo',sans-serif]">
+      {/* Billing Cycle Option */}
+      <div className="space-y-2">
+        <label className="text-[13px] font-bold text-[#1b1c1a] block">
+          دورة الفوترة
+        </label>
+        <div className="grid grid-cols-2 gap-2">
           <button
             type="button"
             onClick={() => onBillingCycleChange("monthly")}
-            className={`px-[12px] py-[6px] rounded-[4px] text-[12px] font-bold transition-all cursor-pointer ${
+            className={`h-[40px] rounded-[4px] border text-[13px] font-bold transition-all cursor-pointer flex items-center justify-center ${
               billingCycle === "monthly"
-                ? "bg-white text-[#1b1c1a] shadow-2xs"
-                : "text-[#514537] hover:text-[#1b1c1a]"
+                ? "bg-[#9c6402] text-white border-[#9c6402] shadow-2xs"
+                : "bg-[#f5f3ef] text-[#514537] border-transparent hover:bg-[#eae8e4]"
             }`}
           >
             شهري
@@ -100,37 +61,60 @@ export function PlansToolbar({
           <button
             type="button"
             onClick={() => onBillingCycleChange("annual")}
-            className={`px-[12px] py-[6px] rounded-[4px] text-[12px] font-bold transition-all cursor-pointer flex items-center gap-[4px] ${
+            className={`h-[40px] rounded-[4px] border text-[13px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               billingCycle === "annual"
-                ? "bg-white text-[#1b1c1a] shadow-2xs"
-                : "text-[#514537] hover:text-[#1b1c1a]"
+                ? "bg-[#9c6402] text-white border-[#9c6402] shadow-2xs"
+                : "bg-[#f5f3ef] text-[#514537] border-transparent hover:bg-[#eae8e4]"
             }`}
           >
             <span>سنوي</span>
-            <span className="bg-[#ffddb6] text-[#7b4e00] text-[10px] font-bold px-[5px] py-[1px] rounded-full">
-              خصم 15%
+            <span className="bg-[#ffddb6] text-[#7b4e00] text-[10px] font-bold px-[6px] py-[1px] rounded-full">
+              -15%
             </span>
           </button>
         </div>
+      </div>
 
-        {/* Sort Dropdown */}
-        <div className="relative">
-          <select
-            value={sortBy}
-            onChange={(e) =>
-              onSortByChange(
-                e.target.value as "price_desc" | "price_asc" | "subscribers"
-              )
-            }
-            className="appearance-none bg-white border border-[#eae8e4] rounded-[4px] px-[12px] py-[7px] pe-[28px] text-[12px] font-semibold text-[#1b1c1a] focus:outline-none cursor-pointer shadow-2xs"
-          >
-            <option value="price_desc">ترتيب: الأعلى سعراً</option>
-            <option value="price_asc">ترتيب: الأقل سعراً</option>
-            <option value="subscribers">ترتيب: الأكثر مشتركين</option>
-          </select>
-          <ChevronDown className="size-[13px] text-[#514537] absolute start-[10px] top-1/2 -translate-y-1/2 pointer-events-none" />
-        </div>
+      {/* Sort By Option */}
+      <div className="space-y-2">
+        <label className="text-[13px] font-bold text-[#1b1c1a] block">
+          ترتيب العرض
+        </label>
+        <select
+          value={sortBy}
+          onChange={(e) =>
+            onSortByChange(
+              e.target.value as "price_desc" | "price_asc" | "subscribers"
+            )
+          }
+          className="w-full h-[40px] bg-[#f5f3ef] text-[#1b1c1a] text-[13px] font-semibold rounded-[4px] px-[12px] border border-transparent focus:outline-none focus:ring-1 focus:ring-[#9c6402]/30 cursor-pointer"
+        >
+          <option value="price_desc">الأعلى سعراً أولاً</option>
+          <option value="price_asc">الأقل سعراً أولاً</option>
+          <option value="subscribers">الأكثر مشتركين أولاً</option>
+        </select>
       </div>
     </div>
+  );
+
+  return (
+    <UnifiedFilterBar
+      searchQuery={searchQuery}
+      onSearchChange={onSearchChange}
+      searchPlaceholder="ابحث باسم الباقة أو المميزات..."
+      primaryFilterValue={statusFilter}
+      onPrimaryFilterChange={(v) =>
+        onStatusFilterChange(v as "all" | "active" | "inactive")
+      }
+      primaryFilterOptions={[
+        { label: `كل الحالات (${counts.all})`, value: "all" },
+        { label: `مفعلة (${counts.active})`, value: "active" },
+        { label: `معطلة (${counts.inactive})`, value: "inactive" },
+      ]}
+      hasActiveFilters={hasActiveFilters}
+      onReset={handleReset}
+      drawerTitle="تصفية الباقات والأسعار"
+      drawerContent={drawerContent}
+    />
   );
 }

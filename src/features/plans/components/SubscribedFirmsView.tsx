@@ -9,9 +9,6 @@ import {
   ShieldCheck,
   Hourglass,
   BellRing,
-  Search,
-  ChevronDown,
-  RotateCcw,
   MoreVertical,
   ArrowUp,
   Ban,
@@ -24,6 +21,7 @@ import { DetailedSubscribedFirm } from "../types/plan.types";
 import { detailedSilverSubscribedFirms } from "../data/initialPlans";
 import { UpgradeSubscriptionDialog } from "./UpgradeSubscriptionDialog";
 import { DeactivateSubscriptionDialog } from "./DeactivateSubscriptionDialog";
+import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
 
 interface SubscribedFirmsViewProps {
   onBack: () => void;
@@ -329,160 +327,111 @@ export function SubscribedFirmsView({
         </div>
       </div>
 
-      {/* 3. Toolbar: Tabs & Search Filters */}
-      <div className="bg-white rounded-[8px] border border-[#e2ded7] p-[16px] shadow-2xs space-y-[14px]">
-        {/* Row 1: Status Filter Tabs & Page Size */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-[12px]">
-          <div className="flex flex-wrap items-center gap-[6px] bg-[#f5f3ef] p-[3px] rounded-[6px]">
-            <button
-              type="button"
-              onClick={() => setActiveTab("all")}
-              className={`px-[12px] py-[6px] rounded-[4px] text-[12px] font-bold transition-all cursor-pointer ${
-                activeTab === "all"
-                  ? "bg-white text-[#9c6402] shadow-2xs"
-                  : "text-[#514537] hover:text-[#1b1c1a]"
-              }`}
-            >
-              الكل 128
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("active")}
-              className={`px-[12px] py-[6px] rounded-[4px] text-[12px] font-bold transition-all cursor-pointer ${
-                activeTab === "active"
-                  ? "bg-white text-[#9c6402] shadow-2xs"
-                  : "text-[#514537] hover:text-[#1b1c1a]"
-              }`}
-            >
-              النشطة 96
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("trial")}
-              className={`px-[12px] py-[6px] rounded-[4px] text-[12px] font-bold transition-all cursor-pointer ${
-                activeTab === "trial"
-                  ? "bg-white text-[#9c6402] shadow-2xs"
-                  : "text-[#514537] hover:text-[#1b1c1a]"
-              }`}
-            >
-              تحت التجربة 18
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("near_limit")}
-              className={`px-[12px] py-[6px] rounded-[4px] text-[12px] font-bold transition-all cursor-pointer ${
-                activeTab === "near_limit"
-                  ? "bg-white text-[#9c6402] shadow-2xs"
-                  : "text-[#514537] hover:text-[#1b1c1a]"
-              }`}
-            >
-              اقترب من الحد 14
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("overdue")}
-              className={`px-[12px] py-[6px] rounded-[4px] text-[12px] font-bold transition-all cursor-pointer ${
-                activeTab === "overdue"
-                  ? "bg-white text-[#9c6402] shadow-2xs"
-                  : "text-[#514537] hover:text-[#1b1c1a]"
-              }`}
-            >
-              متعثر الدفع 14
-            </button>
-          </div>
-
-          <div className="flex items-center gap-[6px] text-[12px] text-[#737067]">
-            <span>عرض الصفحة:</span>
-            <div className="relative">
-              <select className="appearance-none bg-[#f5f3ef] border border-[#e2ded7] rounded-[4px] py-[4px] pe-[24px] ps-[10px] text-[12px] font-bold text-[#1b1c1a] focus:outline-none cursor-pointer">
-                <option value="10">10 مكاتب</option>
-                <option value="25">25 مكتباً</option>
-                <option value="50">50 مكتباً</option>
-              </select>
-              <ChevronDown className="size-[12px] absolute top-1/2 -translate-y-1/2 end-[6px] pointer-events-none text-[#737067]" />
-            </div>
-          </div>
-        </div>
-
-        {/* Row 2: Search input & Sub-filters */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-[12px]">
-          {/* Search Input */}
-          <div className="relative flex-1 max-w-[460px]">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="ابحث باسم المكتب، المالك، رقم الترخيص، أو السجل المدني..."
-              className="w-full h-[38px] bg-[#f5f3ef] text-[#1b1c1a] placeholder-[#837565] text-[12px] rounded-[6px] pe-[36px] ps-[14px] focus:outline-none focus:ring-1 focus:ring-[#9c6402]/30 transition-all"
-            />
-            <div className="absolute top-1/2 -translate-y-1/2 end-[12px] pointer-events-none text-[#837565]">
-              <Search className="size-[15px]" />
-            </div>
-          </div>
-
-          {/* Filters & Reset */}
-          <div className="flex flex-wrap items-center gap-[8px]">
-            {/* Filter 1: Status */}
-            <div className="relative">
+      {/* 3. Unified Filter Bar */}
+      <UnifiedFilterBar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="ابحث باسم المكتب، المالك، رقم الترخيص، أو السجل..."
+        primaryFilterValue={activeTab}
+        onPrimaryFilterChange={(v) =>
+          setActiveTab(
+            v as "all" | "active" | "trial" | "near_limit" | "overdue"
+          )
+        }
+        primaryFilterOptions={[
+          { label: "الكل (128)", value: "all" },
+          { label: "النشطة (96)", value: "active" },
+          { label: "تحت التجربة (18)", value: "trial" },
+          { label: "اقترب من الحد (14)", value: "near_limit" },
+          { label: "متعثر الدفع (14)", value: "overdue" },
+        ]}
+        hasActiveFilters={
+          activeTab !== "all" ||
+          statusFilter !== "all" ||
+          renewalFilter !== "all" ||
+          resourceFilter !== "all" ||
+          Boolean(searchQuery)
+        }
+        onReset={() => {
+          setSearchQuery("");
+          setActiveTab("all");
+          setStatusFilter("all");
+          setRenewalFilter("all");
+          setResourceFilter("all");
+        }}
+        drawerTitle="تصفية المشتركين في الباقة"
+        drawerContent={
+          <div className="space-y-4 text-start font-['Cairo',sans-serif]">
+            {/* Status Filter */}
+            <div className="space-y-1.5">
+              <label className="text-[13px] font-bold text-[#1b1c1a] block">
+                حالة الاشتراك
+              </label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="appearance-none bg-[#f5f3ef] border border-[#e2ded7] rounded-[6px] h-[38px] pe-[28px] ps-[12px] text-[12px] font-semibold text-[#1b1c1a] focus:outline-none cursor-pointer"
+                className="w-full h-[40px] bg-[#f5f3ef] text-[#1b1c1a] text-[13px] font-semibold rounded-[4px] px-[12px] border border-transparent focus:outline-none focus:ring-1 focus:ring-[#9c6402]/30 cursor-pointer"
               >
-                <option value="all">حالة الاشتراك: الكل</option>
+                <option value="all">الكل</option>
                 <option value="active">نشط</option>
                 <option value="trial">قيد التجربة</option>
                 <option value="pending">بانتظار السداد</option>
               </select>
-              <ChevronDown className="size-[14px] absolute top-1/2 -translate-y-1/2 end-[8px] pointer-events-none text-[#737067]" />
             </div>
 
-            {/* Filter 2: Renewal */}
-            <div className="relative">
+            {/* Renewal Filter */}
+            <div className="space-y-1.5">
+              <label className="text-[13px] font-bold text-[#1b1c1a] block">
+                موعد التجديد
+              </label>
               <select
                 value={renewalFilter}
                 onChange={(e) => setRenewalFilter(e.target.value)}
-                className="appearance-none bg-[#f5f3ef] border border-[#e2ded7] rounded-[6px] h-[38px] pe-[28px] ps-[12px] text-[12px] font-semibold text-[#1b1c1a] focus:outline-none cursor-pointer"
+                className="w-full h-[40px] bg-[#f5f3ef] text-[#1b1c1a] text-[13px] font-semibold rounded-[4px] px-[12px] border border-transparent focus:outline-none focus:ring-1 focus:ring-[#9c6402]/30 cursor-pointer"
               >
-                <option value="all">موعد التجديد: الكل</option>
+                <option value="all">الكل</option>
                 <option value="annual">سنوي</option>
                 <option value="monthly">شهري</option>
               </select>
-              <ChevronDown className="size-[14px] absolute top-1/2 -translate-y-1/2 end-[8px] pointer-events-none text-[#737067]" />
             </div>
 
-            {/* Filter 3: Resources */}
-            <div className="relative">
+            {/* Resource Filter */}
+            <div className="space-y-1.5">
+              <label className="text-[13px] font-bold text-[#1b1c1a] block">
+                استهلاك الموارد
+              </label>
               <select
                 value={resourceFilter}
                 onChange={(e) => setResourceFilter(e.target.value)}
-                className="appearance-none bg-[#f5f3ef] border border-[#e2ded7] rounded-[6px] h-[38px] pe-[28px] ps-[12px] text-[12px] font-semibold text-[#1b1c1a] focus:outline-none cursor-pointer"
+                className="w-full h-[40px] bg-[#f5f3ef] text-[#1b1c1a] text-[13px] font-semibold rounded-[4px] px-[12px] border border-transparent focus:outline-none focus:ring-1 focus:ring-[#9c6402]/30 cursor-pointer"
               >
-                <option value="all">استهلاك الموارد: الكل</option>
+                <option value="all">الكل</option>
                 <option value="high">استهلاك مرتفع (&gt;80%)</option>
                 <option value="full">بلغ الحد الأقصى</option>
               </select>
-              <ChevronDown className="size-[14px] absolute top-1/2 -translate-y-1/2 end-[8px] pointer-events-none text-[#737067]" />
             </div>
 
-            {/* Reset */}
-            <button
-              type="button"
-              onClick={() => {
-                setSearchQuery("");
-                setActiveTab("all");
-                setStatusFilter("all");
-                setRenewalFilter("all");
-                setResourceFilter("all");
-              }}
-              className="size-[38px] rounded-[6px] bg-[#f5f3ef] hover:bg-[#eae8e4] text-[#737067] flex items-center justify-center transition-colors cursor-pointer"
-              title="إعادة ضبط الفلاتر"
-            >
-              <RotateCcw className="size-[15px]" />
-            </button>
+            {/* Page Size in Drawer */}
+            <div className="space-y-1.5">
+              <label className="text-[13px] font-bold text-[#1b1c1a] block">
+                عدد الصفوف بالصفحة
+              </label>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="w-full h-[40px] bg-[#f5f3ef] text-[#1b1c1a] text-[13px] font-semibold rounded-[4px] px-[12px] border border-transparent focus:outline-none focus:ring-1 focus:ring-[#9c6402]/30 cursor-pointer"
+              >
+                <option value={10}>10 مكاتب</option>
+                <option value={25}>25 مكتباً</option>
+                <option value={50}>50 مكتباً</option>
+              </select>
+            </div>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* 4. Comprehensive Data Table */}
       <div className="bg-white rounded-[8px] border border-[#e2ded7] shadow-2xs overflow-hidden">

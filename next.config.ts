@@ -7,7 +7,6 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
-  basePath: "/dashboard",
   // cacheComponents: true,
   // partialPrefetching: true,
   turbopack: {

@@ -1,17 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, ShieldCheck, LogIn, Loader2, Scale } from "lucide-react";
+import { Eye, EyeOff, ShieldCheck, LogIn, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 import { useUIStore } from "@/stores/use-ui-store";
 import { translations } from "@/lib/i18n";
 import { loginSchema, LoginInput } from "../schemas/login.schema";
 import { loginAction } from "../actions/login.action";
+import { AlJoudyLogo } from "@/components/shared/BrandLogos";
+import { setAuthSession, getAuthSession } from "@/lib/auth-client";
 
 export function LoginForm() {
   const router = useRouter();
@@ -21,6 +23,13 @@ export function LoginForm() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Auto redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (getAuthSession()) {
+      router.replace("/");
+    }
+  }, [router]);
 
   const {
     register,
@@ -39,6 +48,7 @@ export function LoginForm() {
     try {
       const res = await loginAction(data);
       if (res?.data?.success) {
+        setAuthSession();
         toast.success(t.loginSuccess);
         router.push("/");
       } else {
@@ -66,8 +76,8 @@ export function LoginForm() {
           <div className="flex items-center justify-between">
             {/* Brand Logo & Name (Static Display) */}
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-full bg-[#faf5eb] dark:bg-[#201c17] border border-[#eeddbb] dark:border-[#382b18] p-1.5 flex items-center justify-center shadow-2xs">
-                <Scale className="w-5 h-5 text-[#c29547] dark:text-[#d4a759]" />
+              <div className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center shadow-2xs">
+                <AlJoudyLogo className="w-9 h-9" priority />
               </div>
               <span className="text-lg font-extrabold text-[#c29547] dark:text-[#d4a759] tracking-tight">
                 {brand.name}

@@ -1,7 +1,15 @@
 "use client";
 
 import React from "react";
-import { Landmark, CreditCard, Zap, Coins, Settings, Repeat } from "lucide-react";
+import { Settings, Repeat } from "lucide-react";
+import {
+  PaypalBrandIcon,
+  StripeBrandIcon,
+  PaddleBrandIcon,
+  RazorpayBrandIcon,
+  BankTransferBrandIcon,
+  CustomGatewayBrandIcon,
+} from "@/components/shared/BrandLogos";
 import { PaymentGatewayItem } from "../types/payment-gateways.types";
 
 interface GatewayCardProps {
@@ -40,42 +48,37 @@ export function GatewayCard({
             {/* Official Brand Badge */}
             {brandType === "bank" && (
               <div className="bg-[#fffbeb] border border-[#fef3c7] rounded-[16px] size-14 flex items-center justify-center shrink-0">
-                <Landmark className="size-[25px] text-[#9c6402]" />
+                <BankTransferBrandIcon className="size-7" />
               </div>
             )}
 
             {brandType === "paypal" && (
-              <div className="bg-[rgba(0,48,135,0.05)] rounded-[16px] size-14 flex items-center justify-center shrink-0">
-                <span className="font-bold text-[22px] tracking-[-1.1px]">
-                  <span className="text-[#003087]">P</span>
-                  <span className="text-[#0079c1]">P</span>
-                </span>
+              <div className="bg-[rgba(0,48,135,0.06)] border border-[#003087]/15 rounded-[16px] size-14 flex items-center justify-center shrink-0">
+                <PaypalBrandIcon className="size-8" />
               </div>
             )}
 
             {brandType === "stripe" && (
-              <div className="bg-[rgba(99,91,255,0.1)] rounded-[16px] size-14 flex items-center justify-center shrink-0">
-                <span className="font-bold text-[22px] tracking-[-0.55px] text-[#635bff]">
-                  S\
-                </span>
+              <div className="bg-[rgba(99,91,255,0.08)] border border-[#635bff]/15 rounded-[16px] size-14 flex items-center justify-center shrink-0">
+                <StripeBrandIcon className="size-9 rounded-md" />
               </div>
             )}
 
             {brandType === "paddle" && (
               <div className="bg-[rgba(13,31,45,0.05)] border border-[rgba(13,31,45,0.1)] rounded-[16px] size-14 flex items-center justify-center shrink-0">
-                <CreditCard className="size-[22px] text-[#0d1f2d]" />
+                <PaddleBrandIcon className="size-7" />
               </div>
             )}
 
             {brandType === "razorpay" && (
               <div className="bg-[rgba(12,35,64,0.05)] border border-[rgba(12,35,64,0.15)] rounded-[16px] size-14 flex items-center justify-center shrink-0">
-                <Zap className="size-[24px] text-[#0c2340]" />
+                <RazorpayBrandIcon className="size-7" />
               </div>
             )}
 
             {brandType === "custom" && (
-              <div className="bg-[#f0eeea] rounded-[16px] size-14 flex items-center justify-center shrink-0">
-                <Coins className="size-[22px] text-[#837565]" />
+              <div className="bg-[#f0eeea] border border-[#ded5c6] rounded-[16px] size-14 flex items-center justify-center shrink-0">
+                <CustomGatewayBrandIcon className="size-7" />
               </div>
             )}
 

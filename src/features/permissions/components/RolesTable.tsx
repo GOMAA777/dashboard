@@ -240,40 +240,14 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
 
         {/* Numeric page buttons */}
         <div className="flex items-center gap-1.5" data-node-id="1:11856">
-          {/* Next */}
+          {/* Previous */}
           <button
             type="button"
-            className="flex items-center gap-1 px-2.5 py-1.5 bg-[#f5f3ef] hover:bg-[#eae8e4] text-[#1b1c1a] rounded-[4px] text-[12px] font-semibold transition-colors cursor-pointer"
-            data-node-id="1:11857"
+            className="flex items-center gap-1 px-2.5 py-1.5 bg-[#f5f3ef] hover:bg-[#eae8e4] text-[#837565] rounded-[4px] text-[12px] font-semibold transition-colors cursor-pointer"
+            data-node-id="1:11872"
           >
-            <span>التالي</span>
-            <ChevronLeft className="size-[13px]" />
-          </button>
-
-          {/* Last page */}
-          <button
-            type="button"
-            className="size-[32px] bg-[#f5f3ef] hover:bg-[#eae8e4] text-[#1b1c1a] rounded-[4px] text-[12px] font-semibold flex items-center justify-center transition-colors cursor-pointer"
-          >
-            16
-          </button>
-
-          <span className="text-[#837565] text-[12px] px-1 font-semibold">...</span>
-
-          {/* Page 3 */}
-          <button
-            type="button"
-            className="size-[32px] bg-[#f5f3ef] hover:bg-[#eae8e4] text-[#1b1c1a] rounded-[4px] text-[12px] font-semibold flex items-center justify-center transition-colors cursor-pointer"
-          >
-            3
-          </button>
-
-          {/* Page 2 */}
-          <button
-            type="button"
-            className="size-[32px] bg-[#f5f3ef] hover:bg-[#eae8e4] text-[#1b1c1a] rounded-[4px] text-[12px] font-semibold flex items-center justify-center transition-colors cursor-pointer"
-          >
-            2
+            <ChevronRight className="size-[13px]" />
+            <span>السابق</span>
           </button>
 
           {/* Page 1 (Active) */}
@@ -285,14 +259,40 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
             1
           </button>
 
-          {/* Previous */}
+          {/* Page 2 */}
           <button
             type="button"
-            className="flex items-center gap-1 px-2.5 py-1.5 bg-[#f5f3ef] hover:bg-[#eae8e4] text-[#837565] rounded-[4px] text-[12px] font-semibold transition-colors cursor-pointer"
-            data-node-id="1:11872"
+            className="size-[32px] bg-[#f5f3ef] hover:bg-[#eae8e4] text-[#1b1c1a] rounded-[4px] text-[12px] font-semibold flex items-center justify-center transition-colors cursor-pointer"
           >
-            <ChevronRight className="size-[13px]" />
-            <span>السابق</span>
+            2
+          </button>
+
+          {/* Page 3 */}
+          <button
+            type="button"
+            className="size-[32px] bg-[#f5f3ef] hover:bg-[#eae8e4] text-[#1b1c1a] rounded-[4px] text-[12px] font-semibold flex items-center justify-center transition-colors cursor-pointer"
+          >
+            3
+          </button>
+
+          <span className="text-[#837565] text-[12px] px-1 font-semibold">...</span>
+
+          {/* Last page */}
+          <button
+            type="button"
+            className="size-[32px] bg-[#f5f3ef] hover:bg-[#eae8e4] text-[#1b1c1a] rounded-[4px] text-[12px] font-semibold flex items-center justify-center transition-colors cursor-pointer"
+          >
+            16
+          </button>
+
+          {/* Next */}
+          <button
+            type="button"
+            className="flex items-center gap-1 px-2.5 py-1.5 bg-[#f5f3ef] hover:bg-[#eae8e4] text-[#1b1c1a] rounded-[4px] text-[12px] font-semibold transition-colors cursor-pointer"
+            data-node-id="1:11857"
+          >
+            <span>التالي</span>
+            <ChevronLeft className="size-[13px]" />
           </button>
         </div>
       </div>

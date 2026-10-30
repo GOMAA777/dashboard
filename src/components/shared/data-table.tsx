@@ -135,14 +135,15 @@ export function DataTable<TData, TValue>({
           <div className="text-sm text-muted-foreground">
             Page {pagination.pageIndex + 1} of {Math.max(1, pageCount)}
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="icon-sm"
               onClick={() => onPaginationChange?.({ ...pagination, pageIndex: 0 })}
               disabled={pagination.pageIndex === 0 || isLoading}
+              title="الصفحة الأولى"
             >
-              <ChevronsLeft className="h-4 w-4" />
+              <ChevronsLeft className="h-4 w-4 rtl:rotate-180" />
             </Button>
             <Button
               variant="outline"
@@ -154,8 +155,9 @@ export function DataTable<TData, TValue>({
                 })
               }
               disabled={pagination.pageIndex === 0 || isLoading}
+              title="الصفحة السابقة"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4 rtl:rotate-180" />
             </Button>
             <Button
               variant="outline"
@@ -171,8 +173,9 @@ export function DataTable<TData, TValue>({
                   ? pagination.pageIndex >= pageCount - 1
                   : !table.getCanNextPage() || isLoading
               }
+              title="الصفحة التالية"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4 rtl:rotate-180" />
             </Button>
             <Button
               variant="outline"
@@ -184,8 +187,9 @@ export function DataTable<TData, TValue>({
                 })
               }
               disabled={pageCount <= 0 || pagination.pageIndex >= pageCount - 1 || isLoading}
+              title="الصفحة الأخيرة"
             >
-              <ChevronsRight className="h-4 w-4" />
+              <ChevronsRight className="h-4 w-4 rtl:rotate-180" />
             </Button>
           </div>
         </div>

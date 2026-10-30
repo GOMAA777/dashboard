@@ -1,5 +1,6 @@
 import React from "react";
 import type { Metadata } from "next";
+import { DashboardAuthGate } from "@/components/shared/DashboardAuthGate";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
 import { DashboardHeaderSection } from "@/features/dashboard/components/DashboardHeaderSection";
@@ -16,38 +17,40 @@ export const metadata: Metadata = {
 
 export default function DashboardHomePage() {
   return (
-    <div
-      className="flex min-h-screen bg-[#fcfbfa] text-[#1b1c1a]"
-      dir="rtl"
-      data-node-id="1:3"
-      data-name="الرئيسية"
-    >
-      {/* 1. Main Navigation Sidebar (240px, on start/right in RTL) */}
-      <DashboardSidebar />
+    <DashboardAuthGate>
+      <div
+        className="flex min-h-screen bg-[#fcfbfa] text-[#1b1c1a]"
+        dir="rtl"
+        data-node-id="1:3"
+        data-name="الرئيسية"
+      >
+        {/* 1. Main Navigation Sidebar (240px, on start/right in RTL) */}
+        <DashboardSidebar />
 
-      {/* 2. Main Content Viewport */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Navbar Header (64px) */}
-        <DashboardTopNavbar />
+        {/* 2. Main Content Viewport */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Top Navbar Header (64px) */}
+          <DashboardTopNavbar />
 
-        {/* Dashboard Workspace Content */}
-        <main className="flex-1 px-[32px] py-[32px] space-y-[24px] w-full">
-          {/* Section 1: Page Introduction & Action Bar */}
-          <DashboardHeaderSection />
+          {/* Dashboard Workspace Content */}
+          <main className="flex-1 px-[32px] py-[32px] space-y-[24px] w-full">
+            {/* Section 1: Page Introduction & Action Bar */}
+            <DashboardHeaderSection />
 
-          {/* Section 2: Primary KPI Cards (4 Tiles) */}
-          <DashboardKpiCards />
+            {/* Section 2: Primary KPI Cards (4 Tiles) */}
+            <DashboardKpiCards />
 
-          {/* Section 3: Visual Analytics Section (Revenue Area Chart & Plan Donut) */}
-          <DashboardAnalyticsSection />
+            {/* Section 3: Visual Analytics Section (Revenue Area Chart & Plan Donut) */}
+            <DashboardAnalyticsSection />
 
-          {/* Section 4: Recently Registered Law Offices Table */}
-          <DashboardLawOfficesTable />
+            {/* Section 4: Recently Registered Law Offices Table */}
+            <DashboardLawOfficesTable />
 
-          {/* Section 5: Bottom Grid (Recent Activity Feed & Support Summary) */}
-          <DashboardBottomSection />
-        </main>
+            {/* Section 5: Bottom Grid (Recent Activity Feed & Support Summary) */}
+            <DashboardBottomSection />
+          </main>
+        </div>
       </div>
-    </div>
+    </DashboardAuthGate>
   );
 }
