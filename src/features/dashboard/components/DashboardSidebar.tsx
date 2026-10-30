@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useSyncExternalStore } from "react";
+import React, { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { toast } from "sonner";
 import logoMarkImg from "../../../../public/figma/logo-mark.png";
+import userAvatarImg from "../../../../public/figma/user-avatar.png";
 import {
   AppWindow,
   Bell,
@@ -20,9 +22,12 @@ import {
   Users,
   Key,
   ChevronLeft,
+  LogIn,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/use-ui-store";
+import { LogoutConfirmModal } from "./LogoutConfirmModal";
 
 interface NavItem {
   id: string;
@@ -53,7 +58,9 @@ interface DashboardSidebarProps {
 }
 
 export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarProps = {}) {
+  const router = useRouter();
   const pathname = usePathname();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
   const toggleSidebarCollapsed = useUIStore((state) => state.toggleSidebarCollapsed);
 
@@ -64,6 +71,12 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
   );
 
   const isCollapsed = isMounted ? sidebarCollapsed : false;
+
+  const handleConfirmLogout = () => {
+    setIsLogoutModalOpen(false);
+    toast.success("تم تسجيل الخروج بنجاح");
+    router.push("/login");
+  };
 
   return (
     <aside
@@ -248,29 +261,102 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
         </nav>
       </div>
 
-      {/* Bottom Footer: Server Status & Version */}
+      {/* Bottom User Profile & Auth Section (Replaces Server Status) */}
       <div
         className={cn(
-          "h-[35px] bg-[#16100c] border-t border-[#2c221c] flex items-center shrink-0 transition-all duration-300",
-          isCollapsed ? "justify-center px-2" : "justify-between px-[12px]"
+          "border-t border-[#2c221c] bg-[#16100c] shrink-0 transition-all duration-300",
+          isCollapsed ? "p-2 flex flex-col items-center gap-2" : "p-2.5 flex flex-col gap-1.5"
         )}
-        data-node-id="1:744"
-        title={isCollapsed ? "v2.4.0 - الخوادم: مستقرة 99.9%" : undefined}
+        data-node-id="1:744-user-profile"
       >
-        {!isCollapsed && (
-          <span className="font-bold text-[#8e8680] text-[10px] leading-[14px] whitespace-nowrap">
-            v2.4.0
-          </span>
+        {isCollapsed ? (
+          <>
+            {/* Collapsed Mode: User Avatar Link to Login Page */}
+            <Link
+              href="/login"
+              title="فتح صفحة تسجيل الدخول (/login) - م. عبد العزيز بن فهد"
+              className="size-[38px] rounded-full overflow-hidden border border-[#9c6402]/40 hover:border-[#9c6402] transition-colors flex items-center justify-center shrink-0 relative group"
+            >
+              <Image
+                src={userAvatarImg}
+                alt="م. عبد العزيز بن فهد"
+                width={38}
+                height={38}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+              />
+              <span className="absolute bottom-0 end-0 size-[8px] rounded-full bg-[#10b981] border border-[#16100c]" />
+            </Link>
+
+            {/* Collapsed Mode: Logout Button */}
+            <button
+              type="button"
+              onClick={() => setIsLogoutModalOpen(true)}
+              title="تسجيل الخروج"
+              aria-label="تسجيل الخروج"
+              className="size-[34px] rounded-[8px] flex items-center justify-center text-[#cdc5bd] hover:text-[#f87171] hover:bg-[#2c221c] transition-colors cursor-pointer"
+            >
+              <LogOut className="size-[16px]" />
+            </button>
+          </>
+        ) : (
+          <>
+            {/* Expanded Mode: Integrated User Profile Card (Click opens /login) */}
+            <Link
+              href="/login"
+              title="فتح صفحة تسجيل الدخول (/login)"
+              className="flex items-center justify-between p-2 rounded-[10px] hover:bg-[#2c221c]/80 transition-colors group text-right cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                <div className="relative size-[34px] rounded-full overflow-hidden border border-[#9c6402]/40 shrink-0">
+                  <Image
+                    src={userAvatarImg}
+                    alt="م. عبد العزيز بن فهد"
+                    width={34}
+                    height={34}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                  />
+                  <span className="absolute bottom-0 end-0 size-[7px] rounded-full bg-[#10b981] border border-[#16100c]" />
+                </div>
+                <div className="flex flex-col min-w-0 text-right">
+                  <span className="text-[13px] font-semibold text-[#fdfbf7] truncate group-hover:text-[#e29d38] transition-colors">
+                    م. عبد العزيز بن فهد
+                  </span>
+                  <span className="text-[10px] text-[#8e8680] truncate">
+                    مشرف النظام العام
+                  </span>
+                </div>
+              </div>
+
+              {/* Login Page Indicator Icon */}
+              <div
+                className="size-[24px] rounded-[6px] flex items-center justify-center text-[#8e8680] group-hover:text-[#e29d38] group-hover:bg-[#2c221c] transition-colors shrink-0 ms-1"
+                title="فتح صفحة تسجيل الدخول"
+              >
+                <LogIn className="size-[14px]" />
+              </div>
+            </Link>
+
+            {/* Expanded Mode: Logout Action Button */}
+            <button
+              type="button"
+              onClick={() => setIsLogoutModalOpen(true)}
+              className="flex items-center justify-between px-2.5 py-1.5 rounded-[8px] text-[12px] font-semibold text-[#cdc5bd] hover:text-[#f87171] hover:bg-[#2c221c]/60 transition-colors cursor-pointer text-right group"
+            >
+              <span className="group-hover:translate-x-[-2px] transition-transform">
+                تسجيل الخروج
+              </span>
+              <LogOut className="size-[14px] text-[#8e8680] group-hover:text-[#f87171] transition-colors shrink-0" />
+            </button>
+          </>
         )}
-        <div className="flex items-center gap-[6px]">
-          {!isCollapsed && (
-            <span className="font-bold text-[#cdc5bd] text-[10px] leading-[14px] whitespace-nowrap">
-              الخوادم: مستقرة 99.9%
-            </span>
-          )}
-          <span className="size-[8px] rounded-full bg-[#10b981] inline-block animate-pulse shrink-0" />
-        </div>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      <LogoutConfirmModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleConfirmLogout}
+      />
     </aside>
   );
 }
