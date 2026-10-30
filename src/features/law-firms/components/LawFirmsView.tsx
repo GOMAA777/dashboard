@@ -631,7 +631,7 @@ export function LawFirmsView() {
   };
 
   return (
-    <div className="flex h-screen h-dvh overflow-hidden bg-[#fcfbfa] dark:bg-[#121110] text-[#1c1917] dark:text-[#f5f4f0] transition-colors duration-200 relative">
+    <div className="flex h-screen h-dvh overflow-hidden bg-[#fcfbfa] dark:bg-[#150f0b] text-[#1c1917] dark:text-[#fdfbf7] transition-colors duration-200 relative">
       <DashboardSidebar />
 
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
@@ -655,11 +655,11 @@ export function LawFirmsView() {
 
           <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
             {/* Hero Header Banner */}
-            <div className="relative overflow-hidden rounded-2xl border border-[#eeddbb]/70 dark:border-[#383126] bg-gradient-to-br from-[#ffffff] via-[#fbf8f2] to-[#f4ece0] dark:from-[#1e1b18] dark:via-[#191715] dark:to-[#141210] p-6 sm:p-8 shadow-sm">
+            <div className="relative overflow-hidden rounded-2xl border border-[#eeddbb]/70 dark:border-[#38271c] bg-gradient-to-br from-[#ffffff] via-[#fbf8f2] to-[#f4ece0] dark:from-[#221812] dark:via-[#1a120d] dark:to-[#150f0b] p-6 sm:p-8 shadow-sm">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
                 <div className="space-y-2">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#c29547]/10 dark:bg-[#c29547]/20 text-[#966e2e] dark:text-[#eeddbb] border border-[#c29547]/30">
-                    <Building2 className="w-3.5 h-3.5 text-[#c29547]" />
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#c29547]/10 dark:bg-[#c29547]/20 text-[#966e2e] dark:text-[#f3c27e] border border-[#c29547]/30">
+                    <Building2 className="w-3.5 h-3.5 text-[#c29547] dark:text-[#e29d38]" />
                     <span>
                       {isAr
                         ? "إدارة المشتركين والعملاء • مكاتب المحاماة"
@@ -667,11 +667,11 @@ export function LawFirmsView() {
                     </span>
                   </div>
 
-                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1c1917] dark:text-[#f5f4f0]">
+                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1c1917] dark:text-[#fdfbf7]">
                     {isAr ? "دليل مكاتب المحاماة المشتركة" : "Law Firms Management"}
                   </h1>
 
-                  <p className="text-sm sm:text-base text-[#6b6357] dark:text-[#a8a196] max-w-2xl leading-relaxed">
+                  <p className="text-sm sm:text-base text-[#6b6357] dark:text-[#cdc5bd] max-w-2xl leading-relaxed">
                     {isAr
                       ? "إدارة ومتابعة كافة مكاتب وشركات المحاماة المسجلة بالنظام، فحص ملف المكتب الشامل، باقات الاشتراك، الفواتير والتذاكر، وتفعيل أو إيقاف الحسابات."
                       : "Manage law firms, inspect comprehensive profiles, renewal dates, invoices, support tickets, and activate or suspend accounts securely."}
@@ -688,9 +688,9 @@ export function LawFirmsView() {
                           : "Exported law firms as CSV"
                       );
                     }}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-[#1c1917] dark:text-[#f5f4f0] bg-white dark:bg-[#25221d] border border-[#e2d5c0] dark:border-[#3d372e] shadow-sm hover:border-[#c29547] hover:text-[#c29547] transition-all cursor-pointer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-[#1c1917] dark:text-[#fdfbf7] bg-white dark:bg-[#281c15] border border-[#e2d5c0] dark:border-[#38271c] shadow-sm hover:border-[#c29547] dark:hover:border-[#e29d38] hover:text-[#c29547] dark:hover:text-[#e29d38] transition-all cursor-pointer"
                   >
-                    <Download className="w-4 h-4 text-[#c29547]" />
+                    <Download className="w-4 h-4 text-[#c29547] dark:text-[#e29d38]" />
                     <span>{isAr ? "تصدير الدليل" : "Export"}</span>
                   </button>
 
@@ -778,10 +778,10 @@ export function LawFirmsView() {
             </div>
 
             {/* Filter Toolbar */}
-            <div className="p-4 rounded-2xl border border-[#ded5c6]/70 dark:border-[#2f2a24] bg-white dark:bg-[#1a1714] shadow-xs space-y-4">
+            <div className="p-4 rounded-2xl border border-[#ded5c6]/70 dark:border-[#38271c] bg-white dark:bg-[#221812] shadow-xs space-y-4">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
                 <div className="relative flex-1 max-w-md">
-                  <Search className="absolute start-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8c8279]" />
+                  <Search className="absolute start-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8c8279] dark:text-[#8e8680]" />
                   <input
                     type="text"
                     value={search}
@@ -794,13 +794,13 @@ export function LawFirmsView() {
                         ? "ابحث باسم المكتب، المالك، رقم الترخيص، الجوال..."
                         : "Search firm name, owner, license, phone..."
                     }
-                    className="w-full ps-10 pe-4 py-2 text-xs rounded-xl border border-[#ded5c6] dark:border-[#2f2a24] bg-[#faf8f4] dark:bg-[#201d1a] focus:bg-white dark:focus:bg-[#1a1714] focus:outline-none focus:border-[#c29547] text-[#1c1917] dark:text-[#f5f4f0] transition-all"
+                    className="w-full ps-10 pe-4 py-2 text-xs rounded-xl border border-[#ded5c6] dark:border-[#38271c] bg-[#faf8f4] dark:bg-[#1a120d] focus:bg-white dark:focus:bg-[#281c15] focus:outline-none focus:border-[#c29547] dark:focus:border-[#e29d38] text-[#1c1917] dark:text-[#fdfbf7] transition-all"
                   />
                   {search && (
                     <button
                       type="button"
                       onClick={() => setSearch("")}
-                      className="absolute end-3 top-1/2 -translate-y-1/2 text-xs text-[#8c8279] hover:text-[#c29547]"
+                      className="absolute end-3 top-1/2 -translate-y-1/2 text-xs text-[#8c8279] dark:text-[#8e8680] hover:text-[#c29547] dark:hover:text-[#e29d38]"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -848,7 +848,7 @@ export function LawFirmsView() {
                     type="button"
                     onClick={handleResetFilters}
                     title={isAr ? "إعادة ضبط الفلاتر" : "Reset"}
-                    className="p-2 rounded-xl border border-[#ded5c6] dark:border-[#2f2a24] text-[#7c7366] dark:text-[#a8a196] hover:bg-[#faf5eb] dark:hover:bg-[#282218] hover:text-[#c29547] transition-colors cursor-pointer"
+                    className="p-2 rounded-xl border border-[#ded5c6] dark:border-[#38271c] text-[#7c7366] dark:text-[#cdc5bd] hover:bg-[#faf5eb] dark:hover:bg-[#281c15] hover:text-[#c29547] dark:hover:text-[#e29d38] transition-colors cursor-pointer"
                   >
                     <RotateCcw className="w-4 h-4" />
                   </button>
@@ -857,11 +857,11 @@ export function LawFirmsView() {
             </div>
 
             {/* Firms Table */}
-            <div className="rounded-2xl border border-[#ded5c6] dark:border-[#2f2a24] bg-white dark:bg-[#1a1714] shadow-xs overflow-hidden">
+            <div className="rounded-2xl border border-[#ded5c6] dark:border-[#38271c] bg-white dark:bg-[#221812] shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-start text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-[#ded5c6] dark:border-[#2f2a24] bg-[#faf8f4] dark:bg-[#201d1a] text-[#7c7366] dark:text-[#a8a196]">
+                    <tr className="border-b border-[#ded5c6] dark:border-[#38271c] bg-[#faf8f4] dark:bg-[#1a120d] text-[#7c7366] dark:text-[#8e8680]">
                       <th className="py-3.5 px-4 w-11 text-center">
                         <div className="flex items-center justify-center">
                           <LuxuryCheckbox
@@ -870,6 +870,9 @@ export function LawFirmsView() {
                             title={isAr ? "تحديد الكل" : "Select all"}
                           />
                         </div>
+                      </th>
+                      <th className="py-3.5 px-3 w-10 text-center font-bold text-[11px] text-[#7c7366] dark:text-[#8e8680]">
+                        #
                       </th>
                       <th className="py-3.5 px-4 text-start font-bold">
                         {isAr ? "اسم المكتب والترخيص" : "Firm & License"}
@@ -891,13 +894,13 @@ export function LawFirmsView() {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#ded5c6]/60 dark:divide-[#2f2a24]/60">
+                  <tbody className="divide-y divide-[#ded5c6]/60 dark:divide-[#38271c]/60">
                     {paginatedFirms.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="py-12 text-center text-[#8c8279]">
+                        <td colSpan={8} className="py-12 text-center text-[#8c8279] dark:text-[#8e8680]">
                           <div className="flex flex-col items-center justify-center gap-2">
-                            <Building2 className="w-8 h-8 text-[#c29547]/50" />
-                            <p className="font-bold text-sm text-[#2c2825] dark:text-[#eeddbb]">
+                            <Building2 className="w-8 h-8 text-[#c29547]/50 dark:text-[#e29d38]/50" />
+                            <p className="font-bold text-sm text-[#2c2825] dark:text-[#fdfbf7]">
                               {isAr ? "لم يتم العثور على أي مكاتب" : "No law firms found"}
                             </p>
                             <p className="text-xs">
@@ -909,13 +912,13 @@ export function LawFirmsView() {
                         </td>
                       </tr>
                     ) : (
-                      paginatedFirms.map((firm) => (
+                      paginatedFirms.map((firm, index) => (
                         <tr
                           key={firm.id}
                           className={`transition-colors ${
                             selectedFirmIds.includes(firm.id)
-                              ? "bg-[#faf5eb]/90 dark:bg-[#282218]/50"
-                              : "hover:bg-[#faf5eb]/40 dark:hover:bg-[#201d1a]/40"
+                              ? "bg-[#faf5eb]/90 dark:bg-[#281c15]/50"
+                              : "hover:bg-[#faf5eb]/40 dark:hover:bg-[#1a120d]/60"
                           }`}
                         >
                           <td className="py-4 px-4 w-11 text-center">
@@ -925,6 +928,12 @@ export function LawFirmsView() {
                                 onChange={() => handleToggleSelect(firm.id)}
                               />
                             </div>
+                          </td>
+
+                          <td className="py-4 px-3 text-center">
+                            <span className="font-mono text-[12px] font-bold text-[#7c7366] dark:text-[#8e8680]">
+                              {(activePage - 1) * pageSize + index + 1}
+                            </span>
                           </td>
 
                           {/* Firm Name - Clickable to open Profile */}
@@ -937,19 +946,19 @@ export function LawFirmsView() {
                               }}
                               className="text-start flex items-center gap-3 group cursor-pointer"
                             >
-                              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#eeddbb] to-[#c29547]/30 dark:from-[#382b18] dark:to-[#5c4623] border border-[#eeddbb] dark:border-[#4d3a1f] flex items-center justify-center text-[#966e2e] dark:text-[#eeddbb] shrink-0 font-bold text-xs shadow-2xs group-hover:scale-105 transition-transform">
+                              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#eeddbb] to-[#c29547]/30 dark:from-[#38271c] dark:to-[#4d3627] border border-[#eeddbb] dark:border-[#4d3627] flex items-center justify-center text-[#966e2e] dark:text-[#f3c27e] shrink-0 font-bold text-xs shadow-2xs group-hover:scale-105 transition-transform">
                                 <Building2 className="w-4 h-4" />
                               </div>
                               <div>
                                 <div className="flex items-center gap-2">
-                                  <span className="font-bold text-[#1c1917] dark:text-[#f5f4f0] text-xs sm:text-sm group-hover:text-[#c29547] transition-colors">
+                                  <span className="font-bold text-[#1c1917] dark:text-[#fdfbf7] text-xs sm:text-sm group-hover:text-[#c29547] dark:group-hover:text-[#e29d38] transition-colors">
                                     {firm.name}
                                   </span>
-                                  <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[#faf5eb] dark:bg-[#282218] text-[#966e2e] dark:text-[#eeddbb] border border-[#eeddbb]/80 dark:border-[#4d3a1f]">
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[#faf5eb] dark:bg-[#281c15] text-[#966e2e] dark:text-[#f3c27e] border border-[#eeddbb]/80 dark:border-[#4d3627]">
                                     {firm.city}
                                   </span>
                                 </div>
-                                <div className="text-[11px] text-[#8c8279] flex items-center gap-2 mt-0.5 font-mono">
+                                <div className="text-[11px] text-[#8c8279] dark:text-[#8e8680] flex items-center gap-2 mt-0.5 font-mono">
                                   <span>{firm.licenseNumber}</span>
                                 </div>
                               </div>
@@ -959,11 +968,11 @@ export function LawFirmsView() {
                           {/* Owner & Contact */}
                           <td className="py-4 px-4">
                             <div className="space-y-0.5">
-                              <div className="font-bold text-[#2c2825] dark:text-[#f5f4f0] flex items-center gap-1.5">
-                                <User className="w-3.5 h-3.5 text-[#c29547]" />
+                              <div className="font-bold text-[#2c2825] dark:text-[#fdfbf7] flex items-center gap-1.5">
+                                <User className="w-3.5 h-3.5 text-[#c29547] dark:text-[#e29d38]" />
                                 <span>{firm.ownerName}</span>
                               </div>
-                              <div className="text-[11px] text-[#8c8279] flex items-center gap-2 font-mono">
+                              <div className="text-[11px] text-[#8c8279] dark:text-[#8e8680] flex items-center gap-2 font-mono">
                                 <span>{firm.phone}</span>
                                 <span>•</span>
                                 <span>{firm.email}</span>
@@ -974,19 +983,19 @@ export function LawFirmsView() {
                           {/* Plan & Renewal */}
                           <td className="py-4 px-4">
                             <div className="space-y-1">
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#c29547]/15 text-[#966e2e] dark:text-[#eeddbb] border border-[#c29547]/30 shadow-2xs">
-                                <Sparkles className="w-3 h-3 text-[#c29547]" />
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#c29547]/15 dark:bg-[#e29d38]/15 text-[#966e2e] dark:text-[#f3c27e] border border-[#c29547]/30 dark:border-[#e29d38]/30 shadow-2xs">
+                                <Sparkles className="w-3 h-3 text-[#c29547] dark:text-[#e29d38]" />
                                 <span>{firm.planName}</span>
                               </span>
-                              <div className="text-[10px] text-[#8c8279] font-mono flex items-center gap-1">
-                                <Calendar className="w-3 h-3 text-[#c29547]" />
+                              <div className="text-[10px] text-[#8c8279] dark:text-[#8e8680] font-mono flex items-center gap-1">
+                                <Calendar className="w-3 h-3 text-[#c29547] dark:text-[#e29d38]" />
                                 <span>تجديد: {firm.renewalDate}</span>
                               </div>
                             </div>
                           </td>
 
                           {/* Registered Date */}
-                          <td className="py-4 px-4 font-mono text-[11px] text-[#7c7366] dark:text-[#a8a196]">
+                          <td className="py-4 px-4 font-mono text-[11px] text-[#7c7366] dark:text-[#cdc5bd]">
                             {firm.registeredDate}
                           </td>
 
@@ -1030,9 +1039,9 @@ export function LawFirmsView() {
                                   setProfileActiveTab("overview");
                                 }}
                                 title={isAr ? "عرض ملف المكتب الشامل" : "View Full Profile"}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-[#eeddbb] dark:border-[#4d3a1f] bg-[#faf5eb] dark:bg-[#201c17] text-[#966e2e] dark:text-[#eeddbb] text-xs font-bold hover:bg-[#eeddbb]/40 transition-colors cursor-pointer"
+                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-[#eeddbb] dark:border-[#4d3627] bg-[#faf5eb] dark:bg-[#1a120d] text-[#966e2e] dark:text-[#f3c27e] text-xs font-bold hover:bg-[#eeddbb]/40 dark:hover:bg-[#281c15] transition-colors cursor-pointer"
                               >
-                                <Eye className="w-3.5 h-3.5 text-[#c29547]" />
+                                <Eye className="w-3.5 h-3.5 text-[#c29547] dark:text-[#e29d38]" />
                                 <span>{isAr ? "ملف المكتب" : "Profile"}</span>
                               </button>
 
@@ -1040,7 +1049,7 @@ export function LawFirmsView() {
                                 type="button"
                                 onClick={() => handleDeleteFirm(firm)}
                                 title={isAr ? "حذف المكتب" : "Delete"}
-                                className="p-1.5 rounded-xl border border-[#ded5c6] dark:border-[#2f2a24] text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                                className="p-1.5 rounded-xl border border-[#ded5c6] dark:border-[#38271c] text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -1054,8 +1063,8 @@ export function LawFirmsView() {
               </div>
 
               {/* Pagination */}
-              <div className="p-4 border-t border-[#ded5c6]/60 dark:border-[#2f2a24] bg-[#faf8f4] dark:bg-[#201d1a] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
-                <div className="flex items-center gap-3 text-[#7c7366] dark:text-[#a8a196]">
+              <div className="p-4 border-t border-[#ded5c6]/60 dark:border-[#38271c] bg-[#faf8f4] dark:bg-[#1a120d] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+                <div className="flex items-center gap-3 text-[#7c7366] dark:text-[#cdc5bd]">
                   <span>
                     {isAr
                       ? `عرض ${fromIndex} إلى ${toIndex} من أصل ${totalFiltered} مكتب محاماة`
@@ -1082,7 +1091,7 @@ export function LawFirmsView() {
                     type="button"
                     onClick={() => setCurrentPage(1)}
                     disabled={activePage === 1}
-                    className="p-1.5 rounded-lg border border-[#ded5c6] dark:border-[#2f2a24] text-[#7c7366] dark:text-[#a8a196] hover:bg-white dark:hover:bg-[#282218] disabled:opacity-40 disabled:pointer-events-none cursor-pointer transition-colors"
+                    className="p-1.5 rounded-lg border border-[#ded5c6] dark:border-[#38271c] text-[#7c7366] dark:text-[#cdc5bd] hover:bg-white dark:hover:bg-[#281c15] disabled:opacity-40 disabled:pointer-events-none cursor-pointer transition-colors"
                   >
                     {isAr ? (
                       <ChevronsRight className="w-3.5 h-3.5" />
@@ -1094,7 +1103,7 @@ export function LawFirmsView() {
                     type="button"
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={activePage === 1}
-                    className="p-1.5 rounded-lg border border-[#ded5c6] dark:border-[#2f2a24] text-[#7c7366] dark:text-[#a8a196] hover:bg-white dark:hover:bg-[#282218] disabled:opacity-40 disabled:pointer-events-none cursor-pointer transition-colors"
+                    className="p-1.5 rounded-lg border border-[#ded5c6] dark:border-[#38271c] text-[#7c7366] dark:text-[#cdc5bd] hover:bg-white dark:hover:bg-[#281c15] disabled:opacity-40 disabled:pointer-events-none cursor-pointer transition-colors"
                   >
                     {isAr ? (
                       <ChevronRight className="w-3.5 h-3.5" />
@@ -1103,7 +1112,7 @@ export function LawFirmsView() {
                     )}
                   </button>
 
-                  <span className="px-3 py-1 font-mono font-bold text-[#2c2825] dark:text-[#f5f4f0]">
+                  <span className="px-3 py-1 font-mono font-bold text-[#2c2825] dark:text-[#fdfbf7]">
                     {activePage} / {totalPages}
                   </span>
 
@@ -1111,7 +1120,7 @@ export function LawFirmsView() {
                     type="button"
                     onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                     disabled={activePage === totalPages}
-                    className="p-1.5 rounded-lg border border-[#ded5c6] dark:border-[#2f2a24] text-[#7c7366] dark:text-[#a8a196] hover:bg-white dark:hover:bg-[#282218] disabled:opacity-40 disabled:pointer-events-none cursor-pointer transition-colors"
+                    className="p-1.5 rounded-lg border border-[#ded5c6] dark:border-[#38271c] text-[#7c7366] dark:text-[#cdc5bd] hover:bg-white dark:hover:bg-[#281c15] disabled:opacity-40 disabled:pointer-events-none cursor-pointer transition-colors"
                   >
                     {isAr ? (
                       <ChevronLeft className="w-3.5 h-3.5" />
@@ -1123,7 +1132,7 @@ export function LawFirmsView() {
                     type="button"
                     onClick={() => setCurrentPage(totalPages)}
                     disabled={activePage === totalPages}
-                    className="p-1.5 rounded-lg border border-[#ded5c6] dark:border-[#2f2a24] text-[#7c7366] dark:text-[#a8a196] hover:bg-white dark:hover:bg-[#282218] disabled:opacity-40 disabled:pointer-events-none cursor-pointer transition-colors"
+                    className="p-1.5 rounded-lg border border-[#ded5c6] dark:border-[#38271c] text-[#7c7366] dark:text-[#cdc5bd] hover:bg-white dark:hover:bg-[#281c15] disabled:opacity-40 disabled:pointer-events-none cursor-pointer transition-colors"
                   >
                     {isAr ? (
                       <ChevronsLeft className="w-3.5 h-3.5" />
@@ -1142,17 +1151,17 @@ export function LawFirmsView() {
       {/* Comprehensive Firm Profile Modal / Drawer */}
       {profileFirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="relative w-full max-w-4xl rounded-3xl bg-white dark:bg-[#1a1714] border border-[#ded5c6] dark:border-[#2f2a24] shadow-[0_20px_60px_rgba(0,0,0,0.35)] overflow-hidden text-start flex flex-col max-h-[92vh]">
+          <div className="relative w-full max-w-4xl rounded-3xl bg-white dark:bg-[#221812] border border-[#ded5c6] dark:border-[#38271c] shadow-[0_20px_60px_rgba(0,0,0,0.35)] overflow-hidden text-start flex flex-col max-h-[92vh]">
             {/* Profile Header */}
-            <div className="p-6 border-b border-[#ded5c6]/60 dark:border-[#2f2a24] bg-gradient-to-r from-[#faf5eb] via-white to-[#faf5eb] dark:from-[#201c17] dark:via-[#1a1714] dark:to-[#201c17]">
+            <div className="p-6 border-b border-[#ded5c6]/60 dark:border-[#38271c] bg-gradient-to-r from-[#faf5eb] via-white to-[#faf5eb] dark:from-[#1a120d] dark:via-[#221812] dark:to-[#1a120d]">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#eeddbb] to-[#c29547]/40 dark:from-[#382b18] dark:to-[#6b522b] border border-[#eeddbb] dark:border-[#523e20] flex items-center justify-center text-[#966e2e] dark:text-[#eeddbb] font-bold text-xl shadow-sm shrink-0">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#eeddbb] to-[#c29547]/40 dark:from-[#38271c] dark:to-[#4d3627] border border-[#eeddbb] dark:border-[#4d3627] flex items-center justify-center text-[#966e2e] dark:text-[#f3c27e] font-bold text-xl shadow-sm shrink-0">
                     <Building2 className="w-7 h-7" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-black text-[#1c1917] dark:text-[#f5f4f0]">
+                      <h2 className="text-lg font-black text-[#1c1917] dark:text-[#fdfbf7]">
                         {profileFirm.name}
                       </h2>
                       <span
@@ -1165,7 +1174,7 @@ export function LawFirmsView() {
                         {profileFirm.status === "active" ? "حساب نشط" : "حساب معطل"}
                       </span>
                     </div>
-                    <div className="text-xs text-[#8c8279] flex flex-wrap items-center gap-3 mt-1 font-mono">
+                    <div className="text-xs text-[#8c8279] dark:text-[#8e8680] flex flex-wrap items-center gap-3 mt-1 font-mono">
                       <span>الترخيص: {profileFirm.licenseNumber}</span>
                       <span>•</span>
                       <span>{profileFirm.city}، {profileFirm.country}</span>
@@ -1181,8 +1190,8 @@ export function LawFirmsView() {
                     onClick={() => handleToggleStatus(profileFirm.id)}
                     className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
                       profileFirm.status === "active"
-                        ? "bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300"
-                        : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-300"
+                        ? "bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700"
+                        : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700"
                     }`}
                   >
                     {profileFirm.status === "active" ? "إيقاف مؤقت" : "إعادة تنشيط"}
@@ -1213,8 +1222,8 @@ export function LawFirmsView() {
                     onClick={() => setProfileActiveTab(tab.id as typeof profileActiveTab)}
                     className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       profileActiveTab === tab.id
-                        ? "bg-[#faf5eb] dark:bg-[#282218] text-[#966e2e] dark:text-[#eeddbb] border border-[#eeddbb] dark:border-[#523e20] shadow-xs"
-                        : "text-[#7c7366] dark:text-[#a8a196] hover:bg-stone-50 dark:hover:bg-[#201d1a]"
+                        ? "bg-[#faf5eb] dark:bg-[#281c15] text-[#966e2e] dark:text-[#f3c27e] border border-[#eeddbb] dark:border-[#4d3627] shadow-xs"
+                        : "text-[#7c7366] dark:text-[#cdc5bd] hover:bg-stone-50 dark:hover:bg-[#1a120d]"
                     }`}
                   >
                     <tab.icon className="w-3.5 h-3.5" />
@@ -1231,27 +1240,27 @@ export function LawFirmsView() {
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Basic Info Card */}
-                    <div className="p-4 rounded-2xl border border-[#ded5c6]/60 dark:border-[#2f2a24] bg-[#faf8f4] dark:bg-[#201d1a] space-y-3">
-                      <h3 className="font-extrabold text-sm text-[#2c2825] dark:text-[#f5f4f0] flex items-center gap-2">
-                        <User className="w-4 h-4 text-[#c29547]" />
+                    <div className="p-4 rounded-2xl border border-[#ded5c6]/60 dark:border-[#38271c] bg-[#faf8f4] dark:bg-[#1a120d] space-y-3">
+                      <h3 className="font-extrabold text-sm text-[#2c2825] dark:text-[#fdfbf7] flex items-center gap-2">
+                        <User className="w-4 h-4 text-[#c29547] dark:text-[#e29d38]" />
                         <span>بيانات المالك والتواصل</span>
                       </h3>
                       <div className="space-y-2 text-xs">
-                        <div className="flex justify-between py-1 border-b border-[#ded5c6]/40 dark:border-[#2f2a24]">
-                          <span className="text-[#8c8279]">المحامي المسؤول:</span>
-                          <span className="font-bold">{profileFirm.ownerName}</span>
+                        <div className="flex justify-between py-1 border-b border-[#ded5c6]/40 dark:border-[#38271c]">
+                          <span className="text-[#8c8279] dark:text-[#8e8680]">المحامي المسؤول:</span>
+                          <span className="font-bold text-[#1c1917] dark:text-[#fdfbf7]">{profileFirm.ownerName}</span>
                         </div>
-                        <div className="flex justify-between py-1 border-b border-[#ded5c6]/40 dark:border-[#2f2a24]">
-                          <span className="text-[#8c8279]">رقم الجوال:</span>
-                          <span className="font-mono font-bold">{profileFirm.phone}</span>
+                        <div className="flex justify-between py-1 border-b border-[#ded5c6]/40 dark:border-[#38271c]">
+                          <span className="text-[#8c8279] dark:text-[#8e8680]">رقم الجوال:</span>
+                          <span className="font-mono font-bold text-[#1c1917] dark:text-[#fdfbf7]">{profileFirm.phone}</span>
                         </div>
-                        <div className="flex justify-between py-1 border-b border-[#ded5c6]/40 dark:border-[#2f2a24]">
-                          <span className="text-[#8c8279]">البريد الإلكتروني:</span>
-                          <span className="font-mono">{profileFirm.email}</span>
+                        <div className="flex justify-between py-1 border-b border-[#ded5c6]/40 dark:border-[#38271c]">
+                          <span className="text-[#8c8279] dark:text-[#8e8680]">البريد الإلكتروني:</span>
+                          <span className="font-mono text-[#1c1917] dark:text-[#fdfbf7]">{profileFirm.email}</span>
                         </div>
                         <div className="flex justify-between py-1">
-                          <span className="text-[#8c8279]">رقم الترخيص المهني:</span>
-                          <span className="font-mono font-bold text-[#966e2e] dark:text-[#eeddbb]">
+                          <span className="text-[#8c8279] dark:text-[#8e8680]">رقم الترخيص المهني:</span>
+                          <span className="font-mono font-bold text-[#966e2e] dark:text-[#f3c27e]">
                             {profileFirm.licenseNumber}
                           </span>
                         </div>
@@ -1259,33 +1268,33 @@ export function LawFirmsView() {
                     </div>
 
                     {/* Usage Card */}
-                    <div className="p-4 rounded-2xl border border-[#ded5c6]/60 dark:border-[#2f2a24] bg-[#faf8f4] dark:bg-[#201d1a] space-y-3">
-                      <h3 className="font-extrabold text-sm text-[#2c2825] dark:text-[#f5f4f0] flex items-center gap-2">
-                        <Layers className="w-4 h-4 text-[#c29547]" />
+                    <div className="p-4 rounded-2xl border border-[#ded5c6]/60 dark:border-[#38271c] bg-[#faf8f4] dark:bg-[#1a120d] space-y-3">
+                      <h3 className="font-extrabold text-sm text-[#2c2825] dark:text-[#fdfbf7] flex items-center gap-2">
+                        <Layers className="w-4 h-4 text-[#c29547] dark:text-[#e29d38]" />
                         <span>معدل الاستهلاك والموارد</span>
                       </h3>
                       <div className="space-y-2 text-xs">
-                        <div className="flex justify-between py-1 border-b border-[#ded5c6]/40 dark:border-[#2f2a24]">
-                          <span className="text-[#8c8279]">عدد المحامين / المستخدمين:</span>
-                          <span className="font-mono font-bold">
+                        <div className="flex justify-between py-1 border-b border-[#ded5c6]/40 dark:border-[#38271c]">
+                          <span className="text-[#8c8279] dark:text-[#8e8680]">عدد المحامين / المستخدمين:</span>
+                          <span className="font-mono font-bold text-[#1c1917] dark:text-[#fdfbf7]">
                             {profileFirm.usersCount} / {profileFirm.maxUsers}
                           </span>
                         </div>
-                        <div className="flex justify-between py-1 border-b border-[#ded5c6]/40 dark:border-[#2f2a24]">
-                          <span className="text-[#8c8279]">القضايا المفتوحة والمؤرشفة:</span>
-                          <span className="font-mono font-bold">{profileFirm.casesCount} قضية</span>
+                        <div className="flex justify-between py-1 border-b border-[#ded5c6]/40 dark:border-[#38271c]">
+                          <span className="text-[#8c8279] dark:text-[#8e8680]">القضايا المفتوحة والمؤرشفة:</span>
+                          <span className="font-mono font-bold text-[#1c1917] dark:text-[#fdfbf7]">{profileFirm.casesCount} قضية</span>
                         </div>
                         <div className="flex justify-between py-1">
-                          <span className="text-[#8c8279]">مساحة التخزين السحابي:</span>
-                          <span className="font-mono font-bold">{profileFirm.storageUsed}</span>
+                          <span className="text-[#8c8279] dark:text-[#8e8680]">مساحة التخزين السحابي:</span>
+                          <span className="font-mono font-bold text-[#1c1917] dark:text-[#fdfbf7]">{profileFirm.storageUsed}</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Quick Plan Mutation Actions */}
-                  <div className="p-4 rounded-2xl border border-[#eeddbb] dark:border-[#4d3a1f] bg-[#faf5eb]/50 dark:bg-[#201c17] space-y-3">
-                    <h4 className="font-bold text-xs text-[#966e2e] dark:text-[#eeddbb]">
+                  <div className="p-4 rounded-2xl border border-[#eeddbb] dark:border-[#4d3627] bg-[#faf5eb]/50 dark:bg-[#1a120d] space-y-3">
+                    <h4 className="font-bold text-xs text-[#966e2e] dark:text-[#f3c27e]">
                       إجراءات سريعة على باقة واشتراك المكتب
                     </h4>
                     <div className="flex flex-wrap items-center gap-2">
@@ -1299,7 +1308,7 @@ export function LawFirmsView() {
                       <button
                         type="button"
                         onClick={() => handleUpgradePlan(profileFirm.id, "الباقة المتقدمة (Professional)")}
-                        className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#282218] border border-[#eeddbb] dark:border-[#523e20] text-[#966e2e] dark:text-[#eeddbb] text-xs font-bold hover:border-[#c29547] cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#281c15] border border-[#eeddbb] dark:border-[#4d3627] text-[#966e2e] dark:text-[#f3c27e] text-xs font-bold hover:border-[#c29547] dark:hover:border-[#e29d38] cursor-pointer"
                       >
                         تحويل للباقة المتقدمة
                       </button>
@@ -1317,27 +1326,27 @@ export function LawFirmsView() {
 
               {/* Tab 2: Subscription */}
               {profileActiveTab === "subscription" && (
-                <div className="p-5 rounded-2xl border border-[#ded5c6]/60 dark:border-[#2f2a24] bg-[#faf8f4] dark:bg-[#201d1a] space-y-4">
+                <div className="p-5 rounded-2xl border border-[#ded5c6]/60 dark:border-[#38271c] bg-[#faf8f4] dark:bg-[#1a120d] space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-[11px] text-[#8c8279]">الباقة النشطة حالياً</span>
-                      <h4 className="font-black text-base text-[#1c1917] dark:text-[#f5f4f0] mt-0.5">
+                      <span className="text-[11px] text-[#8c8279] dark:text-[#8e8680]">الباقة النشطة حالياً</span>
+                      <h4 className="font-black text-base text-[#1c1917] dark:text-[#fdfbf7] mt-0.5">
                         {profileFirm.planName}
                       </h4>
                     </div>
-                    <span className="px-3 py-1 rounded-full bg-[#c29547]/15 text-[#966e2e] dark:text-[#eeddbb] font-bold text-xs border border-[#c29547]/30">
+                    <span className="px-3 py-1 rounded-full bg-[#c29547]/15 dark:bg-[#e29d38]/15 text-[#966e2e] dark:text-[#f3c27e] font-bold text-xs border border-[#c29547]/30 dark:border-[#e29d38]/30">
                       دورة الفوترة: {profileFirm.planBilling === "annually" ? "سنوية" : profileFirm.planBilling === "monthly" ? "شهرية" : "تجريبية"}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 pt-3 border-t border-[#ded5c6]/40 dark:border-[#2f2a24]">
+                  <div className="grid grid-cols-2 gap-4 pt-3 border-t border-[#ded5c6]/40 dark:border-[#38271c]">
                     <div>
-                      <span className="text-[#8c8279]">تاريخ بدء الاشتراك:</span>
-                      <p className="font-mono font-bold mt-0.5">{profileFirm.registeredDate}</p>
+                      <span className="text-[#8c8279] dark:text-[#8e8680]">تاريخ بدء الاشتراك:</span>
+                      <p className="font-mono font-bold mt-0.5 text-[#1c1917] dark:text-[#fdfbf7]">{profileFirm.registeredDate}</p>
                     </div>
                     <div>
-                      <span className="text-[#8c8279]">موعد التجديد القادم:</span>
-                      <p className="font-mono font-bold text-[#c29547] mt-0.5">{profileFirm.renewalDate}</p>
+                      <span className="text-[#8c8279] dark:text-[#8e8680]">موعد التجديد القادم:</span>
+                      <p className="font-mono font-bold text-[#c29547] dark:text-[#e29d38] mt-0.5">{profileFirm.renewalDate}</p>
                     </div>
                   </div>
                 </div>
@@ -1347,14 +1356,14 @@ export function LawFirmsView() {
               {profileActiveTab === "invoices" && (
                 <div className="space-y-3">
                   {profileFirm.invoices.length === 0 ? (
-                    <div className="p-8 text-center text-xs text-[#8c8279] border border-dashed border-[#ded5c6] dark:border-[#2f2a24] rounded-2xl">
+                    <div className="p-8 text-center text-xs text-[#8c8279] dark:text-[#8e8680] border border-dashed border-[#ded5c6] dark:border-[#38271c] rounded-2xl">
                       لا توجد فواتير صادرة لهذا المكتب حتى الآن
                     </div>
                   ) : (
-                    <div className="rounded-2xl border border-[#ded5c6]/60 dark:border-[#2f2a24] overflow-hidden">
+                    <div className="rounded-2xl border border-[#ded5c6]/60 dark:border-[#38271c] overflow-hidden">
                       <table className="w-full text-start text-xs border-collapse">
                         <thead>
-                          <tr className="bg-[#faf8f4] dark:bg-[#201d1a] border-b border-[#ded5c6]/60 dark:border-[#2f2a24] text-[#7c7366] dark:text-[#a8a196]">
+                          <tr className="bg-[#faf8f4] dark:bg-[#1a120d] border-b border-[#ded5c6]/60 dark:border-[#38271c] text-[#7c7366] dark:text-[#8e8680]">
                             <th className="py-2.5 px-3 text-start">رقم الفاتورة</th>
                             <th className="py-2.5 px-3 text-start">التاريخ</th>
                             <th className="py-2.5 px-3 text-start">المبلغ</th>
@@ -1363,15 +1372,15 @@ export function LawFirmsView() {
                             <th className="py-2.5 px-3 text-center">تحميل</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#ded5c6]/40 dark:divide-[#2f2a24]/40">
+                        <tbody className="divide-y divide-[#ded5c6]/40 dark:divide-[#38271c]/40">
                           {profileFirm.invoices.map((inv) => (
                             <tr key={inv.id}>
-                              <td className="py-3 px-3 font-mono font-bold">{inv.invoiceNumber}</td>
-                              <td className="py-3 px-3 font-mono">{inv.date}</td>
-                              <td className="py-3 px-3 font-bold text-emerald-600">{inv.amount}</td>
-                              <td className="py-3 px-3">{inv.paymentMethod}</td>
+                              <td className="py-3 px-3 font-mono font-bold text-[#1c1917] dark:text-[#fdfbf7]">{inv.invoiceNumber}</td>
+                              <td className="py-3 px-3 font-mono text-[#7c7366] dark:text-[#cdc5bd]">{inv.date}</td>
+                              <td className="py-3 px-3 font-bold text-emerald-600 dark:text-emerald-400">{inv.amount}</td>
+                              <td className="py-3 px-3 text-[#1c1917] dark:text-[#fdfbf7]">{inv.paymentMethod}</td>
                               <td className="py-3 px-3">
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-300">
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
                                   مدفوعة
                                 </span>
                               </td>
@@ -1383,7 +1392,7 @@ export function LawFirmsView() {
                                       `تم تحميل الفاتورة ${inv.invoiceNumber} بصيغة PDF`
                                     )
                                   }
-                                  className="p-1.5 rounded-lg border border-[#ded5c6] dark:border-[#2f2a24] hover:text-[#c29547] transition-colors cursor-pointer"
+                                  className="p-1.5 rounded-lg border border-[#ded5c6] dark:border-[#38271c] hover:text-[#c29547] dark:hover:text-[#e29d38] transition-colors cursor-pointer"
                                 >
                                   <Download className="w-3.5 h-3.5" />
                                 </button>
@@ -1401,27 +1410,27 @@ export function LawFirmsView() {
               {profileActiveTab === "tickets" && (
                 <div className="space-y-3">
                   {profileFirm.tickets.length === 0 ? (
-                    <div className="p-8 text-center text-xs text-[#8c8279] border border-dashed border-[#ded5c6] dark:border-[#2f2a24] rounded-2xl">
+                    <div className="p-8 text-center text-xs text-[#8c8279] dark:text-[#8e8680] border border-dashed border-[#ded5c6] dark:border-[#38271c] rounded-2xl">
                       لا توجد تذاكر دعم فني مسجلة لهذا المكتب
                     </div>
                   ) : (
                     profileFirm.tickets.map((t) => (
                       <div
                         key={t.id}
-                        className="p-3.5 rounded-2xl border border-[#ded5c6]/60 dark:border-[#2f2a24] bg-[#faf8f4] dark:bg-[#201d1a] flex items-center justify-between"
+                        className="p-3.5 rounded-2xl border border-[#ded5c6]/60 dark:border-[#38271c] bg-[#faf8f4] dark:bg-[#1a120d] flex items-center justify-between"
                       >
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono font-bold text-[#c29547]">{t.ticketNumber}</span>
-                            <span className="font-bold text-[#1c1917] dark:text-[#f5f4f0]">{t.subject}</span>
+                            <span className="font-mono font-bold text-[#c29547] dark:text-[#e29d38]">{t.ticketNumber}</span>
+                            <span className="font-bold text-[#1c1917] dark:text-[#fdfbf7]">{t.subject}</span>
                           </div>
-                          <span className="text-[10px] text-[#8c8279] font-mono">تاريخ: {t.date}</span>
+                          <span className="text-[10px] text-[#8c8279] dark:text-[#8e8680] font-mono">تاريخ: {t.date}</span>
                         </div>
                         <span
                           className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
                             t.status === "in_progress"
-                              ? "bg-blue-50 text-blue-700 border-blue-300 dark:bg-blue-950/40 dark:text-blue-300"
-                              : "bg-stone-100 text-stone-700 border-stone-300 dark:bg-stone-800 dark:text-stone-300"
+                              ? "bg-blue-50 text-blue-700 border-blue-300 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
+                              : "bg-stone-100 text-stone-700 border-stone-300 dark:bg-[#281c15] dark:text-[#cdc5bd] dark:border-[#38271c]"
                           }`}
                         >
                           {t.status === "in_progress" ? "جاري التعامل" : "مغلقة"}
@@ -1438,34 +1447,34 @@ export function LawFirmsView() {
                   {/* Notes Timeline */}
                   <div className="space-y-2.5">
                     {profileFirm.notes.length === 0 ? (
-                      <div className="p-6 text-center text-xs text-[#8c8279] border border-dashed border-[#ded5c6] dark:border-[#2f2a24] rounded-2xl">
+                      <div className="p-6 text-center text-xs text-[#8c8279] dark:text-[#8e8680] border border-dashed border-[#ded5c6] dark:border-[#38271c] rounded-2xl">
                         لا توجد ملاحظات مسجلة على هذا المكتب حتى الآن.
                       </div>
                     ) : (
                       profileFirm.notes.map((note) => (
                         <div
                           key={note.id}
-                          className="p-3.5 rounded-2xl border border-[#eeddbb]/70 dark:border-[#382b18] bg-[#faf8f4] dark:bg-[#201d1a] space-y-1"
+                          className="p-3.5 rounded-2xl border border-[#eeddbb]/70 dark:border-[#4d3627] bg-[#faf8f4] dark:bg-[#1a120d] space-y-1"
                         >
                           <div className="flex items-center justify-between text-[11px]">
-                            <span className="font-bold text-[#1c1917] dark:text-[#f5f4f0]">{note.author}</span>
-                            <span className="text-[#8c8279] font-mono">{note.date}</span>
+                            <span className="font-bold text-[#1c1917] dark:text-[#fdfbf7]">{note.author}</span>
+                            <span className="text-[#8c8279] dark:text-[#8e8680] font-mono">{note.date}</span>
                           </div>
-                          <p className="text-xs text-[#524b43] dark:text-[#c4bcb1] leading-relaxed">{note.text}</p>
+                          <p className="text-xs text-[#524b43] dark:text-[#cdc5bd] leading-relaxed">{note.text}</p>
                         </div>
                       ))
                     )}
                   </div>
 
                   {/* Add Note Form */}
-                  <form onSubmit={handleAddProfileNote} className="space-y-3 pt-3 border-t border-[#ded5c6]/40 dark:border-[#2f2a24]">
+                  <form onSubmit={handleAddProfileNote} className="space-y-3 pt-3 border-t border-[#ded5c6]/40 dark:border-[#38271c]">
                     <textarea
                       rows={2}
                       required
                       value={newProfileNote}
                       onChange={(e) => setNewProfileNote(e.target.value)}
                       placeholder="اكتب ملاحظة جديدة تظهر في ملف المكتب..."
-                      className="w-full p-3 rounded-2xl text-xs bg-white dark:bg-[#201d1a] border border-[#ded5c6] dark:border-[#2f2a24] focus:outline-none focus:border-[#c29547] text-[#1c1917] dark:text-[#f5f4f0] resize-none shadow-2xs"
+                      className="w-full p-3 rounded-2xl text-xs bg-white dark:bg-[#1a120d] border border-[#ded5c6] dark:border-[#38271c] focus:outline-none focus:border-[#c29547] dark:focus:border-[#e29d38] text-[#1c1917] dark:text-[#fdfbf7] resize-none shadow-2xs"
                     />
                     <div className="flex justify-end">
                       <button
@@ -1487,17 +1496,17 @@ export function LawFirmsView() {
       {/* Add Law Firm Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-[#1a1714] border border-[#ded5c6] dark:border-[#2f2a24] shadow-[0_20px_60px_rgba(0,0,0,0.35)] overflow-hidden text-start max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between p-5 border-b border-[#ded5c6]/60 dark:border-[#2f2a24] bg-[#faf5eb] dark:bg-[#201c17]">
+          <div className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-[#221812] border border-[#ded5c6] dark:border-[#38271c] shadow-[0_20px_60px_rgba(0,0,0,0.35)] overflow-hidden text-start max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-5 border-b border-[#ded5c6]/60 dark:border-[#38271c] bg-[#faf5eb] dark:bg-[#1a120d]">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#fff7e6] dark:bg-[#2b2014] border border-[#eeddbb] dark:border-[#604218] flex items-center justify-center text-[#c29547] dark:text-[#d4a759]">
+                <div className="w-10 h-10 rounded-2xl bg-[#fff7e6] dark:bg-[#281c15] border border-[#eeddbb] dark:border-[#4d3627] flex items-center justify-center text-[#c29547] dark:text-[#e29d38]">
                   <Plus className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-extrabold text-[#2c2825] dark:text-[#f5f4f0]">
+                  <h2 className="text-base font-extrabold text-[#2c2825] dark:text-[#fdfbf7]">
                     {isAr ? "إضافة مكتب محاماة جديد" : "Add Law Firm"}
                   </h2>
-                  <p className="text-xs text-[#8c8279] dark:text-[#9e968a]">
+                  <p className="text-xs text-[#8c8279] dark:text-[#8e8680]">
                     {isAr ? "تسجيل مكتب وإصدار بيانات الدخول وإرسال إيميل الترحيب" : "Register new law firm"}
                   </p>
                 </div>
@@ -1513,7 +1522,7 @@ export function LawFirmsView() {
 
             <form onSubmit={handleCreateFirm} className="p-6 space-y-4 overflow-y-auto flex-1">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[#2c2825] dark:text-[#f5f4f0]">
+                <label className="text-xs font-bold text-[#2c2825] dark:text-[#fdfbf7]">
                   اسم مكتب أو شركة المحاماة *
                 </label>
                 <input
@@ -1522,13 +1531,13 @@ export function LawFirmsView() {
                   value={newFirmName}
                   onChange={(e) => setNewFirmName(e.target.value)}
                   placeholder="مثال: شركة النور للمحاماة والاستشارات"
-                  className="w-full h-11 px-4 rounded-xl text-xs bg-white dark:bg-[#201d1a] border border-[#ded5c6] dark:border-[#2f2a24] focus:outline-none focus:border-[#c29547] text-[#1c1917] dark:text-[#f5f4f0]"
+                  className="w-full h-11 px-4 rounded-xl text-xs bg-white dark:bg-[#1a120d] border border-[#ded5c6] dark:border-[#38271c] focus:outline-none focus:border-[#c29547] dark:focus:border-[#e29d38] text-[#1c1917] dark:text-[#fdfbf7]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[#2c2825] dark:text-[#f5f4f0]">
+                  <label className="text-xs font-bold text-[#2c2825] dark:text-[#fdfbf7]">
                     اسم صاحب المكتب / المحامي المسؤول *
                   </label>
                   <input
@@ -1537,12 +1546,12 @@ export function LawFirmsView() {
                     value={newOwnerName}
                     onChange={(e) => setNewOwnerName(e.target.value)}
                     placeholder="أ. عبد الرحمن المنصور"
-                    className="w-full h-11 px-4 rounded-xl text-xs bg-white dark:bg-[#201d1a] border border-[#ded5c6] dark:border-[#2f2a24] focus:outline-none focus:border-[#c29547] text-[#1c1917] dark:text-[#f5f4f0]"
+                    className="w-full h-11 px-4 rounded-xl text-xs bg-white dark:bg-[#1a120d] border border-[#ded5c6] dark:border-[#38271c] focus:outline-none focus:border-[#c29547] dark:focus:border-[#e29d38] text-[#1c1917] dark:text-[#fdfbf7]"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[#2c2825] dark:text-[#f5f4f0]">
+                  <label className="text-xs font-bold text-[#2c2825] dark:text-[#fdfbf7]">
                     رقم الترخيص المهني (اختياري)
                   </label>
                   <input
@@ -1550,14 +1559,14 @@ export function LawFirmsView() {
                     value={newLicense}
                     onChange={(e) => setNewLicense(e.target.value)}
                     placeholder="LIC-449102"
-                    className="w-full h-11 px-4 rounded-xl text-xs font-mono bg-white dark:bg-[#201d1a] border border-[#ded5c6] dark:border-[#2f2a24] focus:outline-none focus:border-[#c29547] text-[#1c1917] dark:text-[#f5f4f0]"
+                    className="w-full h-11 px-4 rounded-xl text-xs font-mono bg-white dark:bg-[#1a120d] border border-[#ded5c6] dark:border-[#38271c] focus:outline-none focus:border-[#c29547] dark:focus:border-[#e29d38] text-[#1c1917] dark:text-[#fdfbf7]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[#2c2825] dark:text-[#f5f4f0]">
+                  <label className="text-xs font-bold text-[#2c2825] dark:text-[#fdfbf7]">
                     البريد الإلكتروني الرسمي *
                   </label>
                   <input
@@ -1566,12 +1575,12 @@ export function LawFirmsView() {
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
                     placeholder="office@law.com"
-                    className="w-full h-11 px-4 rounded-xl text-xs font-mono bg-white dark:bg-[#201d1a] border border-[#ded5c6] dark:border-[#2f2a24] focus:outline-none focus:border-[#c29547] text-[#1c1917] dark:text-[#f5f4f0]"
+                    className="w-full h-11 px-4 rounded-xl text-xs font-mono bg-white dark:bg-[#1a120d] border border-[#ded5c6] dark:border-[#38271c] focus:outline-none focus:border-[#c29547] dark:focus:border-[#e29d38] text-[#1c1917] dark:text-[#fdfbf7]"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[#2c2825] dark:text-[#f5f4f0]">
+                  <label className="text-xs font-bold text-[#2c2825] dark:text-[#fdfbf7]">
                     رقم الجوال الرسمي *
                   </label>
                   <input
@@ -1580,14 +1589,14 @@ export function LawFirmsView() {
                     value={newPhone}
                     onChange={(e) => setNewPhone(e.target.value)}
                     placeholder="+966 50 000 0000"
-                    className="w-full h-11 px-4 rounded-xl text-xs font-mono bg-white dark:bg-[#201d1a] border border-[#ded5c6] dark:border-[#2f2a24] focus:outline-none focus:border-[#c29547] text-[#1c1917] dark:text-[#f5f4f0]"
+                    className="w-full h-11 px-4 rounded-xl text-xs font-mono bg-white dark:bg-[#1a120d] border border-[#ded5c6] dark:border-[#38271c] focus:outline-none focus:border-[#c29547] dark:focus:border-[#e29d38] text-[#1c1917] dark:text-[#fdfbf7]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[#2c2825] dark:text-[#f5f4f0]">
+                  <label className="text-xs font-bold text-[#2c2825] dark:text-[#fdfbf7]">
                     المدينة
                   </label>
                   <input
@@ -1595,12 +1604,12 @@ export function LawFirmsView() {
                     value={newCity}
                     onChange={(e) => setNewCity(e.target.value)}
                     placeholder="الرياض"
-                    className="w-full h-11 px-4 rounded-xl text-xs bg-white dark:bg-[#201d1a] border border-[#ded5c6] dark:border-[#2f2a24] focus:outline-none focus:border-[#c29547] text-[#1c1917] dark:text-[#f5f4f0]"
+                    className="w-full h-11 px-4 rounded-xl text-xs bg-white dark:bg-[#1a120d] border border-[#ded5c6] dark:border-[#38271c] focus:outline-none focus:border-[#c29547] dark:focus:border-[#e29d38] text-[#1c1917] dark:text-[#fdfbf7]"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[#2c2825] dark:text-[#f5f4f0]">
+                  <label className="text-xs font-bold text-[#2c2825] dark:text-[#fdfbf7]">
                     كلمة السر الأولية للمكتب *
                   </label>
                   <input
@@ -1609,13 +1618,13 @@ export function LawFirmsView() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full h-11 px-4 rounded-xl text-xs font-mono bg-white dark:bg-[#201d1a] border border-[#ded5c6] dark:border-[#2f2a24] focus:outline-none focus:border-[#c29547] text-[#1c1917] dark:text-[#f5f4f0]"
+                    className="w-full h-11 px-4 rounded-xl text-xs font-mono bg-white dark:bg-[#1a120d] border border-[#ded5c6] dark:border-[#38271c] focus:outline-none focus:border-[#c29547] dark:focus:border-[#e29d38] text-[#1c1917] dark:text-[#fdfbf7]"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[#2c2825] dark:text-[#f5f4f0]">
+                <label className="text-xs font-bold text-[#2c2825] dark:text-[#fdfbf7]">
                   الباقة المختارة أو التجربة المجانية *
                 </label>
                 <LuxurySelect<string>
@@ -1632,11 +1641,11 @@ export function LawFirmsView() {
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#ded5c6]/40 dark:border-[#2f2a24]">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#ded5c6]/40 dark:border-[#38271c]">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2.5 rounded-full text-xs font-bold text-[#524b43] dark:text-[#c4bcb1] hover:bg-stone-100 dark:hover:bg-[#25201b] transition-colors cursor-pointer"
+                  className="px-4 py-2.5 rounded-full text-xs font-bold text-[#524b43] dark:text-[#cdc5bd] hover:bg-stone-100 dark:hover:bg-[#281c15] transition-colors cursor-pointer"
                 >
                   إلغاء
                 </button>

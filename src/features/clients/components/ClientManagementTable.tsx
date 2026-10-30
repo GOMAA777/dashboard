@@ -283,6 +283,7 @@ export function ClientManagementTable({
         <table className="w-full text-start border-collapse">
           <thead>
             <tr className="bg-[#f5f3ef] dark:bg-[#281c15] border-b border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[18px] font-semibold">
+              <th className="py-[12px] px-[12px] w-[50px] text-center font-bold">#</th>
               <th className="py-[12px] px-[16px] whitespace-nowrap">اسم المكتب والترخيص</th>
               <th className="py-[12px] px-[16px] whitespace-nowrap">المالك</th>
               <th className="py-[12px] px-[16px] whitespace-nowrap">البريد الإلكتروني</th>
@@ -296,16 +297,22 @@ export function ClientManagementTable({
           <tbody className="divide-y divide-[#f0eeea] dark:divide-[#38271c]">
             {paginatedOffices.length === 0 ? (
               <tr>
-                <td colSpan={8} className="py-[48px] text-center text-[#837565] dark:text-[#8e8680] text-[14px]">
+                <td colSpan={9} className="py-[48px] text-center text-[#837565] dark:text-[#8e8680] text-[14px]">
                   لا توجد مكاتب تطابق معايير البحث الحالية
                 </td>
               </tr>
             ) : (
-              paginatedOffices.map((office) => (
+              paginatedOffices.map((office, index) => (
                 <tr
                   key={office.id}
                   className="hover:bg-[#faf9f7] dark:hover:bg-[#281c15]/60 transition-colors group"
                 >
+                  {/* 0. ترقيم العميل (#) */}
+                  <td className="py-[16px] px-[12px] text-center">
+                    <span className="inline-flex items-center justify-center size-[24px] rounded-[4px] font-mono text-[11px] font-bold text-[#837565] dark:text-[#cdc5bd] bg-[#f5f3ef] dark:bg-[#1a120d] border border-transparent dark:border-[#38271c]">
+                      {pageIndex * pageSize + index + 1}
+                    </span>
+                  </td>
                   {/* 1. اسم المكتب والترخيص */}
                   <td className="py-[16px] px-[16px]">
                     <div className="flex items-center gap-[12px]">

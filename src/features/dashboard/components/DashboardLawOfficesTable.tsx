@@ -312,6 +312,7 @@ export function DashboardLawOfficesTable() {
               className="bg-[#f5f3ef] dark:bg-[#1a120d] text-[#625d5d] dark:text-[#a89f91] text-[12px] leading-[16px] font-bold border-b border-[#f0eeea] dark:border-[#38271c]"
               data-node-id="1:247"
             >
+              <th className="py-[16px] px-[12px] text-center font-bold w-[46px]">#</th>
               <th className="py-[16px] px-[20px] text-start font-bold w-[320px]">
                 {currentLang === "en" ? "Law Office / Legal Entity" : "اسم المكتب / المنشأة العدلية"}
               </th>
@@ -338,11 +339,17 @@ export function DashboardLawOfficesTable() {
 
           {/* Body Rows */}
           <tbody className="divide-y divide-[#f0eeea] dark:divide-[#38271c]" data-node-id="1:262">
-            {paginatedOffices.map((row) => (
+            {paginatedOffices.map((row, index) => (
               <tr
                 key={row.id}
                 className="hover:bg-[#fcfbfa] dark:hover:bg-[#2a1d15] transition-colors duration-150"
               >
+                {/* 0. Sequence Number */}
+                <td className="py-[16px] px-[12px] text-center">
+                  <span className="inline-flex items-center justify-center size-[24px] rounded-[4px] font-mono text-[11px] font-bold text-[#837565] dark:text-[#cdc5bd] bg-[#f5f3ef] dark:bg-[#1a120d] border border-transparent dark:border-[#38271c]">
+                    {safePageIndex * pageSize + index + 1}
+                  </span>
+                </td>
                 {/* 1. Office Name */}
                 <td className="py-[16px] px-[20px]">
                   <div className="flex items-center gap-[12px]">
