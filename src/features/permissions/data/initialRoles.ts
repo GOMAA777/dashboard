@@ -19,12 +19,13 @@ export const initialRolesList: RoleItem[] = [
     type: "system",
     typeBadge: {
       label: "دور نظام أساسي (محمي)",
-      badgeClass: "bg-[#fff8e1] text-[#b76e00]",
-      dotClass: "bg-[#b76e00]",
+      badgeClass:
+        "bg-[#fff8e1] text-[#b76e00] border border-[#fde68a] dark:bg-[rgba(226,157,56,0.18)] dark:text-[#f3c27e] dark:border-[#e29d38]/50",
+      dotClass: "bg-[#b76e00] dark:bg-[#e29d38]",
     },
     isProtected: true,
     iconType: "shield",
-    iconBg: "bg-[rgba(255,221,182,0.5)]",
+    iconBg: "bg-[#fbf6ee] dark:bg-[#2d1f16] border border-[#f5e3c8] dark:border-[#4d3627]/60",
     createdAt: "2024-01-01",
     permissions: ["all"],
   },
@@ -41,12 +42,13 @@ export const initialRolesList: RoleItem[] = [
     type: "custom",
     typeBadge: {
       label: "دور مخصص",
-      badgeClass: "bg-[#e8f5e9] text-[#1b7340]",
-      dotClass: "bg-[#1b7340]",
+      badgeClass:
+        "bg-[#e8f5e9] text-[#1b7340] border border-[#c8e6c9] dark:bg-[#132c1c] dark:text-[#6ee7b7] dark:border-emerald-500/40",
+      dotClass: "bg-[#1b7340] dark:bg-[#10b981]",
     },
     isProtected: false,
     iconType: "headset",
-    iconBg: "bg-[#f0eeea]",
+    iconBg: "bg-[#fbf6ee] dark:bg-[#2d1f16] border border-[#f5e3c8] dark:border-[#4d3627]/60",
     createdAt: "2024-02-15",
     permissions: [
       "dashboard.view",
@@ -81,12 +83,13 @@ export const initialRolesList: RoleItem[] = [
     type: "custom",
     typeBadge: {
       label: "دور مخصص",
-      badgeClass: "bg-[#e8f5e9] text-[#1b7340]",
-      dotClass: "bg-[#1b7340]",
+      badgeClass:
+        "bg-[#e8f5e9] text-[#1b7340] border border-[#c8e6c9] dark:bg-[#132c1c] dark:text-[#6ee7b7] dark:border-emerald-500/40",
+      dotClass: "bg-[#1b7340] dark:bg-[#10b981]",
     },
     isProtected: false,
     iconType: "monitor",
-    iconBg: "bg-[#f0eeea]",
+    iconBg: "bg-[#fbf6ee] dark:bg-[#2d1f16] border border-[#f5e3c8] dark:border-[#4d3627]/60",
     createdAt: "2024-03-01",
     permissions: [
       "dashboard.view",
@@ -113,12 +116,13 @@ export const initialRolesList: RoleItem[] = [
     type: "custom",
     typeBadge: {
       label: "دور مخصص",
-      badgeClass: "bg-[#e8f5e9] text-[#1b7340]",
-      dotClass: "bg-[#1b7340]",
+      badgeClass:
+        "bg-[#e8f5e9] text-[#1b7340] border border-[#c8e6c9] dark:bg-[#132c1c] dark:text-[#6ee7b7] dark:border-emerald-500/40",
+      dotClass: "bg-[#1b7340] dark:bg-[#10b981]",
     },
     isProtected: false,
     iconType: "calculator",
-    iconBg: "bg-[#f0eeea]",
+    iconBg: "bg-[#fbf6ee] dark:bg-[#2d1f16] border border-[#f5e3c8] dark:border-[#4d3627]/60",
     createdAt: "2024-03-10",
     permissions: [
       "dashboard.view",
@@ -144,12 +148,13 @@ export const initialRolesList: RoleItem[] = [
     type: "custom",
     typeBadge: {
       label: "دور مخصص",
-      badgeClass: "bg-[#e8f5e9] text-[#1b7340]",
-      dotClass: "bg-[#1b7340]",
+      badgeClass:
+        "bg-[#e8f5e9] text-[#1b7340] border border-[#c8e6c9] dark:bg-[#132c1c] dark:text-[#6ee7b7] dark:border-emerald-500/40",
+      dotClass: "bg-[#1b7340] dark:bg-[#10b981]",
     },
     isProtected: false,
     iconType: "briefcase",
-    iconBg: "bg-[#f0eeea]",
+    iconBg: "bg-[#fbf6ee] dark:bg-[#2d1f16] border border-[#f5e3c8] dark:border-[#4d3627]/60",
     createdAt: "2024-04-01",
     permissions: [
       "dashboard.view",
@@ -174,12 +179,13 @@ export const initialRolesList: RoleItem[] = [
     type: "custom",
     typeBadge: {
       label: "دور مخصص",
-      badgeClass: "bg-[#e8f5e9] text-[#1b7340]",
-      dotClass: "bg-[#1b7340]",
+      badgeClass:
+        "bg-[#e8f5e9] text-[#1b7340] border border-[#c8e6c9] dark:bg-[#132c1c] dark:text-[#6ee7b7] dark:border-emerald-500/40",
+      dotClass: "bg-[#1b7340] dark:bg-[#10b981]",
     },
     isProtected: false,
     iconType: "scale",
-    iconBg: "bg-[#f0eeea]",
+    iconBg: "bg-[#fbf6ee] dark:bg-[#2d1f16] border border-[#f5e3c8] dark:border-[#4d3627]/60",
     createdAt: "2024-05-12",
     permissions: [
       "dashboard.view",

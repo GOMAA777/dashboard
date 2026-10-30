@@ -161,17 +161,17 @@ export function RolesManagementView() {
             {/* Main Title & Command Banner (Figma 1:11533 / 1:11321) */}
           {(currentView === "list" || currentView === "empty") && (
             <div
-              className="bg-white rounded-[8px] p-6 border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
+              className="bg-white dark:bg-[#221812] rounded-[8px] p-6 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
               data-node-id="1:11533"
             >
               <div>
                 <h1
-                  className="text-[26px] sm:text-[28px] font-bold text-[#1b1c1a] leading-[38px]"
+                  className="text-[26px] sm:text-[28px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[38px]"
                   data-node-id="1:11547"
                 >
                   الأدوار والصلاحيات
                 </h1>
-                <p className="text-[14px] text-[#514537] mt-1" data-node-id="1:11545">
+                <p className="text-[14px] text-[#514537] dark:text-[#cdc5bd] mt-1" data-node-id="1:11545">
                   إدارة الأدوار وتحديد صلاحيات الوصول إلى أقسام النظام والهيكل الإداري للمنصة.
                 </p>
               </div>
@@ -182,7 +182,7 @@ export function RolesManagementView() {
                   setEditingRole(null);
                   setCurrentView("add");
                 }}
-                className="bg-[#9c6402] hover:bg-[#855402] text-white px-5 py-2.5 rounded-[4px] font-semibold text-[14px] flex items-center gap-2 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-colors shrink-0 cursor-pointer"
+                className="bg-[#9c6402] hover:bg-[#855402] dark:bg-[#e29d38] dark:hover:bg-[#d08c2a] text-white dark:text-[#1c140f] px-5 py-2.5 rounded-[6px] font-bold text-[14px] flex items-center gap-2 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-colors shrink-0 cursor-pointer"
                 data-node-id="1:11536"
               >
                 <Plus className="size-[15px]" />

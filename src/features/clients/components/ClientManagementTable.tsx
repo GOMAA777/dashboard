@@ -43,16 +43,17 @@ export function ClientManagementTable({
   // Filters
   const [planFilter, setPlanFilter] = useState("all");
   const [cityFilter, setCityFilter] = useState("all");
+  const [subscriptionStatusFilter, setSubscriptionStatusFilter] = useState("all");
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | "name">("newest");
 
   // Pagination
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(5);
 
   const filteredOffices = useMemo(() => {
-    return offices.filter((item) => {
-      // Tab filter
+    const list = offices.filter((item) => {
+      // Tab filter (Quick filter outside)
       if (activeTab === "active" && item.accountStatus.type !== "active") return false;
-      if (activeTab === "trial" && item.subscriptionStatus.type !== "trial") return false;
       if (activeTab === "suspended" && item.accountStatus.type !== "suspended") return false;
 
       // Search query
@@ -65,15 +66,22 @@ export function ClientManagementTable({
         if (!matchesName && !matchesOwner && !matchesPhone && !matchesEmail) return false;
       }
 
-      // Plan filter
+      // Comprehensive Filters inside Drawer
       if (planFilter !== "all" && !item.plan.includes(planFilter)) return false;
-
-      // City filter
       if (cityFilter !== "all" && item.city !== cityFilter) return false;
+      if (subscriptionStatusFilter !== "all" && item.subscriptionStatus.type !== subscriptionStatusFilter) {
+        return false;
+      }
 
       return true;
     });
-  }, [offices, activeTab, searchQuery, planFilter, cityFilter]);
+
+    return list.sort((a, b) => {
+      if (sortOrder === "name") return a.name.localeCompare(b.name, "ar");
+      if (sortOrder === "oldest") return a.id.localeCompare(b.id);
+      return b.id.localeCompare(a.id);
+    });
+  }, [offices, activeTab, searchQuery, planFilter, cityFilter, subscriptionStatusFilter, sortOrder]);
 
   const totalItems = filteredOffices.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
@@ -130,23 +138,25 @@ export function ClientManagementTable({
       className="bg-white rounded-[8px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] overflow-hidden w-full font-['Cairo',sans-serif]"
       data-node-id="1:770"
     >
-      {/* Unified Filter Bar */}
+      {/* Unified Filter Bar with 3 Pills + Comprehensive Drawer */}
       <UnifiedFilterBar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="ابحث باسم المكتب، المالك، رقم الجوال..."
         primaryFilterValue={activeTab}
         onPrimaryFilterChange={(v) => setActiveTab(v as TabFilter)}
+        primaryFilterMode="pills"
         primaryFilterOptions={[
           { label: "الكل (128)", value: "all" },
           { label: "النشطة (96)", value: "active" },
-          { label: "تحت التجربة (18)", value: "trial" },
           { label: "المعطلة (14)", value: "suspended" },
         ]}
         hasActiveFilters={
           activeTab !== "all" ||
           planFilter !== "all" ||
           cityFilter !== "all" ||
+          subscriptionStatusFilter !== "all" ||
+          sortOrder !== "newest" ||
           Boolean(searchQuery)
         }
         onReset={() => {
@@ -154,45 +164,97 @@ export function ClientManagementTable({
           setActiveTab("all");
           setPlanFilter("all");
           setCityFilter("all");
+          setSubscriptionStatusFilter("all");
+          setSortOrder("newest");
         }}
-        drawerTitle="تصفية مكاتب المحاماة"
+        drawerTitle="تصفية شاملة لمكاتب المحاماة"
+        drawerDescription="خيارات تصفية وفلترة متقدمة للوصول الدقيق لبيانات المنشآت"
         drawerContent={
           <div className="space-y-4 text-start font-['Cairo',sans-serif]">
-            {/* Plan Filter */}
+            {/* 1. Account Status */}
             <div className="space-y-1.5">
               <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-                باقة الاشتراك
+                حالة الحساب
+              </label>
+              <select
+                value={activeTab}
+                onChange={(e) => setActiveTab(e.target.value as TabFilter)}
+                className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[12px] border border-transparent dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
+              >
+                <option value="all">كافة الحالات (الكل)</option>
+                <option value="active">الحسابات النشطة فقط</option>
+                <option value="suspended">الحسابات المعطلة فقط</option>
+              </select>
+            </div>
+
+            {/* 2. Subscription Status */}
+            <div className="space-y-1.5">
+              <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
+                حالة الاشتراك
+              </label>
+              <select
+                value={subscriptionStatusFilter}
+                onChange={(e) => setSubscriptionStatusFilter(e.target.value)}
+                className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[12px] border border-transparent dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
+              >
+                <option value="all">كافة اشتراكات المكاتب</option>
+                <option value="active">اشتراك نشط وساري</option>
+                <option value="trial">تحت التجربة المجانية</option>
+                <option value="expired">منتهي الصلاحية</option>
+              </select>
+            </div>
+
+            {/* 3. Plan Filter */}
+            <div className="space-y-1.5">
+              <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
+                باقة الاشتراك المعتمدة
               </label>
               <select
                 value={planFilter}
                 onChange={(e) => setPlanFilter(e.target.value)}
-                className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[4px] px-[12px] border border-transparent dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] cursor-pointer"
+                className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[12px] border border-transparent dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
               >
                 <option value="all">جميع الباقات</option>
-                <option value="الاحترافية">الباقة الاحترافية</option>
-                <option value="الشركات">باقة الشركات</option>
-                <option value="الأساسية">الباقة الأساسية</option>
-                <option value="مجانية">تجربة مجانية</option>
+                <option value="الاحترافية">الباقة الاحترافية (Pro)</option>
+                <option value="الشركات">باقة الشركات (Enterprise)</option>
+                <option value="الأساسية">الباقة الأساسية (Basic)</option>
+                <option value="مجانية">تجربة مجانية (Free Trial)</option>
               </select>
             </div>
 
-            {/* City Filter */}
+            {/* 4. City Filter */}
             <div className="space-y-1.5">
               <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-                المدينة
+                المدينة / المقر الرئيسي
               </label>
               <select
                 value={cityFilter}
                 onChange={(e) => setCityFilter(e.target.value)}
-                className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[4px] px-[12px] border border-transparent dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] cursor-pointer"
+                className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[12px] border border-transparent dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
               >
-                <option value="all">كافة المدن</option>
-                <option value="الرياض">الرياض</option>
-                <option value="جدة">جدة</option>
-                <option value="الدمام">الدمام</option>
-                <option value="الخبر">الخبر</option>
+                <option value="all">كافة المدن والمناطق</option>
+                <option value="الرياض">مدينة الرياض</option>
+                <option value="جدة">مدينة جدة</option>
+                <option value="الدمام">الدمام والمنطقة الشرقية</option>
+                <option value="الخبر">محافظة الخبر</option>
                 <option value="مكة المكرمة">مكة المكرمة</option>
                 <option value="المدينة المنورة">المدينة المنورة</option>
+              </select>
+            </div>
+
+            {/* 5. Sort Order */}
+            <div className="space-y-1.5">
+              <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
+                ترتيب النتائج
+              </label>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as "newest" | "oldest" | "name")}
+                className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[12px] border border-transparent dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
+              >
+                <option value="newest">الأحدث تسجيلاً أولاً</option>
+                <option value="oldest">الأقدم تسجيلاً أولاً</option>
+                <option value="name">أبجدياً حسب اسم المنشأة (أ - ي)</option>
               </select>
             </div>
           </div>

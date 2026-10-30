@@ -42,25 +42,25 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
   const getRoleIcon = (type: string) => {
     switch (type) {
       case "shield":
-        return <Shield className="size-[17px] text-[#9c6402]" />;
+        return <Shield className="size-[17px] text-[#9c6402] dark:text-[#e29d38]" />;
       case "headset":
-        return <Headphones className="size-[16px] text-[#514537]" />;
+        return <Headphones className="size-[16px] text-[#9c6402] dark:text-[#e29d38]" />;
       case "monitor":
-        return <Monitor className="size-[16px] text-[#514537]" />;
+        return <Monitor className="size-[16px] text-[#9c6402] dark:text-[#e29d38]" />;
       case "calculator":
-        return <Calculator className="size-[16px] text-[#514537]" />;
+        return <Calculator className="size-[16px] text-[#9c6402] dark:text-[#e29d38]" />;
       case "briefcase":
-        return <Briefcase className="size-[16px] text-[#514537]" />;
+        return <Briefcase className="size-[16px] text-[#9c6402] dark:text-[#e29d38]" />;
       case "scale":
-        return <Scale className="size-[16px] text-[#514537]" />;
+        return <Scale className="size-[16px] text-[#9c6402] dark:text-[#e29d38]" />;
       default:
-        return <Shield className="size-[16px] text-[#514537]" />;
+        return <Shield className="size-[16px] text-[#9c6402] dark:text-[#e29d38]" />;
     }
   };
 
   return (
     <div
-      className="bg-white rounded-b-[8px] border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] overflow-hidden"
+      className="bg-white dark:bg-[#221812] rounded-b-[8px] border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] overflow-hidden"
       data-node-id="1:11626"
       dir="rtl"
     >
@@ -69,7 +69,7 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
           {/* Header Row */}
           <thead>
             <tr
-              className="bg-[#f0eeea] border-b border-[#e6e2dc] text-[#514537] text-[12px] font-bold"
+              className="bg-[#f0eeea] dark:bg-[#1a120d] border-b border-[#e6e2dc] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[12px] font-bold"
               data-node-id="1:11644"
             >
               <th className="py-3.5 px-4 w-[340px]" data-node-id="1:11645">
@@ -94,11 +94,11 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
           </thead>
 
           {/* Table Body */}
-          <tbody className="divide-y divide-[#f0eeea]" data-node-id="1:11657">
+          <tbody className="divide-y divide-[#f0eeea] dark:divide-[#38271c]" data-node-id="1:11657">
             {pagedRoles.map((role) => (
               <tr
                 key={role.id}
-                className="hover:bg-[#fbf9f6] transition-colors"
+                className="hover:bg-[#fbf9f6] dark:hover:bg-[#281c15]/60 transition-colors"
                 data-node-id={`row-${role.id}`}
               >
                 {/* 1. اسم الدور الوظيفي */}
@@ -106,23 +106,23 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
                   <div className="flex items-center gap-3">
                     {/* Icon container */}
                     <div
-                      className={`${role.iconBg} size-[36px] rounded-[4px] flex items-center justify-center shrink-0`}
+                      className="size-[38px] rounded-[6px] flex items-center justify-center shrink-0 bg-[#fbf6ee] dark:bg-[#2d1f16] border border-[#f5e3c8] dark:border-[#4d3627]/60 shadow-2xs"
                     >
                       {getRoleIcon(role.iconType)}
                     </div>
 
                     <div className="flex flex-col items-start text-right">
                       <div className="flex items-center gap-2">
-                        <span className="text-[18px] font-semibold text-[#1b1c1a] leading-[26px]">
+                        <span className="text-[17px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[26px]">
                           {role.name}
                         </span>
                         {role.hasFullPermissionsBadge && (
-                          <span className="bg-[#ffddb6] text-[#2a1800] text-[10px] font-bold px-[6px] py-[2px] rounded-[2px] leading-[14px]">
+                          <span className="bg-[#ffddb6] dark:bg-[rgba(226,157,56,0.18)] text-[#2a1800] dark:text-[#f3c27e] border border-[#f5e3c8] dark:border-[#e29d38]/50 text-[10px] font-bold px-[6px] py-[2px] rounded-[4px] leading-[14px]">
                             صلاحيات كاملة
                           </span>
                         )}
                       </div>
-                      <span className="text-[12px] font-normal text-[#625d5d] leading-[18px]">
+                      <span className="text-[12px] font-normal text-[#625d5d] dark:text-[#cdc5bd] leading-[18px]">
                         {role.subtitle}
                       </span>
                     </div>
@@ -131,20 +131,20 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
 
                 {/* 2. المعرف البرمجي (Slug) */}
                 <td className="py-4 px-4">
-                  <span className="inline-block bg-[#f0eeea] text-[#625d5d] font-mono text-[12px] font-bold tracking-[0.6px] px-[10px] py-[3px] rounded-[2px]">
+                  <span className="inline-block bg-[#f0eeea] dark:bg-[#281c15] text-[#514537] dark:text-[#cdc5bd] border border-[#e2ded7] dark:border-[#38271c] font-mono text-[12px] font-bold tracking-[0.6px] px-[10px] py-[3px] rounded-[4px]">
                     {role.slug}
                   </span>
                 </td>
 
                 {/* 3. نطاق الصلاحيات */}
                 <td className="py-4 px-4">
-                  <div className="inline-flex items-center gap-1.5 bg-[#f5f3ef] px-[10px] py-[4px] rounded-[2px]">
+                  <div className="inline-flex items-center gap-1.5 bg-[#f5f3ef] dark:bg-[#281c15] border border-[#eae8e4] dark:border-[#38271c] px-[10px] py-[4px] rounded-[4px]">
                     <div
                       className={`size-[6px] rounded-full shrink-0 ${
-                        role.hasFullPermissionsBadge ? "bg-[#9c6402]" : "bg-[#625d5d]"
+                        role.hasFullPermissionsBadge ? "bg-[#9c6402] dark:bg-[#e29d38]" : "bg-[#837565] dark:bg-[#8e8680]"
                       }`}
                     />
-                    <span className="text-[11px] font-semibold text-[#1b1c1a]">
+                    <span className="text-[11px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
                       {role.permissionsLabel}
                     </span>
                   </div>
@@ -154,7 +154,7 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
                 <td className="py-4 px-4">
                   {role.assignedEmployeesInitials ? (
                     <div className="flex items-center gap-2">
-                      <span className="text-[12px] font-semibold text-[#1b1c1a]">
+                      <span className="text-[12px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
                         {role.assignedEmployeesCount} موظفين
                       </span>
                       {/* Initials Stack (RTL: first on right) */}
@@ -163,7 +163,7 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
                           <div
                             key={i}
                             style={{ backgroundColor: emp.bg, color: emp.text }}
-                            className="size-[28px] rounded-full flex items-center justify-center text-[10px] font-bold border-2 border-white shadow-xs shrink-0 select-none"
+                            className="size-[28px] rounded-full flex items-center justify-center text-[10px] font-bold border-2 border-white dark:border-[#221812] shadow-xs shrink-0 select-none"
                             title={emp.label}
                           >
                             {emp.label}
@@ -173,10 +173,10 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <span className="text-[12px] font-semibold text-[#1b1c1a]">
+                      <span className="text-[12px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
                         {role.assignedEmployeesCount} موظفاً
                       </span>
-                      <div className="bg-[#f0eeea] size-[28px] rounded-full flex items-center justify-center text-[#625d5d] shrink-0">
+                      <div className="bg-[#f0eeea] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] size-[28px] rounded-full flex items-center justify-center text-[#625d5d] dark:text-[#cdc5bd] shrink-0">
                         <Users className="size-[13px]" />
                       </div>
                     </div>
@@ -186,7 +186,7 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
                 {/* 5. نوع الدور */}
                 <td className="py-4 px-4">
                   <div
-                    className={`inline-flex items-center gap-1.5 px-[8px] py-[3px] rounded-[2px] ${role.typeBadge.badgeClass}`}
+                    className={`inline-flex items-center gap-1.5 px-[8px] py-[3px] rounded-[4px] border ${role.typeBadge.badgeClass}`}
                   >
                     <div className={`size-[6px] rounded-full shrink-0 ${role.typeBadge.dotClass}`} />
                     <span className="text-[10px] font-bold whitespace-nowrap">
@@ -204,7 +204,7 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
                         type="button"
                         disabled
                         title="دور أساسي محمي - لا يمكن حذفه"
-                        className="p-1.5 text-[#948b83] opacity-60 cursor-not-allowed rounded-[4px]"
+                        className="p-1.5 text-[#948b83] dark:text-[#8e8680] opacity-60 cursor-not-allowed rounded-[4px]"
                         data-node-id="1:11660"
                       >
                         <Lock className="size-[14px]" />
@@ -214,7 +214,7 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
                         type="button"
                         onClick={() => onDeleteRole(role)}
                         title="حذف الدور الوظيفي"
-                        className="p-1.5 text-[#625d5d] hover:text-[#b91c1c] hover:bg-[#fee2e2] rounded-[4px] transition-colors cursor-pointer"
+                        className="p-1.5 text-[#625d5d] dark:text-[#cdc5bd] hover:text-[#b91c1c] dark:hover:text-[#f87171] hover:bg-[#fee2e2] dark:hover:bg-[#341616] rounded-[4px] transition-colors cursor-pointer"
                         data-node-id="1:11705"
                       >
                         <Trash2 className="size-[14px]" />
@@ -226,7 +226,7 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
                       type="button"
                       onClick={() => onEditRole(role)}
                       title="تعديل الدور والصلاحيات"
-                      className="p-1.5 text-[#625d5d] hover:text-[#9c6402] hover:bg-[#f5f3ef] rounded-[4px] transition-colors cursor-pointer"
+                      className="p-1.5 text-[#625d5d] dark:text-[#cdc5bd] hover:text-[#9c6402] dark:hover:text-[#e29d38] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] rounded-[4px] transition-colors cursor-pointer"
                       data-node-id="1:11663"
                     >
                       <Pencil className="size-[14px]" />
@@ -241,23 +241,23 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
 
       {/* Pagination Footer (Figma 1:11855) */}
       <div
-        className="bg-white border-t border-[#e6e2dc] p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-right"
+        className="bg-white dark:bg-[#221812] border-t border-[#e6e2dc] dark:border-[#38271c] p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-right"
         data-node-id="1:11855"
       >
         {/* Total counts text & Rows per page */}
         <div className="flex items-center gap-3 order-1 sm:order-2">
-          <div className="text-[12px] text-[#514537]" data-node-id="1:11877">
+          <div className="text-[12px] text-[#514537] dark:text-[#cdc5bd]" data-node-id="1:11877">
             <span>عرض </span>
-            <strong className="font-bold text-[#1b1c1a]">{startItem}</strong>
+            <strong className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{startItem}</strong>
             <span> إلى </span>
-            <strong className="font-bold text-[#1b1c1a]">{endItem}</strong>
+            <strong className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{endItem}</strong>
             <span> من أصل </span>
-            <strong className="font-bold text-[#1b1c1a]">{roles.length}</strong>
+            <strong className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{roles.length}</strong>
             <span> أدوار مسجلة</span>
           </div>
 
-          <div className="flex items-center gap-2 border-s border-[#eae8e4] ps-3">
-            <span className="text-[11px] text-[#837565]">صفوف بالصفحة:</span>
+          <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
+            <span className="text-[11px] text-[#837565] dark:text-[#8e8680]">صفوف بالصفحة:</span>
             <PageSizeDropdown
               value={pageSize}
               onChange={(newSize) => {
@@ -277,7 +277,7 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
             disabled={safePageIndex === 0}
             onClick={() => setPageIndex(0)}
             title="الصفحة الأولى"
-            className="size-[32px] rounded-[4px] border border-[#e6e2dc] text-[#837565] hover:bg-[#eae8e4] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
+            className="size-[32px] rounded-[4px] border border-[#e6e2dc] dark:border-[#38271c] bg-[#f5f3ef] dark:bg-[#281c15] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
           >
             <ChevronsRight className="size-[14px]" />
           </button>
@@ -287,7 +287,7 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
             type="button"
             disabled={safePageIndex === 0}
             onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
-            className="flex items-center gap-1 px-2.5 py-1.5 bg-[#f5f3ef] hover:bg-[#eae8e4] disabled:opacity-40 disabled:cursor-not-allowed text-[#837565] rounded-[4px] text-[12px] font-semibold transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2.5 py-1.5 bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] disabled:opacity-40 disabled:cursor-not-allowed text-[#837565] dark:text-[#cdc5bd] border border-transparent dark:border-[#38271c] rounded-[4px] text-[12px] font-semibold transition-colors cursor-pointer"
             data-node-id="1:11872"
           >
             <ChevronRight className="size-[13px]" />
@@ -298,7 +298,7 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
             if (totalPages > 5 && Math.abs(p - safePageIndex) > 2 && p !== 0 && p !== totalPages - 1) {
               if (p === 1 || p === totalPages - 2) {
                 return (
-                  <span key={p} className="text-[#837565] text-[12px] px-1 font-semibold">
+                  <span key={p} className="text-[#837565] dark:text-[#8e8680] text-[12px] px-1 font-semibold">
                     ...
                   </span>
                 );
@@ -313,8 +313,8 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
                 onClick={() => setPageIndex(p)}
                 className={`size-[32px] rounded-[4px] text-[12px] font-semibold flex items-center justify-center transition-colors cursor-pointer ${
                   isActive
-                    ? "bg-[#9c6402] text-white font-bold shadow-xs cursor-default"
-                    : "bg-[#f5f3ef] hover:bg-[#eae8e4] text-[#1b1c1a]"
+                    ? "bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] font-bold shadow-xs cursor-default"
+                    : "bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] border border-transparent dark:border-[#38271c]"
                 }`}
               >
                 {p + 1}
@@ -327,7 +327,7 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
             type="button"
             disabled={safePageIndex >= totalPages - 1}
             onClick={() => setPageIndex((p) => Math.min(totalPages - 1, p + 1))}
-            className="flex items-center gap-1 px-2.5 py-1.5 bg-[#f5f3ef] hover:bg-[#eae8e4] disabled:opacity-40 disabled:cursor-not-allowed text-[#1b1c1a] rounded-[4px] text-[12px] font-semibold transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2.5 py-1.5 bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] disabled:opacity-40 disabled:cursor-not-allowed text-[#1b1c1a] dark:text-[#fdfbf7] border border-transparent dark:border-[#38271c] rounded-[4px] text-[12px] font-semibold transition-colors cursor-pointer"
             data-node-id="1:11857"
           >
             <span>التالي</span>
@@ -340,7 +340,7 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
             disabled={safePageIndex >= totalPages - 1}
             onClick={() => setPageIndex(totalPages - 1)}
             title="الصفحة الأخيرة"
-            className="size-[32px] rounded-[4px] border border-[#e6e2dc] text-[#837565] hover:bg-[#eae8e4] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
+            className="size-[32px] rounded-[4px] border border-[#e6e2dc] dark:border-[#38271c] bg-[#f5f3ef] dark:bg-[#281c15] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
           >
             <ChevronsLeft className="size-[14px]" />
           </button>

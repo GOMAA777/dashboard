@@ -17,22 +17,22 @@ export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps)
       >
         {/* Card 1: Total Roles (Empty) */}
         <div
-          className="bg-white rounded-[8px] p-4 border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
+          className="bg-white dark:bg-[#221812] rounded-[8px] p-4 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
           data-node-id="1:11334"
         >
-          <div className="bg-[#f5f3ef] size-[48px] rounded-[8px] flex items-center justify-center text-[#948b83] shrink-0">
+          <div className="bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] size-[48px] rounded-[8px] flex items-center justify-center text-[#948b83] dark:text-[#8e8680] shrink-0">
             <Shield className="size-[22px]" />
           </div>
           <div className="text-right flex flex-col items-end">
-            <span className="text-[12px] font-semibold text-[#625d5d]">
+            <span className="text-[12px] font-semibold text-[#625d5d] dark:text-[#cdc5bd]">
               إجمالي الأدوار النشطة
             </span>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-[28px] font-bold text-[#1b1c1a] leading-none">
+              <span className="text-[28px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-none">
                 0
               </span>
             </div>
-            <span className="text-[10px] font-medium text-[#837565] mt-1">
+            <span className="text-[10px] font-medium text-[#837565] dark:text-[#8e8680] mt-1">
               لم يتم تخصيص أدوار
             </span>
           </div>
@@ -40,22 +40,22 @@ export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps)
 
         {/* Card 2: Assigned Staff (Empty) */}
         <div
-          className="bg-white rounded-[8px] p-4 border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
+          className="bg-white dark:bg-[#221812] rounded-[8px] p-4 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
           data-node-id="1:11342"
         >
-          <div className="bg-[#f5f3ef] size-[48px] rounded-[8px] flex items-center justify-center text-[#948b83] shrink-0">
+          <div className="bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] size-[48px] rounded-[8px] flex items-center justify-center text-[#948b83] dark:text-[#8e8680] shrink-0">
             <Users className="size-[22px]" />
           </div>
           <div className="text-right flex flex-col items-end">
-            <span className="text-[12px] font-semibold text-[#625d5d]">
+            <span className="text-[12px] font-semibold text-[#625d5d] dark:text-[#cdc5bd]">
               الموظفون المخصصون
             </span>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-[28px] font-bold text-[#1b1c1a] leading-none">
+              <span className="text-[28px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-none">
                 0
               </span>
             </div>
-            <span className="text-[10px] font-medium text-[#837565] mt-1">
+            <span className="text-[10px] font-medium text-[#837565] dark:text-[#8e8680] mt-1">
               بانتظار توزيع الصلاحيات
             </span>
           </div>
@@ -63,22 +63,22 @@ export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps)
 
         {/* Card 3: Security Pct (Empty) */}
         <div
-          className="bg-white rounded-[8px] p-4 border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
+          className="bg-white dark:bg-[#221812] rounded-[8px] p-4 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
           data-node-id="1:11350"
         >
-          <div className="bg-[#fff8e1] size-[48px] rounded-[8px] flex items-center justify-center text-[#b76e00] shrink-0">
+          <div className="bg-[#fbf6ee] dark:bg-[#2d1f16] border border-[#f5e3c8] dark:border-[#4d3627]/60 size-[48px] rounded-[8px] flex items-center justify-center text-[#b76e00] dark:text-[#f3c27e] shrink-0">
             <Lock className="size-[22px]" />
           </div>
           <div className="text-right flex flex-col items-end">
-            <span className="text-[12px] font-semibold text-[#625d5d]">
+            <span className="text-[12px] font-semibold text-[#625d5d] dark:text-[#cdc5bd]">
               أمان المنظومة
             </span>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-[28px] font-bold text-[#1b1c1a] leading-none">
+              <span className="text-[28px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-none">
                 100%
               </span>
             </div>
-            <span className="text-[10px] font-bold text-[#1b7340] mt-1 flex items-center gap-1">
+            <span className="text-[10px] font-bold text-[#1b7340] dark:text-[#6ee7b7] mt-1 flex items-center gap-1">
               محمية ببروتوكول رقابي
             </span>
           </div>
@@ -95,25 +95,25 @@ export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps)
     >
       {/* Stat Card 1: Total Roles (Figma 1:11600) */}
       <div
-        className="bg-white rounded-[8px] p-4 border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-4 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
         data-node-id="1:11600"
       >
-        <div className="bg-[rgba(255,221,182,0.4)] size-[48px] rounded-[8px] flex items-center justify-center text-[#9c6402] shrink-0">
+        <div className="bg-[#fbf6ee] dark:bg-[#2d1f16] border border-[#f5e3c8] dark:border-[#4d3627]/60 size-[48px] rounded-[8px] flex items-center justify-center text-[#9c6402] dark:text-[#e29d38] shrink-0">
           <ShieldCheck className="size-[22px]" />
         </div>
         <div className="text-right flex flex-col items-end">
-          <span className="text-[12px] font-semibold text-[#625d5d]" data-node-id="1:11606">
+          <span className="text-[12px] font-semibold text-[#625d5d] dark:text-[#cdc5bd]" data-node-id="1:11606">
             إجمالي الأدوار النشطة
           </span>
           <div className="flex items-baseline gap-1.5 mt-1">
-            <span className="text-[10px] font-medium text-[#625d5d]" data-node-id="1:11609">
+            <span className="text-[10px] font-medium text-[#625d5d] dark:text-[#8e8680]" data-node-id="1:11609">
               أدوار مفعّلة
             </span>
-            <span className="text-[28px] font-bold text-[#1b1c1a] leading-none" data-node-id="1:11611">
+            <span className="text-[28px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-none" data-node-id="1:11611">
               {kpis.totalActiveRoles}
             </span>
           </div>
-          <div className="flex items-center gap-1 mt-1 text-[#1b7340]" data-node-id="1:11612">
+          <div className="flex items-center gap-1 mt-1 text-[#1b7340] dark:text-[#6ee7b7]" data-node-id="1:11612">
             <CheckCircle2 className="size-[12px]" />
             <span className="text-[10px] font-bold" data-node-id="1:11614">
               جاهزة للاستناد الوظيفي
@@ -124,25 +124,25 @@ export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps)
 
       {/* Stat Card 2: Total Permissions (Figma 1:11583) */}
       <div
-        className="bg-white rounded-[8px] p-4 border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-4 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
         data-node-id="1:11583"
       >
-        <div className="bg-[#f0eeea] size-[48px] rounded-[8px] flex items-center justify-center text-[#625d5d] shrink-0">
+        <div className="bg-[#fbf6ee] dark:bg-[#2d1f16] border border-[#f5e3c8] dark:border-[#4d3627]/60 size-[48px] rounded-[8px] flex items-center justify-center text-[#9c6402] dark:text-[#e29d38] shrink-0">
           <Key className="size-[20px]" />
         </div>
         <div className="text-right flex flex-col items-end">
-          <span className="text-[12px] font-semibold text-[#625d5d]" data-node-id="1:11589">
+          <span className="text-[12px] font-semibold text-[#625d5d] dark:text-[#cdc5bd]" data-node-id="1:11589">
             إجمالي الصلاحيات المهيأة
           </span>
           <div className="flex items-baseline gap-1.5 mt-1">
-            <span className="text-[10px] font-medium text-[#625d5d]" data-node-id="1:11592">
+            <span className="text-[10px] font-medium text-[#625d5d] dark:text-[#8e8680]" data-node-id="1:11592">
               صلاحية
             </span>
-            <span className="text-[28px] font-bold text-[#1b1c1a] leading-none" data-node-id="1:11594">
+            <span className="text-[28px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-none" data-node-id="1:11594">
               {kpis.totalPermissions}
             </span>
           </div>
-          <div className="flex items-center gap-1 mt-1 text-[#9c6402]" data-node-id="1:11595">
+          <div className="flex items-center gap-1 mt-1 text-[#9c6402] dark:text-[#f3c27e]" data-node-id="1:11595">
             <BadgeCheck className="size-[12px]" />
             <span className="text-[10px] font-bold" data-node-id="1:11597">
               تغطي 14 وحدة وظيفية
@@ -153,25 +153,25 @@ export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps)
 
       {/* Stat Card 3: Associated Staff (Figma 1:11566) */}
       <div
-        className="bg-white rounded-[8px] p-4 border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-4 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
         data-node-id="1:11566"
       >
-        <div className="bg-[#f0eeea] size-[48px] rounded-[8px] flex items-center justify-center text-[#625d5d] shrink-0">
+        <div className="bg-[#fbf6ee] dark:bg-[#2d1f16] border border-[#f5e3c8] dark:border-[#4d3627]/60 size-[48px] rounded-[8px] flex items-center justify-center text-[#9c6402] dark:text-[#e29d38] shrink-0">
           <Users className="size-[22px]" />
         </div>
         <div className="text-right flex flex-col items-end">
-          <span className="text-[12px] font-semibold text-[#625d5d]" data-node-id="1:11572">
+          <span className="text-[12px] font-semibold text-[#625d5d] dark:text-[#cdc5bd]" data-node-id="1:11572">
             الموظفون المرتبطون
           </span>
           <div className="flex items-baseline gap-1.5 mt-1">
-            <span className="text-[10px] font-medium text-[#625d5d]" data-node-id="1:11575">
+            <span className="text-[10px] font-medium text-[#625d5d] dark:text-[#8e8680]" data-node-id="1:11575">
               موظفاً نشطاً
             </span>
-            <span className="text-[28px] font-bold text-[#1b1c1a] leading-none" data-node-id="1:11577">
+            <span className="text-[28px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-none" data-node-id="1:11577">
               {kpis.totalAssignedStaff}
             </span>
           </div>
-          <div className="flex items-center gap-1 mt-1 text-[#625d5d]" data-node-id="1:11578">
+          <div className="flex items-center gap-1 mt-1 text-[#625d5d] dark:text-[#cdc5bd]" data-node-id="1:11578">
             <Users className="size-[11px]" />
             <span className="text-[10px] font-bold" data-node-id="1:11580">
               100% من الكادر معتمد
@@ -182,25 +182,25 @@ export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps)
 
       {/* Stat Card 4: System Protected Roles (Figma 1:11549) */}
       <div
-        className="bg-white rounded-[8px] p-4 border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-4 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
         data-node-id="1:11549"
       >
-        <div className="bg-[#fff8e1] size-[48px] rounded-[8px] flex items-center justify-center text-[#b76e00] shrink-0">
+        <div className="bg-[#fbf6ee] dark:bg-[#2d1f16] border border-[#f5e3c8] dark:border-[#4d3627]/60 size-[48px] rounded-[8px] flex items-center justify-center text-[#b76e00] dark:text-[#f3c27e] shrink-0">
           <Shield className="size-[22px]" />
         </div>
         <div className="text-right flex flex-col items-end">
-          <span className="text-[12px] font-semibold text-[#625d5d]" data-node-id="1:11555">
+          <span className="text-[12px] font-semibold text-[#625d5d] dark:text-[#cdc5bd]" data-node-id="1:11555">
             أدوار النظام الأساسية
           </span>
           <div className="flex items-baseline gap-1.5 mt-1">
-            <span className="text-[10px] font-medium text-[#625d5d]" data-node-id="1:11558">
+            <span className="text-[10px] font-medium text-[#625d5d] dark:text-[#8e8680]" data-node-id="1:11558">
               دور محمي
             </span>
-            <span className="text-[28px] font-bold text-[#1b1c1a] leading-none" data-node-id="1:11560">
+            <span className="text-[28px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-none" data-node-id="1:11560">
               {kpis.systemProtectedRoles}
             </span>
           </div>
-          <div className="flex items-center gap-1 mt-1 text-[#b76e00]" data-node-id="1:11561">
+          <div className="flex items-center gap-1 mt-1 text-[#b76e00] dark:text-[#f3c27e]" data-node-id="1:11561">
             <Lock className="size-[11px]" />
             <span className="text-[10px] font-bold" data-node-id="1:11563">
               غير قابل للحذف أو السحب

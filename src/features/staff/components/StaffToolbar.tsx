@@ -41,13 +41,13 @@ export function StaffToolbar({
     <div className="space-y-4 text-start font-['Cairo',sans-serif]">
       {/* Status Filter */}
       <div className="space-y-1.5">
-        <label className="text-[13px] font-bold text-[#1b1c1a] block">
+        <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
           حالة الموظف
         </label>
         <select
           value={selectedStatus}
           onChange={(e) => onStatusChange(e.target.value)}
-          className="w-full h-[40px] bg-[#f5f3ef] text-[#1b1c1a] text-[13px] font-semibold rounded-[4px] px-[12px] border border-transparent focus:outline-none focus:ring-1 focus:ring-[#9c6402] cursor-pointer"
+          className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[12px] border border-transparent dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
         >
           <option value="all">جميع الحالات</option>
           <option value="active">نشط</option>
@@ -57,13 +57,13 @@ export function StaffToolbar({
 
       {/* Last Login Filter */}
       <div className="space-y-1.5">
-        <label className="text-[13px] font-bold text-[#1b1c1a] block">
+        <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
           آخر تسجيل دخول
         </label>
         <select
           value={selectedLastLogin}
           onChange={(e) => onLastLoginChange(e.target.value)}
-          className="w-full h-[40px] bg-[#f5f3ef] text-[#1b1c1a] text-[13px] font-semibold rounded-[4px] px-[12px] border border-transparent focus:outline-none focus:ring-1 focus:ring-[#9c6402] cursor-pointer"
+          className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[12px] border border-transparent dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
         >
           <option value="all">الكل</option>
           <option value="today">اليوم</option>

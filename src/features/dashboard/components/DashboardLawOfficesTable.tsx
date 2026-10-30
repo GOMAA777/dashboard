@@ -247,8 +247,12 @@ export function DashboardLawOfficesTable() {
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-[20px]"
         data-node-id="1:231"
       >
-        {/* Title & Subtitle with Icon */}
-        <div className="flex items-center gap-[8px]" data-node-id="1:234">
+        {/* Title & Subtitle with Icon in the front */}
+        <div className="flex items-center gap-[12px]" data-node-id="1:234">
+          <div className="size-[38px] rounded-[8px] bg-[#fbf6ee] dark:bg-[#2d1f16] border border-[#f5e3c8] dark:border-[#4d3627]/60 flex items-center justify-center shrink-0 shadow-2xs">
+            <Scale className="size-[19px] block text-[#9c6402] dark:text-[#e29d38]" />
+          </div>
+
           <div className="flex flex-col text-start">
             <h2
               className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[18px] leading-[26px] font-bold font-sans"
@@ -264,10 +268,6 @@ export function DashboardLawOfficesTable() {
                 ? "Latest law firms and legal entities joining Al-Joudi platform"
                 : "آخر مكاتب وشركات المحاماة المنضمة لمنصة الجودي القضائية"}
             </p>
-          </div>
-
-          <div className="size-[20px] flex items-center justify-center shrink-0 ms-1">
-            <Scale className="w-[18px] h-[19px] block text-[#9c6402] dark:text-[#e29d38]" />
           </div>
         </div>
 
@@ -439,9 +439,9 @@ export function DashboardLawOfficesTable() {
                       onClick={() =>
                         setOpenMenuRowId(openMenuRowId === row.id ? null : row.id)
                       }
-                      className="p-[6px] rounded-[4px] hover:bg-[#eae8e4] dark:hover:bg-[#2d1f16] text-[#625d5d] dark:text-[#a89f91] transition-colors inline-flex items-center justify-center cursor-pointer"
+                      className="size-[34px] rounded-[6px] hover:bg-[#eae8e4] dark:hover:bg-[#2d1f16] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] transition-all inline-flex items-center justify-center cursor-pointer border border-transparent hover:border-[#ded5c6] dark:hover:border-[#4d3627]"
                     >
-                      <MoreVertical className="w-[4px] h-[14px] block opacity-70" />
+                      <MoreVertical className="size-[18px] block" />
                     </button>
 
                     <ClientRowActionMenu
