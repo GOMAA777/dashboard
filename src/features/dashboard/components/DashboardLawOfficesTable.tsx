@@ -223,7 +223,7 @@ export function DashboardLawOfficesTable() {
       </div>
 
       {/* Table Container */}
-      <div className="overflow-x-auto scrollbar-thin w-full" data-node-id="1:246">
+      <div className="overflow-x-auto scrollbar-none w-full" data-node-id="1:246">
         <table className="w-full text-start border-collapse min-w-[880px]">
           {/* Header Row */}
           <thead>
@@ -353,40 +353,41 @@ export function DashboardLawOfficesTable() {
                 </td>
 
                 {/* 7. إجراءات */}
-                <td className="py-[16px] px-[16px] text-center relative">
-                  <button
-                    type="button"
-                    aria-label="خيارات"
-                    onClick={() =>
-                      setOpenMenuRowId(openMenuRowId === row.id ? null : row.id)
-                    }
-                    className="p-[6px] rounded-[4px] hover:bg-[#eae8e4] text-[#625d5d] transition-colors inline-flex items-center justify-center cursor-pointer"
-                  >
-                    <MoreVertical className="w-[4px] h-[14px] block opacity-70" />
-                  </button>
+                <td className="py-[16px] px-[16px] text-center">
+                  <div className="relative inline-block">
+                    <button
+                      type="button"
+                      aria-label="خيارات"
+                      onClick={() =>
+                        setOpenMenuRowId(openMenuRowId === row.id ? null : row.id)
+                      }
+                      className="p-[6px] rounded-[4px] hover:bg-[#eae8e4] text-[#625d5d] transition-colors inline-flex items-center justify-center cursor-pointer"
+                    >
+                      <MoreVertical className="w-[4px] h-[14px] block opacity-70" />
+                    </button>
 
-                  <ClientRowActionMenu
-                    isOpen={openMenuRowId === row.id}
-                    onClose={() => setOpenMenuRowId(null)}
-                    onViewDetails={() => {
-                      router.push("/accounts");
-                      toast.info(`عرض تفاصيل ${row.name}`);
-                    }}
-                    onEdit={() => {
-                      router.push("/accounts");
-                      toast.info(`تعديل بيانات ${row.name}`);
-                    }}
-                    onManageSubscriptions={() => {
-                      toast.info(`إدارة اشتراكات وفواتير ${row.name}`);
-                    }}
-                    onDeactivate={() => {
-                      toast.info(`تم تغيير حالة حساب ${row.name}`);
-                    }}
-                    onDelete={() => {
-                      toast.error(`تم حذف مكتب ${row.name}`);
-                    }}
-                    positionClass="left-0 top-full mt-1"
-                  />
+                    <ClientRowActionMenu
+                      isOpen={openMenuRowId === row.id}
+                      onClose={() => setOpenMenuRowId(null)}
+                      onViewDetails={() => {
+                        router.push("/accounts");
+                        toast.info(`عرض تفاصيل ${row.name}`);
+                      }}
+                      onEdit={() => {
+                        router.push("/accounts");
+                        toast.info(`تعديل بيانات ${row.name}`);
+                      }}
+                      onManageSubscriptions={() => {
+                        toast.info(`إدارة اشتراكات وفواتير ${row.name}`);
+                      }}
+                      onDeactivate={() => {
+                        toast.info(`تم تغيير حالة حساب ${row.name}`);
+                      }}
+                      onDelete={() => {
+                        toast.error(`تم حذف مكتب ${row.name}`);
+                      }}
+                    />
+                  </div>
                 </td>
               </tr>
             ))}

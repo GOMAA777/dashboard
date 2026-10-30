@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   ArrowRight,
   Plus,
@@ -45,20 +46,68 @@ export function SubscribedFirmsView({
   const [resourceFilter, setResourceFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Active Menu Dropdown state
-  const [openMenuFirmId, setOpenMenuFirmId] = useState<string | null>(null);
+  // Active Menu Dropdown state (rendered via createPortal to prevent table scrollbars)
+  const [openMenuFirm, setOpenMenuFirm] = useState<{
+    firm: DetailedSubscribedFirm;
+    coords: { left: number; top?: number; bottom?: number };
+  } | null>(null);
 
-  React.useEffect(() => {
-    if (!openMenuFirmId) return;
+  useEffect(() => {
+    if (!openMenuFirm) return;
+    const handleClose = () => setOpenMenuFirm(null);
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (!target.closest("[data-actions-menu]")) {
-        setOpenMenuFirmId(null);
+      if (!target.closest("[data-actions-menu]") && !target.closest("[data-actions-popover]")) {
+        setOpenMenuFirm(null);
       }
     };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpenMenuFirm(null);
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [openMenuFirmId]);
+    window.addEventListener("scroll", handleClose, true);
+    window.addEventListener("resize", handleClose);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleClose, true);
+      window.removeEventListener("resize", handleClose);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [openMenuFirm]);
+
+  const toggleFirmMenu = (e: React.MouseEvent<HTMLButtonElement>, firm: DetailedSubscribedFirm) => {
+    e.stopPropagation();
+    if (openMenuFirm?.firm.id === firm.id) {
+      setOpenMenuFirm(null);
+      return;
+    }
+    const rect = e.currentTarget.getBoundingClientRect();
+    const menuEstimatedHeight = 150;
+    const menuWidth = 190;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const openUp = spaceBelow < menuEstimatedHeight + 12 && spaceAbove > spaceBelow;
+
+    let left = rect.left;
+    if (left + menuWidth > window.innerWidth - 8) {
+      left = window.innerWidth - menuWidth - 8;
+    }
+    if (left < 8) {
+      left = 8;
+    }
+
+    setOpenMenuFirm({
+      firm,
+      coords: {
+        left,
+        top: openUp ? undefined : rect.bottom + 4,
+        bottom: openUp ? window.innerHeight - rect.top + 4 : undefined,
+      },
+    });
+  };
 
   // Dialog states
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
@@ -68,13 +117,13 @@ export function SubscribedFirmsView({
 
   const handleOpenUpgrade = (firm: DetailedSubscribedFirm) => {
     setSelectedFirm(firm);
-    setOpenMenuFirmId(null);
+    setOpenMenuFirm(null);
     setUpgradeDialogOpen(true);
   };
 
   const handleOpenDeactivate = (firm: DetailedSubscribedFirm) => {
     setSelectedFirm(firm);
-    setOpenMenuFirmId(null);
+    setOpenMenuFirm(null);
     setDeactivateDialogOpen(true);
   };
 
@@ -440,7 +489,7 @@ export function SubscribedFirmsView({
               </tr>
             </thead>
             <tbody className="divide-y divide-[#f0eeea]">
-              {filteredFirms.map((firm, idx) => (
+              {filteredFirms.map((firm) => (
                 <tr
                   key={firm.id}
                   className="hover:bg-[#faf8f5] transition-colors"
@@ -630,60 +679,19 @@ export function SubscribedFirmsView({
                   </td>
 
                   {/* Actions dropdown */}
-                  <td className="py-[14px] px-[14px] text-center relative" data-actions-menu>
+                  <td className="py-[14px] px-[14px] text-center" data-actions-menu>
                     <button
                       type="button"
-                      onClick={() =>
-                        setOpenMenuFirmId(
-                          openMenuFirmId === firm.id ? null : firm.id
-                        )
-                      }
-                      className="p-[6px] rounded-[4px] text-[#737067] hover:bg-[#eae8e4] hover:text-[#1b1c1a] transition-colors cursor-pointer"
+                      onClick={(e) => toggleFirmMenu(e, firm)}
+                      className={`p-[6px] rounded-[4px] transition-colors cursor-pointer ${
+                        openMenuFirm?.firm.id === firm.id
+                          ? "bg-[#eae8e4] text-[#1b1c1a]"
+                          : "text-[#737067] hover:bg-[#eae8e4] hover:text-[#1b1c1a]"
+                      }`}
                       title="خيارات إضافية"
                     >
                       <MoreVertical className="size-[16px]" />
                     </button>
-
-                    {/* Popover Menu */}
-                    {openMenuFirmId === firm.id && (
-                      <div
-                        className={`absolute end-0 start-auto rtl:left-0 rtl:right-auto ${
-                          idx >= filteredFirms.length - 2
-                            ? "bottom-full mb-[4px]"
-                            : "top-full mt-[4px]"
-                        } w-[190px] bg-white rounded-[6px] shadow-lg border border-[#e2ded7] p-[4px] z-50 text-right animate-in fade-in duration-150`}
-                      >
-                        <button
-                          type="button"
-                          onClick={() => handleOpenUpgrade(firm)}
-                          className="w-full flex items-center gap-[8px] px-[10px] py-[7px] text-[12px] font-semibold text-[#1b1c1a] hover:bg-[#faf8f5] rounded-[4px] cursor-pointer"
-                        >
-                          <ArrowUp className="size-[14px] text-[#9c6402]" />
-                          <span>ترقية اشتراك المكتب</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => handleOpenDeactivate(firm)}
-                          className="w-full flex items-center gap-[8px] px-[10px] py-[7px] text-[12px] font-semibold text-[#b91c1c] hover:bg-[#fee2e2]/40 rounded-[4px] cursor-pointer"
-                        >
-                          <Ban className="size-[14px] text-[#b91c1c]" />
-                          <span>تعطيل اشتراك المكتب</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOpenMenuFirmId(null);
-                            toast.info(`عرض تفاصيل ${firm.name}`);
-                          }}
-                          className="w-full flex items-center gap-[8px] px-[10px] py-[7px] text-[12px] font-semibold text-[#514537] hover:bg-[#faf8f5] rounded-[4px] cursor-pointer"
-                        >
-                          <Eye className="size-[14px]" />
-                          <span>عرض تفاصيل المكتب</span>
-                        </button>
-                      </div>
-                    )}
                   </td>
                 </tr>
               ))}
@@ -769,6 +777,54 @@ export function SubscribedFirmsView({
           </div>
         </div>
       </div>
+
+      {/* Floating Action Menu Popover (Rendered in document.body via Portal to prevent table scrollbars) */}
+      {typeof document !== "undefined" && openMenuFirm && createPortal(
+        <div
+          data-actions-popover
+          style={{
+            position: "fixed",
+            left: `${openMenuFirm.coords.left}px`,
+            ...(openMenuFirm.coords.top !== undefined ? { top: `${openMenuFirm.coords.top}px` } : {}),
+            ...(openMenuFirm.coords.bottom !== undefined ? { bottom: `${openMenuFirm.coords.bottom}px` } : {}),
+            zIndex: 9999,
+          }}
+          className="w-[190px] bg-white rounded-[6px] shadow-[0px_8px_24px_rgba(0,0,0,0.14)] border border-[#e2ded7] p-[4px] text-right animate-in fade-in-50 zoom-in-95 select-none font-['Cairo',sans-serif]"
+          dir="rtl"
+        >
+          <button
+            type="button"
+            onClick={() => handleOpenUpgrade(openMenuFirm.firm)}
+            className="w-full flex items-center gap-[8px] px-[10px] py-[7px] text-[12px] font-semibold text-[#1b1c1a] hover:bg-[#faf8f5] rounded-[4px] cursor-pointer"
+          >
+            <ArrowUp className="size-[14px] text-[#9c6402]" />
+            <span>ترقية اشتراك المكتب</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleOpenDeactivate(openMenuFirm.firm)}
+            className="w-full flex items-center gap-[8px] px-[10px] py-[7px] text-[12px] font-semibold text-[#b91c1c] hover:bg-[#fee2e2]/40 rounded-[4px] cursor-pointer"
+          >
+            <Ban className="size-[14px] text-[#b91c1c]" />
+            <span>تعطيل اشتراك المكتب</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              const firmName = openMenuFirm.firm.name;
+              setOpenMenuFirm(null);
+              toast.info(`عرض تفاصيل ${firmName}`);
+            }}
+            className="w-full flex items-center gap-[8px] px-[10px] py-[7px] text-[12px] font-semibold text-[#514537] hover:bg-[#faf8f5] rounded-[4px] cursor-pointer"
+          >
+            <Eye className="size-[14px]" />
+            <span>عرض تفاصيل المكتب</span>
+          </button>
+        </div>,
+        document.body
+      )}
 
       {/* Upgrade Subscription Dialog */}
       <UpgradeSubscriptionDialog

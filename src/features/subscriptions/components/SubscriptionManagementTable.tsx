@@ -303,7 +303,7 @@ export function SubscriptionManagementTable({
       data-name="Main Table Container"
     >
       {/* Table Body Area */}
-      <div className="overflow-x-auto w-full">
+      <div className="overflow-x-auto scrollbar-none w-full min-h-[350px]">
         <table className="w-full border-collapse text-right">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (

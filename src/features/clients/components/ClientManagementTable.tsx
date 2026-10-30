@@ -322,7 +322,7 @@ export function ClientManagementTable({
       </div>
 
       {/* Table Data */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto scrollbar-none w-full min-h-[350px]">
         <table className="w-full text-right border-collapse">
           <thead>
             <tr className="bg-[#f5f3ef] border-b border-[#eae8e4] text-[#514537] text-[12px] leading-[18px] font-semibold">
@@ -344,7 +344,7 @@ export function ClientManagementTable({
                 </td>
               </tr>
             ) : (
-              filteredOffices.map((office) => (
+              filteredOffices.map((office, idx) => (
                 <tr
                   key={office.id}
                   className="hover:bg-[#faf9f7] transition-colors group"
@@ -472,7 +472,11 @@ export function ClientManagementTable({
                               handleDeleteOffice(office);
                             }
                           }}
-                          positionClass="left-0 top-full mt-1"
+                          positionClass={
+                            idx >= filteredOffices.length - 2
+                              ? "left-0 bottom-full mb-1"
+                              : "left-0 top-full mt-1"
+                          }
                         />
                       </div>
                     </div>

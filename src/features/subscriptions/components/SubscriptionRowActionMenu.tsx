@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { MoreVertical, Eye, Edit3, RefreshCw, XCircle } from "lucide-react";
 import { SubscriptionRecord } from "../types/subscription.types";
 
@@ -20,84 +21,172 @@ export function SubscriptionRowActionMenu({
   onCancel,
 }: SubscriptionRowActionMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [coords, setCoords] = useState<{
+    left: number;
+    top?: number;
+    bottom?: number;
+  } | null>(null);
+
   const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const updateCoords = () => {
+    if (!buttonRef.current) return;
+    const rect = buttonRef.current.getBoundingClientRect();
+    const menuEstimatedHeight = 175;
+    const menuWidth = 176; // w-44
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    // Prefer opening upward if space below is limited and space above is greater
+    const openUp = spaceBelow < menuEstimatedHeight + 12 && spaceAbove > spaceBelow;
+
+    // In RTL tables, the actions column is on the left
+    let left = rect.left;
+    if (left + menuWidth > window.innerWidth - 8) {
+      left = window.innerWidth - menuWidth - 8;
+    }
+    if (left < 8) {
+      left = 8;
+    }
+
+    setCoords({
+      left,
+      top: openUp ? undefined : rect.bottom + 4,
+      bottom: openUp ? window.innerHeight - rect.top + 4 : undefined,
+    });
+  };
 
   useEffect(() => {
+    if (!isOpen) return;
+
     function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(target) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(target)
+      ) {
         setIsOpen(false);
       }
     }
+
+    function handleScrollOrResize() {
+      setIsOpen(false);
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    }
+
     document.addEventListener("mousedown", handleClickOutside);
+    window.addEventListener("scroll", handleScrollOrResize, true);
+    window.addEventListener("resize", handleScrollOrResize);
+    document.addEventListener("keydown", handleKeyDown);
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScrollOrResize, true);
+      window.removeEventListener("resize", handleScrollOrResize);
+      document.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  }, [isOpen]);
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isOpen) {
+      setIsOpen(false);
+    } else {
+      updateCoords();
+      setIsOpen(true);
+    }
+  };
 
   return (
-    <div className="relative inline-block text-right" ref={menuRef}>
+    <div className="relative inline-block text-right">
       <button
+        ref={buttonRef}
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="p-1.5 rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] text-[#514537] dark:text-[#a89f91] transition-colors cursor-pointer"
+        onClick={handleToggle}
+        className={`p-1.5 rounded-[4px] transition-colors cursor-pointer ${
+          isOpen
+            ? "bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7]"
+            : "hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] text-[#514537] dark:text-[#a89f91]"
+        }`}
         aria-label="خيارات الاشتراك"
       >
         <MoreVertical className="w-4 h-4" />
       </button>
 
-      {isOpen && (
-        <div className="absolute left-0 mt-1 w-44 bg-white dark:bg-[#1e1c1a] rounded-[6px] shadow-lg border border-[#f0eeea] dark:border-[#2f2a24] py-1 z-50 text-[12px] font-['Cairo'] animate-in fade-in-50 zoom-in-95">
-          <button
-            type="button"
-            onClick={() => {
-              setIsOpen(false);
-              onViewDetails(subscription);
+      {typeof document !== "undefined" && isOpen && coords &&
+        createPortal(
+          <div
+            ref={menuRef}
+            style={{
+              position: "fixed",
+              left: `${coords.left}px`,
+              ...(coords.top !== undefined ? { top: `${coords.top}px` } : {}),
+              ...(coords.bottom !== undefined ? { bottom: `${coords.bottom}px` } : {}),
+              zIndex: 9999,
             }}
-            className="w-full flex items-center justify-between px-3 py-2 text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] transition-colors cursor-pointer"
+            className="w-44 bg-white dark:bg-[#1e1c1a] rounded-[6px] shadow-[0px_8px_24px_rgba(0,0,0,0.14)] border border-[#f0eeea] dark:border-[#2f2a24] py-1 text-[12px] font-['Cairo'] animate-in fade-in-50 zoom-in-95 select-none"
+            dir="rtl"
           >
-            <span>عرض التفاصيل</span>
-            <Eye className="w-3.5 h-3.5 text-[#9c6402]" />
-          </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                onViewDetails(subscription);
+              }}
+              className="w-full flex items-center justify-between px-3 py-2 text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] transition-colors cursor-pointer"
+            >
+              <span>عرض التفاصيل</span>
+              <Eye className="w-3.5 h-3.5 text-[#9c6402]" />
+            </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              setIsOpen(false);
-              onEdit?.(subscription);
-            }}
-            className="w-full flex items-center justify-between px-3 py-2 text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] transition-colors cursor-pointer"
-          >
-            <span>تعديل الباقة</span>
-            <Edit3 className="w-3.5 h-3.5 text-[#514537] dark:text-[#a89f91]" />
-          </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                onEdit?.(subscription);
+              }}
+              className="w-full flex items-center justify-between px-3 py-2 text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] transition-colors cursor-pointer"
+            >
+              <span>تعديل الباقة</span>
+              <Edit3 className="w-3.5 h-3.5 text-[#514537] dark:text-[#a89f91]" />
+            </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              setIsOpen(false);
-              onRenew?.(subscription);
-            }}
-            className="w-full flex items-center justify-between px-3 py-2 text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] transition-colors cursor-pointer"
-          >
-            <span>تجديد فوري</span>
-            <RefreshCw className="w-3.5 h-3.5 text-[#059669]" />
-          </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                onRenew?.(subscription);
+              }}
+              className="w-full flex items-center justify-between px-3 py-2 text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] transition-colors cursor-pointer"
+            >
+              <span>تجديد فوري</span>
+              <RefreshCw className="w-3.5 h-3.5 text-[#059669]" />
+            </button>
 
-          <div className="h-px bg-[#f0eeea] dark:bg-[#2f2a24] my-1" />
+            <div className="h-px bg-[#f0eeea] dark:bg-[#2f2a24] my-1" />
 
-          <button
-            type="button"
-            onClick={() => {
-              setIsOpen(false);
-              onCancel?.(subscription);
-            }}
-            className="w-full flex items-center justify-between px-3 py-2 text-[#dc2626] dark:text-[#f87171] hover:bg-[#fef2f2] dark:hover:bg-[#311616] transition-colors cursor-pointer"
-          >
-            <span>إلغاء الاشتراك</span>
-            <XCircle className="w-3.5 h-3.5 text-[#dc2626] dark:text-[#f87171]" />
-          </button>
-        </div>
-      )}
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                onCancel?.(subscription);
+              }}
+              className="w-full flex items-center justify-between px-3 py-2 text-[#dc2626] dark:text-[#f87171] hover:bg-[#fef2f2] dark:hover:bg-[#311616] transition-colors cursor-pointer"
+            >
+              <span>إلغاء الاشتراك</span>
+              <XCircle className="w-3.5 h-3.5 text-[#dc2626] dark:text-[#f87171]" />
+            </button>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
