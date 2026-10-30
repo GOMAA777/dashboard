@@ -196,7 +196,6 @@ export function NotificationsManagementView() {
   const breadcrumbs =
     view === "new"
       ? [
-          { label: "الرئيسية", href: "/" },
           { label: "مركز الإشعارات", href: "/notifications" },
           { label: "إرسال إشعار جديد" },
         ]

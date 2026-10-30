@@ -184,13 +184,11 @@ export function ClientManagementView() {
   const breadcrumbs =
     currentView === "details"
       ? [
-          { label: "الرئيسية", href: "/" },
           { label: "مكاتب المحاماة", href: "/law-firms" },
           { label: selectedOffice?.name || "تفاصيل المكتب" },
         ]
       : currentView === "add"
       ? [
-          { label: "الرئيسية", href: "/" },
           { label: "مكاتب المحاماة", href: "/law-firms" },
           { label: officeToEdit ? "تعديل بيانات المكتب" : "إضافة مكتب محاماة جديد" },
         ]

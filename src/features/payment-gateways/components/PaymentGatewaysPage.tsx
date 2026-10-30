@@ -142,8 +142,7 @@ export function PaymentGatewaysPage() {
   const currentLang = isMounted ? language : "ar";
 
   const breadcrumbs = [
-    { label: currentLang === "en" ? "Dashboard" : "الرئيسية", href: "/" },
-    { label: currentLang === "en" ? "Financial Transactions" : "المعاملات المالية", href: "/payment-gateways" },
+    { label: currentLang === "en" ? "Financial Transactions" : "المعاملات المالية", href: "/invoices" },
     { label: currentLang === "en" ? "Payment Gateways" : "طرق الدفع" },
   ];
 

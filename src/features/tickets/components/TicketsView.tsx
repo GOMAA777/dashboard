@@ -290,7 +290,6 @@ export function TicketsView() {
 
   const breadcrumbs = selectedTicketForDetails
     ? [
-        { label: currentLang === "en" ? "Dashboard" : "الرئيسية", href: "/" },
         { label: currentLang === "en" ? "Support Tickets" : "تذاكر الدعم الفني", href: "/tickets" },
         {
           label:
@@ -301,7 +300,6 @@ export function TicketsView() {
       ]
     : isCreatingTicket
     ? [
-        { label: currentLang === "en" ? "Dashboard" : "الرئيسية", href: "/" },
         { label: currentLang === "en" ? "Support Tickets" : "تذاكر الدعم الفني", href: "/tickets" },
         { label: currentLang === "en" ? "Create New Ticket" : "إنشاء تذكرة جديدة" },
       ]
