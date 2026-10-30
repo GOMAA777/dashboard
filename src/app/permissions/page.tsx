@@ -1,17 +1,17 @@
 import React, { Suspense } from "react";
 import type { Metadata } from "next";
-import { StaffManagementView } from "@/features/staff/components/StaffManagementView";
+import { PermissionsPageSwitcher } from "@/features/permissions/components/PermissionsPageSwitcher";
 
 export const metadata: Metadata = {
-  title: "طاقم العمل | منصة الجودي لإدارة مكاتب وشركات المحاماة",
+  title: "الأدوار والصلاحيات | منصة الجودي لإدارة مكاتب وشركات المحاماة",
   description:
-    "إدارة الموظفين الذين لديهم صلاحية الدخول إلى لوحة الإدارة ومحاكاة الجلسات الرقابية",
+    "إدارة الأدوار وتحديد صلاحيات الوصول إلى أقسام النظام والهيكل الإداري للمنصة",
 };
 
 export default function PermissionsPage() {
   return (
     <Suspense fallback={null}>
-      <StaffManagementView />
+      <PermissionsPageSwitcher />
     </Suspense>
   );
 }

@@ -49,9 +49,10 @@ const navItems: NavItem[] = [
 
 interface DashboardSidebarProps {
   activeNav?: string;
+  activeSubNav?: "staff" | "roles";
 }
 
-export function DashboardSidebar({ activeNav }: DashboardSidebarProps = {}) {
+export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarProps = {}) {
   const pathname = usePathname();
   const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
   const toggleSidebarCollapsed = useUIStore((state) => state.toggleSidebarCollapsed);
@@ -212,19 +213,29 @@ export function DashboardSidebar({ activeNav }: DashboardSidebarProps = {}) {
                   </div>
                 </Link>
 
-                {/* Sub-items for Staff (فريق العمل والأدوار والصلاحيات) matching Figma 1:8875 */}
+                {/* Sub-items for Staff (فريق العمل والأدوار والصلاحيات) matching Figma 1:8875 and 1:11530 */}
                 {item.id === "staff" && isActive && (
                   <div className="flex flex-col gap-1 pr-3 pl-1 py-1">
                     <Link
-                      href="/permissions"
-                      className="flex items-center justify-between px-[12px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-right text-[#e29d38]"
+                      href="/permissions?tab=staff"
+                      className={cn(
+                        "flex items-center justify-between px-[12px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-right",
+                        activeSubNav === "roles"
+                          ? "text-[#cdc5bd] hover:text-[#fdfbf7]"
+                          : "text-[#e29d38] font-bold"
+                      )}
                     >
                       <span className="flex-1 text-right">فريق العمل</span>
                       <Users className="size-[15px] ms-2 shrink-0" />
                     </Link>
                     <Link
                       href="/permissions?tab=roles"
-                      className="flex items-center justify-between px-[12px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-right text-[#cdc5bd] hover:text-[#fdfbf7]"
+                      className={cn(
+                        "flex items-center justify-between px-[12px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-right",
+                        activeSubNav === "roles"
+                          ? "text-[#e29d38] font-bold"
+                          : "text-[#cdc5bd] hover:text-[#fdfbf7]"
+                      )}
                     >
                       <span className="flex-1 text-right">الأدوار والصلاحيات</span>
                       <Key className="size-[15px] ms-2 shrink-0" />

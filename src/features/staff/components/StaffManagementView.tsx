@@ -203,7 +203,7 @@ export function StaffManagementView() {
   return (
     <div className="flex min-h-screen bg-[#f5f3ef] text-[#1b1c1a] font-sans antialiased" dir="rtl">
       {/* Sidebar */}
-      <DashboardSidebar activeNav="staff" />
+      <DashboardSidebar activeNav="staff" activeSubNav="staff" />
 
       {/* Main Layout Area */}
       <div className="flex-1 flex flex-col min-w-0">
