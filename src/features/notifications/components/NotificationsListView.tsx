@@ -445,7 +445,7 @@ export function NotificationsListView({
                     {/* Column 3: Action Link Capsule */}
                     <td className="px-4 py-4 align-middle" data-node-id="1:12950">
                       <div
-                        className="bg-[#f5f3ef] rounded-[4px] px-2.5 py-1.5 flex items-center justify-between gap-1.5 border border-[#eae8e4] max-w-[250px]"
+                        className="bg-[#f5f3ef] dark:bg-[#281c15] rounded-[4px] px-2.5 py-1.5 flex items-center justify-between gap-1.5 border border-[#eae8e4] dark:border-[#38271c] max-w-[250px]"
                         data-node-id="1:12950"
                       >
                         {/* Action buttons (Copy + Open) */}
@@ -453,12 +453,12 @@ export function NotificationsListView({
                           <button
                             type="button"
                             onClick={() => handleCopyLink(item.actionUrl, item.id)}
-                            className="p-1 text-[#514537] hover:text-[#1b1c1a] rounded transition-colors cursor-pointer"
+                            className="p-1 text-[#514537] dark:text-[#a89f91] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] rounded transition-colors cursor-pointer"
                             title="نسخ الرابط"
                             data-node-id="1:12953"
                           >
                             {copiedId === item.id ? (
-                              <CheckCheck className="size-3.5 text-emerald-600" />
+                              <CheckCheck className="size-3.5 text-emerald-600 dark:text-emerald-400" />
                             ) : (
                               <Copy className="size-3.5" />
                             )}
@@ -467,7 +467,7 @@ export function NotificationsListView({
                             href={item.actionUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-1 text-[#514537] hover:text-[#9c6402] rounded transition-colors"
+                            className="p-1 text-[#514537] dark:text-[#a89f91] hover:text-[#9c6402] dark:hover:text-[#f59e0b] rounded transition-colors"
                             title="فتح الرابط"
                             data-node-id="1:12951"
                           >
@@ -477,7 +477,7 @@ export function NotificationsListView({
 
                         {/* Truncated clean URL */}
                         <span
-                          className="text-[#1b1c1a] text-[12px] font-normal dir-ltr text-left truncate flex-1"
+                          className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] font-normal dir-ltr text-left truncate flex-1"
                           title={item.actionUrl}
                           data-node-id="1:12958"
                         >
@@ -490,14 +490,14 @@ export function NotificationsListView({
                     <td className="px-4 py-4 align-middle text-center" data-node-id="1:12942">
                       <div className="flex items-center justify-center">
                         <div
-                          className="bg-[#f5f3ef] rounded-[4px] p-1 flex items-center gap-1 border border-[#eae8e4]"
+                          className="bg-[#f5f3ef] dark:bg-[#281c15] rounded-[4px] p-1 flex items-center gap-1 border border-[#eae8e4] dark:border-[#38271c]"
                           data-node-id="1:12943"
                         >
                           {/* Trash button */}
                           <button
                             type="button"
                             onClick={() => onInitiateDelete(item)}
-                            className="p-1.5 text-[#514537] hover:text-[#ba1a1a] hover:bg-[#ffdad6]/50 rounded-[2px] transition-colors cursor-pointer"
+                            className="p-1.5 text-[#514537] dark:text-[#a89f91] hover:text-[#ba1a1a] dark:hover:text-[#f87171] hover:bg-[#ffdad6]/50 dark:hover:bg-[rgba(186,26,26,0.2)] rounded-[2px] transition-colors cursor-pointer"
                             title="حذف الإشعار"
                             data-node-id="1:12944"
                           >
@@ -507,7 +507,7 @@ export function NotificationsListView({
                           <button
                             type="button"
                             onClick={() => onViewDetails(item)}
-                            className="p-1.5 text-[#514537] hover:text-[#9c6402] hover:bg-white rounded-[2px] transition-colors cursor-pointer"
+                            className="p-1.5 text-[#514537] dark:text-[#a89f91] hover:text-[#9c6402] dark:hover:text-[#f59e0b] hover:bg-white dark:hover:bg-[#1a120d] rounded-[2px] transition-colors cursor-pointer"
                             title="معاينة تفاصيل الإشعار"
                             data-node-id="1:12947"
                           >
@@ -524,15 +524,15 @@ export function NotificationsListView({
         </div>
 
         {/* Table Footer: Pagination */}
-        <div className="border-t border-[#f5f3ef] dark:border-[#2e231b] px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#faf9f7] dark:bg-[#18120d]">
+        <div className="border-t border-[#eae8e4] dark:border-[#2e231b] px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#faf9f7] dark:bg-[#18120d]">
           <div className="flex items-center gap-3">
-            <p className="text-[12px] text-[#514537]">
+            <p className="text-[12px] text-[#514537] dark:text-[#a89f91]">
               عرض {totalItems === 0 ? 0 : (validCurrentPage - 1) * pageSize + 1} إلى{" "}
               {Math.min(validCurrentPage * pageSize, totalItems)} من أصل {totalItems} إشعاراً
             </p>
 
-            <div className="flex items-center gap-2 border-s border-[#eae8e4] ps-3">
-              <span className="text-[11px] text-[#837565]">صفوف بالصفحة:</span>
+            <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
+              <span className="text-[11px] text-[#837565] dark:text-[#8e8680]">صفوف بالصفحة:</span>
               <PageSizeDropdown
                 value={pageSize}
                 onChange={(newSize) => {
@@ -551,7 +551,7 @@ export function NotificationsListView({
               onClick={() => setCurrentPage(1)}
               disabled={validCurrentPage <= 1}
               title="الصفحة الأولى"
-              className="size-[28px] rounded-[4px] border border-[#e6e2dc] bg-white text-[#514537] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer flex items-center justify-center"
+              className="size-[28px] rounded-[4px] border border-[#e6e2dc] dark:border-[#38271c] bg-white dark:bg-[#221812] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer flex items-center justify-center"
             >
               <ChevronsRight className="size-3.5" />
             </button>
@@ -561,7 +561,7 @@ export function NotificationsListView({
               type="button"
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={validCurrentPage <= 1}
-              className="px-3 py-1 text-[12px] rounded-[4px] border border-[#e6e2dc] bg-white text-[#514537] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer flex items-center gap-1"
+              className="px-3 py-1 text-[12px] rounded-[4px] border border-[#e6e2dc] dark:border-[#38271c] bg-white dark:bg-[#221812] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer flex items-center gap-1"
             >
               <ChevronRight className="size-3.5" />
               <span>السابق</span>
@@ -577,7 +577,7 @@ export function NotificationsListView({
               ) {
                 if (pageNumber === 4) {
                   return (
-                    <span key={pageNumber} className="px-1 text-[#837565] text-[12px]">
+                    <span key={pageNumber} className="px-1 text-[#837565] dark:text-[#8e8680] text-[12px]">
                       ...
                     </span>
                   );
@@ -592,8 +592,8 @@ export function NotificationsListView({
                   onClick={() => setCurrentPage(pageNumber)}
                   className={`size-7 text-[12px] font-bold rounded-[4px] transition-colors cursor-pointer ${
                     validCurrentPage === pageNumber
-                      ? "bg-[#9c6402] text-white shadow-sm"
-                      : "bg-[#f5f3ef] hover:bg-[#edebe6] text-[#1b1c1a]"
+                      ? "bg-[#9c6402] dark:bg-[#e29d38] text-white shadow-xs"
+                      : "bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#edebe6] dark:hover:bg-[#34241b] text-[#1b1c1a] dark:text-[#fdfbf7] border border-transparent dark:border-[#38271c]"
                   }`}
                 >
                   {pageNumber}
@@ -606,7 +606,7 @@ export function NotificationsListView({
               type="button"
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={validCurrentPage >= totalPages}
-              className="px-3 py-1 text-[12px] rounded-[4px] border border-[#e6e2dc] bg-white text-[#514537] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer flex items-center gap-1"
+              className="px-3 py-1 text-[12px] rounded-[4px] border border-[#e6e2dc] dark:border-[#38271c] bg-white dark:bg-[#221812] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer flex items-center gap-1"
             >
               <span>التالي</span>
               <ChevronLeft className="size-3.5" />
@@ -618,7 +618,7 @@ export function NotificationsListView({
               onClick={() => setCurrentPage(totalPages)}
               disabled={validCurrentPage >= totalPages}
               title="الصفحة الأخيرة"
-              className="size-[28px] rounded-[4px] border border-[#e6e2dc] bg-white text-[#514537] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer flex items-center justify-center"
+              className="size-[28px] rounded-[4px] border border-[#e6e2dc] dark:border-[#38271c] bg-white dark:bg-[#221812] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer flex items-center justify-center"
             >
               <ChevronsLeft className="size-3.5" />
             </button>
