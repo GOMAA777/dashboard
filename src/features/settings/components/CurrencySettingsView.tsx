@@ -158,11 +158,11 @@ export function CurrencySettingsView() {
             onSave={handleSaveNewCurrency}
           />
         ) : (
-          <main className="flex-1 overflow-y-auto px-[24px] sm:px-[32px] py-[24px] max-w-[1360px] w-full mx-auto pb-[80px] scrollbar-thin">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 sm:px-6 lg:px-8 py-6 max-w-[1360px] w-full mx-auto pb-24 sm:pb-28 space-y-6 scrollbar-thin">
             <DashboardPageTransition>
-              <>
+              <div className="space-y-6 w-full">
                 {/* Top Identity & Command Banner (Figma 1:17292) */}
-                <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[24px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] relative mb-[24px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]">
+                <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   {/* Title & Description */}
                   <div className="flex flex-col gap-[4px] text-start">
                     <h1 className="text-[28px] leading-[38px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
@@ -185,7 +185,7 @@ export function CurrencySettingsView() {
                 </div>
 
                 {/* Unified Filter Bar (Search Right, Pills & Small Filter Drawer Left in RTL) */}
-                <div className="mb-[16px]">
+                <div>
                   <UnifiedFilterBar
                     searchQuery={searchQuery}
                     onSearchChange={(q) => {
@@ -423,7 +423,7 @@ export function CurrencySettingsView() {
                     </>
                   )}
                 </div>
-              </>
+              </div>
             </DashboardPageTransition>
           </main>
         )}
