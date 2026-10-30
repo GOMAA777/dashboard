@@ -193,6 +193,15 @@ export function NotificationsManagementView() {
     }
   };
 
+  const breadcrumbs =
+    view === "new"
+      ? [
+          { label: "الرئيسية", href: "/" },
+          { label: "مركز الإشعارات", href: "/notifications" },
+          { label: "إرسال إشعار جديد" },
+        ]
+      : undefined;
+
   return (
     <div
       className="flex h-screen h-dvh overflow-hidden bg-background text-foreground transition-colors duration-200 font-sans antialiased"
@@ -202,7 +211,7 @@ export function NotificationsManagementView() {
 
       {/* Main Layout Area */}
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
-        <DashboardTopNavbar />
+        <DashboardTopNavbar customBreadcrumbs={breadcrumbs} />
 
         <main className="flex-1 overflow-y-auto p-6 md:p-8 w-full space-y-6 scrollbar-thin">
           <DashboardPageTransition>

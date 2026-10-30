@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useSyncExternalStore } from "react";
+import Link from "next/link";
 import Image from "next/image";
 import { Bell, Calendar, Search, Sun, Moon, ArrowLeftRight, Languages } from "lucide-react";
 import userAvatarImg from "../../../../public/figma/user-avatar.png";
@@ -135,7 +136,7 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
                 className="absolute top-[4px] start-[6px] size-[12px] rounded-full bg-[#9c6402] text-[#fff3e9] text-[9px] font-bold flex items-center justify-center"
                 data-node-id="1:653"
               >
-                4
+                3
               </span>
             </button>
 
@@ -149,7 +150,12 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
           <div className="hidden sm:block w-px h-[20px] bg-[#eae8e4] dark:bg-[#2c221c]" data-node-id="1:655" />
 
           {/* Profile Card */}
-          <div className="flex items-center gap-[8px] ps-[4px]" data-node-id="1:643">
+          <Link
+            href="/profile"
+            title={currentLanguage === "en" ? "View Profile" : "عرض الملف الشخصي"}
+            className="flex items-center gap-[8px] ps-[4px] hover:opacity-85 transition-opacity cursor-pointer"
+            data-node-id="1:643"
+          >
             <div className="flex flex-col text-start">
               <span className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[17.5px] font-sans">
                 {currentLanguage === "en" ? "Eng. Abdulaziz Bin Fahad" : "م. عبد العزيز بن فهد"}
@@ -172,7 +178,7 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
                 priority
               />
             </div>
-          </div>
+          </Link>
         </div>
       </div>
 

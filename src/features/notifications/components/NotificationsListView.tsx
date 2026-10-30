@@ -143,18 +143,18 @@ export function NotificationsListView({
     <div className="space-y-6">
       {/* Main Identity & Command Banner (Figma 1:12876) */}
       <div
-        className="bg-white rounded-[8px] p-6 border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
+        className="bg-white dark:bg-[#1c1510] rounded-[8px] p-6 border border-[#e6e2dc] dark:border-[#2e231b] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
         data-node-id="1:12876"
       >
         <div>
           <h1
-            className="text-[26px] sm:text-[28px] font-bold text-[#1b1c1a] leading-[38px]"
+            className="text-[26px] sm:text-[28px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[38px]"
             data-node-id="1:12890"
           >
             قائمة الإشعارات
           </h1>
           <p
-            className="text-[14px] text-[#514537] mt-1 max-w-[650px] leading-[22.75px]"
+            className="text-[14px] text-[#514537] dark:text-[#a89f91] mt-1 max-w-[650px] leading-[22.75px]"
             data-node-id="1:12888"
           >
             إدارة الإشعارات المركزية المرسلة إلى مكاتب المحاماة، إنشاء تحديثات المنظومة وتتبع معدلات الوصول
@@ -174,7 +174,7 @@ export function NotificationsListView({
 
       {/* Tabs and Search / Filter Header (Figma 1:12891) */}
       <div
-        className="bg-white rounded-[8px] p-6 border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] space-y-4"
+        className="bg-white dark:bg-[#1c1510] rounded-[8px] p-6 border border-[#e6e2dc] dark:border-[#2e231b] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] space-y-4"
         data-node-id="1:12891"
       >
         {/* Tab Pills & Page View Size Row (Figma 1:12892) */}
@@ -295,7 +295,7 @@ export function NotificationsListView({
 
       {/* Main Content Envelope → Data Table (Figma 1:12929) */}
       <div
-        className="bg-white rounded-[8px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#e6e2dc] overflow-hidden"
+        className="bg-white dark:bg-[#1c1510] rounded-[8px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#e6e2dc] dark:border-[#2e231b] overflow-hidden"
         data-node-id="1:12929"
       >
         <div className="overflow-x-auto">
@@ -303,7 +303,7 @@ export function NotificationsListView({
             {/* Table Header Row (Figma 1:12931) */}
             <thead>
               <tr
-                className="bg-[#f0eeea] h-[60px] text-[#514537] font-bold text-[12px] border-b border-[#eae8e4]"
+                className="bg-[#f0eeea] dark:bg-[#251b14] h-[60px] text-[#514537] dark:text-[#cdc5bd] font-bold text-[12px] border-b border-[#eae8e4] dark:border-[#2e231b]"
                 data-node-id="1:12931"
               >
                 <th
@@ -334,10 +334,10 @@ export function NotificationsListView({
             </thead>
 
             {/* Table Body */}
-            <tbody className="divide-y divide-[#f5f3ef]" data-node-id="1:12940">
+            <tbody className="divide-y divide-[#f5f3ef] dark:divide-[#261d16]" data-node-id="1:12940">
               {paginatedNotifications.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="text-center py-12 text-[#837565] text-[14px]">
+                  <td colSpan={4} className="text-center py-12 text-[#837565] dark:text-[#a89f91] text-[14px]">
                     لا توجد إشعارات مطابقة لمعايير البحث المحددة
                   </td>
                 </tr>
@@ -345,7 +345,7 @@ export function NotificationsListView({
                 paginatedNotifications.map((item) => (
                   <tr
                     key={item.id}
-                    className="hover:bg-[#faf9f7] transition-colors"
+                    className="hover:bg-[#faf9f7] dark:hover:bg-[#231b14] transition-colors"
                     data-node-id="1:12941"
                   >
                     {/* Column 1: Notification Title & Meta */}
@@ -489,7 +489,7 @@ export function NotificationsListView({
         </div>
 
         {/* Table Footer: Pagination */}
-        <div className="border-t border-[#f5f3ef] px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="border-t border-[#f5f3ef] dark:border-[#2e231b] px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#faf9f7] dark:bg-[#18120d]">
           <div className="flex items-center gap-3">
             <p className="text-[12px] text-[#514537]">
               عرض {totalItems === 0 ? 0 : (validCurrentPage - 1) * pageSize + 1} إلى{" "}
