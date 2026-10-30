@@ -19,8 +19,7 @@ export default function DashboardHomePage() {
   return (
     <DashboardAuthGate>
       <div
-        className="flex min-h-screen bg-[#fcfbfa] text-[#1b1c1a]"
-        dir="rtl"
+        className="flex min-h-screen bg-background text-foreground transition-colors duration-200"
         data-node-id="1:3"
         data-name="الرئيسية"
       >

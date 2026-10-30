@@ -47,7 +47,7 @@ export function SubscriptionManagementView() {
 
   // Pagination state (internal)
   const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(5);
 
   // Local state for subscriptions list
   const [subscriptions, setSubscriptions] = useState<SubscriptionRecord[]>(
@@ -287,7 +287,7 @@ export function SubscriptionManagementView() {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-[#f5f3ef] dark:bg-[#151311] direction-rtl font-['Cairo',sans-serif]">
+    <div className="flex min-h-screen w-full bg-background text-foreground transition-colors duration-200 font-['Cairo',sans-serif]">
       {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar activeNav="subscriptions" />
 

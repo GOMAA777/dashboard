@@ -22,8 +22,7 @@ export function DashboardAuthGate({ children }: { children: React.ReactNode }) {
   if (isAuth !== true) {
     return (
       <div
-        className="min-h-screen w-full bg-[#fcfbfa] flex items-center justify-center p-6 select-none"
-        dir="rtl"
+        className="min-h-screen w-full bg-background text-foreground flex items-center justify-center p-6 select-none"
       >
         <div className="flex flex-col items-center gap-4 text-center">
           <div className="size-10 border-3 border-[#c29547] border-t-transparent rounded-full animate-spin" />

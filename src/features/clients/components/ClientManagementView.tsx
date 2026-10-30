@@ -178,7 +178,7 @@ export function ClientManagementView() {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-[#f5f3ef] direction-rtl font-['Cairo',sans-serif]">
+    <div className="flex min-h-screen w-full bg-background text-foreground transition-colors duration-200 font-['Cairo',sans-serif]">
       {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar />
 

@@ -194,8 +194,7 @@ export function NotificationsManagementView() {
 
   return (
     <div
-      className="flex min-h-screen bg-[#f5f3ef] text-[#1b1c1a] font-sans antialiased"
-      dir="rtl"
+      className="flex min-h-screen bg-background text-foreground transition-colors duration-200 font-sans antialiased"
     >
       {/* Dashboard Sidebar with Notifications highlighted */}
       <DashboardSidebar activeNav="notifications" />

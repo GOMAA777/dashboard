@@ -20,7 +20,7 @@ import { ScalesOfJusticeWatermark } from "@/components/shared/ScalesOfJusticeWat
 
 export function ProfileView() {
   return (
-    <div className="flex min-h-screen bg-[#fcfbfa] dark:bg-[#121110] text-[#1c1917] dark:text-[#f5f4f0] transition-colors duration-200 relative font-sans" dir="rtl">
+    <div className="flex min-h-screen bg-background text-foreground transition-colors duration-200 relative font-sans">
       {/* 1. Main Navigation Sidebar */}
       <DashboardSidebar />
 

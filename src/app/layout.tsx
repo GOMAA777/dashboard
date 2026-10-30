@@ -40,6 +40,10 @@ export default function RootLayout({
                 if (d === 'ltr' || d === 'rtl') {
                   document.documentElement.dir = d;
                 }
+                var l = localStorage.getItem('app-language');
+                if (l === 'ar' || l === 'en') {
+                  document.documentElement.lang = l;
+                }
               } catch (e) {}
             `,
           }}

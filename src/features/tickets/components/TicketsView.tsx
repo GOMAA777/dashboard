@@ -277,7 +277,7 @@ export function TicketsView() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#f5f3ef] text-[#1c140f] antialiased select-none" dir="rtl">
+    <div className="flex min-h-screen bg-background text-foreground transition-colors duration-200 antialiased select-none">
       {/* Sidebar with activeNav="support" and activeSubNav={activeTab} */}
       <DashboardSidebar activeNav="support" activeSubNav={activeTab} />
 

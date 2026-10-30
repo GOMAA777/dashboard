@@ -139,8 +139,7 @@ export function PlansView() {
 
   return (
     <div
-      className="flex min-h-screen w-full bg-[#f5f3ef] text-[#1b1c1a] font-['Cairo',sans-serif] selection:bg-[#9c6402]/20 selection:text-[#9c6402]"
-      dir="rtl"
+      className="flex min-h-screen w-full bg-background text-foreground transition-colors duration-200 font-['Cairo',sans-serif] selection:bg-[#9c6402]/20 selection:text-[#9c6402]"
     >
       {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar activeNav="plans" />
