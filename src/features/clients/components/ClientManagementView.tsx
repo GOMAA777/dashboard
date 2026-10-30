@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
@@ -16,24 +17,66 @@ import { initialOffices } from "../data/initialOffices";
 import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 
 export function ClientManagementView() {
-  const [currentView, setCurrentView] = useState<"list" | "add" | "details">("list");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const officeIdParam = searchParams?.get("officeId");
+  const actionParam = searchParams?.get("action");
+
   const [offices, setOffices] = useState<ClientOffice[]>(initialOffices);
-  const [selectedOffice, setSelectedOffice] = useState<ClientOffice | null>(null);
-  const [officeToEdit, setOfficeToEdit] = useState<ClientOffice | null>(null);
+  const [activeOfficeId, setActiveOfficeId] = useState<string | null>(officeIdParam || null);
+  const [editingOfficeId, setEditingOfficeId] = useState<string | null>(
+    actionParam === "edit" ? officeIdParam || null : null
+  );
+  const [isAddingNew, setIsAddingNew] = useState<boolean>(actionParam === "add");
+
+  // Adjust state during render when URL search params change
+  const [prevOfficeIdParam, setPrevOfficeIdParam] = useState(officeIdParam);
+  const [prevActionParam, setPrevActionParam] = useState(actionParam);
+
+  if (officeIdParam !== prevOfficeIdParam || actionParam !== prevActionParam) {
+    setPrevOfficeIdParam(officeIdParam);
+    setPrevActionParam(actionParam);
+    setActiveOfficeId(officeIdParam || null);
+    setEditingOfficeId(actionParam === "edit" ? officeIdParam || null : null);
+    setIsAddingNew(actionParam === "add");
+  }
+
+  const selectedOffice = activeOfficeId
+    ? offices.find((o) => o.id === activeOfficeId) || null
+    : null;
+
+  const officeToEdit = editingOfficeId
+    ? offices.find((o) => o.id === editingOfficeId) || null
+    : null;
+
+  const currentView: "list" | "add" | "details" = isAddingNew || officeToEdit
+    ? "add"
+    : selectedOffice
+    ? "details"
+    : "list";
 
   // Modals state
   const [officeToDeactivate, setOfficeToDeactivate] = useState<ClientOffice | null>(null);
   const [officeToDelete, setOfficeToDelete] = useState<ClientOffice | null>(null);
 
   // Handlers
+  const handleBackToList = () => {
+    setActiveOfficeId(null);
+    setEditingOfficeId(null);
+    setIsAddingNew(false);
+    router.replace("/accounts");
+  };
+
   const handleStartAddOffice = () => {
-    setOfficeToEdit(null);
-    setCurrentView("add");
+    setActiveOfficeId(null);
+    setEditingOfficeId(null);
+    setIsAddingNew(true);
   };
 
   const handleStartEditOffice = (office: ClientOffice) => {
-    setOfficeToEdit(office);
-    setCurrentView("add");
+    setActiveOfficeId(null);
+    setEditingOfficeId(office.id);
+    setIsAddingNew(false);
   };
 
   const handleSaveOffice = (data: OfficeFormData, isEdit: boolean) => {
@@ -58,16 +101,13 @@ export function ClientManagementView() {
                 ? "bg-[#f5f3ef] text-[#514537] border border-[#eae8e4] dark:bg-[#281c15] dark:text-[#cdc5bd] dark:border-[#4d3627]"
                 : "bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe] dark:bg-[#172554] dark:text-[#93c5fd] dark:border-blue-500/40",
             };
-            if (selectedOffice?.id === officeToEdit.id) {
-              setSelectedOffice(updated);
-            }
             return updated;
           }
           return o;
         })
       );
-      setOfficeToEdit(null);
-      setCurrentView("list");
+      setEditingOfficeId(null);
+      setIsAddingNew(false);
     } else {
       const newOffice: ClientOffice = {
         id: Date.now().toString(),
@@ -105,8 +145,8 @@ export function ClientManagementView() {
       };
 
       setOffices((prev) => [newOffice, ...prev]);
-      setOfficeToEdit(null);
-      setCurrentView("list");
+      setEditingOfficeId(null);
+      setIsAddingNew(false);
     }
   };
 
@@ -128,9 +168,6 @@ export function ClientManagementView() {
               dotClass: "bg-[#dc2626]",
             },
           };
-          if (selectedOffice?.id === targetId) {
-            setSelectedOffice(updated);
-          }
           return updated;
         }
         return o;
@@ -148,9 +185,10 @@ export function ClientManagementView() {
 
     setOffices((prev) => prev.filter((o) => o.id !== targetId));
 
-    if (selectedOffice?.id === targetId) {
-      setSelectedOffice(null);
-      setCurrentView("list");
+    if (activeOfficeId === targetId) {
+      setActiveOfficeId(null);
+      setEditingOfficeId(null);
+      setIsAddingNew(false);
     }
 
     toast.error(`تم حذف مكتب "${targetName}" نهائياً من النظام.`);
@@ -171,9 +209,6 @@ export function ClientManagementView() {
               dotClass: "bg-[#1b7340]",
             },
           };
-          if (selectedOffice?.id === office.id) {
-            setSelectedOffice(updated);
-          }
           return updated;
         }
         return o;
@@ -184,12 +219,12 @@ export function ClientManagementView() {
   const breadcrumbs =
     currentView === "details"
       ? [
-          { label: "مكاتب المحاماة", href: "/law-firms" },
+          { label: "إدارة العملاء", href: "/accounts" },
           { label: selectedOffice?.name || "تفاصيل المكتب" },
         ]
       : currentView === "add"
       ? [
-          { label: "مكاتب المحاماة", href: "/law-firms" },
+          { label: "إدارة العملاء", href: "/accounts" },
           { label: officeToEdit ? "تعديل بيانات المكتب" : "إضافة مكتب محاماة جديد" },
         ]
       : undefined;
@@ -197,7 +232,7 @@ export function ClientManagementView() {
   return (
     <div className="flex h-screen h-dvh overflow-hidden w-full bg-background text-foreground transition-colors duration-200 font-['Cairo',sans-serif]">
       {/* 1. Global Navigation Sidebar */}
-      <DashboardSidebar />
+      <DashboardSidebar activeNav="clients" />
 
       {/* 2. Main Content Area */}
       <div className="flex-1 flex flex-col h-full min-w-0 min-h-0 overflow-hidden">
@@ -219,8 +254,9 @@ export function ClientManagementView() {
                 <ClientManagementTable
                   offices={offices}
                   onViewOfficeDetails={(office) => {
-                    setSelectedOffice(office);
-                    setCurrentView("details");
+                    setActiveOfficeId(office.id);
+                    setEditingOfficeId(null);
+                    setIsAddingNew(false);
                   }}
                   onEditOffice={handleStartEditOffice}
                   onOpenDeactivateModal={(office) => setOfficeToDeactivate(office)}
@@ -233,10 +269,7 @@ export function ClientManagementView() {
               <AddClientOfficeView
                 key={officeToEdit ? officeToEdit.id : "new-office"}
                 officeToEdit={officeToEdit}
-                onBack={() => {
-                  setOfficeToEdit(null);
-                  setCurrentView("list");
-                }}
+                onBack={handleBackToList}
                 onSuccess={handleSaveOffice}
               />
             )}
@@ -244,7 +277,7 @@ export function ClientManagementView() {
             {currentView === "details" && (
               <ClientOfficeDetailsView
                 office={selectedOffice}
-                onBack={() => setCurrentView("list")}
+                onBack={handleBackToList}
                 onEdit={() => {
                   if (selectedOffice) {
                     handleStartEditOffice(selectedOffice);

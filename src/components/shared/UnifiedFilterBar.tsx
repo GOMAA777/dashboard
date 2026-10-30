@@ -82,7 +82,7 @@ export function UnifiedFilterBar({
             <select
               value={primaryFilterValue}
               onChange={(e) => onPrimaryFilterChange(e.target.value)}
-              className="appearance-none bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] border border-transparent dark:border-[#38271c] rounded-[6px] h-[40px] px-[14px] pe-[34px] text-[13px] font-bold text-[#514537] dark:text-[#cdc5bd] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer transition-colors"
+              className="appearance-none bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] border border-[#eae8e4] dark:border-[#38271c] rounded-[8px] h-[40px] px-[14px] pe-[40px] text-[13px] font-bold text-[#514537] dark:text-[#cdc5bd] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer transition-colors"
             >
               {primaryFilterOptions.map((opt) => (
                 <option key={opt.value} value={opt.value} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
@@ -90,7 +90,7 @@ export function UnifiedFilterBar({
                 </option>
               ))}
             </select>
-            <ChevronDown className="size-[14px] text-[#837565] dark:text-[#8e8680] absolute end-[10px] top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="size-[15px] text-[#837565] dark:text-[#8e8680] absolute end-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         ) : (
           <div className="bg-[#f5f3ef] dark:bg-[#1a120d] p-[3px] rounded-[6px] border border-[#eae8e4] dark:border-[#38271c] inline-flex items-center gap-[3px] shrink-0 overflow-x-auto scrollbar-none">

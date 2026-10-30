@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { ChevronDown, ImageIcon, Save } from "lucide-react";
+import { ImageIcon, Save } from "lucide-react";
+import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { toast } from "sonner";
 import { initialSeo } from "../../data/initialWebsiteSettings";
 import { SeoData } from "../../types/website-settings.types";
@@ -34,17 +35,13 @@ export function SeoTab() {
         <label className="block text-[12px] font-semibold text-[#57534e] dark:text-[#cdc5bd] mb-[6px] text-start">
           Language (لغة الإعدادات المستهدفة)
         </label>
-        <div className="relative">
-          <select
-            value={data.language}
-            onChange={(e) => handleChange("language", e.target.value)}
-            className="w-full bg-[#fafaf9]/60 dark:bg-[#1a120d] border border-[#e7e5e4] dark:border-[#38271c] text-[#1c1917] dark:text-[#fdfbf7] text-[13px] rounded-[8px] ps-[14px] pe-[36px] py-[9px] appearance-none cursor-pointer focus:outline-none focus:border-[#9c6402] dark:focus:border-[#e29d38] focus:bg-white dark:focus:bg-[#1a120d] text-start"
-          >
-            <option value="English">English</option>
-            <option value="العربية">العربية (Arabic)</option>
-          </select>
-          <ChevronDown className="absolute top-1/2 -translate-y-1/2 end-[12px] size-[15px] text-[#78716c] dark:text-[#8e8680] pointer-events-none" />
-        </div>
+        <DashboardSelect
+          value={data.language}
+          onChange={(e) => handleChange("language", e.target.value)}
+        >
+          <option value="English" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">English</option>
+          <option value="العربية" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">العربية (Arabic)</option>
+        </DashboardSelect>
       </div>
 
       {/* 2. Author Name */}

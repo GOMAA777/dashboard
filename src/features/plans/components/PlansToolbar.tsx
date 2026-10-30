@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { ChevronDown } from "lucide-react";
 import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
+import { DashboardSelect } from "@/components/shared/DashboardSelect";
 
 interface PlansToolbarProps {
   searchQuery: string;
@@ -47,20 +47,16 @@ export function PlansToolbar({
         <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
           حالة الباقة
         </label>
-        <div className="relative">
-          <select
-            value={statusFilter}
-            onChange={(e) =>
-              onStatusFilterChange(e.target.value as "all" | "active" | "inactive")
-            }
-            className="w-full h-[42px] appearance-none bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[14px] pe-[36px] border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
-          >
-            <option value="all">كافة حالات الباقات ({counts.all})</option>
-            <option value="active">الباقات المفعلة فقط ({counts.active})</option>
-            <option value="inactive">الباقات المعطلة فقط ({counts.inactive})</option>
-          </select>
-          <ChevronDown className="size-[15px] text-[#837565] dark:text-[#8e8680] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none" />
-        </div>
+        <DashboardSelect
+          value={statusFilter}
+          onChange={(e) =>
+            onStatusFilterChange(e.target.value as "all" | "active" | "inactive")
+          }
+        >
+          <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">كافة حالات الباقات ({counts.all})</option>
+          <option value="active" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الباقات المفعلة فقط ({counts.active})</option>
+          <option value="inactive" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الباقات المعطلة فقط ({counts.inactive})</option>
+        </DashboardSelect>
       </div>
 
       {/* 2. Billing Cycle Option */}
@@ -102,22 +98,18 @@ export function PlansToolbar({
         <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
           ترتيب العرض
         </label>
-        <div className="relative">
-          <select
-            value={sortBy}
-            onChange={(e) =>
-              onSortByChange(
-                e.target.value as "price_desc" | "price_asc" | "subscribers"
-              )
-            }
-            className="w-full h-[42px] appearance-none bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[14px] pe-[36px] border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
-          >
-            <option value="price_desc">الأعلى سعراً أولاً</option>
-            <option value="price_asc">الأقل سعراً أولاً</option>
-            <option value="subscribers">الأكثر طلباً ومشتركين أولاً</option>
-          </select>
-          <ChevronDown className="size-[15px] text-[#837565] dark:text-[#8e8680] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none" />
-        </div>
+        <DashboardSelect
+          value={sortBy}
+          onChange={(e) =>
+            onSortByChange(
+              e.target.value as "price_desc" | "price_asc" | "subscribers"
+            )
+          }
+        >
+          <option value="price_desc" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الأعلى سعراً أولاً</option>
+          <option value="price_asc" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الأقل سعراً أولاً</option>
+          <option value="subscribers" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الأكثر طلباً ومشتركين أولاً</option>
+        </DashboardSelect>
       </div>
     </div>
   );

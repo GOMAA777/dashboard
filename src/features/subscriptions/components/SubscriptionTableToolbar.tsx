@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Search, SlidersHorizontal, RotateCcw, Check } from "lucide-react";
+import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import {
   Sheet,
   SheetTrigger,
@@ -198,59 +199,56 @@ export function SubscriptionTableToolbar({
 
             <div className="flex-1 overflow-y-auto p-5 space-y-5 text-start font-['Cairo',sans-serif]">
               {/* 1. Plan Filter */}
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
                   باقة الاشتراك
                 </label>
-                <select
+                <DashboardSelect
                   value={planFilter}
                   onChange={(e) => onPlanChange(e.target.value)}
-                  className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-3 border border-[#eae8e4] dark:border-[#38332c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] cursor-pointer"
                 >
-                  <option value="all">جميع الباقات</option>
-                  <option value="custom">الباقة المخصصة</option>
-                  <option value="gold">الباقة الذهبية</option>
-                  <option value="silver">الباقة الفضية</option>
-                  <option value="basic">الباقة الأساسية</option>
-                </select>
+                  <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">جميع الباقات</option>
+                  <option value="custom" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الباقة المخصصة</option>
+                  <option value="gold" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الباقة الذهبية</option>
+                  <option value="silver" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الباقة الفضية</option>
+                  <option value="basic" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الباقة الأساسية</option>
+                </DashboardSelect>
               </div>
 
               {/* 2. Status Filter */}
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
                   حالة الاشتراك
                 </label>
-                <select
+                <DashboardSelect
                   value={statusFilter}
                   onChange={(e) => onStatusChange(e.target.value)}
-                  className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-3 border border-[#eae8e4] dark:border-[#38332c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] cursor-pointer"
                 >
-                  <option value="all">جميع الحالات</option>
-                  <option value="active">نشط</option>
-                  <option value="pending">قيد الانتظار</option>
-                  <option value="expired">منتهي</option>
-                  <option value="cancelled">ملغي</option>
-                  <option value="rejected">مرفوض</option>
-                </select>
+                  <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">جميع الحالات</option>
+                  <option value="active" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">نشط</option>
+                  <option value="pending" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">قيد الانتظار</option>
+                  <option value="expired" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">منتهي</option>
+                  <option value="cancelled" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">ملغي</option>
+                  <option value="rejected" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">مرفوض</option>
+                </DashboardSelect>
               </div>
 
               {/* 3. Payment Method Filter */}
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
                   طريقة الدفع
                 </label>
-                <select
+                <DashboardSelect
                   value={paymentMethodFilter}
                   onChange={(e) => onPaymentMethodChange(e.target.value)}
-                  className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-3 border border-[#eae8e4] dark:border-[#38332c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] cursor-pointer"
                 >
-                  <option value="all">طرق الدفع (الكل)</option>
-                  <option value="mada">مدى</option>
-                  <option value="visa">VISA / Mastercard</option>
-                  <option value="sadad">سداد</option>
-                  <option value="transfer">تحويل بنكي</option>
-                  <option value="settlement">تسوية</option>
-                </select>
+                  <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">طرق الدفع (الكل)</option>
+                  <option value="mada" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">مدى</option>
+                  <option value="visa" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">VISA / Mastercard</option>
+                  <option value="sadad" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">سداد</option>
+                  <option value="transfer" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">تحويل بنكي</option>
+                  <option value="settlement" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">تسوية</option>
+                </DashboardSelect>
               </div>
             </div>
 

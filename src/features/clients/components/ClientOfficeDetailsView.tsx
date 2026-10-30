@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import {
   ArrowLeft,
-  ArrowRight,
   Scale,
   Calendar,
   Lock,

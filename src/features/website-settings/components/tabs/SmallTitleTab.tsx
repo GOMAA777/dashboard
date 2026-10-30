@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Search, ChevronDown, PenSquare } from "lucide-react";
+import { Search, PenSquare } from "lucide-react";
+import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { toast } from "sonner";
 import { initialSmallTitles } from "../../data/initialWebsiteSettings";
 import { SmallTitleItem } from "../../types/website-settings.types";
@@ -35,16 +36,12 @@ export function SmallTitleTab() {
       {/* Top Filter Bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]">
         {/* Page Limit Selector */}
-        <div className="relative">
-          <select
-            defaultValue="10"
-            className="bg-[#fafaf9]/70 dark:bg-[#1a120d] border border-[#e7e5e4] dark:border-[#38271c] text-[#1c1917] dark:text-[#fdfbf7] text-[13px] rounded-[8px] ps-[14px] pe-[32px] py-[8px] appearance-none cursor-pointer focus:outline-none focus:border-[#9c6402] dark:focus:border-[#e29d38]"
-          >
-            <option value="10">10 عنصر لكل صفحة (Feature Per Page)</option>
-            <option value="25">25 عنصر لكل صفحة</option>
-            <option value="50">50 عنصر لكل صفحة</option>
-          </select>
-          <ChevronDown className="absolute top-1/2 -translate-y-1/2 end-[10px] size-[14px] text-[#78716c] dark:text-[#8e8680] pointer-events-none" />
+        <div className="w-full sm:w-[260px]">
+          <DashboardSelect defaultValue="10">
+            <option value="10" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">10 عنصر لكل صفحة (Feature Per Page)</option>
+            <option value="25" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">25 عنصر لكل صفحة</option>
+            <option value="50" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">50 عنصر لكل صفحة</option>
+          </DashboardSelect>
         </div>
 
         {/* Search */}

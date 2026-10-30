@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { ChevronDown } from "lucide-react";
 import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
+import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { staffRoles } from "../data/initialStaff";
 
 interface StaffToolbarProps {
@@ -43,21 +43,17 @@ export function StaffToolbar({
         <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
           الدور والصلاحية
         </label>
-        <div className="relative">
-          <select
-            value={selectedRole}
-            onChange={(e) => onRoleChange(e.target.value)}
-            className="w-full h-[42px] appearance-none bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[14px] pe-[36px] border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
-          >
-            <option value="all">كافة الأدوار والصلاحيات</option>
-            {staffRoles.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.name}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="size-[15px] text-[#837565] dark:text-[#8e8680] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none" />
-        </div>
+        <DashboardSelect
+          value={selectedRole}
+          onChange={(e) => onRoleChange(e.target.value)}
+        >
+          <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">كافة الأدوار والصلاحيات</option>
+          {staffRoles.map((r) => (
+            <option key={r.id} value={r.id} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+              {r.name}
+            </option>
+          ))}
+        </DashboardSelect>
       </div>
 
       {/* Status Filter */}
@@ -65,18 +61,14 @@ export function StaffToolbar({
         <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
           حالة الموظف
         </label>
-        <div className="relative">
-          <select
-            value={selectedStatus}
-            onChange={(e) => onStatusChange(e.target.value)}
-            className="w-full h-[42px] appearance-none bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[14px] pe-[36px] border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
-          >
-            <option value="all">جميع الحالات</option>
-            <option value="active">نشط</option>
-            <option value="suspended">موقوف</option>
-          </select>
-          <ChevronDown className="size-[15px] text-[#837565] dark:text-[#8e8680] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none" />
-        </div>
+        <DashboardSelect
+          value={selectedStatus}
+          onChange={(e) => onStatusChange(e.target.value)}
+        >
+          <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">جميع الحالات</option>
+          <option value="active" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">نشط</option>
+          <option value="suspended" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">موقوف</option>
+        </DashboardSelect>
       </div>
 
       {/* Last Login Filter */}
@@ -84,19 +76,15 @@ export function StaffToolbar({
         <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
           آخر تسجيل دخول
         </label>
-        <div className="relative">
-          <select
-            value={selectedLastLogin}
-            onChange={(e) => onLastLoginChange(e.target.value)}
-            className="w-full h-[42px] appearance-none bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[14px] pe-[36px] border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
-          >
-            <option value="all">الكل</option>
-            <option value="today">اليوم</option>
-            <option value="week">هذا الأسبوع</option>
-            <option value="month">هذا الشهر</option>
-          </select>
-          <ChevronDown className="size-[15px] text-[#837565] dark:text-[#8e8680] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none" />
-        </div>
+        <DashboardSelect
+          value={selectedLastLogin}
+          onChange={(e) => onLastLoginChange(e.target.value)}
+        >
+          <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الكل</option>
+          <option value="today" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">اليوم</option>
+          <option value="week" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">هذا الأسبوع</option>
+          <option value="month" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">هذا الشهر</option>
+        </DashboardSelect>
       </div>
     </div>
   );

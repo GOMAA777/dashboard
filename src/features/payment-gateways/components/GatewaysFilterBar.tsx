@@ -2,6 +2,7 @@
 
 import React from "react";
 import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
+import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { GatewayFilterStatus } from "../types/payment-gateways.types";
 
 interface GatewaysFilterBarProps {
@@ -28,19 +29,24 @@ export function GatewaysFilterBar({
   const drawerContent = (
     <div className="space-y-4 text-start font-['Cairo',sans-serif]">
       {/* Gateway Status Filter */}
-      <div className="space-y-1.5">
-        <label className="text-[13px] font-bold text-[#1b1c1a] block">
+      <div className="space-y-2">
+        <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
           حالة الاتصال والربط
         </label>
-        <select
+        <DashboardSelect
           value={filter}
           onChange={(e) => onFilterChange(e.target.value as GatewayFilterStatus)}
-          className="w-full h-[40px] bg-[#f5f3ef] text-[#1b1c1a] text-[13px] font-semibold rounded-[4px] px-[12px] border border-transparent focus:outline-none focus:ring-1 focus:ring-[#9c6402] cursor-pointer"
         >
-          <option value="all">كل بوابات الدفع ({totalCount})</option>
-          <option value="active">البوابات المتصلة والنشطة ({activeCount})</option>
-          <option value="disabled">البوابات غير المفعلة ({disabledCount})</option>
-        </select>
+          <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+            كل بوابات الدفع ({totalCount})
+          </option>
+          <option value="active" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+            البوابات المتصلة والنشطة ({activeCount})
+          </option>
+          <option value="disabled" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+            البوابات غير المفعلة ({disabledCount})
+          </option>
+        </DashboardSelect>
       </div>
     </div>
   );

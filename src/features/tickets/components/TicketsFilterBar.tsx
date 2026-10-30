@@ -2,6 +2,7 @@
 
 import React from "react";
 import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
+import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { Sparkles } from "lucide-react";
 import { TicketFilterStatus } from "../types/tickets.types";
 
@@ -34,20 +35,19 @@ export function TicketsFilterBar({
   const drawerContent = (
     <div className="space-y-4 text-start font-['Cairo',sans-serif]">
       {/* Ticket Status Filter */}
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
           حالة التذكرة
         </label>
-        <select
+        <DashboardSelect
           value={filterStatus}
           onChange={(e) => onFilterChange(e.target.value as TicketFilterStatus)}
-          className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[12px] border border-transparent dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
         >
-          <option value="all">كل التذاكر ({counts.all})</option>
-          <option value="open">تذاكر مفتوحة ({counts.open})</option>
-          <option value="in_progress">تذاكر جارية المعالجة ({counts.in_progress})</option>
-          <option value="closed">تذاكر مغلقة ({counts.closed})</option>
-        </select>
+          <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">كل التذاكر ({counts.all})</option>
+          <option value="open" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">تذاكر مفتوحة ({counts.open})</option>
+          <option value="in_progress" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">تذاكر جارية المعالجة ({counts.in_progress})</option>
+          <option value="closed" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">تذاكر مغلقة ({counts.closed})</option>
+        </DashboardSelect>
       </div>
     </div>
   );

@@ -9,7 +9,6 @@ import {
   ChevronLeft,
   ChevronsRight,
   ChevronsLeft,
-  ChevronDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ClientOffice, TabFilter } from "../types/client.types";
@@ -17,6 +16,7 @@ import { initialOffices } from "../data/initialOffices";
 import { ClientRowActionMenu } from "./ClientRowActionMenu";
 import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
 import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
+import { DashboardSelect } from "@/components/shared/DashboardSelect";
 
 export { initialOffices };
 
@@ -194,18 +194,14 @@ export function ClientManagementTable({
               <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
                 حالة الحساب
               </label>
-              <div className="relative">
-                <select
-                  value={activeTab}
-                  onChange={(e) => setActiveTab(e.target.value as TabFilter)}
-                  className="w-full h-[42px] appearance-none bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[14px] pe-[36px] border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
-                >
-                  <option value="all">كافة الحالات (الكل)</option>
-                  <option value="active">الحسابات النشطة فقط</option>
-                  <option value="suspended">الحسابات المعطلة فقط</option>
-                </select>
-                <ChevronDown className="size-[15px] text-[#837565] dark:text-[#8e8680] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
+              <DashboardSelect
+                value={activeTab}
+                onChange={(e) => setActiveTab(e.target.value as TabFilter)}
+              >
+                <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">كافة الحالات (الكل)</option>
+                <option value="active" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الحسابات النشطة فقط</option>
+                <option value="suspended" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الحسابات المعطلة فقط</option>
+              </DashboardSelect>
             </div>
 
             {/* 2. Subscription Status */}
@@ -213,19 +209,15 @@ export function ClientManagementTable({
               <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
                 حالة الاشتراك
               </label>
-              <div className="relative">
-                <select
-                  value={subscriptionStatusFilter}
-                  onChange={(e) => setSubscriptionStatusFilter(e.target.value)}
-                  className="w-full h-[42px] appearance-none bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[14px] pe-[36px] border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
-                >
-                  <option value="all">كافة اشتراكات المكاتب</option>
-                  <option value="active">اشتراك نشط وساري</option>
-                  <option value="trial">تحت التجربة المجانية</option>
-                  <option value="expired">منتهي الصلاحية</option>
-                </select>
-                <ChevronDown className="size-[15px] text-[#837565] dark:text-[#8e8680] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
+              <DashboardSelect
+                value={subscriptionStatusFilter}
+                onChange={(e) => setSubscriptionStatusFilter(e.target.value)}
+              >
+                <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">كافة اشتراكات المكاتب</option>
+                <option value="active" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">اشتراك نشط وساري</option>
+                <option value="trial" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">تحت التجربة المجانية</option>
+                <option value="expired" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">منتهي الصلاحية</option>
+              </DashboardSelect>
             </div>
 
             {/* 3. Plan Filter */}
@@ -233,20 +225,16 @@ export function ClientManagementTable({
               <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
                 باقة الاشتراك المعتمدة
               </label>
-              <div className="relative">
-                <select
-                  value={planFilter}
-                  onChange={(e) => setPlanFilter(e.target.value)}
-                  className="w-full h-[42px] appearance-none bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[14px] pe-[36px] border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
-                >
-                  <option value="all">جميع الباقات</option>
-                  <option value="الاحترافية">الباقة الاحترافية (Pro)</option>
-                  <option value="الشركات">باقة الشركات (Enterprise)</option>
-                  <option value="الأساسية">الباقة الأساسية (Basic)</option>
-                  <option value="مجانية">تجربة مجانية (Free Trial)</option>
-                </select>
-                <ChevronDown className="size-[15px] text-[#837565] dark:text-[#8e8680] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
+              <DashboardSelect
+                value={planFilter}
+                onChange={(e) => setPlanFilter(e.target.value)}
+              >
+                <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">جميع الباقات</option>
+                <option value="الاحترافية" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الباقة الاحترافية (Pro)</option>
+                <option value="الشركات" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">باقة الشركات (Enterprise)</option>
+                <option value="الأساسية" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الباقة الأساسية (Basic)</option>
+                <option value="مجانية" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">تجربة مجانية (Free Trial)</option>
+              </DashboardSelect>
             </div>
 
             {/* 4. City Filter */}
@@ -254,22 +242,18 @@ export function ClientManagementTable({
               <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
                 المدينة / المقر الرئيسي
               </label>
-              <div className="relative">
-                <select
-                  value={cityFilter}
-                  onChange={(e) => setCityFilter(e.target.value)}
-                  className="w-full h-[42px] appearance-none bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[14px] pe-[36px] border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
-                >
-                  <option value="all">كافة المدن والمناطق</option>
-                  <option value="الرياض">مدينة الرياض</option>
-                  <option value="جدة">مدينة جدة</option>
-                  <option value="الدمام">الدمام والمنطقة الشرقية</option>
-                  <option value="الخبر">محافظة الخبر</option>
-                  <option value="مكة المكرمة">مكة المكرمة</option>
-                  <option value="المدينة المنورة">المدينة المنورة</option>
-                </select>
-                <ChevronDown className="size-[15px] text-[#837565] dark:text-[#8e8680] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
+              <DashboardSelect
+                value={cityFilter}
+                onChange={(e) => setCityFilter(e.target.value)}
+              >
+                <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">كافة المدن والمناطق</option>
+                <option value="الرياض" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">مدينة الرياض</option>
+                <option value="جدة" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">مدينة جدة</option>
+                <option value="الدمام" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الدمام والمنطقة الشرقية</option>
+                <option value="الخبر" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">محافظة الخبر</option>
+                <option value="مكة المكرمة" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">مكة المكرمة</option>
+                <option value="المدينة المنورة" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">المدينة المنورة</option>
+              </DashboardSelect>
             </div>
 
             {/* 5. Sort Order */}
@@ -277,18 +261,14 @@ export function ClientManagementTable({
               <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
                 ترتيب النتائج
               </label>
-              <div className="relative">
-                <select
-                  value={sortOrder}
-                  onChange={(e) => setSortOrder(e.target.value as "newest" | "oldest" | "name")}
-                  className="w-full h-[42px] appearance-none bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[14px] pe-[36px] border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
-                >
-                  <option value="newest">الأحدث تسجيلاً أولاً</option>
-                  <option value="oldest">الأقدم تسجيلاً أولاً</option>
-                  <option value="name">أبجدياً حسب اسم المنشأة (أ - ي)</option>
-                </select>
-                <ChevronDown className="size-[15px] text-[#837565] dark:text-[#8e8680] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
+              <DashboardSelect
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as "newest" | "oldest" | "name")}
+              >
+                <option value="newest" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الأحدث تسجيلاً أولاً</option>
+                <option value="oldest" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الأقدم تسجيلاً أولاً</option>
+                <option value="name" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">أبجدياً حسب اسم المنشأة (أ - ي)</option>
+              </DashboardSelect>
             </div>
 
             {/* 6. Page Size Control */}
@@ -296,25 +276,21 @@ export function ClientManagementTable({
               <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
                 عدد المكاتب المعروضة (الترقيم)
               </label>
-              <div className="relative">
-                <select
-                  value={pageSize}
-                  onChange={(e) => {
-                    setPageSize(Number(e.target.value));
-                    setPageIndex(0);
-                  }}
-                  className="w-full h-[42px] appearance-none bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[14px] pe-[36px] border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
-                >
-                  <option value={5}>5 مكاتب بالصفحة</option>
-                  <option value={6}>6 مكاتب بالصفحة</option>
-                  <option value={8}>8 مكاتب بالصفحة</option>
-                  <option value={10}>10 مكاتب بالصفحة</option>
-                  <option value={12}>12 مكتب بالصفحة</option>
-                  <option value={20}>20 مكتب بالصفحة</option>
-                  <option value={9999}>عرض كافة المكاتب (الكل)</option>
-                </select>
-                <ChevronDown className="size-[15px] text-[#837565] dark:text-[#8e8680] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
+              <DashboardSelect
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setPageIndex(0);
+                }}
+              >
+                <option value={5} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">5 مكاتب بالصفحة</option>
+                <option value={6} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">6 مكاتب بالصفحة</option>
+                <option value={8} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">8 مكاتب بالصفحة</option>
+                <option value={10} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">10 مكاتب بالصفحة</option>
+                <option value={12} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">12 مكتب بالصفحة</option>
+                <option value={20} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">20 مكتب بالصفحة</option>
+                <option value={9999} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">عرض كافة المكاتب (الكل)</option>
+              </DashboardSelect>
             </div>
           </div>
         }

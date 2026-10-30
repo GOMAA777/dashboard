@@ -12,7 +12,6 @@ import {
   Mail,
   ShieldCheck,
   Check,
-  X,
   Copy,
   ExternalLink,
   ChevronDown,
@@ -29,7 +28,6 @@ import { cn } from "@/lib/utils";
 
 export function GeneralSettingsView() {
   const [formData, setFormData] = useState<GeneralSettings>(initialGeneralSettings);
-  const [showToastBanner, setShowToastBanner] = useState(true);
   const [copiedCode, setCopiedCode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -52,8 +50,7 @@ export function GeneralSettingsView() {
     setIsSaving(true);
     setTimeout(() => {
       setIsSaving(false);
-      setShowToastBanner(true);
-      toast.success("تم حفظ الإعدادات العامة بنجاح");
+      toast.success("تم حفظ الإعدادات العامة بنجاح وتحديث الهوية البصرية للنظام.");
     }, 600);
   };
 
@@ -67,7 +64,7 @@ export function GeneralSettingsView() {
   };
 
   return (
-    <div className="flex h-screen h-dvh bg-[#f5f3ef] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00]">
+    <div className="flex h-screen h-dvh bg-[#f5f3ef] dark:bg-[#17120e] text-[#1b1c1a] dark:text-[#fdfbf7] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00] transition-colors duration-200">
       {/* 1. Global Navigation Sidebar with activeNav='system-settings' and activeSubNav='general' */}
       <DashboardSidebar activeNav="system-settings" activeSubNav="general" />
 
@@ -80,60 +77,30 @@ export function GeneralSettingsView() {
         <main className="flex-1 overflow-y-auto px-[24px] sm:px-[32px] py-[24px] max-w-[1360px] w-full mx-auto pb-[32px] scrollbar-thin">
           <DashboardPageTransition>
           {/* Main Identity & Command Banner (Figma 1:16870) */}
-          <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] relative mb-[24px] flex flex-col md:flex-row items-start md:items-center justify-between gap-[16px]">
+          <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[24px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] relative mb-[24px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]">
             {/* Title & Description (Right in RTL) */}
             <div className="flex flex-col gap-[4px] text-start">
-              <h1 className="text-[28px] leading-[38px] font-bold text-[#1b1c1a]">
+              <h1 className="text-[28px] leading-[38px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                 الإعدادات العامة
               </h1>
-              <p className="text-[14px] leading-[22px] font-normal text-[#514537]">
+              <p className="text-[14px] leading-[22px] font-normal text-[#514537] dark:text-[#a89f91]">
                 إدارة بيانات المنصة وهويتها المؤسسية وإعداداتها التشغيلية الأساسية.
               </p>
             </div>
-
-            {/* Toast Notification Banner (Left in RTL / Figma 1:16871) */}
-            {showToastBanner && (
-              <div className="bg-white border border-[#eae8e4] rounded-[8px] p-[16px] shadow-[0px_10px_20px_-5px_rgba(0,0,0,0.08)] flex items-center gap-[12px] self-stretch md:self-auto shrink-0 animate-in fade-in slide-in-from-top-2 duration-300">
-                {/* Dismiss Button */}
-                <button
-                  type="button"
-                  onClick={() => setShowToastBanner(false)}
-                  className="size-[24px] rounded-[4px] hover:bg-[#f5f3ef] text-[#837565] hover:text-[#1b1c1a] flex items-center justify-center transition-colors"
-                  aria-label="إغلاق التنبيه"
-                >
-                  <X className="size-[14px]" />
-                </button>
-
-                {/* Text Messages */}
-                <div className="flex flex-col text-start">
-                  <span className="text-[14px] font-bold text-[#1b1c1a] leading-[20px]">
-                    تم الحفظ بنجاح
-                  </span>
-                  <span className="text-[12px] font-normal text-[#514537] leading-[18px]">
-                    تم حفظ الإعدادات العامة بنجاح وتحديث الهوية البصرية للنظام.
-                  </span>
-                </div>
-
-                {/* Green Done Icon Circle */}
-                <div className="size-[28px] rounded-[12px] bg-[#ecfdf5] flex items-center justify-center shrink-0 text-[#059669]">
-                  <Check className="size-[16px] stroke-[2.5]" />
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Main Container Card (Figma 1:16894) */}
-          <div className="bg-white rounded-[8px] p-[24px] sm:p-[40px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] flex flex-col gap-[36px]">
+          <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[24px] sm:p-[40px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] flex flex-col gap-[36px]">
             {/* ========================================================
                 SECTION 1: بيانات النظام والمنشأة (System Data)
                ======================================================== */}
             <section className="flex flex-col gap-[20px]">
               {/* Section Header */}
               <div className="flex items-center gap-[16px] justify-start">
-                <div className="size-[40px] rounded-[8px] bg-[rgba(156,100,2,0.1)] flex items-center justify-center shrink-0 text-[#9c6402]">
+                <div className="size-[40px] rounded-[8px] bg-[rgba(156,100,2,0.1)] dark:bg-[rgba(226,157,56,0.15)] flex items-center justify-center shrink-0 text-[#9c6402] dark:text-[#f59e0b]">
                   <Building2 className="size-[20px]" />
                 </div>
-                <h2 className="text-[18px] font-bold text-[#1b1c1a] leading-[26px]">
+                <h2 className="text-[18px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[26px]">
                   بيانات النظام والمنشأة
                 </h2>
               </div>
@@ -142,7 +109,7 @@ export function GeneralSettingsView() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-[24px] gap-y-[20px] pt-[8px]">
                 {/* 1.1 عنوان النظام (System Title) */}
                 <div className="flex flex-col gap-[6px]">
-                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-start flex items-center gap-[2px]">
+                  <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] text-start flex items-center gap-[2px]">
                     <span>عنوان النظام</span>
                     <span className="text-[#ba1a1a]">*</span>
                   </label>
@@ -150,16 +117,16 @@ export function GeneralSettingsView() {
                     type="text"
                     value={formData.systemTitle}
                     onChange={(e) => setFormData({ ...formData, systemTitle: e.target.value })}
-                    className="w-full bg-[#f5f3ef] text-[#1b1c1a] text-[14px] font-normal rounded-[4px] px-[16px] py-[10px] border border-transparent focus:border-[#9c6402] focus:bg-white focus:outline-none transition-all"
+                    className="w-full bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[14px] font-normal rounded-[4px] px-[16px] py-[10px] border border-transparent dark:border-[#38271c] focus:border-[#9c6402] dark:focus:border-[#e29d38] focus:bg-white dark:focus:bg-[#1a120d] focus:outline-none transition-all"
                   />
-                  <p className="text-[10px] font-bold text-[#837565] text-start leading-[14px]">
+                  <p className="text-[10px] font-bold text-[#837565] dark:text-[#a89f91] text-start leading-[14px]">
                     يظهر في شريط العنوان أعلى صفحات المتصفح وكعنوان رئيسي للمنصة.
                   </p>
                 </div>
 
                 {/* 1.2 اسم الشركة أو المنشأة (Company / Firm Name) */}
                 <div className="flex flex-col gap-[6px]">
-                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-start flex items-center gap-[2px]">
+                  <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] text-start flex items-center gap-[2px]">
                     <span>اسم الشركة أو المنشأة</span>
                     <span className="text-[#ba1a1a]">*</span>
                   </label>
@@ -167,29 +134,29 @@ export function GeneralSettingsView() {
                     type="text"
                     value={formData.companyName}
                     onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                    className="w-full bg-[#f5f3ef] text-[#1b1c1a] text-[14px] font-normal rounded-[4px] px-[16px] py-[10px] border border-transparent focus:border-[#9c6402] focus:bg-white focus:outline-none transition-all"
+                    className="w-full bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[14px] font-normal rounded-[4px] px-[16px] py-[10px] border border-transparent dark:border-[#38271c] focus:border-[#9c6402] dark:focus:border-[#e29d38] focus:bg-white dark:focus:bg-[#1a120d] focus:outline-none transition-all"
                   />
-                  <p className="text-[10px] font-bold text-[#837565] text-start leading-[14px]">
+                  <p className="text-[10px] font-bold text-[#837565] dark:text-[#a89f91] text-start leading-[14px]">
                     الاسم القانوني المعتمد في إصدار الفواتير والعقود الرسمية.
                   </p>
                 </div>
 
                 {/* 1.3 العبارة التعريفية (Slogan) - Col span 2 */}
                 <div className="flex flex-col gap-[6px] md:col-span-2">
-                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-start">
+                  <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] text-start">
                     العبارة التعريفية (Slogan)
                   </label>
                   <input
                     type="text"
                     value={formData.slogan}
                     onChange={(e) => setFormData({ ...formData, slogan: e.target.value })}
-                    className="w-full bg-[#f5f3ef] text-[#1b1c1a] text-[14px] font-normal rounded-[4px] px-[16px] py-[10px] border border-transparent focus:border-[#9c6402] focus:bg-white focus:outline-none transition-all"
+                    className="w-full bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[14px] font-normal rounded-[4px] px-[16px] py-[10px] border border-transparent dark:border-[#38271c] focus:border-[#9c6402] dark:focus:border-[#e29d38] focus:bg-white dark:focus:bg-[#1a120d] focus:outline-none transition-all"
                   />
                 </div>
 
                 {/* 1.4 رقم الهاتف المعتمد (Phone Number) */}
                 <div className="flex flex-col gap-[6px]">
-                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-start flex items-center gap-[2px]">
+                  <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] text-start flex items-center gap-[2px]">
                     <span>رقم الهاتف المعتمد</span>
                     <span className="text-[#ba1a1a]">*</span>
                   </label>
@@ -199,11 +166,11 @@ export function GeneralSettingsView() {
                       dir="ltr"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full bg-[#f5f3ef] text-[#1b1c1a] text-[14px] font-normal rounded-[4px] ps-[16px] pe-[40px] py-[10px] text-start border border-transparent focus:border-[#9c6402] focus:bg-white focus:outline-none transition-all"
+                      className="w-full bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[14px] font-normal rounded-[4px] ps-[16px] pe-[40px] py-[10px] text-start border border-transparent dark:border-[#38271c] focus:border-[#9c6402] dark:focus:border-[#e29d38] focus:bg-white dark:focus:bg-[#1a120d] focus:outline-none transition-all"
                     />
-                    <Phone className="absolute top-1/2 -translate-y-1/2 end-[14px] size-[15px] text-[#837565]" />
+                    <Phone className="absolute top-1/2 -translate-y-1/2 end-[14px] size-[15px] text-[#837565] dark:text-[#a89f91]" />
                   </div>
-                  <p className="text-[10px] font-bold text-[#837565] text-start leading-[14px]">
+                  <p className="text-[10px] font-bold text-[#837565] dark:text-[#a89f91] text-start leading-[14px]">
                     يُستخدم للتواصل الرسمي وإرسال تنبيهات الأمان الحرجة.
                   </p>
                 </div>
@@ -211,14 +178,14 @@ export function GeneralSettingsView() {
                 {/* 1.5 البريد الإلكتروني الرسمي (Official Email) */}
                 <div className="flex flex-col gap-[6px]">
                   <div className="flex items-center justify-between">
-                    <label className="text-[14px] font-semibold text-[#1b1c1a] text-start flex items-center gap-[2px]">
+                    <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] text-start flex items-center gap-[2px]">
                       <span>البريد الإلكتروني الرسمي</span>
                       <span className="text-[#ba1a1a]">*</span>
                     </label>
                     {/* Verified Badge */}
-                    <div className="flex items-center gap-[4px] text-[#047857]">
+                    <div className="flex items-center gap-[4px] text-[#047857] dark:text-[#6ee7b7]">
                       <span className="text-[10px] font-bold">مُتحقق منه</span>
-                      <ShieldCheck className="size-[13px] text-[#047857]" />
+                      <ShieldCheck className="size-[13px] text-[#047857] dark:text-[#6ee7b7]" />
                     </div>
                   </div>
                   <div className="relative">
@@ -227,11 +194,11 @@ export function GeneralSettingsView() {
                       dir="ltr"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full bg-[#f5f3ef] text-[#1b1c1a] text-[14px] font-normal rounded-[4px] ps-[16px] pe-[40px] py-[10px] text-start border border-transparent focus:border-[#9c6402] focus:bg-white focus:outline-none transition-all"
+                      className="w-full bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[14px] font-normal rounded-[4px] ps-[16px] pe-[40px] py-[10px] text-start border border-transparent dark:border-[#38271c] focus:border-[#9c6402] dark:focus:border-[#e29d38] focus:bg-white dark:focus:bg-[#1a120d] focus:outline-none transition-all"
                     />
-                    <Mail className="absolute top-1/2 -translate-y-1/2 end-[14px] size-[16px] text-[#837565]" />
+                    <Mail className="absolute top-1/2 -translate-y-1/2 end-[14px] size-[16px] text-[#837565] dark:text-[#a89f91]" />
                   </div>
-                  <p className="text-[10px] font-bold text-[#837565] text-start leading-[14px]">
+                  <p className="text-[10px] font-bold text-[#837565] dark:text-[#a89f91] text-start leading-[14px]">
                     صندوق الوارد للإشعارات الآلية وإدارة المستخدمين.
                   </p>
                 </div>
@@ -239,15 +206,15 @@ export function GeneralSettingsView() {
                 {/* 1.6 كود التفعيل ورخصة النظام (License Code) - Col span 2 */}
                 <div className="flex flex-col gap-[6px] md:col-span-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-[14px] font-semibold text-[#1b1c1a] text-start">
+                    <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] text-start">
                       كود التفعيل ورخصة النظام
                     </label>
                     {/* License Active Badge */}
-                    <div className="bg-[#ecfdf5] flex items-center gap-[6px] px-[8px] py-[2px] rounded-[4px]">
-                      <span className="text-[10px] font-bold text-[#065f46]">
+                    <div className="bg-[#ecfdf5] dark:bg-[#132c21] border border-emerald-200 dark:border-emerald-500/30 flex items-center gap-[6px] px-[8px] py-[2px] rounded-[4px]">
+                      <span className="text-[10px] font-bold text-[#065f46] dark:text-[#6ee7b7]">
                         مرخّص ومفعّل لمؤسسة كبرى
                       </span>
-                      <span className="size-[6px] rounded-full bg-[#059669]" />
+                      <span className="size-[6px] rounded-full bg-[#059669] dark:bg-[#10b981]" />
                     </div>
                   </div>
                   <div className="relative flex items-center">
@@ -256,13 +223,13 @@ export function GeneralSettingsView() {
                       dir="ltr"
                       readOnly
                       value={formData.licenseCode}
-                      className="w-full bg-[#f0eeea] text-[#1b1c1a] text-[13px] font-bold rounded-[4px] ps-[90px] pe-[44px] py-[10px] border border-transparent font-mono select-all"
+                      className="w-full bg-[#f0eeea] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-bold rounded-[4px] ps-[90px] pe-[44px] py-[10px] border border-transparent dark:border-[#38271c] font-mono select-all"
                     />
-                    <ShieldCheck className="absolute top-1/2 -translate-y-1/2 end-[14px] size-[18px] text-[#837565]" />
+                    <ShieldCheck className="absolute top-1/2 -translate-y-1/2 end-[14px] size-[18px] text-[#837565] dark:text-[#a89f91]" />
                     <button
                       type="button"
                       onClick={handleCopyLicense}
-                      className="absolute top-1/2 -translate-y-1/2 start-[10px] bg-white hover:bg-[#f5f3ef] border border-[#ded5c6] text-[#514537] rounded-[4px] px-[10px] py-[4px] text-[10px] font-bold flex items-center gap-[4px] transition-colors shadow-sm"
+                      className="absolute top-1/2 -translate-y-1/2 start-[10px] bg-white dark:bg-[#221812] hover:bg-[#f5f3ef] dark:hover:bg-[#34241b] border border-[#ded5c6] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] rounded-[4px] px-[10px] py-[4px] text-[10px] font-bold flex items-center gap-[4px] transition-colors shadow-xs cursor-pointer"
                     >
                       <Copy className="size-[12px]" />
                       <span>{copiedCode ? "تم النسخ" : "نسخ الكود"}</span>
@@ -273,7 +240,7 @@ export function GeneralSettingsView() {
             </section>
 
             {/* Divider */}
-            <div className="h-px bg-[#eae8e4] w-full" />
+            <div className="h-px bg-[#eae8e4] dark:bg-[#38271c] w-full" />
 
             {/* ========================================================
                 SECTION 2: الإعدادات الإقليمية والمحلية (Regional Settings)
@@ -281,10 +248,10 @@ export function GeneralSettingsView() {
             <section className="flex flex-col gap-[20px]">
               {/* Section Header */}
               <div className="flex items-center gap-[16px] justify-start">
-                <div className="size-[40px] rounded-[8px] bg-[rgba(156,100,2,0.1)] flex items-center justify-center shrink-0 text-[#9c6402]">
+                <div className="size-[40px] rounded-[8px] bg-[rgba(156,100,2,0.1)] dark:bg-[rgba(226,157,56,0.15)] flex items-center justify-center shrink-0 text-[#9c6402] dark:text-[#f59e0b]">
                   <Globe className="size-[20px]" />
                 </div>
-                <h2 className="text-[18px] font-bold text-[#1b1c1a] leading-[26px]">
+                <h2 className="text-[18px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[26px]">
                   الإعدادات الإقليمية والمحلية
                 </h2>
               </div>
@@ -293,7 +260,7 @@ export function GeneralSettingsView() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-[24px] gap-y-[20px] pt-[8px]">
                 {/* 2.1 المنطقة الزمنية (Timezone) */}
                 <div className="flex flex-col gap-[6px]">
-                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-start flex items-center gap-[2px]">
+                  <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] text-start flex items-center gap-[2px]">
                     <span>المنطقة الزمنية (Timezone)</span>
                     <span className="text-[#ba1a1a]">*</span>
                   </label>
@@ -301,31 +268,31 @@ export function GeneralSettingsView() {
                     <select
                       value={formData.timezone}
                       onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
-                      className="w-full bg-[#f5f3ef] text-[#1b1c1a] text-[14px] font-normal rounded-[4px] px-[16px] py-[10px] border border-transparent focus:border-[#9c6402] focus:bg-white focus:outline-none appearance-none cursor-pointer transition-all"
+                      className="w-full bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[14px] font-normal rounded-[4px] px-[16px] py-[10px] border border-transparent dark:border-[#38271c] focus:border-[#9c6402] dark:focus:border-[#e29d38] focus:bg-white dark:focus:bg-[#1a120d] focus:outline-none appearance-none cursor-pointer transition-all"
                     >
-                      <option value="(GMT+03:00) توقيت الرياض - المملكة العربية السعودية (AST)">
+                      <option value="(GMT+03:00) توقيت الرياض - المملكة العربية السعودية (AST)" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
                         (GMT+03:00) توقيت الرياض - المملكة العربية السعودية (AST)
                       </option>
-                      <option value="(GMT+04:00) توقيت دبي - الإمارات العربية المتحدة (GST)">
+                      <option value="(GMT+04:00) توقيت دبي - الإمارات العربية المتحدة (GST)" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
                         (GMT+04:00) توقيت دبي - الإمارات العربية المتحدة (GST)
                       </option>
-                      <option value="(GMT+03:00) توقيت الكويت - دولة الكويت (AST)">
+                      <option value="(GMT+03:00) توقيت الكويت - دولة الكويت (AST)" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
                         (GMT+03:00) توقيت الكويت - دولة الكويت (AST)
                       </option>
-                      <option value="(GMT+02:00) توقيت القاهرة - جمهورية مصر العربية (EET)">
+                      <option value="(GMT+02:00) توقيت القاهرة - جمهورية مصر العربية (EET)" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
                         (GMT+02:00) توقيت القاهرة - جمهورية مصر العربية (EET)
                       </option>
                     </select>
-                    <ChevronDown className="absolute top-1/2 -translate-y-1/2 start-[16px] size-[16px] text-[#837565] pointer-events-none" />
+                    <ChevronDown className="absolute top-1/2 -translate-y-1/2 start-[16px] size-[16px] text-[#837565] dark:text-[#a89f91] pointer-events-none" />
                   </div>
-                  <p className="text-[10px] font-bold text-[#837565] text-start leading-[14px]">
+                  <p className="text-[10px] font-bold text-[#837565] dark:text-[#a89f91] text-start leading-[14px]">
                     تعتمد عليها جدولة الجلسات القضائية وتواريخ انتهاء المهام.
                   </p>
                 </div>
 
                 {/* 2.2 اللغة الافتراضية للواجهة (Default Language) */}
                 <div className="flex flex-col gap-[6px]">
-                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-start flex items-center gap-[2px]">
+                  <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] text-start flex items-center gap-[2px]">
                     <span>اللغة الافتراضية للواجهة</span>
                     <span className="text-[#ba1a1a]">*</span>
                   </label>
@@ -333,28 +300,28 @@ export function GeneralSettingsView() {
                     <select
                       value={formData.defaultLanguage}
                       onChange={(e) => setFormData({ ...formData, defaultLanguage: e.target.value })}
-                      className="w-full bg-[#f5f3ef] text-[#1b1c1a] text-[14px] font-normal rounded-[4px] px-[16px] py-[10px] border border-transparent focus:border-[#9c6402] focus:bg-white focus:outline-none appearance-none cursor-pointer transition-all"
+                      className="w-full bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[14px] font-normal rounded-[4px] px-[16px] py-[10px] border border-transparent dark:border-[#38271c] focus:border-[#9c6402] dark:focus:border-[#e29d38] focus:bg-white dark:focus:bg-[#1a120d] focus:outline-none appearance-none cursor-pointer transition-all"
                     >
-                      <option value="العربية (المملكة العربية السعودية) - AR (افتراضي)">
+                      <option value="العربية (المملكة العربية السعودية) - AR (افتراضي)" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
                         العربية (المملكة العربية السعودية) - AR (افتراضي)
                       </option>
-                      <option value="English (United States) - EN">
+                      <option value="English (United States) - EN" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
                         English (United States) - EN
                       </option>
-                      <option value="Français (France) - FR">
+                      <option value="Français (France) - FR" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
                         Français (France) - FR
                       </option>
                     </select>
-                    <ChevronDown className="absolute top-1/2 -translate-y-1/2 start-[16px] size-[16px] text-[#837565] pointer-events-none" />
+                    <ChevronDown className="absolute top-1/2 -translate-y-1/2 start-[16px] size-[16px] text-[#837565] dark:text-[#a89f91] pointer-events-none" />
                   </div>
-                  <p className="text-[10px] font-bold text-[#837565] text-start leading-[14px]">
+                  <p className="text-[10px] font-bold text-[#837565] dark:text-[#a89f91] text-start leading-[14px]">
                     يمكن لكل مستخدم تخصيص لغته الشخصية من حسابه الفردي لاحقاً.
                   </p>
                 </div>
 
                 {/* 2.3 الدولة والمقر الرئيسي (Country) */}
                 <div className="flex flex-col gap-[6px]">
-                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-start flex items-center gap-[2px]">
+                  <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] text-start flex items-center gap-[2px]">
                     <span>الدولة والمقر الرئيسي</span>
                     <span className="text-[#ba1a1a]">*</span>
                   </label>
@@ -362,34 +329,34 @@ export function GeneralSettingsView() {
                     <select
                       value={formData.country}
                       onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                      className="w-full bg-[#f5f3ef] text-[#1b1c1a] text-[14px] font-normal rounded-[4px] px-[16px] py-[10px] border border-transparent focus:border-[#9c6402] focus:bg-white focus:outline-none appearance-none cursor-pointer transition-all"
+                      className="w-full bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[14px] font-normal rounded-[4px] px-[16px] py-[10px] border border-transparent dark:border-[#38271c] focus:border-[#9c6402] dark:focus:border-[#e29d38] focus:bg-white dark:focus:bg-[#1a120d] focus:outline-none appearance-none cursor-pointer transition-all"
                     >
-                      <option value="المملكة العربية السعودية (KSA) 🇸🇦">
+                      <option value="المملكة العربية السعودية (KSA) 🇸🇦" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
                         المملكة العربية السعودية (KSA) 🇸🇦
                       </option>
-                      <option value="الإمارات العربية المتحدة (UAE) 🇦🇪">
+                      <option value="الإمارات العربية المتحدة (UAE) 🇦🇪" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
                         الإمارات العربية المتحدة (UAE) 🇦🇪
                       </option>
-                      <option value="دولة الكويت (KWT) 🇰🇼">
+                      <option value="دولة الكويت (KWT) 🇰🇼" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
                         دولة الكويت (KWT) 🇰🇼
                       </option>
-                      <option value="مملكة البحرين (BHR) 🇧🇭">
+                      <option value="مملكة البحرين (BHR) 🇧🇭" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
                         مملكة البحرين (BHR) 🇧🇭
                       </option>
-                      <option value="سلطنة عمان (OMN) 🇴🇲">
+                      <option value="سلطنة عمان (OMN) 🇴🇲" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
                         سلطنة عمان (OMN) 🇴🇲
                       </option>
-                      <option value="دولة قطر (QAT) 🇶🇦">
+                      <option value="دولة قطر (QAT) 🇶🇦" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
                         دولة قطر (QAT) 🇶🇦
                       </option>
                     </select>
-                    <ChevronDown className="absolute top-1/2 -translate-y-1/2 start-[16px] size-[16px] text-[#837565] pointer-events-none" />
+                    <ChevronDown className="absolute top-1/2 -translate-y-1/2 start-[16px] size-[16px] text-[#837565] dark:text-[#a89f91] pointer-events-none" />
                   </div>
                 </div>
 
                 {/* 2.4 العملة الافتراضية (Default Currency) */}
                 <div className="flex flex-col gap-[6px]">
-                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-start flex items-center gap-[2px]">
+                  <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] text-start flex items-center gap-[2px]">
                     <span>العملة الافتراضية</span>
                     <span className="text-[#ba1a1a]">*</span>
                   </label>
@@ -397,16 +364,16 @@ export function GeneralSettingsView() {
                     <select
                       value={formData.defaultCurrency}
                       onChange={(e) => setFormData({ ...formData, defaultCurrency: e.target.value })}
-                      className="w-full bg-[#f5f3ef] text-[#1b1c1a] text-[14px] font-normal rounded-[4px] px-[16px] py-[10px] border border-transparent focus:border-[#9c6402] focus:bg-white focus:outline-none appearance-none cursor-pointer transition-all"
+                      className="w-full bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[14px] font-normal rounded-[4px] px-[16px] py-[10px] border border-transparent dark:border-[#38271c] focus:border-[#9c6402] dark:focus:border-[#e29d38] focus:bg-white dark:focus:bg-[#1a120d] focus:outline-none appearance-none cursor-pointer transition-all"
                     >
-                      <option value="ريال سعودي (SAR - ر.س)">ريال سعودي (SAR - ر.س)</option>
-                      <option value="درهم إماراتي (AED - د.إ)">درهم إماراتي (AED - د.إ)</option>
-                      <option value="دينار كويتي (KWD - د.ك)">دينار كويتي (KWD - د.ك)</option>
-                      <option value="دولار أمريكي (USD - $)">دولار أمريكي (USD - $)</option>
+                      <option value="ريال سعودي (SAR - ر.س)" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">ريال سعودي (SAR - ر.س)</option>
+                      <option value="درهم إماراتي (AED - د.إ)" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">درهم إماراتي (AED - د.إ)</option>
+                      <option value="دينار كويتي (KWD - د.ك)" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">دينار كويتي (KWD - د.ك)</option>
+                      <option value="دولار أمريكي (USD - $)" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">دولار أمريكي (USD - $)</option>
                     </select>
-                    <ChevronDown className="absolute top-1/2 -translate-y-1/2 start-[16px] size-[16px] text-[#837565] pointer-events-none" />
+                    <ChevronDown className="absolute top-1/2 -translate-y-1/2 start-[16px] size-[16px] text-[#837565] dark:text-[#a89f91] pointer-events-none" />
                   </div>
-                  <p className="text-[10px] font-bold text-[#837565] text-start leading-[14px]">
+                  <p className="text-[10px] font-bold text-[#837565] dark:text-[#a89f91] text-start leading-[14px]">
                     تُطبق على فواتير الأتعاب، السندات، وتقارير العوائد.
                   </p>
                 </div>
@@ -414,7 +381,7 @@ export function GeneralSettingsView() {
             </section>
 
             {/* Divider */}
-            <div className="h-px bg-[#eae8e4] w-full" />
+            <div className="h-px bg-[#eae8e4] dark:bg-[#38271c] w-full" />
 
             {/* ========================================================
                 SECTION 3: الهوية البصرية وتخصيص الواجهة (Visual Branding)
@@ -424,16 +391,16 @@ export function GeneralSettingsView() {
               <div className="flex items-center justify-between">
                 {/* Right Title + Icon */}
                 <div className="flex items-center gap-[16px]">
-                  <div className="size-[40px] rounded-[8px] bg-[rgba(156,100,2,0.1)] flex items-center justify-center shrink-0 text-[#9c6402]">
+                  <div className="size-[40px] rounded-[8px] bg-[rgba(156,100,2,0.1)] dark:bg-[rgba(226,157,56,0.15)] flex items-center justify-center shrink-0 text-[#9c6402] dark:text-[#f59e0b]">
                     <Palette className="size-[20px]" />
                   </div>
-                  <h2 className="text-[18px] font-bold text-[#1b1c1a] leading-[26px]">
+                  <h2 className="text-[18px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[26px]">
                     الهوية البصرية وتخصيص الواجهة
                   </h2>
                 </div>
 
                 {/* Left Badge */}
-                <div className="bg-[rgba(255,221,182,0.3)] text-[#643f00] text-[10px] font-bold px-[12px] py-[4px] rounded-[2px] hidden sm:block">
+                <div className="bg-[rgba(255,221,182,0.3)] dark:bg-[#38271c] text-[#643f00] dark:text-[#ffddb6] text-[10px] font-bold px-[12px] py-[4px] rounded-[2px] hidden sm:block">
                   تخصيص الهوية البصرية الخاصة بالمنشأة المشتركة
                 </div>
               </div>
@@ -442,12 +409,12 @@ export function GeneralSettingsView() {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-[24px] pt-[8px]">
                 {/* 3.1 شعار المنصة والشركة (Logo Customization) - 7 cols */}
                 <div className="lg:col-span-7 flex flex-col gap-[8px]">
-                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-start">
+                  <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] text-start">
                     شعار المنصة والشركة
                   </label>
-                  <div className="bg-[#f5f3ef] rounded-[8px] p-[20px] flex items-center gap-[24px]">
+                  <div className="bg-[#f5f3ef] dark:bg-[#281c15] rounded-[8px] p-[20px] flex items-center gap-[24px] border border-transparent dark:border-[#38271c]">
                     {/* Logo Dark Preview Box (Figma 1:17075) */}
-                    <div className="size-[112px] rounded-[8px] bg-[#1c140f] flex items-center justify-center shrink-0 p-[12px] shadow-[inset_0px_2px_4px_0px_rgba(0,0,0,0.1)] relative">
+                    <div className="size-[112px] rounded-[8px] bg-[#1c140f] flex items-center justify-center shrink-0 p-[12px] shadow-[inset_0px_2px_4px_0px_rgba(0,0,0,0.1)] relative border border-white/5">
                       <Image
                         src="/logo.png"
                         alt="شعار المنصة"
@@ -464,7 +431,7 @@ export function GeneralSettingsView() {
                         <button
                           type="button"
                           onClick={() => toast.info("اختر ملف الشعار الجديد بدقة 512×512")}
-                          className="bg-white hover:bg-[#faf9f6] text-[#1b1c1a] text-[12px] font-semibold px-[16px] py-[8px] rounded-[4px] border border-[#eae8e4] flex items-center gap-[6px] transition-colors shadow-sm"
+                          className="bg-white dark:bg-[#221812] hover:bg-[#faf9f6] dark:hover:bg-[#34241b] text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] font-semibold px-[16px] py-[8px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] flex items-center gap-[6px] transition-colors shadow-xs cursor-pointer"
                         >
                           <Upload className="size-[14px]" />
                           <span>تغيير الشعار</span>
@@ -472,7 +439,7 @@ export function GeneralSettingsView() {
                         <button
                           type="button"
                           onClick={() => toast.error("لا يمكن حذف الشعار الرئيسي الافتراضي")}
-                          className="bg-[rgba(186,26,26,0.1)] hover:bg-[rgba(186,26,26,0.18)] text-[#ba1a1a] text-[12px] font-semibold px-[12px] py-[8px] rounded-[4px] flex items-center gap-[6px] transition-colors"
+                          className="bg-[rgba(186,26,26,0.1)] hover:bg-[rgba(186,26,26,0.18)] dark:bg-[rgba(248,113,113,0.15)] text-[#ba1a1a] dark:text-[#f87171] text-[12px] font-semibold px-[12px] py-[8px] rounded-[4px] flex items-center gap-[6px] transition-colors cursor-pointer"
                         >
                           <Trash2 className="size-[13px]" />
                           <span>حذف</span>
@@ -480,7 +447,7 @@ export function GeneralSettingsView() {
                       </div>
 
                       {/* Helper Specs */}
-                      <p className="text-[10px] font-bold text-[#837565] leading-[16px]">
+                      <p className="text-[10px] font-bold text-[#837565] dark:text-[#a89f91] leading-[16px]">
                         الصيغ المقبولة: PNG أو SVG أو JPG بخلفية شفافة بدقة لا تقل عن 512×512 بكسل وحجم أقصى 2 ميجابايت.
                       </p>
                     </div>
@@ -489,10 +456,10 @@ export function GeneralSettingsView() {
 
                 {/* 3.2 اللون الأساسي للعلامة التجارية (Primary Brand Color) - 5 cols */}
                 <div className="lg:col-span-5 flex flex-col gap-[8px]">
-                  <label className="text-[14px] font-semibold text-[#1b1c1a] text-start">
+                  <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] text-start">
                     اللون الأساسي للعلامة التجارية
                   </label>
-                  <div className="bg-[#f5f3ef] rounded-[8px] p-[20px] flex flex-col gap-[16px]">
+                  <div className="bg-[#f5f3ef] dark:bg-[#281c15] rounded-[8px] p-[20px] flex flex-col gap-[16px] border border-transparent dark:border-[#38271c]">
                     {/* Top Hex Input & Live Circle */}
                     <div className="flex items-center gap-[16px]">
                       <div className="flex-1 relative">
@@ -501,9 +468,9 @@ export function GeneralSettingsView() {
                           dir="ltr"
                           value={formData.primaryColor}
                           onChange={(e) => setFormData({ ...formData, primaryColor: e.target.value })}
-                          className="w-full bg-white text-[#1b1c1a] text-[14px] font-bold uppercase rounded-[4px] ps-[40px] pe-[16px] py-[8px] border border-[#eae8e4] focus:outline-none focus:border-[#9c6402] transition-colors"
+                          className="w-full bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7] text-[14px] font-bold uppercase rounded-[4px] ps-[40px] pe-[16px] py-[8px] border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:border-[#9c6402] dark:focus:border-[#e29d38] transition-colors"
                         />
-                        <Palette className="absolute top-1/2 -translate-y-1/2 start-[12px] size-[15px] text-[#837565]" />
+                        <Palette className="absolute top-1/2 -translate-y-1/2 start-[12px] size-[15px] text-[#837565] dark:text-[#a89f91]" />
                       </div>
 
                       {/* Live Circle Preview */}
@@ -517,7 +484,7 @@ export function GeneralSettingsView() {
 
                     {/* Quick Swatches Row */}
                     <div className="flex flex-col gap-[8px] text-start">
-                      <span className="text-[10px] font-semibold text-[#514537]">
+                      <span className="text-[10px] font-semibold text-[#514537] dark:text-[#cdc5bd]">
                         الألوان الملكية المعتمدة:
                       </span>
                       <div className="flex items-center gap-[10px]">
@@ -532,7 +499,7 @@ export function GeneralSettingsView() {
                               className={cn(
                                 "size-[32px] rounded-[4px] flex items-center justify-center transition-all cursor-pointer relative",
                                 isSelected
-                                  ? "ring-2 ring-offset-2 ring-[#7b4e00] shadow-md scale-105"
+                                  ? "ring-2 ring-offset-2 ring-[#7b4e00] dark:ring-[#e29d38] shadow-md scale-105"
                                   : "hover:scale-105 opacity-90 hover:opacity-100"
                               )}
                               style={{ backgroundColor: swatch.hex }}
@@ -549,7 +516,7 @@ export function GeneralSettingsView() {
             </section>
 
             {/* Divider */}
-            <div className="h-px bg-[#eae8e4] w-full" />
+            <div className="h-px bg-[#eae8e4] dark:bg-[#38271c] w-full" />
 
             {/* ========================================================
                 SECTION 4: روابط التكاملات والمساعدة (Integrations & Help Links)
@@ -557,10 +524,10 @@ export function GeneralSettingsView() {
             <section className="flex flex-col gap-[20px]">
               {/* Section Header */}
               <div className="flex items-center gap-[16px] justify-start">
-                <div className="size-[40px] rounded-[8px] bg-[rgba(156,100,2,0.1)] flex items-center justify-center shrink-0 text-[#9c6402]">
+                <div className="size-[40px] rounded-[8px] bg-[rgba(156,100,2,0.1)] dark:bg-[rgba(226,157,56,0.15)] flex items-center justify-center shrink-0 text-[#9c6402] dark:text-[#f59e0b]">
                   <Share2 className="size-[20px]" />
                 </div>
-                <h2 className="text-[18px] font-bold text-[#1b1c1a] leading-[26px]">
+                <h2 className="text-[18px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[26px]">
                   روابط التكاملات والمساعدة
                 </h2>
               </div>
@@ -571,7 +538,7 @@ export function GeneralSettingsView() {
                 <div className="flex flex-col gap-[6px]">
                   <div className="flex items-center gap-[6px] text-start">
                     <span className="size-[8px] rounded-full bg-[#0ea5e9]" />
-                    <label className="text-[14px] font-semibold text-[#1b1c1a]">
+                    <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
                       فيديو دليل إعداد Telegram
                     </label>
                   </div>
@@ -581,19 +548,19 @@ export function GeneralSettingsView() {
                       dir="ltr"
                       value={formData.telegramGuideUrl}
                       onChange={(e) => setFormData({ ...formData, telegramGuideUrl: e.target.value })}
-                      className="w-full bg-[#f5f3ef] text-[#1b1c1a] text-[12px] rounded-[4px] ps-[36px] pe-[16px] py-[10px] border border-transparent focus:border-[#9c6402] focus:bg-white focus:outline-none transition-all"
+                      className="w-full bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] rounded-[4px] ps-[36px] pe-[16px] py-[10px] border border-transparent dark:border-[#38271c] focus:border-[#9c6402] dark:focus:border-[#e29d38] focus:bg-white dark:focus:bg-[#1a120d] focus:outline-none transition-all"
                     />
                     <a
                       href={formData.telegramGuideUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="absolute top-1/2 -translate-y-1/2 start-[10px] size-[20px] rounded hover:bg-[#eae8e4] flex items-center justify-center text-[#837565] hover:text-[#1b1c1a]"
+                      className="absolute top-1/2 -translate-y-1/2 start-[10px] size-[20px] rounded hover:bg-[#eae8e4] dark:hover:bg-[#38271c] flex items-center justify-center text-[#837565] dark:text-[#a89f91] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
                       title="فتح الرابط"
                     >
                       <ExternalLink className="size-[13px]" />
                     </a>
                   </div>
-                  <p className="text-[10px] font-bold text-[#837565] text-start leading-[14px]">
+                  <p className="text-[10px] font-bold text-[#837565] dark:text-[#a89f91] text-start leading-[14px]">
                     توجيه المحامين لربط البوت التفاعلي لملخصات القضايا اليومية.
                   </p>
                 </div>
@@ -602,7 +569,7 @@ export function GeneralSettingsView() {
                 <div className="flex flex-col gap-[6px]">
                   <div className="flex items-center gap-[6px] text-start">
                     <span className="size-[8px] rounded-full bg-[#10b981]" />
-                    <label className="text-[14px] font-semibold text-[#1b1c1a]">
+                    <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
                       فيديو دليل إعداد WhatsApp
                     </label>
                   </div>
@@ -612,19 +579,19 @@ export function GeneralSettingsView() {
                       dir="ltr"
                       value={formData.whatsappGuideUrl}
                       onChange={(e) => setFormData({ ...formData, whatsappGuideUrl: e.target.value })}
-                      className="w-full bg-[#f5f3ef] text-[#1b1c1a] text-[12px] rounded-[4px] ps-[36px] pe-[16px] py-[10px] border border-transparent focus:border-[#9c6402] focus:bg-white focus:outline-none transition-all"
+                      className="w-full bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] rounded-[4px] ps-[36px] pe-[16px] py-[10px] border border-transparent dark:border-[#38271c] focus:border-[#9c6402] dark:focus:border-[#e29d38] focus:bg-white dark:focus:bg-[#1a120d] focus:outline-none transition-all"
                     />
                     <a
                       href={formData.whatsappGuideUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="absolute top-1/2 -translate-y-1/2 start-[10px] size-[20px] rounded hover:bg-[#eae8e4] flex items-center justify-center text-[#837565] hover:text-[#1b1c1a]"
+                      className="absolute top-1/2 -translate-y-1/2 start-[10px] size-[20px] rounded hover:bg-[#eae8e4] dark:hover:bg-[#38271c] flex items-center justify-center text-[#837565] dark:text-[#a89f91] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
                       title="فتح الرابط"
                     >
                       <ExternalLink className="size-[13px]" />
                     </a>
                   </div>
-                  <p className="text-[10px] font-bold text-[#837565] text-start leading-[14px]">
+                  <p className="text-[10px] font-bold text-[#837565] dark:text-[#a89f91] text-start leading-[14px]">
                     مرجع إعداد الحساب الرسمي للأعمال وإرسال إخطارات الجلسات.
                   </p>
                 </div>
@@ -632,7 +599,7 @@ export function GeneralSettingsView() {
                 {/* 4.3 رابط توثيق API للمطورين */}
                 <div className="flex flex-col gap-[6px]">
                   <div className="flex items-center text-start">
-                    <label className="text-[14px] font-semibold text-[#1b1c1a]">
+                    <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
                       رابط توثيق API للمطورين
                     </label>
                   </div>
@@ -642,28 +609,35 @@ export function GeneralSettingsView() {
                       dir="ltr"
                       value={formData.apiDocsUrl}
                       onChange={(e) => setFormData({ ...formData, apiDocsUrl: e.target.value })}
-                      className="w-full bg-[#f5f3ef] text-[#1b1c1a] text-[12px] rounded-[4px] ps-[36px] pe-[16px] py-[10px] border border-transparent focus:border-[#9c6402] focus:bg-white focus:outline-none transition-all"
+                      className="w-full bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] rounded-[4px] ps-[36px] pe-[16px] py-[10px] border border-transparent dark:border-[#38271c] focus:border-[#9c6402] dark:focus:border-[#e29d38] focus:bg-white dark:focus:bg-[#1a120d] focus:outline-none transition-all"
                     />
                     <a
                       href={formData.apiDocsUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="absolute top-1/2 -translate-y-1/2 start-[10px] size-[20px] rounded hover:bg-[#eae8e4] flex items-center justify-center text-[#837565] hover:text-[#1b1c1a]"
+                      className="absolute top-1/2 -translate-y-1/2 start-[10px] size-[20px] rounded hover:bg-[#eae8e4] dark:hover:bg-[#38271c] flex items-center justify-center text-[#837565] dark:text-[#a89f91] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
                       title="فتح الرابط"
                     >
                       <ExternalLink className="size-[13px]" />
                     </a>
                   </div>
-                  <p className="text-[10px] font-bold text-[#837565] text-start leading-[14px]">
+                  <p className="text-[10px] font-bold text-[#837565] dark:text-[#a89f91] text-start leading-[14px]">
                     مستندات RESTful API لربط الأنظمة القضائية والمالية.
                   </p>
                 </div>
               </div>
             </section>
           </div>
+
             {/* FLOATING STICKY ACTION BAR (Figma 1:17160) */}
             <DashboardStickyActionBar>
-              <div className="flex items-center gap-[10px]">
+              {/* Text note on the Right (Start in RTL) */}
+              <span className="text-[12px] font-normal text-[#837565] dark:text-[#cdc5bd] hidden sm:inline text-start">
+                يتم حفظ جميع التعديلات وتطبيقها فوراً عبر خوادم المنصة
+              </span>
+
+              {/* Action Buttons on the Left (End in RTL) */}
+              <div className="flex items-center gap-[10px] ms-auto sm:ms-0">
                 {/* Primary Submit Button */}
                 <button
                   type="button"
@@ -693,10 +667,6 @@ export function GeneralSettingsView() {
                   إلغاء
                 </button>
               </div>
-
-              <span className="text-[12px] text-[#837565] dark:text-[#cdc5bd] hidden sm:inline">
-                يتم حفظ جميع التعديلات وتطبيقها فوراً عبر خوادم المنصة
-              </span>
             </DashboardStickyActionBar>
           </DashboardPageTransition>
         </main>

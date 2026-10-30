@@ -126,14 +126,14 @@ export function ServerInfoView() {
                 <span>عرض الصفحة:</span>
                 <div className="relative">
                   <select
-                    className="bg-[#f5f3ef] dark:bg-[#1a120d] border border-[#eae8e4] dark:border-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[4px] ps-[12px] pe-[28px] py-[6px] appearance-none cursor-pointer focus:outline-none"
+                    className="bg-[#f5f3ef] dark:bg-[#1a120d] border border-[#eae8e4] dark:border-[#38271c] hover:border-[#9c6402]/40 dark:hover:border-[#e29d38]/40 text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] ps-[14px] pe-[36px] py-[6px] appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] transition-colors"
                     defaultValue="10"
                   >
-                    <option value="10">10 سجلات</option>
-                    <option value="25">25 سجل</option>
-                    <option value="50">50 سجل</option>
+                    <option value="10" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">10 سجلات</option>
+                    <option value="25" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">25 سجل</option>
+                    <option value="50" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">50 سجل</option>
                   </select>
-                  <ChevronDown className="absolute top-1/2 -translate-y-1/2 end-[8px] size-[14px] text-[#837565] dark:text-[#8e8680] pointer-events-none" />
+                  <ChevronDown className="absolute top-1/2 -translate-y-1/2 end-[12px] size-[14px] text-[#837565] dark:text-[#8e8680] pointer-events-none" />
                 </div>
               </div>
             </div>

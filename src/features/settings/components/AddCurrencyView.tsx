@@ -307,7 +307,13 @@ export function AddCurrencyView({ onBack, onSave }: AddCurrencyViewProps) {
 
         {/* Floating Sticky Action Bar */}
         <DashboardStickyActionBar>
-          <div className="flex items-center gap-[10px]">
+          {/* Text note on the Right (Start in RTL) */}
+          <span className="text-[12px] font-normal text-[#837565] dark:text-[#cdc5bd] hidden sm:inline text-start">
+            سيتم تفعيل العملة فور الحفظ وتحديث معاملات النظام
+          </span>
+
+          {/* Action Buttons on the Left (End in RTL) */}
+          <div className="flex items-center gap-[10px] ms-auto sm:ms-0">
             <button
               type="button"
               onClick={handleSubmit}
@@ -326,10 +332,6 @@ export function AddCurrencyView({ onBack, onSave }: AddCurrencyViewProps) {
               إلغاء
             </button>
           </div>
-
-          <span className="text-[12px] text-[#837565] dark:text-[#cdc5bd] hidden sm:inline">
-            سيتم تفعيل العملة فور الحفظ وتحديث معاملات النظام
-          </span>
         </DashboardStickyActionBar>
       </main>
     </div>

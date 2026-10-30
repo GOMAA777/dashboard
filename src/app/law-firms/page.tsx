@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import type { Metadata } from "next";
 import { ClientManagementView } from "@/features/clients/components/ClientManagementView";
 
@@ -9,5 +9,9 @@ export const metadata: Metadata = {
 };
 
 export default function LawFirmsPage() {
-  return <ClientManagementView />;
+  return (
+    <Suspense fallback={null}>
+      <ClientManagementView />
+    </Suspense>
+  );
 }

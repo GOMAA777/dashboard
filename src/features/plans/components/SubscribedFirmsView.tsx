@@ -25,6 +25,7 @@ import { UpgradeSubscriptionDialog } from "./UpgradeSubscriptionDialog";
 import { DeactivateSubscriptionDialog } from "./DeactivateSubscriptionDialog";
 import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
 import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
+import { DashboardSelect } from "@/components/shared/DashboardSelect";
 
 interface SubscribedFirmsViewProps {
   onBack: () => void;
@@ -366,52 +367,49 @@ export function SubscribedFirmsView({
         drawerContent={
           <div className="space-y-4 text-start font-['Cairo',sans-serif]">
             {/* Status Filter */}
-            <div className="space-y-1.5">
-              <label className="text-[13px] font-bold text-[#1b1c1a] block">
+            <div className="space-y-2">
+              <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
                 حالة الاشتراك
               </label>
-              <select
+              <DashboardSelect
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full h-[40px] bg-[#f5f3ef] text-[#1b1c1a] text-[13px] font-semibold rounded-[4px] px-[12px] border border-transparent focus:outline-none focus:ring-1 focus:ring-[#9c6402]/30 cursor-pointer"
               >
-                <option value="all">الكل</option>
-                <option value="active">نشط</option>
-                <option value="trial">قيد التجربة</option>
-                <option value="pending">بانتظار السداد</option>
-              </select>
+                <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الكل</option>
+                <option value="active" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">نشط</option>
+                <option value="trial" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">قيد التجربة</option>
+                <option value="pending" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">بانتظار السداد</option>
+              </DashboardSelect>
             </div>
 
             {/* Renewal Filter */}
-            <div className="space-y-1.5">
-              <label className="text-[13px] font-bold text-[#1b1c1a] block">
+            <div className="space-y-2">
+              <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
                 موعد التجديد
               </label>
-              <select
+              <DashboardSelect
                 value={renewalFilter}
                 onChange={(e) => setRenewalFilter(e.target.value)}
-                className="w-full h-[40px] bg-[#f5f3ef] text-[#1b1c1a] text-[13px] font-semibold rounded-[4px] px-[12px] border border-transparent focus:outline-none focus:ring-1 focus:ring-[#9c6402]/30 cursor-pointer"
               >
-                <option value="all">الكل</option>
-                <option value="annual">سنوي</option>
-                <option value="monthly">شهري</option>
-              </select>
+                <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الكل</option>
+                <option value="annual" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">سنوي</option>
+                <option value="monthly" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">شهري</option>
+              </DashboardSelect>
             </div>
 
             {/* Resource Filter */}
-            <div className="space-y-1.5">
-              <label className="text-[13px] font-bold text-[#1b1c1a] block">
+            <div className="space-y-2">
+              <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
                 استهلاك الموارد
               </label>
-              <select
+              <DashboardSelect
                 value={resourceFilter}
                 onChange={(e) => setResourceFilter(e.target.value)}
-                className="w-full h-[40px] bg-[#f5f3ef] text-[#1b1c1a] text-[13px] font-semibold rounded-[4px] px-[12px] border border-transparent focus:outline-none focus:ring-1 focus:ring-[#9c6402]/30 cursor-pointer"
               >
-                <option value="all">الكل</option>
-                <option value="high">استهلاك مرتفع (&gt;80%)</option>
-                <option value="full">بلغ الحد الأقصى</option>
-              </select>
+                <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الكل</option>
+                <option value="high" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">استهلاك مرتفع (&gt;80%)</option>
+                <option value="full" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">بلغ الحد الأقصى</option>
+              </DashboardSelect>
             </div>
           </div>
         }
