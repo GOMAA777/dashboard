@@ -7,12 +7,15 @@ export type TextDirection = "rtl" | "ltr";
 
 interface UIState {
   sidebarOpen: boolean;
+  sidebarCollapsed: boolean;
   tableDensity: TableDensity;
   theme: ThemePreference;
   language: AppLanguage;
   direction: TextDirection;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
+  toggleSidebarCollapsed: () => void;
+  setSidebarCollapsed: (collapsed: boolean) => void;
   setTableDensity: (density: TableDensity) => void;
   setTheme: (theme: ThemePreference) => void;
   toggleTheme: () => void;
@@ -61,6 +64,7 @@ function applyDirectionToDOM(dir: TextDirection) {
 
 export const useUIStore = create<UIState>((set, get) => ({
   sidebarOpen: true,
+  sidebarCollapsed: false,
   tableDensity: "normal",
   theme: "light",
   language: "ar",
@@ -68,6 +72,27 @@ export const useUIStore = create<UIState>((set, get) => ({
 
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
+  toggleSidebarCollapsed: () => {
+    const next = !get().sidebarCollapsed;
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("app-sidebar-collapsed", String(next));
+      } catch {
+        // Ignore
+      }
+    }
+    set({ sidebarCollapsed: next });
+  },
+  setSidebarCollapsed: (collapsed) => {
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("app-sidebar-collapsed", String(collapsed));
+      } catch {
+        // Ignore
+      }
+    }
+    set({ sidebarCollapsed: collapsed });
+  },
   setTableDensity: (density) => set({ tableDensity: density }),
 
   setTheme: (theme: ThemePreference) => {
@@ -127,6 +152,10 @@ if (typeof window !== "undefined") {
       const defaultDir = savedLang === "ar" ? "rtl" : "ltr";
       applyDirectionToDOM(defaultDir);
       useUIStore.setState({ direction: defaultDir });
+    }
+    const savedCollapsed = localStorage.getItem("app-sidebar-collapsed");
+    if (savedCollapsed !== null) {
+      useUIStore.setState({ sidebarCollapsed: savedCollapsed === "true" });
     }
   } catch {
     // Ignore in private browsing mode

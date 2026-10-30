@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useSyncExternalStore } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -19,8 +19,10 @@ import {
   UserCheck,
   Users,
   Key,
+  ChevronLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useUIStore } from "@/stores/use-ui-store";
 
 interface NavItem {
   id: string;
@@ -51,34 +53,76 @@ interface DashboardSidebarProps {
 
 export function DashboardSidebar({ activeNav }: DashboardSidebarProps = {}) {
   const pathname = usePathname();
+  const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
+  const toggleSidebarCollapsed = useUIStore((state) => state.toggleSidebarCollapsed);
+
+  const isMounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+
+  const isCollapsed = isMounted ? sidebarCollapsed : false;
 
   return (
     <aside
-      className="w-[240px] shrink-0 h-screen h-dvh sticky top-0 bg-[#1c140f] flex flex-col justify-between border-s border-[#2c221c] drop-shadow-[0px_1px_4px_rgba(0,0,0,0.04)] select-none z-30"
+      className={cn(
+        "relative shrink-0 h-screen h-dvh sticky top-0 bg-[#1c140f] flex flex-col justify-between border-s border-[#2c221c] drop-shadow-[0px_1px_4px_rgba(0,0,0,0.04)] select-none z-30 transition-all duration-300 ease-in-out",
+        isCollapsed ? "w-[72px]" : "w-[240px]"
+      )}
       data-node-id="1:667"
       data-name="Aside"
     >
+      {/* Sidebar Collapse/Expand Toggle Button on the boundary */}
+      <button
+        type="button"
+        onClick={toggleSidebarCollapsed}
+        aria-label={isCollapsed ? "توسيع القائمة الجانبية" : "تصغير القائمة الجانبية"}
+        title={isCollapsed ? "توسيع القائمة الجانبية" : "تصغير القائمة الجانبية"}
+        className="absolute top-[20px] left-0 -translate-x-1/2 z-40 size-[26px] bg-white hover:bg-[#f5f3ef] text-[#514537] hover:text-[#1b1c1a] border border-[#ded5c6] rounded-full shadow-[0px_2px_5px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all cursor-pointer focus:outline-none"
+      >
+        <ChevronLeft
+          className={cn(
+            "size-[14px] text-[#514537] transition-transform duration-300",
+            isCollapsed && "rotate-180"
+          )}
+        />
+      </button>
+
       {/* Top Section: Logo & Nav List */}
       <div className="flex flex-col flex-1 min-h-0">
         {/* Brand Header */}
         <div
-          className="h-[64px] border-b border-[#2c221c] px-4 flex items-center justify-between shrink-0"
+          className={cn(
+            "h-[64px] border-b border-[#2c221c] flex items-center shrink-0 transition-all duration-300",
+            isCollapsed ? "justify-center px-2" : "justify-between px-4"
+          )}
           data-node-id="1:669"
         >
           {/* Logo Mark + Titles */}
-          <div className="flex items-center gap-3 w-full justify-between">
-            {/* Titles */}
-            <div className="flex flex-col items-start text-right">
-              <span className="font-bold text-[#fdfbf7] text-[18px] leading-[22.5px] font-sans">
-                الجودي
-              </span>
-              <span className="font-bold text-[#b9b3ae] text-[10px] leading-[14px]">
-                لوحة الإدارة العليا
-              </span>
-            </div>
+          <div
+            className={cn(
+              "flex items-center w-full",
+              isCollapsed ? "justify-center" : "justify-between gap-3"
+            )}
+          >
+            {/* Titles (hidden when collapsed) */}
+            {!isCollapsed && (
+              <div className="flex flex-col items-start text-right overflow-hidden whitespace-nowrap">
+                <span className="font-bold text-[#fdfbf7] text-[18px] leading-[22.5px] font-sans">
+                  الجودي
+                </span>
+                <span className="font-bold text-[#b9b3ae] text-[10px] leading-[14px]">
+                  لوحة الإدارة العليا
+                </span>
+              </div>
+            )}
 
             {/* Brand Logo */}
-            <div className="size-[34px] flex items-center justify-center shrink-0">
+            <div
+              className="size-[34px] flex items-center justify-center shrink-0"
+              title={isCollapsed ? "الجودي - لوحة الإدارة العليا" : undefined}
+            >
               <Image
                 src={logoMarkImg}
                 alt="الجودي"
@@ -93,7 +137,10 @@ export function DashboardSidebar({ activeNav }: DashboardSidebarProps = {}) {
 
         {/* Navigation Items */}
         <nav
-          className="flex-1 overflow-y-auto px-[4px] py-[8px] flex flex-col gap-[2px] scrollbar-thin"
+          className={cn(
+            "flex-1 overflow-y-auto py-[8px] flex flex-col gap-[4px] scrollbar-thin transition-all duration-300",
+            isCollapsed ? "px-[10px] items-center" : "px-[8px]"
+          )}
           data-node-id="1:678"
         >
           {navItems.map((item) => {
@@ -102,6 +149,32 @@ export function DashboardSidebar({ activeNav }: DashboardSidebarProps = {}) {
               : item.href === "/"
                 ? pathname === "/"
                 : pathname.startsWith(item.href);
+
+            if (isCollapsed) {
+              return (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  title={item.label}
+                  className={cn(
+                    "size-[44px] rounded-[12px] flex items-center justify-center transition-all duration-200 group relative",
+                    isActive
+                      ? "bg-[#9c6402] text-[#1c140f] shadow-sm"
+                      : "text-[#cdc5bd] hover:bg-[#2c221c]/80 hover:text-[#fdfbf7]"
+                  )}
+                  data-node-id={isActive ? "1:679" : undefined}
+                >
+                  <item.icon
+                    className={cn(
+                      "size-[18px] transition-colors shrink-0",
+                      isActive
+                        ? "text-[#1c140f]"
+                        : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
+                    )}
+                  />
+                </Link>
+              );
+            }
 
             return (
               <React.Fragment key={item.id}>
@@ -118,7 +191,7 @@ export function DashboardSidebar({ activeNav }: DashboardSidebarProps = {}) {
                   {/* Label on start (right in RTL) */}
                   <span
                     className={cn(
-                      "text-[14px] leading-[20px] font-semibold flex-1 text-right",
+                      "text-[14px] leading-[20px] font-semibold flex-1 text-right truncate",
                       isActive ? "text-[#1c140f] font-bold" : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
                     )}
                   >
@@ -166,16 +239,24 @@ export function DashboardSidebar({ activeNav }: DashboardSidebarProps = {}) {
 
       {/* Bottom Footer: Server Status & Version */}
       <div
-        className="h-[35px] bg-[#16100c] border-t border-[#2c221c] px-[12px] flex items-center justify-between shrink-0"
+        className={cn(
+          "h-[35px] bg-[#16100c] border-t border-[#2c221c] flex items-center shrink-0 transition-all duration-300",
+          isCollapsed ? "justify-center px-2" : "justify-between px-[12px]"
+        )}
         data-node-id="1:744"
+        title={isCollapsed ? "v2.4.0 - الخوادم: مستقرة 99.9%" : undefined}
       >
-        <span className="font-bold text-[#8e8680] text-[10px] leading-[14px]">
-          v2.4.0
-        </span>
-        <div className="flex items-center gap-[6px]">
-          <span className="font-bold text-[#cdc5bd] text-[10px] leading-[14px]">
-            الخوادم: مستقرة 99.9%
+        {!isCollapsed && (
+          <span className="font-bold text-[#8e8680] text-[10px] leading-[14px] whitespace-nowrap">
+            v2.4.0
           </span>
+        )}
+        <div className="flex items-center gap-[6px]">
+          {!isCollapsed && (
+            <span className="font-bold text-[#cdc5bd] text-[10px] leading-[14px] whitespace-nowrap">
+              الخوادم: مستقرة 99.9%
+            </span>
+          )}
           <span className="size-[8px] rounded-full bg-[#10b981] inline-block animate-pulse shrink-0" />
         </div>
       </div>
