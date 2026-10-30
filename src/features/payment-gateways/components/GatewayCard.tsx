@@ -38,7 +38,7 @@ export function GatewayCard({
   } = gateway;
 
   return (
-    <div className="bg-white rounded-[16px] p-6 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] border border-[#eae8e4]/80 flex flex-col justify-between h-full transition-all hover:shadow-md">
+    <div className="bg-white dark:bg-[#221812] rounded-[16px] p-6 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] border border-[#eae8e4]/80 dark:border-[#38271c] flex flex-col justify-between h-full transition-all hover:shadow-md dark:hover:border-[#9c6402]/40">
       {/* Top Section */}
       <div className="flex flex-col gap-4">
         {/* Header: Brand Icon on Right, Toggle Switch on Left */}
@@ -47,44 +47,44 @@ export function GatewayCard({
           <div className="flex items-center gap-3">
             {/* Official Brand Badge */}
             {brandType === "bank" && (
-              <div className="bg-[#fffbeb] border border-[#fef3c7] rounded-[16px] size-14 flex items-center justify-center shrink-0">
+              <div className="bg-[#fffbeb] border border-[#fef3c7] dark:bg-[#9c6402]/15 dark:border-[#9c6402]/30 rounded-[16px] size-14 flex items-center justify-center shrink-0">
                 <BankTransferBrandIcon className="size-7" />
               </div>
             )}
 
             {brandType === "paypal" && (
-              <div className="bg-[rgba(0,48,135,0.06)] border border-[#003087]/15 rounded-[16px] size-14 flex items-center justify-center shrink-0">
+              <div className="bg-[rgba(0,48,135,0.06)] border border-[#003087]/15 dark:bg-[rgba(0,121,193,0.15)] dark:border-[#0079c1]/30 rounded-[16px] size-14 flex items-center justify-center shrink-0">
                 <PaypalBrandIcon className="size-8" />
               </div>
             )}
 
             {brandType === "stripe" && (
-              <div className="bg-[rgba(99,91,255,0.08)] border border-[#635bff]/15 rounded-[16px] size-14 flex items-center justify-center shrink-0">
+              <div className="bg-[rgba(99,91,255,0.08)] border border-[#635bff]/15 dark:bg-[rgba(99,91,255,0.15)] dark:border-[#635bff]/30 rounded-[16px] size-14 flex items-center justify-center shrink-0">
                 <StripeBrandIcon className="size-9 rounded-md" />
               </div>
             )}
 
             {brandType === "paddle" && (
-              <div className="bg-[rgba(13,31,45,0.05)] border border-[rgba(13,31,45,0.1)] rounded-[16px] size-14 flex items-center justify-center shrink-0">
+              <div className="bg-[rgba(13,31,45,0.05)] border border-[rgba(13,31,45,0.1)] dark:bg-white/10 dark:border-white/20 rounded-[16px] size-14 flex items-center justify-center shrink-0">
                 <PaddleBrandIcon className="size-7" />
               </div>
             )}
 
             {brandType === "razorpay" && (
-              <div className="bg-[rgba(12,35,64,0.05)] border border-[rgba(12,35,64,0.15)] rounded-[16px] size-14 flex items-center justify-center shrink-0">
+              <div className="bg-[rgba(12,35,64,0.06)] border border-[rgba(12,35,64,0.15)] dark:bg-[rgba(56,189,248,0.12)] dark:border-[#38bdf8]/35 rounded-[16px] size-14 flex items-center justify-center shrink-0 shadow-2xs">
                 <RazorpayBrandIcon className="size-7" />
               </div>
             )}
 
             {brandType === "custom" && (
-              <div className="bg-[#f0eeea] border border-[#ded5c6] rounded-[16px] size-14 flex items-center justify-center shrink-0">
+              <div className="bg-[#f0eeea] border border-[#ded5c6] dark:bg-[#281c15] dark:border-[#38271c] rounded-[16px] size-14 flex items-center justify-center shrink-0">
                 <CustomGatewayBrandIcon className="size-7" />
               </div>
             )}
 
             <div className="flex flex-col items-start text-start">
               <div className="flex items-center gap-2">
-                <h3 className="text-[#1c140f] text-[18px] font-bold leading-[26px]">
+                <h3 className="text-[#1c140f] dark:text-[#fdfbf7] text-[18px] font-bold leading-[26px]">
                   {name}
                 </h3>
                 <span
@@ -94,7 +94,7 @@ export function GatewayCard({
                   {badgeLabel}
                 </span>
               </div>
-              <span className="text-[#837565] text-[12px] leading-[18px]">
+              <span className="text-[#837565] dark:text-[#a89f91] text-[12px] leading-[18px]">
                 {providerSubtitle}
               </span>
             </div>
@@ -135,41 +135,41 @@ export function GatewayCard({
             </span>
           </div>
           {statusSubText && (
-            <span className="text-[#837565] text-[10px] font-bold leading-[14px]">
+            <span className="text-[#837565] dark:text-[#a89f91] text-[10px] font-bold leading-[14px]">
               {statusSubText}
             </span>
           )}
         </div>
 
         {/* Description */}
-        <p className="text-[#514537] text-[14px] leading-[22.75px] text-start font-normal">
+        <p className="text-[#514537] dark:text-[#cdc5bd] text-[14px] leading-[22.75px] text-start font-normal">
           {description}
         </p>
 
         {/* Feature Meta List */}
-        <div className="border-t border-[#e8e4de]/60 pt-4 space-y-2.5 w-full">
+        <div className="border-t border-[#e8e4de]/60 dark:border-[#38271c] pt-4 space-y-2.5 w-full">
           {metaItems.map((meta, idx) => (
             <div key={idx} className="flex items-center justify-between text-xs">
               {/* Label on Start (Right) */}
-              <span className="text-[#837565] text-start font-normal">
+              <span className="text-[#837565] dark:text-[#a89f91] text-start font-normal">
                 {meta.label}
               </span>
 
               {/* Value on End (Left) */}
               <div className="flex items-center gap-1.5">
                 {meta.isRecurring && (
-                  <Repeat className="size-3 text-[#047857]" />
+                  <Repeat className="size-3 text-[#047857] dark:text-[#34d399]" />
                 )}
                 {meta.hasDot && (
-                  <span className="size-1.5 rounded-full bg-[#059669]" />
+                  <span className="size-1.5 rounded-full bg-[#059669] dark:bg-[#10b981]" />
                 )}
                 <span
                   className={`font-semibold ${
                     meta.isSuccess
-                      ? "text-[#047857]"
+                      ? "text-[#047857] dark:text-[#34d399]"
                       : meta.isWarning
-                      ? "text-[#b76e00]"
-                      : "text-[#1c140f]"
+                      ? "text-[#b76e00] dark:text-[#fbbf24]"
+                      : "text-[#1c140f] dark:text-[#fdfbf7]"
                   }`}
                 >
                   {meta.value}
@@ -181,13 +181,13 @@ export function GatewayCard({
       </div>
 
       {/* Footer Action Button */}
-      <div className="border-t border-[#e8e4de] pt-4 mt-5 w-full">
+      <div className="border-t border-[#e8e4de] dark:border-[#38271c] pt-4 mt-5 w-full">
         <button
           type="button"
           onClick={() => onOpenSettings(gateway)}
-          className="bg-[#f5f3ef] hover:bg-[#eae8e4] text-[#1c140f] rounded-[8px] py-2 px-3 text-xs font-semibold w-full flex items-center justify-center gap-2 transition-colors cursor-pointer"
+          className="bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#34241b] text-[#1c140f] dark:text-[#fdfbf7] border border-transparent dark:border-[#38271c] rounded-[8px] py-2 px-3 text-xs font-semibold w-full flex items-center justify-center gap-2 transition-colors cursor-pointer"
         >
-          <Settings className="size-[15px] text-[#514537]" />
+          <Settings className="size-[15px] text-[#514537] dark:text-[#a89f91]" />
           <span>إعدادات البوابة</span>
         </button>
       </div>
