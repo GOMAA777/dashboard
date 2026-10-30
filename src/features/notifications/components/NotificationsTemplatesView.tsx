@@ -325,15 +325,6 @@ export function NotificationsTemplatesView() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <div className="flex items-center gap-2 text-xs font-semibold text-[#8c8279] dark:text-[#9e968a] mb-1">
-                  <span>{isAr ? "الرئيسية" : "Dashboard"}</span>
-                  <span>/</span>
-                  <span>{isAr ? "الدعم والإعدادات" : "Settings"}</span>
-                  <span>/</span>
-                  <span className="text-[#c29547] dark:text-[#d4a759]">
-                    {isAr ? "قوالب الإيميل والإشعارات الآلية" : "Automated Email Templates"}
-                  </span>
-                </div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#2c2825] dark:text-[#f5f4f0] flex items-center gap-2.5">
                   <Mail className="w-7 h-7 text-[#c29547] dark:text-[#d4a759]" />
                   <span>{isAr ? "قوالب الإيميلات الآلية وإشعارات المكاتب" : "Automated Email Templates"}</span>

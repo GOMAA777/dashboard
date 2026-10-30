@@ -47,8 +47,8 @@ export function EmployeeDetailsView({
 
   return (
     <div className="space-y-6 pb-20" dir="rtl" data-node-id="1:9815">
-      {/* Top Breadcrumb & Back bar */}
-      <div className="flex items-center justify-between">
+      {/* Top Back bar */}
+      <div className="flex items-center justify-start">
         <button
           type="button"
           onClick={onBack}
@@ -57,10 +57,6 @@ export function EmployeeDetailsView({
           <span>العودة لطاقم العمل</span>
           <ArrowRight className="size-[15px]" />
         </button>
-
-        <span className="text-[12px] text-[#79716b]">
-          طاقم العمل / تفاصيل الموظف / {employee.empCode}
-        </span>
       </div>
 
       {/* Hero Header Card */}

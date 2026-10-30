@@ -44,24 +44,24 @@ export function TicketsTable({
     switch (priority) {
       case "urgent":
         return (
-          <div className="bg-[#ffdad6] flex items-center gap-[4px] px-[8px] py-[3px] rounded-[2px] shrink-0">
-            <span className="font-bold text-[#93000a] text-[10px] leading-[14px]">عاجلة</span>
-            <div className="bg-[#ba1a1a] rounded-[12px] size-[6px] shrink-0" />
+          <div className="bg-[#fff1f2] border border-rose-200 text-[#9f1239] dark:bg-[#381616] dark:border-rose-500/40 dark:text-[#fca5a5] flex items-center gap-1.5 px-2.5 py-0.5 rounded-full w-fit shrink-0">
+            <div className="bg-[#e11d48] shadow-[0_0_8px_#e11d48] ring-1 ring-rose-400/60 rounded-full size-[7px] shrink-0" />
+            <span className="font-bold text-[11px]">عاجلة</span>
           </div>
         );
       case "medium":
         return (
-          <div className="bg-[#fff8e1] flex items-center gap-[4px] px-[8px] py-[3px] rounded-[2px] shrink-0">
-            <span className="font-bold text-[#b76e00] text-[10px] leading-[14px]">متوسطة</span>
-            <div className="bg-[#b76e00] rounded-[12px] size-[6px] shrink-0" />
+          <div className="bg-[#fffbeb] border border-amber-200 text-[#92400e] dark:bg-[#2e1d0f] dark:border-amber-500/40 dark:text-[#fbbf24] flex items-center gap-1.5 px-2.5 py-0.5 rounded-full w-fit shrink-0">
+            <div className="bg-[#f59e0b] shadow-[0_0_8px_#f59e0b] ring-1 ring-amber-400/60 rounded-full size-[7px] shrink-0" />
+            <span className="font-bold text-[11px]">متوسطة</span>
           </div>
         );
       case "low":
       default:
         return (
-          <div className="bg-[#f0eeea] flex items-center gap-[4px] px-[8px] py-[3px] rounded-[2px] shrink-0">
-            <span className="font-bold text-[#61564f] text-[10px] leading-[14px]">منخفضة</span>
-            <div className="bg-[#61564f] rounded-[12px] size-[6px] shrink-0" />
+          <div className="bg-[#f5f3ef] border border-[#eae8e4] text-[#514537] dark:bg-[#281c15] dark:border-[#4d3627] dark:text-[#cdc5bd] flex items-center gap-1.5 px-2.5 py-0.5 rounded-full w-fit shrink-0">
+            <div className="bg-[#837565] rounded-full size-[7px] shrink-0" />
+            <span className="font-bold text-[11px]">منخفضة</span>
           </div>
         );
     }
@@ -71,33 +71,33 @@ export function TicketsTable({
     switch (status) {
       case "in_progress":
         return (
-          <div className="bg-[rgba(255,221,182,0.4)] flex items-center gap-[6px] px-[8px] py-[3px] rounded-[2px] shrink-0">
-            <span className="font-bold text-[#9c6402] text-[10px] leading-[14px]">
+          <div className="bg-[#9c6402]/10 border border-[#9c6402]/30 text-[#9c6402] dark:bg-[rgba(226,157,56,0.18)] dark:border-[#e29d38]/40 dark:text-[#f3c27e] flex items-center gap-1.5 px-2.5 py-0.5 rounded-full w-fit shrink-0">
+            <div className="bg-[#9c6402] dark:bg-[#e29d38] shadow-[0_0_8px_#9c6402] ring-1 ring-amber-400/60 rounded-full size-[7px] shrink-0" />
+            <span className="font-bold text-[11px]">
               جاري العمل عليها
             </span>
-            <div className="bg-[#9c6402] rounded-[12px] size-[6px] shrink-0" />
           </div>
         );
       case "open":
         return (
-          <div className="bg-[#e0ecf8] flex items-center gap-[6px] px-[8px] py-[3px] rounded-[2px] shrink-0">
-            <span className="font-bold text-[#1e3a8a] text-[10px] leading-[14px]">مفتوحة</span>
-            <div className="bg-[#1e3a8a] rounded-[12px] size-[6px] shrink-0" />
+          <div className="bg-[#eff6ff] border border-blue-200 text-[#1d4ed8] dark:bg-[#162233] dark:border-blue-500/40 dark:text-[#93c5fd] flex items-center gap-1.5 px-2.5 py-0.5 rounded-full w-fit shrink-0">
+            <div className="bg-[#2563eb] shadow-[0_0_8px_#2563eb] ring-1 ring-blue-400/60 rounded-full size-[7px] shrink-0" />
+            <span className="font-bold text-[11px]">مفتوحة</span>
           </div>
         );
       case "pending":
         return (
-          <div className="bg-[#fff4e5] flex items-center gap-[6px] px-[8px] py-[3px] rounded-[2px] shrink-0">
-            <span className="font-bold text-[#b45309] text-[10px] leading-[14px]">معلقة</span>
-            <div className="bg-[#b45309] rounded-[12px] size-[6px] shrink-0" />
+          <div className="bg-[#fffbeb] border border-amber-200 text-[#92400e] dark:bg-[#2e1d0f] dark:border-amber-500/40 dark:text-[#fbbf24] flex items-center gap-1.5 px-2.5 py-0.5 rounded-full w-fit shrink-0">
+            <div className="bg-[#f59e0b] shadow-[0_0_8px_#f59e0b] ring-1 ring-amber-400/60 rounded-full size-[7px] shrink-0" />
+            <span className="font-bold text-[11px]">معلقة</span>
           </div>
         );
       case "closed":
       default:
         return (
-          <div className="bg-[#e6f4ea] flex items-center gap-[6px] px-[8px] py-[3px] rounded-[2px] shrink-0">
-            <span className="font-bold text-[#137333] text-[10px] leading-[14px]">مغلقة</span>
-            <div className="bg-[#137333] rounded-[12px] size-[6px] shrink-0" />
+          <div className="bg-[#ecfdf5] border border-emerald-200 text-[#065f46] dark:bg-[#132c1c] dark:border-emerald-500/40 dark:text-[#6ee7b7] flex items-center gap-1.5 px-2.5 py-0.5 rounded-full w-fit shrink-0">
+            <div className="bg-[#10b981] shadow-[0_0_8px_#10b981] ring-1 ring-emerald-400/60 rounded-full size-[7px] shrink-0" />
+            <span className="font-bold text-[11px]">مغلقة</span>
           </div>
         );
     }

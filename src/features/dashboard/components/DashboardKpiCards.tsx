@@ -66,13 +66,13 @@ export function DashboardKpiCards() {
           >
             {/* Badge */}
             <div
-              className="bg-[#ecfdf5] dark:bg-[#12281a] rounded-[2px] px-[6px] py-[2px] flex items-center gap-[4px]"
+              className="bg-[#ecfdf5] border border-emerald-200 dark:bg-[#132c1c] dark:border-emerald-500/40 dark:shadow-[0_0_10px_rgba(16,185,129,0.15)] rounded-full px-2.5 py-0.5 flex items-center gap-1.5 transition-colors"
               data-node-id="1:110"
             >
-              <span className="text-[#065f46] dark:text-[#6ee7b7] text-[10px] leading-[14px] font-bold">
+              <span className="size-[7px] rounded-full bg-[#10b981] shadow-[0_0_8px_#10b981] ring-1 ring-emerald-400/60 shrink-0" />
+              <span className="text-[#065f46] dark:text-[#6ee7b7] text-[11px] font-bold">
                 +8.4%
               </span>
-              <span className="size-[6px] rounded-full bg-[#059669] shrink-0" />
             </div>
 
             {/* Subtitle */}
@@ -126,13 +126,13 @@ export function DashboardKpiCards() {
           >
             {/* Badge */}
             <div
-              className="bg-[#eae8e4] dark:bg-[#2d1f16] rounded-[2px] px-[6px] py-[2px] flex items-center gap-[4px]"
+              className="bg-[#f5f3ef] border border-[#eae8e4] dark:bg-[#2d1f16] dark:border-[#4d3627] rounded-full px-2.5 py-0.5 flex items-center gap-1.5 transition-colors"
               data-node-id="1:91"
             >
-              <span className="text-[#514537] dark:text-[#cdc5bd] text-[10px] leading-[14px] font-bold">
+              <span className="size-[7px] rounded-full bg-[#9c6402] dark:bg-[#e29d38] shadow-[0_0_6px_#9c6402] shrink-0" />
+              <span className="text-[#514537] dark:text-[#cdc5bd] text-[11px] font-bold">
                 {currentLang === "en" ? "75% of offices" : "75% من المكاتب"}
               </span>
-              <span className="size-[6px] rounded-full bg-[#9c6402] dark:bg-[#e29d38] shrink-0" />
             </div>
 
             {/* Subtitle */}
@@ -191,13 +191,13 @@ export function DashboardKpiCards() {
           >
             {/* Badge */}
             <div
-              className="bg-[rgba(123,78,0,0.1)] dark:bg-[rgba(226,157,56,0.15)] rounded-[2px] px-[6px] py-[2px] flex items-center gap-[4px]"
+              className="bg-[#9c6402]/10 border border-[#9c6402]/30 dark:bg-[rgba(226,157,56,0.18)] dark:border-[#e29d38]/40 rounded-full px-2.5 py-0.5 flex items-center gap-1.5 transition-colors"
               data-node-id="1:71"
             >
-              <span className="text-[#9c6402] dark:text-[#e29d38] text-[10px] leading-[14px] font-semibold">
+              <TrendingUp className="size-3 block shrink-0 text-[#9c6402] dark:text-[#e29d38]" />
+              <span className="text-[#9c6402] dark:text-[#e29d38] text-[11px] font-bold">
                 +12.2%
               </span>
-              <TrendingUp className="w-[10px] h-[6px] block shrink-0 text-[#9c6402] dark:text-[#e29d38]" />
             </div>
 
             {/* Subtitle */}
@@ -251,13 +251,13 @@ export function DashboardKpiCards() {
           >
             {/* Badge */}
             <div
-              className="bg-[#ffdad6] dark:bg-[#381616] rounded-[2px] px-[6px] py-[2px] flex items-center gap-[4px]"
+              className="bg-[#fff1f2] border border-rose-200 dark:bg-[#381616] dark:border-rose-500/40 dark:shadow-[0_0_10px_rgba(244,63,94,0.15)] rounded-full px-2.5 py-0.5 flex items-center gap-1.5 transition-colors"
               data-node-id="1:49"
             >
-              <span className="text-[#93000a] dark:text-[#fca5a5] text-[10px] leading-[14px] font-bold">
+              <span className="size-[7px] rounded-full bg-[#e11d48] shadow-[0_0_8px_#e11d48] ring-1 ring-rose-400/60 shrink-0" />
+              <span className="text-[#9f1239] dark:text-[#fca5a5] text-[11px] font-bold">
                 {currentLang === "en" ? "4 Critical / Urgent" : "4 حرجة / عاجلة"}
               </span>
-              <span className="size-[6px] rounded-full bg-[#ba1a1a] dark:bg-[#f87171] shrink-0" />
             </div>
 
             {/* Subtitle */}

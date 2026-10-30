@@ -271,7 +271,7 @@ export function ClientManagementTable({
                   {/* 5. الباقة الحالية */}
                   <td className="py-[16px] px-[16px]">
                     <span
-                      className={`inline-block px-[8px] py-[3px] rounded-[4px] text-[11px] font-bold whitespace-nowrap ${office.planBadgeClass}`}
+                      className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap border ${office.planBadgeClass}`}
                     >
                       {office.plan}
                     </span>
@@ -280,7 +280,7 @@ export function ClientManagementTable({
                   {/* 6. حالة الاشتراك */}
                   <td className="py-[16px] px-[16px]">
                     <span
-                      className={`inline-flex items-center gap-[4px] px-[8px] py-[3px] rounded-[4px] text-[11px] font-bold whitespace-nowrap ${office.subscriptionStatus.bgClass} ${office.subscriptionStatus.textClass}`}
+                      className={`w-fit inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap border ${office.subscriptionStatus.bgClass} ${office.subscriptionStatus.textClass}`}
                     >
                       <span>{office.subscriptionStatus.label}</span>
                       {office.subscriptionStatus.note && (
@@ -294,9 +294,9 @@ export function ClientManagementTable({
                   {/* 7. حالة الحساب */}
                   <td className="py-[16px] px-[16px]">
                     <span
-                      className={`inline-flex items-center gap-[6px] px-[8px] py-[3px] rounded-[4px] text-[11px] font-bold whitespace-nowrap ${office.accountStatus.bgClass} ${office.accountStatus.textClass}`}
+                      className={`w-fit inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap border ${office.accountStatus.bgClass} ${office.accountStatus.textClass}`}
                     >
-                      <span className={`size-[6px] rounded-full shrink-0 ${office.accountStatus.dotClass}`} />
+                      <span className={`size-[7px] rounded-full shadow-[0_0_8px_currentColor] ring-1 ring-current/40 shrink-0 ${office.accountStatus.dotClass}`} />
                       <span>{office.accountStatus.label}</span>
                     </span>
                   </td>

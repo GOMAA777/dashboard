@@ -40,15 +40,6 @@ export function ProfileView() {
           </div>
 
           <div className="relative z-10 max-w-4xl mx-auto space-y-6 text-right">
-            {/* Breadcrumb Header */}
-            <div className="flex items-center gap-2 text-xs font-semibold text-[#8c8279]">
-              <Link href="/" className="hover:text-[#c29547] transition-colors">
-                الرئيسية
-              </Link>
-              <span>/</span>
-              <span className="text-[#c29547]">الملف الشخصي</span>
-            </div>
-
             {/* Under Construction Notice Banner */}
             <div className="bg-[#fffbeb] border border-[#fef3c7] rounded-[16px] p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3.5 text-right w-full sm:w-auto">

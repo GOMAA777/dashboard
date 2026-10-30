@@ -68,20 +68,20 @@ const officesData: LawOfficeRow[] = [
     ownerEn: "Abdulaziz Al-Ajlan",
     planAr: "الاحترافية",
     planEn: "Professional",
-    planBadgeClass: "bg-[rgba(123,78,0,0.1)] dark:bg-[rgba(226,157,56,0.15)] text-[#9c6402] dark:text-[#e29d38]",
+    planBadgeClass: "bg-[#9c6402]/10 border border-[#9c6402]/30 text-[#9c6402] dark:bg-[rgba(226,157,56,0.18)] dark:border-[#e29d38]/40 dark:text-[#f3c27e]",
     registrationDateAr: "22 أكتوبر 2024",
     registrationDateEn: "22 Oct 2024",
     accountStatus: {
       labelAr: "نشط",
       labelEn: "Active",
-      bgClass: "bg-[#ecfdf5] dark:bg-[#12281a]",
+      bgClass: "bg-[#ecfdf5] border border-emerald-200 dark:bg-[#132c1c] dark:border-emerald-500/40 dark:shadow-[0_0_10px_rgba(16,185,129,0.15)]",
       textClass: "text-[#065f46] dark:text-[#6ee7b7]",
-      dotClass: "bg-[#059669]",
+      dotClass: "bg-[#10b981] shadow-[0_0_8px_#10b981] ring-1 ring-emerald-400/60",
     },
     subscriptionStatus: {
       labelAr: "ساري",
       labelEn: "Valid",
-      bgClass: "bg-[#ecfdf5] dark:bg-[#12281a]",
+      bgClass: "bg-[#ecfdf5] border border-emerald-200 dark:bg-[#132c1c] dark:border-emerald-500/40",
       textClass: "text-[#065f46] dark:text-[#6ee7b7]",
       icon: CheckCircle2,
     },
@@ -101,20 +101,20 @@ const officesData: LawOfficeRow[] = [
     ownerEn: "Turki Al-Sharif",
     planAr: "شركات",
     planEn: "Enterprise",
-    planBadgeClass: "bg-[#1c140f] dark:bg-[#342419] text-[#ffddb6] dark:text-[#e29d38]",
+    planBadgeClass: "bg-[#1c140f] border border-[#1c140f] text-white dark:bg-[#38261b] dark:border-[#e29d38]/40 dark:text-[#ffddb6]",
     registrationDateAr: "20 أكتوبر 2024",
     registrationDateEn: "20 Oct 2024",
     accountStatus: {
       labelAr: "نشط",
       labelEn: "Active",
-      bgClass: "bg-[#ecfdf5] dark:bg-[#12281a]",
+      bgClass: "bg-[#ecfdf5] border border-emerald-200 dark:bg-[#132c1c] dark:border-emerald-500/40 dark:shadow-[0_0_10px_rgba(16,185,129,0.15)]",
       textClass: "text-[#065f46] dark:text-[#6ee7b7]",
-      dotClass: "bg-[#059669]",
+      dotClass: "bg-[#10b981] shadow-[0_0_8px_#10b981] ring-1 ring-emerald-400/60",
     },
     subscriptionStatus: {
       labelAr: "ساري",
       labelEn: "Valid",
-      bgClass: "bg-[#ecfdf5] dark:bg-[#12281a]",
+      bgClass: "bg-[#ecfdf5] border border-emerald-200 dark:bg-[#132c1c] dark:border-emerald-500/40",
       textClass: "text-[#065f46] dark:text-[#6ee7b7]",
       icon: CheckCircle2,
     },
@@ -134,22 +134,22 @@ const officesData: LawOfficeRow[] = [
     ownerEn: "Fahad Al-Tamimi",
     planAr: "الاحترافية",
     planEn: "Professional",
-    planBadgeClass: "bg-[rgba(123,78,0,0.1)] dark:bg-[rgba(226,157,56,0.15)] text-[#9c6402] dark:text-[#e29d38]",
+    planBadgeClass: "bg-[#9c6402]/10 border border-[#9c6402]/30 text-[#9c6402] dark:bg-[rgba(226,157,56,0.18)] dark:border-[#e29d38]/40 dark:text-[#f3c27e]",
     registrationDateAr: "18 أكتوبر 2024",
     registrationDateEn: "18 Oct 2024",
     accountStatus: {
       labelAr: "نشط",
       labelEn: "Active",
-      bgClass: "bg-[#ecfdf5] dark:bg-[#12281a]",
+      bgClass: "bg-[#ecfdf5] border border-emerald-200 dark:bg-[#132c1c] dark:border-emerald-500/40 dark:shadow-[0_0_10px_rgba(16,185,129,0.15)]",
       textClass: "text-[#065f46] dark:text-[#6ee7b7]",
-      dotClass: "bg-[#059669]",
+      dotClass: "bg-[#10b981] shadow-[0_0_8px_#10b981] ring-1 ring-emerald-400/60",
     },
     subscriptionStatus: {
       labelAr: "ينتهي قريباً",
       labelEn: "Expiring Soon",
-      bgClass: "bg-[#fffbeb] dark:bg-[#2b1f0c]",
+      bgClass: "bg-[#fffbeb] border border-amber-200 dark:bg-[#2e1d0f] dark:border-amber-500/40 dark:shadow-[0_0_10px_rgba(245,158,11,0.15)]",
       textClass: "text-[#92400e] dark:text-[#fbbf24]",
-      dotColor: "bg-[#d97706]",
+      dotColor: "bg-[#f59e0b] shadow-[0_0_8px_#f59e0b] ring-1 ring-amber-400/60",
     },
   },
   {
@@ -167,20 +167,20 @@ const officesData: LawOfficeRow[] = [
     ownerEn: "Abdullah Al-Subaie",
     planAr: "الأساسية",
     planEn: "Basic",
-    planBadgeClass: "bg-[#eae8e4] dark:bg-[#2a1d15] text-[#514537] dark:text-[#cdc5bd]",
+    planBadgeClass: "bg-[#f5f3ef] border border-[#eae8e4] text-[#514537] dark:bg-[#281c15] dark:border-[#4d3627] dark:text-[#cdc5bd]",
     registrationDateAr: "15 أكتوبر 2024",
     registrationDateEn: "15 Oct 2024",
     accountStatus: {
       labelAr: "قيد التحقق",
       labelEn: "Under Review",
-      bgClass: "bg-[#fffbeb] dark:bg-[#2b1f0c]",
+      bgClass: "bg-[#fffbeb] border border-amber-200 dark:bg-[#2e1d0f] dark:border-amber-500/40 dark:shadow-[0_0_10px_rgba(245,158,11,0.15)]",
       textClass: "text-[#92400e] dark:text-[#fbbf24]",
-      dotClass: "bg-[#d97706]",
+      dotClass: "bg-[#f59e0b] shadow-[0_0_8px_#f59e0b] ring-1 ring-amber-400/60",
     },
     subscriptionStatus: {
       labelAr: "تجريبي (14 يوم)",
       labelEn: "Trial (14 Days)",
-      bgClass: "bg-[#eff6ff] dark:bg-[#162233]",
+      bgClass: "bg-[#eff6ff] border border-blue-200 dark:bg-[#162233] dark:border-blue-500/40",
       textClass: "text-[#1d4ed8] dark:text-[#93c5fd]",
       icon: Timer,
     },
@@ -200,20 +200,20 @@ const officesData: LawOfficeRow[] = [
     ownerEn: "Nasser Al-Dossari",
     planAr: "الاحترافية",
     planEn: "Professional",
-    planBadgeClass: "bg-[rgba(123,78,0,0.1)] dark:bg-[rgba(226,157,56,0.15)] text-[#9c6402] dark:text-[#e29d38]",
+    planBadgeClass: "bg-[#9c6402]/10 border border-[#9c6402]/30 text-[#9c6402] dark:bg-[rgba(226,157,56,0.18)] dark:border-[#e29d38]/40 dark:text-[#f3c27e]",
     registrationDateAr: "12 أكتوبر 2024",
     registrationDateEn: "12 Oct 2024",
     accountStatus: {
       labelAr: "نشط",
       labelEn: "Active",
-      bgClass: "bg-[#ecfdf5] dark:bg-[#12281a]",
+      bgClass: "bg-[#ecfdf5] border border-emerald-200 dark:bg-[#132c1c] dark:border-emerald-500/40 dark:shadow-[0_0_10px_rgba(16,185,129,0.15)]",
       textClass: "text-[#065f46] dark:text-[#6ee7b7]",
-      dotClass: "bg-[#059669]",
+      dotClass: "bg-[#10b981] shadow-[0_0_8px_#10b981] ring-1 ring-emerald-400/60",
     },
     subscriptionStatus: {
       labelAr: "ساري",
       labelEn: "Valid",
-      bgClass: "bg-[#ecfdf5] dark:bg-[#12281a]",
+      bgClass: "bg-[#ecfdf5] border border-emerald-200 dark:bg-[#132c1c] dark:border-emerald-500/40",
       textClass: "text-[#065f46] dark:text-[#6ee7b7]",
       icon: CheckCircle2,
     },
@@ -370,7 +370,7 @@ export function DashboardLawOfficesTable() {
                 <td className="py-[16px] px-[16px]">
                   <span
                     className={cn(
-                      "inline-flex items-center px-[10px] py-[4px] rounded-[2px] text-[10px] leading-[14px] font-semibold",
+                      "inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border",
                       row.planBadgeClass
                     )}
                   >
@@ -389,18 +389,18 @@ export function DashboardLawOfficesTable() {
                 <td className="py-[16px] px-[16px]">
                   <span
                     className={cn(
-                      "inline-flex items-center gap-[6px] px-[8px] py-[2px] rounded-[2px] text-[10px] leading-[14px] font-bold",
+                      "w-fit inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border transition-colors",
                       row.accountStatus.bgClass,
                       row.accountStatus.textClass
                     )}
                   >
-                    <span>{currentLang === "en" ? row.accountStatus.labelEn : row.accountStatus.labelAr}</span>
                     <span
                       className={cn(
-                        "size-[6px] rounded-full shrink-0",
+                        "size-[7px] rounded-full shrink-0",
                         row.accountStatus.dotClass
                       )}
                     />
+                    <span>{currentLang === "en" ? row.accountStatus.labelEn : row.accountStatus.labelAr}</span>
                   </span>
                 </td>
 
@@ -408,26 +408,26 @@ export function DashboardLawOfficesTable() {
                 <td className="py-[16px] px-[16px]">
                   <span
                     className={cn(
-                      "inline-flex items-center gap-[6px] px-[8px] py-[2px] rounded-[2px] text-[10px] leading-[14px] font-semibold",
+                      "w-fit inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors",
                       row.subscriptionStatus.bgClass,
                       row.subscriptionStatus.textClass
                     )}
                   >
+                    {row.subscriptionStatus.icon ? (
+                      <row.subscriptionStatus.icon className="size-[13px] block shrink-0" />
+                    ) : row.subscriptionStatus.dotColor ? (
+                      <span
+                        className={cn(
+                          "size-[7px] rounded-full shrink-0",
+                          row.subscriptionStatus.dotColor
+                        )}
+                      />
+                    ) : null}
                     <span>
                       {currentLang === "en"
                         ? row.subscriptionStatus.labelEn
                         : row.subscriptionStatus.labelAr}
                     </span>
-                    {row.subscriptionStatus.icon ? (
-                      <row.subscriptionStatus.icon className="size-[11px] block shrink-0" />
-                    ) : row.subscriptionStatus.dotColor ? (
-                      <span
-                        className={cn(
-                          "size-[6px] rounded-full shrink-0",
-                          row.subscriptionStatus.dotColor
-                        )}
-                      />
-                    ) : null}
                   </span>
                 </td>
 

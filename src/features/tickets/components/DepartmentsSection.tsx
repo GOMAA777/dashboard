@@ -92,14 +92,14 @@ export function DepartmentsSection({
     >
       {/* Main Identity & Command Banner */}
       <div
-        className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-[24px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 dark:border-[#38271c] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]"
         data-node-id="1:16262"
       >
         <div className="flex flex-col gap-[4px] text-right">
-          <h1 className="text-[#1b1c1a] font-bold text-[24px] sm:text-[28px] leading-[38px]">
+          <h1 className="text-[#1b1c1a] dark:text-[#fdfbf7] font-bold text-[24px] sm:text-[28px] leading-[38px]">
             الأقسام
           </h1>
-          <p className="text-[#514537] text-[13px] sm:text-[14px] leading-[22px]">
+          <p className="text-[#514537] dark:text-[#cdc5bd] text-[13px] sm:text-[14px] leading-[22px]">
             إدارة الهيكل التنظيمي وأقسام الترافع والخدمات القانونية بالمنصة
           </p>
         </div>
@@ -118,14 +118,14 @@ export function DepartmentsSection({
 
       {/* Tabs and Search / Filter Header */}
       <div
-        className="bg-white rounded-[8px] p-[20px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 flex flex-col gap-[16px] w-full"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-[20px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 dark:border-[#38271c] flex flex-col gap-[16px] w-full"
         data-node-id="1:16277"
       >
         {/* Top row: Tab pills and page view size */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-[12px] w-full">
           {/* Status Tab Pills */}
           <div
-            className="bg-[#f5f3ef] flex gap-[6px] items-center p-[4px] rounded-[12px] overflow-x-auto"
+            className="bg-[#f5f3ef] dark:bg-[#281c15] flex gap-[6px] items-center p-[4px] rounded-[12px] overflow-x-auto"
             data-node-id="1:16287"
           >
             {/* All */}
@@ -137,15 +137,15 @@ export function DepartmentsSection({
               }}
               className={`flex items-center gap-[8px] px-[16px] py-[6px] rounded-[10px] text-[14px] leading-[20px] font-semibold transition-all cursor-pointer ${
                 filter === "all"
-                  ? "bg-white text-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-                  : "text-[#514537] hover:text-[#1b1c1a]"
+                  ? "bg-white dark:bg-[#3d2716] text-[#9c6402] dark:text-[#ffddb6] shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
+                  : "text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
               }`}
             >
               <span
                 className={`px-[6px] rounded-[12px] text-[10px] font-bold leading-[14px] ${
                   filter === "all"
-                    ? "bg-[#f0eeea] text-[#7b4e00]"
-                    : "bg-[#f0eeea] text-[#514537]"
+                    ? "bg-[#f0eeea] dark:bg-[#221812] text-[#7b4e00] dark:text-[#ffddb6]"
+                    : "bg-[#f0eeea] dark:bg-[#221812] text-[#514537] dark:text-[#cdc5bd]"
                 }`}
               >
                 {totalCount}
@@ -162,11 +162,11 @@ export function DepartmentsSection({
               }}
               className={`flex items-center gap-[8px] px-[16px] py-[6px] rounded-[10px] text-[14px] leading-[20px] font-medium transition-all cursor-pointer ${
                 filter === "active"
-                  ? "bg-white text-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] font-semibold"
-                  : "text-[#514537] hover:text-[#1b1c1a]"
+                  ? "bg-white dark:bg-[#3d2716] text-[#9c6402] dark:text-[#ffddb6] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] font-semibold"
+                  : "text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
               }`}
             >
-              <span className="bg-[#f0eeea] text-[#514537] px-[6px] rounded-[12px] text-[10px] font-bold leading-[14px]">
+              <span className="bg-[#f0eeea] dark:bg-[#221812] text-[#514537] dark:text-[#cdc5bd] px-[6px] rounded-[12px] text-[10px] font-bold leading-[14px]">
                 {activeCount}
               </span>
               <span>نشط</span>
@@ -181,11 +181,11 @@ export function DepartmentsSection({
               }}
               className={`flex items-center gap-[8px] px-[16px] py-[6px] rounded-[10px] text-[14px] leading-[20px] font-medium transition-all cursor-pointer ${
                 filter === "inactive"
-                  ? "bg-white text-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] font-semibold"
-                  : "text-[#514537] hover:text-[#1b1c1a]"
+                  ? "bg-white dark:bg-[#3d2716] text-[#9c6402] dark:text-[#ffddb6] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] font-semibold"
+                  : "text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
               }`}
             >
-              <span className="bg-[#f0eeea] text-[#514537] px-[6px] rounded-[12px] text-[10px] font-bold leading-[14px]">
+              <span className="bg-[#f0eeea] dark:bg-[#221812] text-[#514537] dark:text-[#cdc5bd] px-[6px] rounded-[12px] text-[10px] font-bold leading-[14px]">
                 {inactiveCount}
               </span>
               <span>غير نشط</span>
@@ -203,21 +203,21 @@ export function DepartmentsSection({
               setPageIndex(0);
             }}
             placeholder="البحث باسم القسم أو الرقم التعريفي..."
-            className="w-full bg-[#f5f3ef] border-0 rounded-[4px] py-[8px] ps-[14px] pe-[40px] text-[12px] text-[#1b1c1a] placeholder:text-[#837565] focus:outline-none focus:ring-1 focus:ring-[#9c6402]/40 text-start"
+            className="w-full bg-[#f5f3ef] dark:bg-[#1c140f] border border-transparent dark:border-[#38271c] rounded-[4px] py-[8px] ps-[14px] pe-[40px] text-[12px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#8e8680] focus:outline-none focus:ring-1 focus:ring-[#9c6402]/40 text-start"
           />
-          <Search className="absolute end-[12px] top-[10px] size-[15px] text-[#837565] pointer-events-none" />
+          <Search className="absolute end-[12px] top-[10px] size-[15px] text-[#837565] dark:text-[#8e8680] pointer-events-none" />
         </div>
       </div>
 
       {/* Departments Data Table */}
       <div
-        className="bg-white rounded-[8px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 overflow-hidden w-full"
+        className="bg-white dark:bg-[#221812] rounded-[8px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 dark:border-[#38271c] overflow-hidden w-full"
         data-node-id="1:16310"
       >
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-right">
             <thead>
-              <tr className="bg-[#f0eeea] h-[56px] border-b border-[#eae8e4] text-[#514537] text-[12px] font-bold tracking-[0.6px] uppercase">
+              <tr className="bg-[#f0eeea] dark:bg-[#281c15] h-[56px] border-b border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[12px] font-bold tracking-[0.6px] uppercase">
                 <th className="px-[24px] py-[14px] font-bold text-start whitespace-nowrap w-[160px]">
                   الرقم التعريفي
                 </th>
@@ -233,20 +233,20 @@ export function DepartmentsSection({
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-[#eae8e4]/60">
+            <tbody className="divide-y divide-[#eae8e4]/60 dark:divide-[#38271c]">
               {pagedDepartments.map((dept, idx) => {
                 const isEven = idx % 2 === 1;
 
                 return (
                   <tr
                     key={dept.id}
-                    className={`transition-colors hover:bg-[#faf9f6] ${
-                      isEven ? "bg-[rgba(245,243,239,0.3)]" : "bg-white"
+                    className={`transition-colors hover:bg-[#faf9f6] dark:hover:bg-[#2c221c]/60 ${
+                      isEven ? "bg-[rgba(245,243,239,0.3)] dark:bg-[#1e1510]" : "bg-white dark:bg-[#221812]"
                     }`}
                   >
                     {/* Column 1: Code */}
                     <td className="px-[24px] py-[20px] whitespace-nowrap">
-                      <span className="bg-[#f0eeea] text-[#61564f] font-bold text-[12px] px-[8px] py-[3px] rounded-[2px] font-mono">
+                      <span className="bg-[#f0eeea] dark:bg-[#2d1f16] text-[#61564f] dark:text-[#cdc5bd] font-bold text-[12px] px-[8px] py-[3px] rounded-[4px] font-mono">
                         {dept.code}
                       </span>
                     </td>
@@ -254,14 +254,14 @@ export function DepartmentsSection({
                     {/* Column 2: Department Name & Details */}
                     <td className="px-[24px] py-[20px]">
                       <div className="flex items-center gap-[12px] text-start">
-                        <div className="bg-[#f0eeea] size-[36px] rounded-[4px] flex items-center justify-center shrink-0">
+                        <div className="bg-[#f0eeea] dark:bg-[#2d1f16] size-[36px] rounded-[4px] flex items-center justify-center shrink-0">
                           {getDepartmentIcon(dept.code)}
                         </div>
                         <div className="flex flex-col">
-                          <span className="font-semibold text-[#1b1c1a] text-[14px] leading-[22px]">
+                          <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] text-[14px] leading-[22px]">
                             {dept.name}
                           </span>
-                          <span className="text-[#514537] text-[12px] leading-[18px]">
+                          <span className="text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[18px]">
                             {dept.description}
                           </span>
                         </div>
@@ -272,18 +272,18 @@ export function DepartmentsSection({
                     <td className="px-[24px] py-[20px] text-center whitespace-nowrap">
                       <div className="flex justify-center">
                         {dept.status === "active" ? (
-                          <div className="bg-[#ecfdf5] flex items-center gap-[6px] px-[10px] py-[4px] rounded-[2px]">
-                            <span className="font-bold text-[#065f46] text-[10px] leading-[14px]">
+                          <div className="bg-[#ecfdf5] border border-emerald-200 dark:bg-[#132c1c] dark:border-emerald-500/40 dark:shadow-[0_0_10px_rgba(16,185,129,0.15)] flex items-center gap-1.5 px-2.5 py-1 rounded-full">
+                            <div className="size-[7px] rounded-full bg-[#10b981] shadow-[0_0_8px_#10b981] ring-1 ring-emerald-400/60 shrink-0" />
+                            <span className="font-bold text-[#065f46] dark:text-[#6ee7b7] text-[11px] leading-[14px]">
                               نشط
                             </span>
-                            <div className="size-[6px] rounded-full bg-[#059669]" />
                           </div>
                         ) : (
-                          <div className="bg-[#e5dede] flex items-center gap-[6px] px-[10px] py-[4px] rounded-[2px]">
-                            <span className="font-bold text-[#666261] text-[10px] leading-[14px]">
+                          <div className="bg-[#f5f3ef] border border-[#eae8e4] dark:bg-[#281c15] dark:border-[#4d3627] flex items-center gap-1.5 px-2.5 py-1 rounded-full">
+                            <div className="size-[7px] rounded-full bg-[#837565] shrink-0" />
+                            <span className="font-bold text-[#666261] dark:text-[#cdc5bd] text-[11px] leading-[14px]">
                               غير نشط
                             </span>
-                            <div className="size-[6px] rounded-full bg-[#625d5d]" />
                           </div>
                         )}
                       </div>
@@ -296,7 +296,7 @@ export function DepartmentsSection({
                           type="button"
                           onClick={() => onEditDept && onEditDept(dept)}
                           title="تعديل القسم"
-                          className="size-[28px] rounded-[4px] hover:bg-[#f0eeea] flex items-center justify-center text-[#514537] hover:text-[#9c6402] transition-colors cursor-pointer"
+                          className="size-[28px] rounded-[4px] hover:bg-[#f0eeea] dark:hover:bg-[#2c221c] flex items-center justify-center text-[#514537] dark:text-[#cdc5bd] hover:text-[#9c6402] dark:hover:text-[#ffddb6] transition-colors cursor-pointer"
                         >
                           <Pencil className="size-[14px]" />
                         </button>
@@ -304,7 +304,7 @@ export function DepartmentsSection({
                           type="button"
                           onClick={() => onOpenDeleteModal(dept)}
                           title="حذف القسم"
-                          className="size-[28px] rounded-[4px] hover:bg-[#ffdad6]/60 flex items-center justify-center text-[#514537] hover:text-[#ba1a1a] transition-colors cursor-pointer"
+                          className="size-[28px] rounded-[4px] hover:bg-[#ffdad6]/60 dark:hover:bg-[#381616] flex items-center justify-center text-[#514537] dark:text-[#cdc5bd] hover:text-[#ba1a1a] dark:hover:text-[#f87171] transition-colors cursor-pointer"
                         >
                           <Trash2 className="size-[14px]" />
                         </button>
@@ -318,12 +318,12 @@ export function DepartmentsSection({
         </div>
 
         {/* Pagination Footer */}
-        <div className="bg-white flex flex-col sm:flex-row items-center justify-between p-[16px] border-t border-[#eae8e4] gap-[12px]">
+        <div className="bg-white dark:bg-[#221812] flex flex-col sm:flex-row items-center justify-between p-[16px] border-t border-[#eae8e4] dark:border-[#38271c] gap-[12px]">
           <div className="flex items-center gap-[12px] order-1 sm:order-2">
-            <div className="text-[12px] text-[#514537]">
-              عرض <span className="font-bold text-[#1b1c1a]">{startItem}</span> إلى{" "}
-              <span className="font-bold text-[#1b1c1a]">{endItem}</span> من أصل{" "}
-              <span className="font-bold text-[#1b1c1a]">{filteredDepartments.length}</span> قسم
+            <div className="text-[12px] text-[#514537] dark:text-[#cdc5bd]">
+              عرض <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{startItem}</span> إلى{" "}
+              <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{endItem}</span> من أصل{" "}
+              <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{filteredDepartments.length}</span> قسم
             </div>
 
             <div className="flex items-center gap-[6px]">

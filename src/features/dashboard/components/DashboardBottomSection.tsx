@@ -164,12 +164,13 @@ export function DashboardBottomSection() {
             </div>
 
             {/* Instant update indicator */}
-            <span
-              className="text-[#625d5d] dark:text-[#a89f91] text-[10px] leading-[14px] font-bold"
+            <div
+              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border border-emerald-200 dark:border-emerald-500/40 bg-[#ecfdf5] dark:bg-[#132c1c] text-[#065f46] dark:text-[#6ee7b7] shadow-xs"
               data-node-id="1:459"
             >
-              {currentLang === "en" ? "Live Feed" : "تحديث فوري"}
-            </span>
+              <span className="size-[7px] rounded-full bg-[#10b981] shadow-[0_0_8px_#10b981] ring-1 ring-emerald-400/60 animate-pulse shrink-0" />
+              <span>{currentLang === "en" ? "Live Feed" : "تحديث فوري"}</span>
+            </div>
           </div>
 
           {/* Activity Timeline List */}

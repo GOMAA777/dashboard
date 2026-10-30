@@ -2,8 +2,9 @@
 
 import React, { useState, useMemo, useSyncExternalStore } from "react";
 import { useQueryState } from "nuqs";
-import { Plus } from "lucide-react";
+import { Plus, Building2, Ticket as TicketIcon } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/use-ui-store";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
@@ -36,7 +37,7 @@ import { DeleteDepartmentModal } from "./DeleteDepartmentModal";
 
 export function TicketsView() {
   // Navigation & View Mode driven by URL query param ?tab=tickets or ?tab=departments
-  const [tabParam] = useQueryState("tab", { defaultValue: "tickets" });
+  const [tabParam, setTabParam] = useQueryState("tab", { defaultValue: "tickets" });
   const activeTab: TicketTabType = tabParam === "departments" ? "departments" : "tickets";
   const [isCreatingTicket, setIsCreatingTicket] = useState(false);
   const [selectedTicketForDetails, setSelectedTicketForDetails] = useState<Ticket | null>(null);
@@ -316,8 +317,46 @@ export function TicketsView() {
         <DashboardTopNavbar customBreadcrumbs={breadcrumbs} />
 
         {/* Main Content Container (Scroll Y only, zero horizontal overflow) */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-[16px] sm:p-[24px] md:p-[32px] max-w-[1400px] w-full mx-auto flex flex-col gap-[24px] scrollbar-thin">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-[16px] sm:p-[24px] md:p-[32px] max-w-[1400px] w-full mx-auto flex flex-col gap-[20px] scrollbar-thin">
           <DashboardPageTransition>
+          {/* Top Segmented Tab Switcher (Matching Image 2) */}
+          {!selectedTicketForDetails && !isCreatingTicket && (
+            <div className="flex items-center justify-start w-full">
+              <div
+                className="bg-white dark:bg-[#221812] border border-[#eae8e4] dark:border-[#38271c] rounded-[16px] p-[6px] shadow-xs inline-flex items-center gap-[6px]"
+                data-name="Support Tabs Switcher"
+              >
+                <button
+                  type="button"
+                  onClick={() => setTabParam("tickets")}
+                  className={cn(
+                    "flex items-center gap-[8px] px-[18px] py-[8px] rounded-[10px] text-[14px] leading-[20px] font-bold transition-all cursor-pointer",
+                    activeTab === "tickets"
+                      ? "bg-[#9c6402] text-white shadow-xs"
+                      : "text-[#514537] dark:text-[#cdc5bd] hover:bg-[#fbf7f0] dark:hover:bg-[#2c221c]/60"
+                  )}
+                >
+                  <TicketIcon className="size-[17px] shrink-0" />
+                  <span>{currentLang === "en" ? "Support Tickets" : "تذاكر الدعم الفني"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setTabParam("departments")}
+                  className={cn(
+                    "flex items-center gap-[8px] px-[18px] py-[8px] rounded-[10px] text-[14px] leading-[20px] font-bold transition-all cursor-pointer",
+                    activeTab === "departments"
+                      ? "bg-[#9c6402] text-white shadow-xs"
+                      : "text-[#514537] dark:text-[#cdc5bd] hover:bg-[#fbf7f0] dark:hover:bg-[#2c221c]/60"
+                  )}
+                >
+                  <Building2 className="size-[17px] shrink-0" />
+                  <span>{currentLang === "en" ? "Departments" : "الأقسام"}</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* VIEW 1: Ticket Details View */}
           {selectedTicketForDetails ? (
             <TicketDetailsModal

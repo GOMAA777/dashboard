@@ -41,47 +41,47 @@ export function SubscriptionManagementTable({
     switch (status) {
       case "active":
         return (
-          <div className="bg-[#ecfdf5] dark:bg-[#132c21] flex items-center gap-1.5 px-2.5 py-1 rounded-[12px]">
-            <span className="font-['Cairo'] font-bold text-[10px] text-[#065f46] dark:text-[#34d399]">
+          <div className="bg-[#ecfdf5] border border-emerald-200 dark:bg-[#132c21] dark:border-emerald-500/40 dark:shadow-[0_0_10px_rgba(16,185,129,0.15)] flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit">
+            <span className="font-['Cairo'] font-bold text-[11px] text-[#065f46] dark:text-[#6ee7b7]">
               {label}
             </span>
-            <div className="bg-[#059669] rounded-full size-1.5 shrink-0" />
+            <div className="bg-[#10b981] shadow-[0_0_8px_#10b981] ring-1 ring-emerald-400/60 rounded-full size-[7px] shrink-0" />
           </div>
         );
       case "pending":
         return (
-          <div className="bg-[#fffbeb] dark:bg-[#342711] flex items-center gap-1.5 px-2.5 py-1 rounded-[12px]">
-            <span className="font-['Cairo'] font-bold text-[10px] text-[#78350f] dark:text-[#fbbf24]">
+          <div className="bg-[#fffbeb] border border-amber-200 dark:bg-[#342711] dark:border-amber-500/40 dark:shadow-[0_0_10px_rgba(245,158,11,0.15)] flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit">
+            <span className="font-['Cairo'] font-bold text-[11px] text-[#78350f] dark:text-[#fbbf24]">
               {label}
             </span>
-            <div className="bg-[#b45309] rounded-full size-1.5 shrink-0" />
+            <div className="bg-[#f59e0b] shadow-[0_0_8px_#f59e0b] ring-1 ring-amber-400/60 rounded-full size-[7px] shrink-0" />
           </div>
         );
       case "cancelled":
         return (
-          <div className="bg-[#f0eeea] dark:bg-[#2c2621] flex items-center gap-1.5 px-2.5 py-1 rounded-[12px]">
-            <span className="font-['Cairo'] font-bold text-[10px] text-[#514537] dark:text-[#a89f91]">
+          <div className="bg-[#f0eeea] border border-[#e2ded8] dark:bg-[#2c2621] dark:border-[#4d3627] flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit">
+            <span className="font-['Cairo'] font-bold text-[11px] text-[#514537] dark:text-[#cdc5bd]">
               {label}
             </span>
-            <div className="bg-[#837565] rounded-full size-1.5 shrink-0" />
+            <div className="bg-[#837565] rounded-full size-[7px] shrink-0" />
           </div>
         );
       case "expired":
         return (
-          <div className="bg-[#fef2f2] dark:bg-[#311616] flex items-center gap-1.5 px-2.5 py-1 rounded-[12px]">
-            <span className="font-['Cairo'] font-bold text-[10px] text-[#991b1b] dark:text-[#f87171]">
+          <div className="bg-[#fef2f2] border border-red-200 dark:bg-[#311616] dark:border-red-500/40 dark:shadow-[0_0_10px_rgba(239,68,68,0.15)] flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit">
+            <span className="font-['Cairo'] font-bold text-[11px] text-[#991b1b] dark:text-[#f87171]">
               {label}
             </span>
-            <div className="bg-[#dc2626] rounded-full size-1.5 shrink-0" />
+            <div className="bg-[#ef4444] shadow-[0_0_8px_#ef4444] ring-1 ring-red-400/60 rounded-full size-[7px] shrink-0" />
           </div>
         );
       case "rejected":
         return (
-          <div className="bg-[#fff1f2] dark:bg-[#38141b] flex items-center gap-1.5 px-2.5 py-1 rounded-[12px]">
-            <span className="font-['Cairo'] font-bold text-[10px] text-[#9f1239] dark:text-[#fb7185]">
+          <div className="bg-[#fff1f2] border border-rose-200 dark:bg-[#38141b] dark:border-rose-500/40 dark:shadow-[0_0_10px_rgba(244,63,94,0.15)] flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit">
+            <span className="font-['Cairo'] font-bold text-[11px] text-[#9f1239] dark:text-[#fb7185]">
               {label}
             </span>
-            <div className="bg-[#e11d48] rounded-full size-1.5 shrink-0" />
+            <div className="bg-[#e11d48] shadow-[0_0_8px_#e11d48] ring-1 ring-rose-400/60 rounded-full size-[7px] shrink-0" />
           </div>
         );
       default:
