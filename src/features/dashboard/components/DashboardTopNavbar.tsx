@@ -57,7 +57,7 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
               type="text"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
-              placeholder="البحث في النظام"
+              placeholder={currentLanguage === "en" ? "Search system..." : "البحث في النظام"}
               className="w-full h-full bg-[#f5f3ef] dark:bg-[#251b14] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder-[#837565] dark:placeholder-[#8e8680] border border-transparent dark:border-[#38271c] text-[12px] rounded-[8px] pe-[38px] ps-[16px] focus:outline-none focus:ring-1 focus:ring-[#9c6402]/30 transition-all font-sans"
               data-node-id="1:662"
             />
@@ -70,51 +70,45 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
           <div className="hidden lg:flex items-center gap-[6px] text-[#514537] dark:text-[#cdc5bd] shrink-0" data-node-id="1:656">
             <Calendar className="size-[14px] block shrink-0 text-[#837565] dark:text-[#8e8680]" />
             <span className="text-[12px] leading-[18px] font-normal text-[#514537] dark:text-[#cdc5bd]">
-              الخميس، 24 أكتوبر 2024
+              {currentLanguage === "en" ? "Thursday, 24 October 2024" : "الخميس، 24 أكتوبر 2024"}
             </span>
           </div>
         </div>
 
         {/* Left / End Side (in RTL): Controls, Notifications & User Profile */}
         <div className="flex items-center gap-[8px] sm:gap-[12px] shrink-0">
-          {/* Language Toggle Button (AR / EN) */}
+          {/* Language Toggle Button (AR / EN) - Icon only */}
           <button
             type="button"
             onClick={toggleLanguage}
-            title={currentLanguage === "ar" ? "Switch to English" : "التبديل إلى العربية"}
-            aria-label={currentLanguage === "ar" ? "Switch to English" : "التبديل إلى العربية"}
-            className="h-[36px] px-[8px] rounded-[6px] hover:bg-[#f5f3ef] dark:hover:bg-[#251b14] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] border border-transparent hover:border-[#eae8e4] dark:hover:border-[#38271c] transition-colors flex items-center gap-[6px] shrink-0 cursor-pointer"
+            title={currentLanguage === "ar" ? "English" : "العربية"}
+            aria-label={currentLanguage === "ar" ? "English" : "العربية"}
+            className="size-[36px] rounded-[6px] hover:bg-[#f5f3ef] dark:hover:bg-[#251b14] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] border border-transparent hover:border-[#eae8e4] dark:hover:border-[#38271c] transition-colors flex items-center justify-center shrink-0 cursor-pointer"
           >
-            <Languages className="size-[15px]" />
-            <span className="text-[10px] font-bold font-mono px-1.5 py-0.5 rounded bg-[#f5f3ef] dark:bg-[#2c221c] text-[#514537] dark:text-[#cdc5bd] border border-[#eae8e4] dark:border-[#38271c]">
-              {currentLanguage.toUpperCase()}
-            </span>
+            <Languages className="size-[16px]" />
           </button>
 
-          {/* Direction Toggle Button (LTR / RTL) */}
+          {/* Direction Toggle Button (LTR / RTL) - Icon only */}
           <button
             type="button"
             onClick={toggleDirection}
             title={
               currentDirection === "rtl"
-                ? "الاتجاه الحالي: من اليمين لليسار (RTL) - اضغط للتحويل إلى LTR"
-                : "Current Direction: LTR - Click to switch to RTL"
+                ? "Switch to LTR"
+                : "التبديل إلى RTL"
             }
-            aria-label={currentDirection === "rtl" ? "التبديل إلى LTR" : "التبديل إلى RTL"}
-            className="h-[36px] px-[8px] rounded-[6px] hover:bg-[#f5f3ef] dark:hover:bg-[#251b14] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] border border-transparent hover:border-[#eae8e4] dark:hover:border-[#38271c] transition-colors flex items-center gap-[6px] shrink-0 cursor-pointer"
+            aria-label={currentDirection === "rtl" ? "Switch to LTR" : "التبديل إلى RTL"}
+            className="size-[36px] rounded-[6px] hover:bg-[#f5f3ef] dark:hover:bg-[#251b14] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] border border-transparent hover:border-[#eae8e4] dark:hover:border-[#38271c] transition-colors flex items-center justify-center shrink-0 cursor-pointer"
           >
-            <ArrowLeftRight className="size-[15px]" />
-            <span className="text-[10px] font-bold font-mono px-1.5 py-0.5 rounded bg-[#f5f3ef] dark:bg-[#2c221c] text-[#514537] dark:text-[#cdc5bd] border border-[#eae8e4] dark:border-[#38271c]">
-              {currentDirection.toUpperCase()}
-            </span>
+            <ArrowLeftRight className="size-[16px]" />
           </button>
 
-          {/* Theme Toggle Button (Dark / Light Mode) */}
+          {/* Theme Toggle Button (Dark / Light Mode) - Icon only */}
           <button
             type="button"
             onClick={toggleTheme}
-            title={currentTheme === "dark" ? "التبديل إلى الوضع الفاتح" : "التبديل إلى الوضع الداكن"}
-            aria-label={currentTheme === "dark" ? "التبديل إلى الوضع الفاتح" : "التبديل إلى الوضع الداكن"}
+            title={currentTheme === "dark" ? "Light Mode" : "Dark Mode"}
+            aria-label={currentTheme === "dark" ? "Light Mode" : "Dark Mode"}
             className="size-[36px] rounded-[6px] hover:bg-[#f5f3ef] dark:hover:bg-[#251b14] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] border border-transparent hover:border-[#eae8e4] dark:hover:border-[#38271c] transition-colors flex items-center justify-center shrink-0 cursor-pointer"
           >
             {currentTheme === "dark" ? (

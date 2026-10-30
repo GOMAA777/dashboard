@@ -117,10 +117,8 @@ export const useUIStore = create<UIState>((set, get) => ({
 
   toggleLanguage: () => {
     const nextLang: AppLanguage = get().language === "ar" ? "en" : "ar";
-    const nextDir: TextDirection = nextLang === "ar" ? "rtl" : "ltr";
     applyLanguageToDOM(nextLang);
-    applyDirectionToDOM(nextDir);
-    set({ language: nextLang, direction: nextDir });
+    set({ language: nextLang });
   },
 
   setDirection: (dir: TextDirection) => {
@@ -152,10 +150,9 @@ if (typeof window !== "undefined") {
     if (savedDir === "rtl" || savedDir === "ltr") {
       applyDirectionToDOM(savedDir);
       useUIStore.setState({ direction: savedDir });
-    } else if (savedLang) {
-      const defaultDir = savedLang === "ar" ? "rtl" : "ltr";
-      applyDirectionToDOM(defaultDir);
-      useUIStore.setState({ direction: defaultDir });
+    } else {
+      applyDirectionToDOM("rtl");
+      useUIStore.setState({ direction: "rtl" });
     }
     const savedCollapsed = localStorage.getItem("app-sidebar-collapsed");
     if (savedCollapsed !== null) {

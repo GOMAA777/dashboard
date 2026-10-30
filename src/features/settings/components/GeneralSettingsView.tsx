@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
+import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 import { initialGeneralSettings } from "../data/initialGeneralSettings";
 import { GeneralSettings } from "../types/general-settings.types";
 import { cn } from "@/lib/utils";
@@ -65,17 +66,18 @@ export function GeneralSettingsView() {
   };
 
   return (
-    <div className="flex h-screen bg-[#f5f3ef] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00]" dir="rtl">
+    <div className="flex h-screen h-dvh bg-[#f5f3ef] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00]" dir="rtl">
       {/* 1. Global Navigation Sidebar with activeNav='system-settings' and activeSubNav='general' */}
       <DashboardSidebar activeNav="system-settings" activeSubNav="general" />
 
       {/* 2. Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
         {/* Top Navbar */}
         <DashboardTopNavbar />
 
         {/* Scrollable Form Body */}
-        <main className="flex-1 px-[24px] sm:px-[32px] py-[24px] max-w-[1360px] w-full mx-auto pb-[120px]">
+        <main className="flex-1 overflow-y-auto px-[24px] sm:px-[32px] py-[24px] max-w-[1360px] w-full mx-auto pb-[120px] scrollbar-thin">
+          <DashboardPageTransition>
           {/* Main Identity & Command Banner (Figma 1:16870) */}
           <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] relative mb-[24px] flex flex-col md:flex-row items-start md:items-center justify-between gap-[16px]">
             {/* Title & Description (Right in RTL) */}
@@ -658,6 +660,7 @@ export function GeneralSettingsView() {
               </div>
             </section>
           </div>
+          </DashboardPageTransition>
         </main>
 
         {/* STICKY BOTTOM ACTIONS FOOTER (Figma 1:17160) */}
