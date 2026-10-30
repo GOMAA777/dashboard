@@ -18,6 +18,7 @@ import {
   Tag,
   UserCheck,
   Users,
+  Key,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -103,40 +104,61 @@ export function DashboardSidebar({ activeNav }: DashboardSidebarProps = {}) {
                 : pathname.startsWith(item.href);
 
             return (
-              <Link
-                key={item.id}
-                href={item.href}
-                className={cn(
-                  "flex items-center justify-between px-[12px] py-[8px] rounded-[12px] transition-colors duration-150 group text-right",
-                  isActive
-                    ? "bg-[#9c6402] text-[#1c140f]"
-                    : "text-[#cdc5bd] hover:bg-[#2c221c]/60 hover:text-[#fdfbf7]"
-                )}
-                data-node-id={isActive ? "1:679" : undefined}
-              >
-                {/* Label on start (right in RTL) */}
-                <span
+              <React.Fragment key={item.id}>
+                <Link
+                  href={item.href}
                   className={cn(
-                    "text-[14px] leading-[20px] font-semibold flex-1 text-right",
-                    isActive ? "text-[#1c140f] font-bold" : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
+                    "flex items-center justify-between px-[12px] py-[8px] rounded-[12px] transition-colors duration-150 group text-right",
+                    isActive
+                      ? "bg-[#9c6402] text-[#1c140f]"
+                      : "text-[#cdc5bd] hover:bg-[#2c221c]/60 hover:text-[#fdfbf7]"
                   )}
+                  data-node-id={isActive ? "1:679" : undefined}
                 >
-                  {item.label}
-                </span>
-
-                {/* Icon on end */}
-                <div className="size-[22px] flex items-center justify-center shrink-0 ms-2">
-                  <item.icon
+                  {/* Label on start (right in RTL) */}
+                  <span
                     className={cn(
-                      "shrink-0 transition-colors",
-                      item.sizeClass,
-                      isActive
-                        ? "text-[#1c140f]"
-                        : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
+                      "text-[14px] leading-[20px] font-semibold flex-1 text-right",
+                      isActive ? "text-[#1c140f] font-bold" : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
                     )}
-                  />
-                </div>
-              </Link>
+                  >
+                    {item.label}
+                  </span>
+
+                  {/* Icon on end */}
+                  <div className="size-[22px] flex items-center justify-center shrink-0 ms-2">
+                    <item.icon
+                      className={cn(
+                        "shrink-0 transition-colors",
+                        item.sizeClass,
+                        isActive
+                          ? "text-[#1c140f]"
+                          : "text-[#cdc5bd] group-hover:text-[#fdfbf7]"
+                      )}
+                    />
+                  </div>
+                </Link>
+
+                {/* Sub-items for Staff (فريق العمل والأدوار والصلاحيات) matching Figma 1:8875 */}
+                {item.id === "staff" && isActive && (
+                  <div className="flex flex-col gap-1 pr-3 pl-1 py-1">
+                    <Link
+                      href="/permissions"
+                      className="flex items-center justify-between px-[12px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-right text-[#e29d38]"
+                    >
+                      <span className="flex-1 text-right">فريق العمل</span>
+                      <Users className="size-[15px] ms-2 shrink-0" />
+                    </Link>
+                    <Link
+                      href="/permissions?tab=roles"
+                      className="flex items-center justify-between px-[12px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-right text-[#cdc5bd] hover:text-[#fdfbf7]"
+                    >
+                      <span className="flex-1 text-right">الأدوار والصلاحيات</span>
+                      <Key className="size-[15px] ms-2 shrink-0" />
+                    </Link>
+                  </div>
+                )}
+              </React.Fragment>
             );
           })}
         </nav>
