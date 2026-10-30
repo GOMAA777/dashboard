@@ -209,19 +209,39 @@ export function CurrencySettingsView() {
                     drawerDescription="تخصيص معايير فلترة العملات المعتمدة ومعدلات الصرف"
                     drawerContent={drawerContent}
                     actionButton={
-                      <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
-                        <span className="text-[12px] font-semibold text-[#837565] dark:text-[#8e8680] whitespace-nowrap">
-                          الترقيم:
-                        </span>
-                        <PageSizeDropdown
-                          value={pageSize}
-                          onChange={(newSize) => {
-                            setPageSize(newSize);
-                            setPageIndex(0);
-                          }}
-                          options={[5, 10, 20, 50]}
-                          dropdownPlacement="bottom"
-                        />
+                      <div className="flex items-center gap-3 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
+                        {/* Dollar / Base Currency Filter on Left */}
+                        <div className="w-[145px]">
+                          <DashboardSelect
+                            value={baseFilter}
+                            onChange={(e) => {
+                              setBaseFilter(e.target.value as "all" | "base" | "secondary");
+                              setPageIndex(0);
+                            }}
+                            className="h-[36px] text-[12px] rounded-[6px] pe-[36px]"
+                            aria-label="فلتر عملة الأساس (الدولار)"
+                          >
+                            <option value="all">كل العملات</option>
+                            <option value="base">دولار الأساس (USD)</option>
+                            <option value="secondary">العملات التابعة</option>
+                          </DashboardSelect>
+                        </div>
+
+                        {/* Page Size */}
+                        <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
+                          <span className="text-[12px] font-semibold text-[#837565] dark:text-[#8e8680] whitespace-nowrap">
+                            الترقيم:
+                          </span>
+                          <PageSizeDropdown
+                            value={pageSize}
+                            onChange={(newSize) => {
+                              setPageSize(newSize);
+                              setPageIndex(0);
+                            }}
+                            options={[5, 10, 20, 50]}
+                            dropdownPlacement="bottom"
+                          />
+                        </div>
                       </div>
                     }
                   />

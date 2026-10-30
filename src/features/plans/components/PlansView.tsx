@@ -151,13 +151,13 @@ export function PlansView() {
         <DashboardTopNavbar />
 
         {/* Dynamic Workspace Container (Scroll Y only, zero horizontal overflow) */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-[16px] md:p-[28px] w-full max-w-full scrollbar-thin">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 w-full max-w-full scrollbar-thin">
           <DashboardPageTransition>
-            <div className="w-full space-y-[20px]">
+            <div className="w-full space-y-6">
 
           {/* View Mode Switching */}
           {viewMode === "list" && (
-            <div className="space-y-[20px] relative z-10 animate-in fade-in duration-200">
+            <div className="space-y-6 relative z-10 animate-in fade-in duration-200">
               {/* Header (Figma 1:2463) */}
               <PlansManagementHeader
                 onCreatePlan={() => setViewMode("create")}
@@ -182,7 +182,7 @@ export function PlansView() {
 
               {/* Responsive Grid of Plan Cards (Figma 1:2461) */}
               {filteredPlans.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-[20px] items-stretch">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 items-stretch">
                   {filteredPlans.map((plan) => (
                     <PlanCard
                       key={plan.id}

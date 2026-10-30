@@ -33,7 +33,7 @@ export default function DashboardHomePage() {
           <DashboardTopNavbar />
 
           {/* Dashboard Workspace Content (Only area that scrolls on Y, zero horizontal scroll) */}
-          <main className="flex-1 overflow-y-auto overflow-x-hidden px-[16px] sm:px-[32px] py-[24px] sm:py-[32px] space-y-[24px] w-full max-w-full scrollbar-thin">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 space-y-6 w-full max-w-full scrollbar-thin">
             <DashboardPageTransition>
               {/* Section 1: Page Introduction & Action Bar */}
               <DashboardHeaderSection />

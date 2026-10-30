@@ -298,7 +298,7 @@ export function SubscriptionManagementView() {
         <DashboardTopNavbar />
 
         {/* Dynamic Page Content (Scroll Y only, zero horizontal overflow) */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 flex flex-col gap-6 w-full max-w-full scrollbar-thin">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 flex flex-col gap-6 w-full max-w-full scrollbar-thin">
           <DashboardPageTransition>
           {view === "renew" ? (
             <RenewSubscriptionView
