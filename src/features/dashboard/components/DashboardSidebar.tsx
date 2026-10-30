@@ -584,6 +584,53 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                     </Link>
                   </div>
                 )}
+
+                {/* Sub-items for Utility (تحديث النظام، معلومات السيرفر - Figma 1:19040-1:19045) */}
+                {item.id === "utility" && isDropdownOpen && (
+                  <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#38271c] my-1">
+                    <Link
+                      href="/utility/update"
+                      onClick={() => handleNavClick("/utility/update")}
+                      className={cn(
+                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
+                        activeSubNav === "update" || pathname === "/utility/update"
+                          ? "text-[#e29d38] font-bold bg-[#2c221c]/60"
+                          : "text-[#cdc5bd] hover:bg-[#2c221c]/40 hover:text-[#fdfbf7]"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "size-[6px] rounded-full shrink-0 transition-all",
+                          activeSubNav === "update" || pathname === "/utility/update"
+                            ? "bg-[#e29d38] shadow-[0_0_6px_#e29d38]"
+                            : "bg-[#625d5d] group-hover:bg-[#a89f91]"
+                        )}
+                      />
+                      <span className="truncate">{currentLang === "en" ? "System Update" : "تحديث النظام"}</span>
+                    </Link>
+
+                    <Link
+                      href="/utility/server-info"
+                      onClick={() => handleNavClick("/utility/server-info")}
+                      className={cn(
+                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
+                        activeSubNav === "server-info" || pathname === "/utility/server-info"
+                          ? "text-[#e29d38] font-bold bg-[#2c221c]/60"
+                          : "text-[#cdc5bd] hover:bg-[#2c221c]/40 hover:text-[#fdfbf7]"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "size-[6px] rounded-full shrink-0 transition-all",
+                          activeSubNav === "server-info" || pathname === "/utility/server-info"
+                            ? "bg-[#e29d38] shadow-[0_0_6px_#e29d38]"
+                            : "bg-[#625d5d] group-hover:bg-[#a89f91]"
+                        )}
+                      />
+                      <span className="truncate">{currentLang === "en" ? "Server Info" : "معلومات السيرفر"}</span>
+                    </Link>
+                  </div>
+                )}
               </React.Fragment>
             );
           })}

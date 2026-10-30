@@ -4,6 +4,7 @@ import React, { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
+import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 import { StaffKpiMetrics } from "./StaffKpiMetrics";
 import { StaffToolbar } from "./StaffToolbar";
 import { StaffTable } from "./StaffTable";
@@ -201,15 +202,16 @@ export function StaffManagementView() {
   };
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground transition-colors duration-200 font-sans antialiased">
+    <div className="flex h-screen h-dvh overflow-hidden bg-background text-foreground transition-colors duration-200 font-sans antialiased">
       {/* Sidebar */}
       <DashboardSidebar activeNav="staff" activeSubNav="staff" />
 
       {/* Main Layout Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
         <DashboardTopNavbar />
 
-        <main className="flex-1 p-6 md:p-8 w-full space-y-6">
+        <main className="flex-1 overflow-y-auto p-6 md:p-8 w-full space-y-6 scrollbar-thin">
+          <DashboardPageTransition>
           {/* Main Title Banner (For List and Empty Views) */}
           {(currentView === "list" || currentView === "empty") && (
             <div
@@ -320,6 +322,7 @@ export function StaffManagementView() {
               onEndPreview={() => setEndPreviewModalOpen(true)}
             />
           )}
+          </DashboardPageTransition>
         </main>
       </div>
 
