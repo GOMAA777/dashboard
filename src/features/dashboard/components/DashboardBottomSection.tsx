@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   Banknote,
@@ -235,9 +236,10 @@ export function DashboardBottomSection() {
               </h2>
             </div>
 
-            {/* Manage Tickets Link */}
-            <Link
-              href="/tickets"
+            {/* Manage Tickets Link -> Under Construction Toast */}
+            <button
+              type="button"
+              onClick={() => toast.info("هذا القسم قيد الإنشاء")}
               className="flex items-center gap-[4px] text-[#9c6402] hover:text-[#b47818] transition-colors group cursor-pointer"
               data-node-id="1:559"
             >
@@ -247,7 +249,7 @@ export function DashboardBottomSection() {
               <span className="text-[12px] leading-[16px] font-bold">
                 إدارة التذاكر
               </span>
-            </Link>
+            </button>
           </div>
 
           {/* Support Status 4-Card Mini Grid (2x2) */}

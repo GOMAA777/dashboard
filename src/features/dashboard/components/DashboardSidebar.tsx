@@ -34,6 +34,7 @@ interface NavItem {
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   sizeClass: string;
+  isUnderConstruction?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -44,11 +45,11 @@ const navItems: NavItem[] = [
   { id: "staff", label: "طاقم العمل", href: "/permissions", icon: UserCheck, sizeClass: "size-[19px]" },
   { id: "notifications", label: "الإشعارات", href: "/notifications", icon: Bell, sizeClass: "size-[16px]" },
   { id: "finance", label: "المعاملات المالية", href: "/invoices", icon: Receipt, sizeClass: "size-[16px]" },
-  { id: "support", label: "الدعم الفني", href: "/tickets", icon: Headphones, sizeClass: "size-[17px]" },
-  { id: "site-settings", label: "إعدادات الموقع", href: "/integrations", icon: Globe, sizeClass: "size-[17px]" },
-  { id: "mail-settings", label: "إعدادات البريد", href: "/payment-gateways", icon: Mail, sizeClass: "size-[17px]" },
-  { id: "system-settings", label: "إعدادات النظام", href: "/menus", icon: Settings, sizeClass: "size-[17px]" },
-  { id: "utility", label: "utility", href: "/trials", icon: AppWindow, sizeClass: "size-[19px]" },
+  { id: "support", label: "الدعم الفني", href: "#", icon: Headphones, sizeClass: "size-[17px]", isUnderConstruction: true },
+  { id: "site-settings", label: "إعدادات الموقع", href: "#", icon: Globe, sizeClass: "size-[17px]", isUnderConstruction: true },
+  { id: "mail-settings", label: "إعدادات البريد", href: "#", icon: Mail, sizeClass: "size-[17px]", isUnderConstruction: true },
+  { id: "system-settings", label: "إعدادات النظام", href: "#", icon: Settings, sizeClass: "size-[17px]", isUnderConstruction: true },
+  { id: "utility", label: "utility", href: "#", icon: AppWindow, sizeClass: "size-[19px]", isUnderConstruction: true },
 ];
 
 interface DashboardSidebarProps {
@@ -157,6 +158,51 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
           data-node-id="1:678"
         >
           {navItems.map((item) => {
+            if (item.isUnderConstruction) {
+              if (isCollapsed) {
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => toast.info("هذا القسم قيد الإنشاء")}
+                    title={item.label}
+                    className="size-[44px] rounded-[12px] flex items-center justify-center transition-all duration-200 group text-[#cdc5bd] hover:bg-[#2c221c]/80 hover:text-[#fdfbf7] cursor-pointer"
+                  >
+                    <item.icon
+                      className={cn(
+                        "size-[18px] transition-colors shrink-0 text-[#cdc5bd] group-hover:text-[#fdfbf7]",
+                        item.sizeClass
+                      )}
+                    />
+                  </button>
+                );
+              }
+
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => toast.info("هذا القسم قيد الإنشاء")}
+                  className="w-full flex items-center justify-between px-[12px] py-[8px] rounded-[12px] transition-colors duration-150 group text-right text-[#cdc5bd] hover:bg-[#2c221c]/60 hover:text-[#fdfbf7] cursor-pointer"
+                >
+                  {/* Label on start (right in RTL) */}
+                  <span className="text-[14px] leading-[20px] font-semibold flex-1 text-right truncate text-[#cdc5bd] group-hover:text-[#fdfbf7]">
+                    {item.label}
+                  </span>
+
+                  {/* Icon on end */}
+                  <div className="size-[22px] flex items-center justify-center shrink-0 ms-2">
+                    <item.icon
+                      className={cn(
+                        "shrink-0 transition-colors text-[#cdc5bd] group-hover:text-[#fdfbf7]",
+                        item.sizeClass
+                      )}
+                    />
+                  </div>
+                </button>
+              );
+            }
+
             const isActive = activeNav
               ? item.id === activeNav
               : item.href === "/"

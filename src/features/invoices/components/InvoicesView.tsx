@@ -23,12 +23,15 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useQueryState } from "nuqs";
+import { cn } from "@/lib/utils";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
 import { ScalesOfJusticeWatermark } from "@/components/shared/ScalesOfJusticeWatermark";
 import { LuxurySelect, SelectOption } from "@/components/shared/LuxurySelect";
 import { LuxuryAlertDialog } from "@/components/shared/LuxuryAlertDialog";
 import { useUIStore } from "@/stores/use-ui-store";
+import { PaymentGatewaysSection } from "./PaymentGatewaysSection";
 
 export interface InvoiceItem {
   id: string;
@@ -198,6 +201,7 @@ const initialInvoices: InvoiceItem[] = [
 export function InvoicesView() {
   const { language } = useUIStore();
   const isAr = language === "ar";
+  const [activeSection, setActiveSection] = useQueryState("section", { defaultValue: "invoices" });
 
   const [invoices, setInvoices] = useState<InvoiceItem[]>(initialInvoices);
   const [activeTab, setActiveTab] = useState<"all" | "overdue" | "paid" | "pending">("all");
@@ -432,34 +436,94 @@ export function InvoicesView() {
                   <span>{isAr ? "المالية" : "Finance"}</span>
                   <span>/</span>
                   <span className="text-[#c29547] dark:text-[#d4a759]">
-                    {isAr ? "الفواتير والمعاملات المالية" : "Invoices & Financials"}
+                    {activeSection === "gateways"
+                      ? (isAr ? "طرق الدفع وبوابات التحصيل" : "Payment Gateways & Methods")
+                      : (isAr ? "الفواتير والمعاملات المالية" : "Invoices & Financials")}
                   </span>
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#2c2825] dark:text-[#f5f4f0] flex items-center gap-2.5">
-                  <FileText className="w-7 h-7 text-[#c29547] dark:text-[#d4a759]" />
-                  <span>{isAr ? "الفواتير والتحصيلات والمتأخرات" : "Invoices & Revenue"}</span>
+                  {activeSection === "gateways" ? (
+                    <>
+                      <CreditCard className="w-7 h-7 text-[#c29547] dark:text-[#d4a759]" />
+                      <span>{isAr ? "طرق الدفع وبوابات التحصيل" : "Payment Gateways & Methods"}</span>
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-7 h-7 text-[#c29547] dark:text-[#d4a759]" />
+                      <span>{isAr ? "الفواتير والتحصيلات والمتأخرات" : "Invoices & Revenue"}</span>
+                    </>
+                  )}
                 </h1>
                 <p className="text-xs sm:text-sm text-[#736b63] dark:text-[#a8a196] mt-1 max-w-3xl">
-                  {isAr
-                    ? "سجل الفواتير الضريبية المعتمدة (ZATCA)، متابعة المتأخرات، إرسال تنبيهات السداد بالواتساب والإيميل، وإجراءات تعليق الحسابات المتأخرة."
-                    : "ZATCA compliant e-invoicing directory, overdue invoices tracker, WhatsApp and Email payment reminders, and suspension triggers."}
+                  {activeSection === "gateways"
+                    ? (isAr
+                        ? "إدارة وتكوين بوابات الدفع الإلكتروني المعتمدة لتحصيل رسوم اشتراكات مكاتب المحاماة وفواتير منصة الجودي."
+                        : "Configure and manage active payment gateways and direct bank transfer rails.")
+                    : (isAr
+                        ? "سجل الفواتير الضريبية المعتمدة (ZATCA)، متابعة المتأخرات، إرسال تنبيهات السداد بالواتساب والإيميل، وإجراءات تعليق الحسابات المتأخرة."
+                        : "ZATCA compliant e-invoicing directory, overdue invoices tracker, WhatsApp and Email payment reminders, and suspension triggers.")}
                 </p>
               </div>
 
               {/* Action Buttons */}
               <div className="flex items-center gap-2.5 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setIsAddInvoiceOpen(true)}
-                  className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-[#d4a759] to-[#c29547] text-white text-xs sm:text-sm font-bold shadow-[0_4px_14px_rgba(194,149,71,0.35)] hover:opacity-95 transition-all cursor-pointer flex items-center gap-2"
-                >
-                  <Plus className="w-4 h-4 stroke-[2.5]" />
-                  <span>{isAr ? "إصدار فاتورة جديدة" : "Issue New Invoice"}</span>
-                </button>
+                {activeSection !== "gateways" && (
+                  <button
+                    type="button"
+                    onClick={() => setIsAddInvoiceOpen(true)}
+                    className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-[#d4a759] to-[#c29547] text-white text-xs sm:text-sm font-bold shadow-[0_4px_14px_rgba(194,149,71,0.35)] hover:opacity-95 transition-all cursor-pointer flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4 stroke-[2.5]" />
+                    <span>{isAr ? "إصدار فاتورة جديدة" : "Issue New Invoice"}</span>
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* Top 4 Financial KPI Cards */}
+            {/* Sub-Navigation Switcher Tabs (Invoices vs Gateways) */}
+            <div className="flex items-center gap-2 p-1.5 bg-white dark:bg-[#1a1714] border border-[#ded5c6] dark:border-[#2f2a24] rounded-2xl w-full sm:w-fit shadow-2xs">
+              <button
+                type="button"
+                onClick={() => setActiveSection("invoices")}
+                className={cn(
+                  "flex-1 sm:flex-initial px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-2",
+                  activeSection !== "gateways"
+                    ? "bg-gradient-to-r from-[#d4a759] to-[#c29547] text-white shadow-xs"
+                    : "text-[#736b63] dark:text-[#a8a196] hover:text-[#1c1917] dark:hover:text-white hover:bg-[#faf5eb] dark:hover:bg-[#201c17]"
+                )}
+              >
+                <FileText className="size-4" />
+                <span>{isAr ? "الفواتير وسجل التحصيلات" : "Invoices & Revenue"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveSection("gateways")}
+                className={cn(
+                  "flex-1 sm:flex-initial px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-2",
+                  activeSection === "gateways"
+                    ? "bg-gradient-to-r from-[#d4a759] to-[#c29547] text-white shadow-xs"
+                    : "text-[#736b63] dark:text-[#a8a196] hover:text-[#1c1917] dark:hover:text-white hover:bg-[#faf5eb] dark:hover:bg-[#201c17]"
+                )}
+              >
+                <CreditCard className="size-4" />
+                <span>{isAr ? "طرق الدفع وبوابات التحصيل" : "Payment Gateways & Methods"}</span>
+                <span className={cn(
+                  "px-2 py-0.5 rounded-full text-[10px] font-bold",
+                  activeSection === "gateways"
+                    ? "bg-white/20 text-white"
+                    : "bg-[#c29547]/10 text-[#c29547] dark:text-[#d4a759]"
+                )}>
+                  3 نشطة
+                </span>
+              </button>
+            </div>
+
+            {activeSection === "gateways" ? (
+              <PaymentGatewaysSection />
+            ) : (
+              <>
+                {/* Top 4 Financial KPI Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* KPI 1: Total Collected Revenue */}
               <div className="p-4 rounded-3xl bg-white dark:bg-[#1a1714] border border-[#ded5c6] dark:border-[#2f2a24] shadow-xs flex items-center justify-between">
@@ -958,6 +1022,8 @@ export function InvoicesView() {
                 </div>
               </div>
             </div>
+              </>
+            )}
           </div>
         </main>
       </div>

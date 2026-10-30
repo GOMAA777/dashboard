@@ -29,47 +29,13 @@ export function GatewayCard({
   } = gateway;
 
   return (
-    <div className="bg-white rounded-[16px] p-6 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] border border-[#eae8e4]/80 flex flex-col justify-between h-full transition-all hover:shadow-md">
+    <div className="bg-white rounded-[16px] p-6 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] border border-[#eae8e4]/80 flex flex-col justify-between h-full transition-all hover:shadow-md" dir="rtl">
       {/* Top Section */}
       <div className="flex flex-col gap-4">
-        {/* Header: Brand Icon & Toggle */}
+        {/* Header: Brand Icon on Right, Toggle Switch on Left */}
         <div className="flex items-start justify-between w-full">
-          {/* Custom Switch on Left */}
-          <button
-            type="button"
-            role="switch"
-            aria-checked={isEnabled}
-            onClick={() => onToggle(gateway)}
-            className={`relative w-[44px] h-[24px] rounded-[12px] p-0.5 transition-colors cursor-pointer shrink-0 focus:outline-none ${
-              isEnabled ? "bg-[#9c6402]" : "bg-[#e8e4de]"
-            }`}
-          >
-            <span
-              className={`block size-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-                isEnabled ? "translate-x-0" : "-translate-x-5"
-              }`}
-            />
-          </button>
-
-          {/* Brand Info on Right */}
+          {/* Brand Info on Start (Right in RTL) */}
           <div className="flex items-center gap-3">
-            <div className="flex flex-col items-end text-right">
-              <div className="flex items-center gap-2">
-                <span
-                  style={{ backgroundColor: badgeBg, color: badgeText }}
-                  className="text-[10px] font-semibold px-2 py-0.5 rounded-[2px]"
-                >
-                  {badgeLabel}
-                </span>
-                <h3 className="text-[#1c140f] text-[18px] font-bold leading-[26px]">
-                  {name}
-                </h3>
-              </div>
-              <p className="text-[#837565] text-[10px] font-bold leading-[14px] mt-0.5">
-                {providerSubtitle}
-              </p>
-            </div>
-
             {/* Official Brand Badge */}
             {brandType === "bank" && (
               <div className="bg-[#fffbeb] border border-[#fef3c7] rounded-[16px] size-14 flex items-center justify-center shrink-0">
@@ -127,21 +93,55 @@ export function GatewayCard({
                 />
               </div>
             )}
+
+            <div className="flex flex-col items-start text-start">
+              <div className="flex items-center gap-2">
+                <h3 className="text-[#1c140f] text-[18px] font-bold leading-[26px]">
+                  {name}
+                </h3>
+                <span
+                  style={{ backgroundColor: badgeBg, color: badgeText }}
+                  className="text-[10px] font-semibold px-2 py-0.5 rounded-[2px]"
+                >
+                  {badgeLabel}
+                </span>
+              </div>
+              <p className="text-[#837565] text-[10px] font-bold leading-[14px] mt-0.5">
+                {providerSubtitle}
+              </p>
+            </div>
           </div>
+
+          {/* Custom Switch on End (Left in RTL) */}
+          <button
+            type="button"
+            role="switch"
+            aria-checked={isEnabled}
+            onClick={() => onToggle(gateway)}
+            className={`relative w-[44px] h-[24px] rounded-full p-0.5 transition-colors cursor-pointer shrink-0 focus:outline-none ${
+              isEnabled ? "bg-[#9c6402]" : "bg-[#e8e4de]"
+            }`}
+          >
+            <span
+              className={`block size-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                isEnabled ? "-translate-x-5" : "translate-x-0"
+              }`}
+            />
+          </button>
         </div>
 
         {/* Status Badge */}
-        <div className="flex items-center gap-2 justify-end w-full">
-          {statusSubText && (
-            <span className="text-[#837565] text-[10px] font-bold leading-[14px]">
-              {statusSubText}
-            </span>
-          )}
+        <div className="flex items-center gap-2 justify-start w-full">
           <div
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] ${
               isEnabled ? "bg-[#e8f5e9]" : "bg-[#f5f5f4]"
             }`}
           >
+            <span
+              className={`size-1.5 rounded-full ${
+                isEnabled ? "bg-[#1b7340]" : "bg-[#b9b9b9]"
+              }`}
+            />
             <span
               className={`text-[10px] font-bold leading-[14px] ${
                 isEnabled ? "text-[#1b7340]" : "text-[#555151]"
@@ -149,16 +149,16 @@ export function GatewayCard({
             >
               {statusText}
             </span>
-            <span
-              className={`size-1.5 rounded-full ${
-                isEnabled ? "bg-[#1b7340]" : "bg-[#b9b9b9]"
-              }`}
-            />
           </div>
+          {statusSubText && (
+            <span className="text-[#837565] text-[10px] font-bold leading-[14px]">
+              {statusSubText}
+            </span>
+          )}
         </div>
 
         {/* Description */}
-        <p className="text-[#514537] text-[14px] leading-[22.75px] text-right font-normal">
+        <p className="text-[#514537] text-[14px] leading-[22.75px] text-start font-normal">
           {description}
         </p>
 
@@ -166,13 +166,18 @@ export function GatewayCard({
         <div className="border-t border-[#e8e4de]/60 pt-4 space-y-2.5 w-full">
           {metaItems.map((meta, idx) => (
             <div key={idx} className="flex items-center justify-between text-xs">
-              {/* Value on Left */}
+              {/* Label on Start (Right) */}
+              <span className="text-[#837565] text-start font-normal">
+                {meta.label}
+              </span>
+
+              {/* Value on End (Left) */}
               <div className="flex items-center gap-1.5">
-                {meta.hasDot && (
-                  <span className="size-1.5 rounded-full bg-[#059669]" />
-                )}
                 {meta.iconSrc && (
                   <img alt="" className="size-3" src={meta.iconSrc} />
+                )}
+                {meta.hasDot && (
+                  <span className="size-1.5 rounded-full bg-[#059669]" />
                 )}
                 <span
                   className={`font-semibold ${
@@ -186,11 +191,6 @@ export function GatewayCard({
                   {meta.value}
                 </span>
               </div>
-
-              {/* Label on Right */}
-              <span className="text-[#837565] text-right font-normal">
-                {meta.label}
-              </span>
             </div>
           ))}
         </div>

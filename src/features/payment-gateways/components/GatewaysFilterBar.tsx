@@ -23,19 +23,19 @@ export function GatewaysFilterBar({
   disabledCount,
 }: GatewaysFilterBarProps) {
   return (
-    <div className="bg-white rounded-[16px] p-4 flex flex-col sm:flex-row items-center justify-between gap-4 border border-[#eae8e4]/60">
+    <div className="bg-white rounded-[16px] p-4 flex flex-col sm:flex-row items-center justify-between gap-4 border border-[#eae8e4]/60" dir="rtl">
       {/* Right side in RTL: Segmented Filter Tabs */}
-      <div className="bg-[#f5f3ef] rounded-[8px] p-1 flex items-center gap-1 order-2 sm:order-1 w-full sm:w-auto justify-center">
+      <div className="bg-[#f5f3ef] rounded-[8px] p-1 flex items-center gap-1 w-full sm:w-auto justify-center">
         <button
           type="button"
-          onClick={() => onFilterChange("disabled")}
+          onClick={() => onFilterChange("all")}
           className={`px-4 py-1.5 rounded-[4px] text-xs transition-all cursor-pointer ${
-            filter === "disabled"
+            filter === "all"
               ? "bg-white text-[#1c140f] font-bold shadow-xs"
               : "text-[#514537] font-semibold hover:text-[#1c140f]"
           }`}
         >
-          المعطلة ({disabledCount})
+          الكل ({totalCount})
         </button>
         <button
           type="button"
@@ -50,31 +50,30 @@ export function GatewaysFilterBar({
         </button>
         <button
           type="button"
-          onClick={() => onFilterChange("all")}
+          onClick={() => onFilterChange("disabled")}
           className={`px-4 py-1.5 rounded-[4px] text-xs transition-all cursor-pointer ${
-            filter === "all"
+            filter === "disabled"
               ? "bg-white text-[#1c140f] font-bold shadow-xs"
               : "text-[#514537] font-semibold hover:text-[#1c140f]"
           }`}
         >
-          الكل ({totalCount})
+          المعطلة ({disabledCount})
         </button>
       </div>
 
       {/* Left side in RTL: Search Input */}
-      <div className="bg-[#f5f3ef] rounded-[8px] w-full sm:w-[320px] flex items-center px-4 py-2 gap-2.5 order-1 sm:order-2 focus-within:ring-1 focus-within:ring-[#9c6402]/30 transition-all">
+      <div className="bg-[#f5f3ef] rounded-[8px] w-full sm:w-[320px] flex items-center px-4 py-2 gap-2.5 focus-within:ring-1 focus-within:ring-[#9c6402]/30 transition-all">
+        <img
+          alt=""
+          className="size-[13.5px] shrink-0 opacity-70"
+          src="/figma/payment-gateways/search-icon.svg"
+        />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="البحث عن بوابة، بروتوكول، أو معرّف..."
-          className="bg-transparent text-xs text-[#1c140f] placeholder-[#837565] outline-none w-full text-right font-sans"
-          dir="rtl"
-        />
-        <img
-          alt=""
-          className="size-[13.5px] shrink-0 opacity-70"
-          src="/figma/payment-gateways/search-icon.svg"
+          className="bg-transparent text-xs text-[#1c140f] placeholder-[#837565] outline-none w-full text-start font-sans"
         />
       </div>
     </div>

@@ -76,6 +76,21 @@ export function AddCustomGatewayModal({
       >
         {/* Header */}
         <div className="bg-white flex items-center justify-between pb-4 pt-6 px-8 w-full">
+          {/* Title and Icon on Start (Right in RTL) */}
+          <div className="flex items-center gap-3">
+            <div className="bg-[rgba(255,221,182,0.5)] rounded-[4px] size-9 flex items-center justify-center shrink-0">
+              <img
+                alt=""
+                className="size-[18.3px]"
+                src="/figma/payment-gateways/coin-icon.svg"
+              />
+            </div>
+            <h2 className="text-[#1b1c1a] text-[22px] font-bold leading-[22.5px]">
+              إضافة بوابة مخصصة
+            </h2>
+          </div>
+
+          {/* Close button on End (Left in RTL) */}
           <button
             type="button"
             onClick={onClose}
@@ -88,19 +103,6 @@ export function AddCustomGatewayModal({
               src="/figma/payment-gateways/modal-close.svg"
             />
           </button>
-
-          <div className="flex items-center gap-3">
-            <h2 className="text-[#1b1c1a] text-[22px] font-bold leading-[22.5px]">
-              إضافة بوابة مخصصة
-            </h2>
-            <div className="bg-[rgba(255,221,182,0.5)] rounded-[4px] size-9 flex items-center justify-center shrink-0">
-              <img
-                alt=""
-                className="size-[18.3px]"
-                src="/figma/payment-gateways/coin-icon.svg"
-              />
-            </div>
-          </div>
         </div>
 
         <div className="h-px bg-[#eae8e4] w-full" />

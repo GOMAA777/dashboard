@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
 import { PaymentGatewayItem } from "../types/payment-gateways.types";
 
@@ -43,12 +43,26 @@ function GatewaySettingsDialogBody({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
       <div
-        className="w-full max-w-[512px] bg-white rounded-[8px] overflow-hidden shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] flex flex-col animate-in zoom-in-95 duration-150 text-right"
+        className="w-full max-w-[512px] bg-white rounded-[8px] overflow-hidden shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] flex flex-col animate-in zoom-in-95 duration-150 text-start"
         dir="rtl"
       >
         {/* Header */}
         <div className="bg-white flex items-center justify-between pb-4 pt-6 px-8 w-full">
-          {/* Close button on left */}
+          {/* Title and Icon on Start (Right) */}
+          <div className="flex items-center gap-3">
+            <div className="bg-[rgba(255,221,182,0.5)] rounded-[4px] size-9 flex items-center justify-center shrink-0">
+              <img
+                alt=""
+                className="size-[18.3px]"
+                src="/figma/payment-gateways/coin-icon.svg"
+              />
+            </div>
+            <h2 className="text-[#1b1c1a] text-[22px] font-bold leading-[22.5px]">
+              إعدادات البوابة
+            </h2>
+          </div>
+
+          {/* Close button on End (Left) */}
           <button
             type="button"
             onClick={onClose}
@@ -61,20 +75,6 @@ function GatewaySettingsDialogBody({
               src="/figma/payment-gateways/modal-close.svg"
             />
           </button>
-
-          {/* Title and Icon on right */}
-          <div className="flex items-center gap-3">
-            <h2 className="text-[#1b1c1a] text-[22px] font-bold leading-[22.5px]">
-              إعدادات البوابة
-            </h2>
-            <div className="bg-[rgba(255,221,182,0.5)] rounded-[4px] size-9 flex items-center justify-center shrink-0">
-              <img
-                alt=""
-                className="size-[18.3px]"
-                src="/figma/payment-gateways/coin-icon.svg"
-              />
-            </div>
-          </div>
         </div>
 
         {/* Subtle Hairline Separator */}
@@ -85,7 +85,7 @@ function GatewaySettingsDialogBody({
           {/* Field 1: Client ID */}
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-1 text-right">
+              <div className="flex items-center gap-1 text-start">
                 <span className="text-[#ba1a1a] text-[14px] font-bold">*</span>
                 <span className="text-[#1b1c1a] text-[14px] font-semibold">
                   معرّف العميل (Client ID)
@@ -103,12 +103,12 @@ function GatewaySettingsDialogBody({
                 value={clientId}
                 onChange={(e) => setClientId(e.target.value)}
                 required
-                className="w-full bg-white border border-[#eae8e4] rounded-[4px] pl-20 pr-3.5 py-2.5 font-mono text-[12px] tracking-tight text-[#1b1c1a] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] focus:ring-1 focus:ring-[#9c6403] focus:border-[#9c6403] outline-none text-left"
+                className="w-full bg-white border border-[#eae8e4] rounded-[4px] ps-20 pe-3.5 py-2.5 font-mono text-[12px] tracking-tight text-[#1b1c1a] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] focus:ring-1 focus:ring-[#9c6403] focus:border-[#9c6403] outline-none text-left"
               />
               <button
                 type="button"
                 onClick={() => handleCopy(clientId, "معرّف العميل")}
-                className="bg-[#f0eeea] hover:bg-[#eae8e4] text-[#514537] text-[10px] font-bold px-2 py-1 rounded-[2px] flex items-center gap-1 transition-colors cursor-pointer absolute left-2 top-2"
+                className="bg-[#f0eeea] hover:bg-[#eae8e4] text-[#514537] text-[10px] font-bold px-2 py-1 rounded-[2px] flex items-center gap-1 transition-colors cursor-pointer absolute start-2 top-2"
               >
                 <span>نسخ</span>
                 <img
@@ -119,7 +119,7 @@ function GatewaySettingsDialogBody({
               </button>
             </div>
 
-            <p className="text-[#514537] text-[12px] leading-[18px] text-right font-normal">
+            <p className="text-[#514537] text-[12px] leading-[18px] text-start font-normal">
               مفتاح الوصول العام الصادر من لوحة تحكم {gateway.name} REST API.
             </p>
           </div>
@@ -127,7 +127,7 @@ function GatewaySettingsDialogBody({
           {/* Field 2: Client Secret */}
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-1 text-right">
+              <div className="flex items-center gap-1 text-start">
                 <span className="text-[#ba1a1a] text-[14px] font-bold">*</span>
                 <span className="text-[#1b1c1a] text-[14px] font-semibold">
                   المفتاح السري (Client Secret)
@@ -145,9 +145,9 @@ function GatewaySettingsDialogBody({
                 value={clientSecret}
                 onChange={(e) => setClientSecret(e.target.value)}
                 required
-                className="w-full bg-white border border-[#eae8e4] rounded-[4px] pl-24 pr-3.5 py-2.5 font-mono text-[12px] tracking-tight text-[#1b1c1a] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] focus:ring-1 focus:ring-[#9c6403] focus:border-[#9c6403] outline-none text-left"
+                className="w-full bg-white border border-[#eae8e4] rounded-[4px] ps-24 pe-3.5 py-2.5 font-mono text-[12px] tracking-tight text-[#1b1c1a] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] focus:ring-1 focus:ring-[#9c6403] focus:border-[#9c6403] outline-none text-left"
               />
-              <div className="flex items-center gap-1 absolute left-2 top-2">
+              <div className="flex items-center gap-1 absolute start-2 top-2">
                 <button
                   type="button"
                   onClick={() => setShowSecret(!showSecret)}
@@ -175,37 +175,37 @@ function GatewaySettingsDialogBody({
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-1.5 text-right pt-0.5">
-              <span className="text-[#514537] text-[10px] font-bold">
-                يتم حفظ المفتاح مشفراً وفق معايير الحماية البنكية الفيدرالية AES-256.
-              </span>
+            <div className="flex items-center justify-start gap-1.5 text-start pt-0.5">
               <img
                 alt=""
                 className="w-[9.3px] h-[12.2px] shrink-0"
                 src="/figma/payment-gateways/lock-icon.svg"
               />
+              <span className="text-[#514537] text-[10px] font-bold">
+                يتم حفظ المفتاح مشفراً وفق معايير الحماية البنكية الفيدرالية AES-256.
+              </span>
             </div>
           </div>
 
           {/* Footer Actions */}
-          <div className="border-t border-[#eae8e4] pt-6 flex items-center justify-start gap-2 -mx-8 -mb-2 px-8">
-            <button
-              type="submit"
-              className="bg-[#9c6403] hover:bg-[#835402] text-[#fff3e9] text-xs font-bold rounded-[4px] h-10 px-6 flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <span>حفظ الاعدادات</span>
-              <img
-                alt=""
-                className="w-[14px] h-[12px]"
-                src="/figma/payment-gateways/send-icon.svg"
-              />
-            </button>
+          <div className="border-t border-[#eae8e4] pt-6 flex items-center justify-end gap-2 -mx-8 -mb-2 px-8">
             <button
               type="button"
               onClick={onClose}
               className="bg-[#f0eeea] hover:bg-[#e4e1dc] text-[#1b1c1a] text-xs font-semibold rounded-[4px] h-10 px-4 flex items-center justify-center transition-colors cursor-pointer"
             >
               إلغاء
+            </button>
+            <button
+              type="submit"
+              className="bg-[#9c6403] hover:bg-[#835402] text-[#fff3e9] text-xs font-bold rounded-[4px] h-10 px-6 flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <img
+                alt=""
+                className="w-[14px] h-[12px]"
+                src="/figma/payment-gateways/send-icon.svg"
+              />
+              <span>حفظ الاعدادات</span>
             </button>
           </div>
         </form>

@@ -37,7 +37,7 @@ export function DisableGatewayModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
       <div
-        className="w-full max-w-[512px] bg-white rounded-[16px] overflow-hidden shadow-[0px_20px_50px_0px_rgba(28,20,15,0.28)] flex flex-col animate-in zoom-in-95 duration-150 text-right"
+        className="w-full max-w-[512px] bg-white rounded-[16px] overflow-hidden shadow-[0px_20px_50px_0px_rgba(28,20,15,0.28)] flex flex-col animate-in zoom-in-95 duration-150 text-start"
         dir="rtl"
       >
         {/* Top Accent Line */}
@@ -47,7 +47,7 @@ export function DisableGatewayModal({
         <div className="p-8 space-y-4">
           {/* Header Area with Warning Badge */}
           <div className="flex items-start justify-between w-full">
-            {/* Warning Shield & Title */}
+            {/* Warning Shield & Title on Right */}
             <div className="flex gap-4 items-start">
               <div className="bg-[#ffdad6] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] rounded-[8px] size-12 flex items-center justify-center shrink-0">
                 <img
@@ -57,7 +57,7 @@ export function DisableGatewayModal({
                 />
               </div>
 
-              <div className="flex flex-col items-start text-right">
+              <div className="flex flex-col items-start text-start">
                 <div className="flex items-center gap-2">
                   <h2 className="text-[#1b1c1a] text-[22px] font-bold leading-[32px]">
                     تعطيل بوابة الدفع
@@ -66,13 +66,13 @@ export function DisableGatewayModal({
                     إجراء إداري مقيّد
                   </span>
                 </div>
-                <p className="text-[#514537] text-[14px] leading-[22.75px] mt-1 font-normal">
+                <p className="text-[#514537] text-[14px] leading-[22.75px] mt-1 font-normal text-start">
                   هل أنت متأكد من رغبتك في تعطيل بوابة الدفع المحددة؟ سيؤدي ذلك لحجبها كخيار سداد نشط للعملاء الجدد.
                 </p>
               </div>
             </div>
 
-            {/* Close Button on Top Left (in RTL) */}
+            {/* Close Button on Top Left in RTL */}
             <button
               type="button"
               onClick={onClose}
@@ -95,7 +95,7 @@ export function DisableGatewayModal({
                 <div className="bg-white rounded-[4px] size-9 flex items-center justify-center shadow-2xs font-bold text-sm text-[#7b4e00] shrink-0">
                   {gateway.brandType === "bank" ? "بنكي" : gateway.name}
                 </div>
-                <div className="flex flex-col items-start text-right">
+                <div className="flex flex-col items-start text-start">
                   <span className="text-[#1b1c1a] text-[14px] font-bold leading-[20px]">
                     بوابة {gateway.name} للتحصيل المالي
                   </span>
@@ -106,15 +106,15 @@ export function DisableGatewayModal({
               </div>
 
               {/* Code Identifier on Left */}
-              <span className="bg-[#eae8e4] text-[#514537] text-[10px] font-bold px-2 py-0.5 rounded-[2px] font-mono">
+              <span className="bg-[#eae8e4] text-[#514537] text-[10px] font-bold px-2 py-0.5 rounded-[2px] font-mono" dir="ltr">
                 {gateway.code}
               </span>
             </div>
 
             {/* 3-Column Sub-grid */}
-            <div className="bg-white/60 rounded-[4px] p-2 grid grid-cols-3 gap-2 text-right">
+            <div className="bg-white/60 rounded-[4px] p-2 grid grid-cols-3 gap-2 text-start">
               {/* Col 1: Status */}
-              <div className="flex flex-col items-start text-right">
+              <div className="flex flex-col items-start text-start">
                 <span className="text-[#837565] text-[10px] font-bold leading-[14px]">
                   الحالة الحالية:
                 </span>
@@ -127,7 +127,7 @@ export function DisableGatewayModal({
               </div>
 
               {/* Col 2: Subscriptions */}
-              <div className="flex flex-col items-start text-right">
+              <div className="flex flex-col items-start text-start">
                 <span className="text-[#837565] text-[10px] font-bold leading-[14px]">
                   الاشتراكات المرتبطة:
                 </span>
@@ -137,7 +137,7 @@ export function DisableGatewayModal({
               </div>
 
               {/* Col 3: Base Currency */}
-              <div className="flex flex-col items-start text-right">
+              <div className="flex flex-col items-start text-start">
                 <span className="text-[#837565] text-[10px] font-bold leading-[14px]">
                   العملة الأساسية:
                 </span>
@@ -149,8 +149,13 @@ export function DisableGatewayModal({
           </div>
 
           {/* Financial & Compliance Guarantee Banner */}
-          <div className="bg-[#fffbeb]/90 border border-[#fef3c7] rounded-[8px] p-4 flex gap-2.5 items-start text-right">
-            <div className="flex flex-col items-start text-right">
+          <div className="bg-[#fffbeb]/90 border border-[#fef3c7] rounded-[8px] p-4 flex gap-2.5 items-start text-start">
+            <img
+              alt=""
+              className="w-[14.5px] h-[20.5px] shrink-0 mt-0.5"
+              src="/figma/payment-gateways/guarantee-shield.svg"
+            />
+            <div className="flex flex-col items-start text-start">
               <span className="text-[#78350f] text-[12px] font-bold leading-[16px] mb-1">
                 ضمانة الاستقرار المالي والنظامي:
               </span>
@@ -158,11 +163,6 @@ export function DisableGatewayModal({
                 لن يتم إلغاء أو تعديل الاشتراكات السارية أو الفواتير المجدولة سابقاً. سيقتصر التعطيل على حجب البوابة كخيار دفع جديد عند الفوترة والشراء المستقبلي، حفاظاً على حقوق المشتركين والتدفقات النقدية للمنصة.
               </p>
             </div>
-            <img
-              alt=""
-              className="w-[14.5px] h-[20.5px] shrink-0 mt-0.5"
-              src="/figma/payment-gateways/guarantee-shield.svg"
-            />
           </div>
 
           {/* Reason Specification (Optional Input) */}
@@ -198,7 +198,7 @@ export function DisableGatewayModal({
                       setSelectedReason(r);
                       setIsDropdownOpen(false);
                     }}
-                    className={`px-4 py-2.5 text-xs text-right cursor-pointer transition-colors ${
+                    className={`px-4 py-2.5 text-xs text-start cursor-pointer transition-colors ${
                       r === selectedReason
                         ? "bg-[#fff8e1] text-[#9c6402] font-semibold"
                         : "hover:bg-[#f5f3ef] text-[#1b1c1a]"
@@ -213,25 +213,25 @@ export function DisableGatewayModal({
         </div>
 
         {/* Modal Footer */}
-        <div className="border-t border-[#eae8e4] px-4 py-4 flex items-center justify-start gap-2 bg-white">
-          <button
-            type="button"
-            onClick={handleConfirm}
-            className="bg-[#ba1a1a] hover:bg-[#a01616] text-[#fff3e9] text-xs font-bold rounded-[4px] h-10 px-6 flex items-center gap-1.5 transition-colors cursor-pointer"
-          >
-            <span>تأكيد التعطيل</span>
-            <img
-              alt=""
-              className="size-[16.5px]"
-              src="/figma/payment-gateways/disable-power.svg"
-            />
-          </button>
+        <div className="border-t border-[#eae8e4] px-4 py-4 flex items-center justify-end gap-2 bg-white">
           <button
             type="button"
             onClick={onClose}
             className="bg-[#f0eeea] hover:bg-[#e4e1dc] text-[#1b1c1a] text-xs font-semibold rounded-[4px] h-10 px-4 flex items-center justify-center transition-colors cursor-pointer"
           >
             الغاء
+          </button>
+          <button
+            type="button"
+            onClick={handleConfirm}
+            className="bg-[#ba1a1a] hover:bg-[#a01616] text-[#fff3e9] text-xs font-bold rounded-[4px] h-10 px-6 flex items-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <img
+              alt=""
+              className="size-[16.5px]"
+              src="/figma/payment-gateways/disable-power.svg"
+            />
+            <span>تأكيد التعطيل</span>
           </button>
         </div>
       </div>
