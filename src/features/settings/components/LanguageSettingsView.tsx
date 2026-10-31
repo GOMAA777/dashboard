@@ -25,11 +25,14 @@ import { DeleteLanguageModal } from "./DeleteLanguageModal";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
+import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
+import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 
 export function LanguageSettingsView() {
   const [languages, setLanguages] = useState<LanguageItem[]>(initialLanguages);
   const [currentView, setCurrentView] = useState<"list" | "add">("list");
   const [activeTab, setActiveTab] = useState<"all" | "active" | "inactive">("all");
+  const [directionFilter, setDirectionFilter] = useState<"all" | "rtl" | "ltr">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [pageSize, setPageSize] = useState<number>(5);
   const [pageIndex, setPageIndex] = useState<number>(0);
@@ -39,9 +42,13 @@ export function LanguageSettingsView() {
   // Filtered languages
   const filteredLanguages = useMemo(() => {
     return languages.filter((l) => {
-      // Tab filter
+      // Tab status filter
       if (activeTab === "active" && l.status !== "active") return false;
       if (activeTab === "inactive" && l.status !== "inactive") return false;
+
+      // Direction filter from drawer
+      if (directionFilter === "rtl" && l.direction !== "rtl") return false;
+      if (directionFilter === "ltr" && l.direction !== "ltr") return false;
 
       // Search filter
       if (searchQuery.trim()) {
@@ -54,7 +61,7 @@ export function LanguageSettingsView() {
 
       return true;
     });
-  }, [languages, activeTab, searchQuery]);
+  }, [languages, activeTab, directionFilter, searchQuery]);
 
   const totalPages = Math.max(1, Math.ceil(filteredLanguages.length / pageSize));
   const safePageIndex = Math.min(pageIndex, totalPages - 1);
@@ -68,6 +75,58 @@ export function LanguageSettingsView() {
   // Tab counts
   const activeCount = useMemo(() => languages.filter((l) => l.status === "active").length, [languages]);
   const inactiveCount = useMemo(() => languages.filter((l) => l.status === "inactive").length, [languages]);
+
+  const hasActiveFilters = activeTab !== "all" || directionFilter !== "all" || Boolean(searchQuery);
+
+  const handleResetFilters = () => {
+    setSearchQuery("");
+    setActiveTab("all");
+    setDirectionFilter("all");
+    setPageIndex(0);
+  };
+
+  // Drawer Content
+  const drawerContent = (
+    <div className="space-y-4 text-start font-['Cairo',sans-serif]">
+      {/* 1. Status Filter */}
+      <div className="space-y-1.5">
+        <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
+          الحالة التشغيلية
+        </label>
+        <select
+          value={activeTab}
+          onChange={(e) => {
+            setActiveTab(e.target.value as "all" | "active" | "inactive");
+            setPageIndex(0);
+          }}
+          className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[12px] border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
+        >
+          <option value="all">كل اللغات ({languages.length})</option>
+          <option value="active">اللغات النشطة فقط ({activeCount})</option>
+          <option value="inactive">اللغات المعطلة ({inactiveCount})</option>
+        </select>
+      </div>
+
+      {/* 2. Direction Filter */}
+      <div className="space-y-1.5">
+        <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
+          اتجاه النص (Direction)
+        </label>
+        <select
+          value={directionFilter}
+          onChange={(e) => {
+            setDirectionFilter(e.target.value as "all" | "rtl" | "ltr");
+            setPageIndex(0);
+          }}
+          className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[12px] border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
+        >
+          <option value="all">كافة الاتجاهات (الكل)</option>
+          <option value="rtl">RTL (من اليمين إلى اليسار)</option>
+          <option value="ltr">LTR (من اليسار إلى اليمين)</option>
+        </select>
+      </div>
+    </div>
+  );
 
   const handleDeleteConfirm = (language: LanguageItem) => {
     if (language.isDefault) {
