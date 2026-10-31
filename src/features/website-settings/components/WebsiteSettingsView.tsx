@@ -82,22 +82,23 @@ export function WebsiteSettingsView({ initialTab = "menu" }: WebsiteSettingsView
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
         <DashboardTopNavbar />
 
-        <main className="flex-1 overflow-y-auto px-[24px] sm:px-[32px] py-[24px] max-w-[1360px] w-full mx-auto pb-[100px] scrollbar-thin">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 sm:px-6 lg:px-8 py-6 max-w-[1360px] w-full mx-auto pb-28 sm:pb-32 space-y-6 scrollbar-thin">
           <DashboardPageTransition>
-            {/* Main Identity & Command Banner (Figma 1:19876) */}
-            <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[24px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] relative mb-[24px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]">
-              <div className="flex flex-col gap-[4px] text-start">
-                <h1 className="text-[28px] leading-[38px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                  إعدادات الموقع
-                </h1>
-                <p className="text-[14px] leading-[22px] font-normal text-[#514537] dark:text-[#cdc5bd]">
-                  إدارة وتفعيل إعدادات الموقع لدعم الهوية البصرية والألوان وأكواد المنصة
-                </p>
+            <div className="space-y-6 w-full">
+              {/* Main Identity & Command Banner (Figma 1:19876) */}
+              <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex flex-col gap-[4px] text-start">
+                  <h1 className="text-[28px] leading-[38px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                    إعدادات الموقع
+                  </h1>
+                  <p className="text-[14px] leading-[22px] font-normal text-[#514537] dark:text-[#cdc5bd]">
+                    إدارة وتفعيل إعدادات الموقع لدعم الهوية البصرية والألوان وأكواد المنصة
+                  </p>
+                </div>
               </div>
-            </div>
 
-            {/* Layout Body: Secondary Navigation Sidebar + Content Workspace */}
-            <div className="flex flex-col lg:flex-row items-start gap-[24px]">
+              {/* Layout Body: Secondary Navigation Sidebar + Content Workspace */}
+              <div className="flex flex-col lg:flex-row items-start gap-[24px]">
               {/* Secondary Navigation Aside (Tabs) */}
               <WebsiteSettingsNav
                 activeTab={activeTab}
@@ -108,6 +109,7 @@ export function WebsiteSettingsView({ initialTab = "menu" }: WebsiteSettingsView
               <div className="flex-1 w-full min-w-0">
                 {renderActiveTabContent()}
               </div>
+            </div>
             </div>
           </DashboardPageTransition>
         </main>

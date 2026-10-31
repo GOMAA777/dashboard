@@ -145,7 +145,7 @@ export function NotificationsListView({
     <div className="space-y-6">
       {/* Main Identity & Command Banner (Figma 1:12876) */}
       <div
-        className="bg-white dark:bg-[#1c1510] rounded-[8px] p-6 border border-[#e6e2dc] dark:border-[#2e231b] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
+        className="bg-white dark:bg-[#1c1510] rounded-[8px] p-5 sm:p-6 border border-[#e6e2dc] dark:border-[#2e231b] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col sm:flex-row sm:items-center justify-between gap-4"
         data-node-id="1:12876"
       >
         <div>
