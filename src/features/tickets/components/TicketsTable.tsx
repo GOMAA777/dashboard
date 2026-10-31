@@ -334,19 +334,19 @@ export function TicketsTable({
 
       {/* Pagination Footer */}
       <div
-        className="bg-white flex flex-col sm:flex-row items-center justify-between p-[16px] border-t border-[#eae8e4] gap-[12px]"
+        className="bg-white dark:bg-[#221812] flex flex-col sm:flex-row items-center justify-between p-4 border-t border-[#eae8e4] dark:border-[#38271c] gap-3"
         data-node-id="1:14764"
         data-name="Pagination Footer"
       >
-        <div className="flex items-center gap-[12px] order-1 sm:order-2">
-          <div className="text-[12px] text-[#514537]">
-            عرض <span className="font-bold text-[#1b1c1a]">{startItem}</span> إلى{" "}
-            <span className="font-bold text-[#1b1c1a]">{endItem}</span> من أصل{" "}
-            <span className="font-bold text-[#1b1c1a]">{tickets.length}</span> تذكرة
+        <div className="flex items-center gap-3 order-1 sm:order-2">
+          <div className="text-[12px] text-[#514537] dark:text-[#cdc5bd]">
+            عرض <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{startItem}</span> إلى{" "}
+            <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{endItem}</span> من أصل{" "}
+            <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{tickets.length}</span> تذكرة
           </div>
 
-          <div className="flex items-center gap-2 border-s border-[#eae8e4] ps-3">
-            <span className="text-[11px] text-[#837565]">صفوف بالصفحة:</span>
+          <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
+            <span className="text-[11px] text-[#837565] dark:text-[#8e8680]">صفوف بالصفحة:</span>
             <PageSizeDropdown
               value={pageSize}
               onChange={(newSize) => {
@@ -359,13 +359,13 @@ export function TicketsTable({
         </div>
 
         {/* RTL: ChevronsRight is first page, ChevronRight is previous */}
-        <div className="flex items-center gap-[6px] order-2 sm:order-1">
+        <div className="flex items-center gap-1.5 order-2 sm:order-1">
           <button
             type="button"
             disabled={safePageIndex === 0}
             onClick={() => setPageIndex(0)}
             title="الصفحة الأولى"
-            className="size-[32px] rounded-[4px] border border-[#eae8e4] text-[#837565] hover:bg-[#eae8e4] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
+            className="size-[32px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#8e8680] hover:bg-[#eae8e4] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
           >
             <ChevronsRight className="size-[14px]" />
           </button>
@@ -374,7 +374,7 @@ export function TicketsTable({
             type="button"
             disabled={safePageIndex === 0}
             onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
-            className="bg-[#f5f3ef] flex items-center gap-[4px] px-[12px] py-[6px] rounded-[4px] text-[12px] font-semibold text-[#837565] hover:text-[#1b1c1a] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            className="bg-[#f5f3ef] dark:bg-[#281c15] flex items-center gap-1 px-3 py-1.5 rounded-[4px] text-[12px] font-semibold text-[#837565] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             <ChevronRight className="size-[12px]" />
             <span>السابق</span>
@@ -384,7 +384,7 @@ export function TicketsTable({
             if (totalPages > 5 && Math.abs(p - safePageIndex) > 2 && p !== 0 && p !== totalPages - 1) {
               if (p === 1 || p === totalPages - 2) {
                 return (
-                  <span key={p} className="text-[#837565] px-[4px] text-[12px]">
+                  <span key={p} className="text-[#837565] dark:text-[#8e8680] px-1 text-[12px]">
                     ...
                   </span>
                 );
@@ -400,7 +400,7 @@ export function TicketsTable({
                 className={`size-[32px] rounded-[4px] font-bold text-[12px] flex items-center justify-center transition-colors cursor-pointer ${
                   isActive
                     ? "bg-[#9c6402] text-white shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-                    : "bg-[#f5f3ef] text-[#1b1c1a] hover:bg-[#eae8e4]"
+                    : "bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#eae8e4] dark:hover:bg-[#38271c]"
                 }`}
               >
                 {p + 1}
@@ -412,7 +412,7 @@ export function TicketsTable({
             type="button"
             disabled={safePageIndex >= totalPages - 1}
             onClick={() => setPageIndex((p) => Math.min(totalPages - 1, p + 1))}
-            className="bg-[#f5f3ef] flex items-center gap-[4px] px-[12px] py-[6px] rounded-[4px] text-[12px] font-semibold text-[#1b1c1a] hover:bg-[#eae8e4] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            className="bg-[#f5f3ef] dark:bg-[#281c15] flex items-center gap-1 px-3 py-1.5 rounded-[4px] text-[12px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             <span>التالي</span>
             <ChevronLeft className="size-[12px]" />
@@ -423,7 +423,7 @@ export function TicketsTable({
             disabled={safePageIndex >= totalPages - 1}
             onClick={() => setPageIndex(totalPages - 1)}
             title="الصفحة الأخيرة"
-            className="size-[32px] rounded-[4px] border border-[#eae8e4] text-[#837565] hover:bg-[#eae8e4] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
+            className="size-[32px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#8e8680] hover:bg-[#eae8e4] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
           >
             <ChevronsLeft className="size-[14px]" />
           </button>

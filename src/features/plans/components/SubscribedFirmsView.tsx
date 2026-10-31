@@ -201,29 +201,29 @@ export function SubscribedFirmsView({
   }, [filteredFirms, currentPage, pageSize]);
 
   return (
-    <div className="w-full space-y-[20px] font-['Cairo',sans-serif]">
+    <div className="w-full space-y-6 font-['Cairo',sans-serif]">
       {/* 1. Top Identity & Action Header */}
-      <div className="bg-white rounded-[8px] p-[20px] md:p-[24px] shadow-2xs border border-[#f0eeea] flex flex-col md:flex-row md:items-center justify-between gap-[16px]">
+      <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-2xs border border-[#f0eeea] dark:border-[#38271c] flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* Right: Title & Badge */}
         <div>
           <div className="flex items-center gap-[12px] mb-[6px]">
             <button
               type="button"
               onClick={onBack}
-              className="p-[6px] rounded-[6px] hover:bg-[#eae8e4] text-[#737067] hover:text-[#1b1c1a] transition-colors cursor-pointer"
+              className="p-[6px] rounded-[6px] hover:bg-[#eae8e4] dark:hover:bg-[#281c15] text-[#737067] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] transition-colors cursor-pointer"
               title="العودة لتفاصيل الباقة"
             >
               <ArrowRight className="size-[20px]" />
             </button>
-            <h1 className="text-[24px] md:text-[26px] font-extrabold text-[#1b1c1a] leading-tight">
+            <h1 className="text-[24px] md:text-[26px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7] leading-tight">
               المكاتب المشتركة في الباقة
             </h1>
-            <span className="font-bold text-[11px] text-[#514537] bg-[#f5f3ef] border border-[#e2ded7] px-[10px] py-[3px] rounded">
+            <span className="font-bold text-[11px] text-[#514537] dark:text-[#cdc5bd] bg-[#f5f3ef] dark:bg-[#281c15] border border-[#e2ded7] dark:border-[#38271c] px-[10px] py-[3px] rounded">
               الباقة الفضية | 399 ر.س / شهرياً
             </span>
           </div>
 
-          <p className="text-[13px] text-[#737067] max-w-[650px] leading-relaxed">
+          <p className="text-[13px] text-[#737067] dark:text-[#cdc5bd] max-w-[650px] leading-relaxed">
             متابعة المكاتب المسجلة على هذه الباقة وإدارة اشتراكاتها ومراقبة حدود
             استهلاك الموارد.
           </p>
@@ -236,7 +236,7 @@ export function SubscribedFirmsView({
             onClick={
               onAddNewFirm || (() => toast.info("فتح نموذج إضافة اشتراك مكتب جديد"))
             }
-            className="bg-[#9c6402] hover:bg-[#855402] text-white font-bold text-[13px] px-[18px] py-[9px] rounded-[6px] shadow-xs flex items-center gap-[8px] transition-colors cursor-pointer"
+            className="bg-[#9c6402] hover:bg-[#855402] dark:bg-[#e29d38] dark:hover:bg-[#d08c2a] text-white dark:text-[#1c140f] font-bold text-[13px] px-[18px] py-[9px] rounded-[6px] shadow-xs flex items-center gap-[8px] transition-colors cursor-pointer"
           >
             <Plus className="size-[16px] stroke-[2.5]" />
             <span>إضافة اشتراك مكتب</span>
@@ -245,9 +245,9 @@ export function SubscribedFirmsView({
       </div>
 
       {/* 2. Four KPI Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Total */}
-        <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-[18px] shadow-2xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-4 sm:p-5 shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-[10px]">
             <span className="text-[12px] font-semibold text-[#737067] dark:text-[#cdc5bd]">
               إجمالي المكاتب المشتركة
@@ -268,7 +268,7 @@ export function SubscribedFirmsView({
         </div>
 
         {/* Card 2: Active */}
-        <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-[18px] shadow-2xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-4 sm:p-5 shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-[10px]">
             <span className="text-[12px] font-semibold text-[#737067] dark:text-[#cdc5bd]">
               اشتراكات نشطة
@@ -289,7 +289,7 @@ export function SubscribedFirmsView({
         </div>
 
         {/* Card 3: Trial */}
-        <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-[18px] shadow-2xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-4 sm:p-5 shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-[10px]">
             <span className="text-[12px] font-semibold text-[#737067] dark:text-[#cdc5bd]">
               اشتراكات قيد التجربة
@@ -310,7 +310,7 @@ export function SubscribedFirmsView({
         </div>
 
         {/* Card 4: Overdue/Expiring */}
-        <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-[18px] shadow-2xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-4 sm:p-5 shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-[10px]">
             <span className="text-[12px] font-semibold text-[#737067] dark:text-[#cdc5bd]">
               اشتراكات منتهية أو متأخرة

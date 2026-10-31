@@ -10,7 +10,7 @@ interface ClientManagementHeaderProps {
 export function ClientManagementHeader({ onAddOffice }: ClientManagementHeaderProps) {
   return (
     <div
-      className="bg-white dark:bg-[#221812] rounded-[8px] p-[24px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col sm:flex-row sm:items-center justify-between gap-[16px] w-full shrink-0"
+      className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full shrink-0"
       data-node-id="1:754"
     >
       {/* Right Column: Title, Badge, Subtitle */}

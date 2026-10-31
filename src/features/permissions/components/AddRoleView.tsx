@@ -213,7 +213,7 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
   };
 
   return (
-    <div className="space-y-6 pb-24" data-node-id="1:12201">
+    <div className="space-y-6 pb-28 sm:pb-32" data-node-id="1:12201">
       {/* Back button */}
       <button
         type="button"

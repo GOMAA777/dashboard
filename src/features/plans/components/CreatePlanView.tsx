@@ -111,17 +111,17 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
 
   return (
     <div
-      className="w-full flex flex-col gap-[24px] font-['Cairo',sans-serif]"
+      className="w-full flex flex-col gap-6 font-['Cairo',sans-serif]"
       data-node-id="1:3035"
     >
       {/* 1. Top Header Bar */}
-      <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] flex flex-col sm:flex-row sm:items-center justify-between gap-[16px] w-full">
+      <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
         {/* Right / Start: Title & Subtitle */}
         <div className="flex flex-col text-start">
-          <h1 className="text-[26px] leading-[36px] font-bold text-[#1b1c1a]">
+          <h1 className="text-[24px] sm:text-[26px] leading-[34px] sm:leading-[36px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
             إنشاء باقة اشتراك جديدة
           </h1>
-          <p className="text-[#514537] text-[13px] leading-[20px] font-normal mt-[4px]">
+          <p className="text-[#514537] dark:text-[#cdc5bd] text-[13px] leading-[20px] font-normal mt-1">
             حدد السعر ومدة الاشتراك وحدود الاستخدام والمميزات المتاحة للمكتب وفق معايير الحوكمة المالية والأمنية.
           </p>
         </div>
@@ -130,7 +130,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
         <button
           type="button"
           onClick={onBack}
-          className="bg-white hover:bg-[#f5f3ef] border border-[#eae8e4] text-[#1b1c1a] px-[16px] py-[8px] rounded-[4px] text-[14px] font-semibold flex items-center gap-[8px] shadow-2xs transition-colors cursor-pointer self-start sm:self-auto"
+          className="bg-white dark:bg-[#2d1f16] hover:bg-[#f5f3ef] dark:hover:bg-[#38271c] border border-[#eae8e4] dark:border-[#4d3627] text-[#1b1c1a] dark:text-[#fdfbf7] px-4 py-2 rounded-[4px] text-[14px] font-semibold flex items-center gap-2 shadow-2xs transition-colors cursor-pointer self-start sm:self-auto"
         >
           <ArrowRight className="size-[15px] stroke-[2.5]" />
           <span>العودة</span>
@@ -138,16 +138,16 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
       </div>
 
       {/* 2. Main Two-Column Layout (Form on Right 70%, Live Preview Card on Left 30%) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-[24px] w-full items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full items-start">
         {/* ======================================================== */}
         {/* RIGHT COLUMN: 4-Step Configuration Form (8 Cols) */}
         {/* ======================================================== */}
         <form
           onSubmit={(e) => handleSubmit(e, false)}
-          className="lg:col-span-8 flex flex-col gap-[20px] w-full"
+          className="lg:col-span-8 flex flex-col gap-6 w-full"
         >
           {/* STEP 1: البيانات الأساسية للباقة */}
-          <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] flex flex-col gap-[16px]">
+          <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col gap-4">
             {/* Step Header */}
             <div className="bg-[#f5f3ef]/50 rounded-[4px] px-[16px] py-[10px] flex items-center justify-between">
               <span className="bg-[#eae8e4] text-[#514537] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px]">
@@ -284,7 +284,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
           </div>
 
           {/* STEP 2: السعر ودورات الفوترة */}
-          <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] flex flex-col gap-[16px]">
+          <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col gap-4">
             {/* Step Header */}
             <div className="bg-[#f5f3ef]/50 rounded-[4px] px-[16px] py-[10px] flex items-center justify-between">
               <span className="bg-[#eae8e4] text-[#514537] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px]">
@@ -403,7 +403,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
           </div>
 
           {/* STEP 3: حدود الاستخدام والموارد السحابية */}
-          <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] flex flex-col gap-[16px]">
+          <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col gap-4">
             {/* Step Header */}
             <div className="bg-[#f5f3ef]/50 rounded-[4px] px-[16px] py-[10px] flex items-center justify-between">
               <span className="bg-[#eae8e4] text-[#514537] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px]">
@@ -537,7 +537,7 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
           </div>
 
           {/* STEP 4: المميزات المتقدمة وتكاملات المنظومة */}
-          <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] flex flex-col gap-[16px]">
+          <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col gap-4">
             {/* Step Header */}
             <div className="bg-[#f5f3ef]/50 rounded-[4px] px-[16px] py-[10px] flex items-center justify-between">
               <span className="bg-[#eae8e4] text-[#514537] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px]">
@@ -691,17 +691,17 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
           </div>
 
           {/* Form Action Footer */}
-          <div className="bg-white rounded-[8px] p-[20px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] flex flex-col sm:flex-row items-center justify-between gap-[16px]">
-            <div className="flex items-center gap-[6px] text-[12px] text-[#514537]">
-              <CheckCircle2 className="size-[14px] text-[#9c6402]" />
+          <div className="bg-white dark:bg-[#221812] rounded-[8px] p-4 sm:p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-[12px] text-[#514537] dark:text-[#cdc5bd]">
+              <CheckCircle2 className="size-[14px] text-[#9c6402] dark:text-[#e29d38]" />
               <span>كافة الحقول المشار إليها بعلامة (*) إلزامية لضمان سلامة التكامل مع المحاسبة والفوترة.</span>
             </div>
 
-            <div className="flex items-center gap-[10px]">
+            <div className="flex items-center gap-2.5">
               <button
                 type="button"
                 onClick={onBack}
-                className="bg-[#f0eeea] hover:bg-[#eae8e4] text-[#1b1c1a] px-[20px] py-[10px] rounded-[4px] text-[13px] font-semibold transition-colors cursor-pointer"
+                className="bg-[#f0eeea] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] px-5 py-2.5 rounded-[4px] text-[13px] font-semibold transition-colors cursor-pointer"
               >
                 إلغاء
               </button>
@@ -709,14 +709,14 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
               <button
                 type="button"
                 onClick={(e) => handleSubmit(e, true)}
-                className="bg-white hover:bg-[#f5f3ef] border border-[#eae8e4] text-[#514537] px-[20px] py-[10px] rounded-[4px] text-[13px] font-semibold transition-colors cursor-pointer"
+                className="bg-white dark:bg-[#2d1f16] hover:bg-[#f5f3ef] dark:hover:bg-[#38271c] border border-[#eae8e4] dark:border-[#4d3627] text-[#514537] dark:text-[#cdc5bd] px-5 py-2.5 rounded-[4px] text-[13px] font-semibold transition-colors cursor-pointer"
               >
                 حفظ كمسودة
               </button>
 
               <button
                 type="submit"
-                className="bg-[#9c6402] hover:bg-[#855402] text-white px-[28px] py-[10px] rounded-[4px] text-[13px] font-semibold shadow-xs transition-colors cursor-pointer flex items-center gap-[6px]"
+                className="bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#855402] dark:hover:bg-[#c9862b] text-white dark:text-[#1c140f] px-7 py-2.5 rounded-[4px] text-[13px] font-semibold shadow-xs transition-colors cursor-pointer flex items-center gap-2"
               >
                 <Check className="size-[14px] stroke-[2.5]" />
                 <span>حفظ الباقة</span>
@@ -728,15 +728,15 @@ export function CreatePlanView({ onBack, onSuccess }: CreatePlanViewProps) {
         {/* ======================================================== */}
         {/* LEFT COLUMN: Live Preview Card (4 Cols in 12-col grid) */}
         {/* ======================================================== */}
-        <div className="lg:col-span-4 sticky top-[24px] flex flex-col gap-[12px]">
+        <div className="lg:col-span-4 sticky top-6 flex flex-col gap-3">
           {/* Preview Header */}
-          <div className="flex items-center gap-[6px] text-[#514537] text-[13px] font-bold text-start px-[4px]">
-            <Eye className="size-[15px] text-[#9c6402]" />
+          <div className="flex items-center gap-2 text-[#514537] dark:text-[#cdc5bd] text-[13px] font-bold text-start px-1">
+            <Eye className="size-[15px] text-[#9c6402] dark:text-[#e29d38]" />
             <span>معاينة بطاقة الباقة</span>
           </div>
 
           {/* Live Interactive Card */}
-          <div className="bg-white rounded-[12px] p-[24px] shadow-[0px_8px_24px_rgba(0,0,0,0.08)] border-2 border-[#9c6402] flex flex-col gap-[16px] text-start">
+          <div className="bg-white dark:bg-[#221812] rounded-[12px] p-5 sm:p-6 shadow-[0px_8px_24px_rgba(0,0,0,0.08)] border-2 border-[#9c6402] dark:border-[#e29d38] flex flex-col gap-4 text-start">
             {/* Top Badges */}
             <div className="flex items-center justify-between">
               <span className="bg-[#e8f5e9] text-[#1b7340] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px]">

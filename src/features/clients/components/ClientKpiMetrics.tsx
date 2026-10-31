@@ -9,9 +9,9 @@ import {
 
 export function ClientKpiMetrics() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px] w-full shrink-0" data-node-id="1:760">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full shrink-0" data-node-id="1:760">
       {/* 1. إجمالي المكاتب */}
-      <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[20px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex items-center justify-between">
+      <div className="bg-white dark:bg-[#221812] rounded-[8px] p-4 sm:p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex items-center justify-between">
         <div className="flex flex-col items-start text-start">
           <span className="text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[18px] font-normal">
             إجمالي المكاتب
@@ -31,7 +31,7 @@ export function ClientKpiMetrics() {
       </div>
 
       {/* 2. الحسابات النشطة */}
-      <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[20px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex items-center justify-between">
+      <div className="bg-white dark:bg-[#221812] rounded-[8px] p-4 sm:p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex items-center justify-between">
         <div className="flex flex-col items-start text-start">
           <span className="text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[18px] font-normal">
             الحسابات النشطة
@@ -54,7 +54,7 @@ export function ClientKpiMetrics() {
       </div>
 
       {/* 3. تحت التجربة */}
-      <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[20px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex items-center justify-between">
+      <div className="bg-white dark:bg-[#221812] rounded-[8px] p-4 sm:p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex items-center justify-between">
         <div className="flex flex-col items-start text-start">
           <span className="text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[18px] font-normal">
             تحت التجربة
@@ -78,7 +78,7 @@ export function ClientKpiMetrics() {
       </div>
 
       {/* 4. الحسابات المعطلة */}
-      <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[20px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex items-center justify-between">
+      <div className="bg-white dark:bg-[#221812] rounded-[8px] p-4 sm:p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex items-center justify-between">
         <div className="flex flex-col items-start text-start">
           <span className="text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[18px] font-normal">
             الحسابات المعطلة

@@ -118,7 +118,7 @@ export function SendNotificationView({
   };
 
   return (
-    <div className="space-y-6 pb-2">
+    <div className="space-y-6 pb-28 sm:pb-32">
       {/* Main Identity & Command Banner (Figma 1:13242) */}
       <div
         className="bg-white dark:bg-[#221812] rounded-2xl p-6 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"

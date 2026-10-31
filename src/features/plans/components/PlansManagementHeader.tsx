@@ -14,15 +14,15 @@ export function PlansManagementHeader({
 }: PlansManagementHeaderProps) {
   return (
     <div
-      className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] flex flex-col md:flex-row md:items-center justify-between gap-[16px] w-full font-['Cairo',sans-serif]"
+      className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col md:flex-row md:items-center justify-between gap-4 w-full font-['Cairo',sans-serif]"
       data-node-id="1:2463"
     >
       {/* Right / Start (in RTL): Title & Description */}
       <div className="flex flex-col text-start">
-        <h1 className="text-[26px] leading-[36px] font-bold text-[#1b1c1a]">
+        <h1 className="text-[26px] leading-[36px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
           الباقات والأسعار
         </h1>
-        <p className="text-[#514537] text-[13px] leading-[20px] font-normal mt-[4px]">
+        <p className="text-[#514537] dark:text-[#cdc5bd] text-[13px] leading-[20px] font-normal mt-[4px]">
           إدارة الباقات والأسعار ومميزات الاشتراك وحدود الاستخدام لكل مكتب محاماة مسجل بالمنصة.
         </p>
       </div>
@@ -33,9 +33,9 @@ export function PlansManagementHeader({
         <button
           type="button"
           onClick={onViewSubscribedFirms}
-          className="bg-white hover:bg-[#f5f3ef] border border-[#eae8e4] text-[#1b1c1a] px-[16px] py-[9px] rounded-[4px] text-[13px] font-semibold flex items-center gap-[8px] shadow-2xs transition-colors cursor-pointer"
+          className="bg-white dark:bg-[#281c15] hover:bg-[#f5f3ef] dark:hover:bg-[#38271c] border border-[#eae8e4] dark:border-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] px-[16px] py-[9px] rounded-[4px] text-[13px] font-semibold flex items-center gap-[8px] shadow-2xs transition-colors cursor-pointer"
         >
-          <Building2 className="size-[15px] text-[#514537]" />
+          <Building2 className="size-[15px] text-[#514537] dark:text-[#cdc5bd]" />
           <span>عرض المكاتب المشتركة</span>
         </button>
 

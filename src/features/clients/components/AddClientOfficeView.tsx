@@ -144,17 +144,17 @@ export function AddClientOfficeView({
 
   return (
     <div
-      className="w-full flex flex-col gap-[24px] font-['Cairo',sans-serif]"
+      className="w-full flex flex-col gap-6 font-['Cairo',sans-serif]"
       data-node-id="1:1427"
     >
       {/* Top Action & Title Header */}
-      <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] flex flex-col sm:flex-row sm:items-center justify-between gap-[16px] w-full">
+      <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
         {/* Right: Title & Subtitle */}
         <div className="flex flex-col items-start text-start">
-          <h1 className="text-[26px] leading-[36px] font-bold text-[#1b1c1a]">
+          <h1 className="text-[24px] sm:text-[26px] leading-[34px] sm:leading-[36px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
             {isEditMode ? "تعديل بيانات المكتب" : "إضافة مكتب جديد"}
           </h1>
-          <p className="text-[#514537] text-[13px] leading-[20px] font-normal mt-[4px]">
+          <p className="text-[#514537] dark:text-[#cdc5bd] text-[13px] leading-[20px] font-normal mt-1">
             {isEditMode
               ? "قم بتحديث وتعديل بيانات المنشأة القانونية ووسائل التواصل والاشتراكات المعتمدة لمنصة الجودي."
               : "أضف مكتب محاماة جديدًا إلى المنصة وحدد نوع اشتراكه وبيانات الدخول المعتمدة بدقة وموثوقية عالية."}
@@ -165,7 +165,7 @@ export function AddClientOfficeView({
         <button
           type="button"
           onClick={onBack}
-          className="bg-white hover:bg-[#f5f3ef] border border-[#eae8e4] text-[#1b1c1a] px-[16px] py-[8px] rounded-[4px] text-[14px] font-semibold flex items-center gap-[8px] shadow-sm transition-colors cursor-pointer self-start sm:self-auto"
+          className="bg-white dark:bg-[#2d1f16] hover:bg-[#f5f3ef] dark:hover:bg-[#38271c] border border-[#eae8e4] dark:border-[#4d3627] text-[#1b1c1a] dark:text-[#fdfbf7] px-4 py-2 rounded-[4px] text-[14px] font-semibold flex items-center gap-2 shadow-sm transition-colors cursor-pointer self-start sm:self-auto"
         >
           <ArrowRight className="size-[15px] stroke-[2.5]" />
           <span>العودة</span>
@@ -173,7 +173,7 @@ export function AddClientOfficeView({
       </div>
 
       {/* Main Form Container */}
-      <form onSubmit={handleSubmit} className="bg-white rounded-[8px] p-[32px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] flex flex-col gap-[32px] w-full">
+      <form onSubmit={handleSubmit} className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 md:p-8 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col gap-6 sm:gap-8 w-full">
         {/* ======================================================== */}
         {/* SECTION 1: بيانات المكتب والمنشأة القانونية */}
         {/* ======================================================== */}

@@ -6,12 +6,12 @@ import { Layers, CheckCircle2, Building, Landmark, TrendingUp } from "lucide-rea
 export function PlansKpiMetrics() {
   return (
     <div
-      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px] w-full font-['Cairo',sans-serif]"
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full font-['Cairo',sans-serif]"
       data-node-id="1:2464"
     >
       {/* Card 1: إجمالي الباقات */}
       <div
-        className="bg-white dark:bg-[#221812] rounded-[8px] p-[20px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex items-center justify-between"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-4 sm:p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex items-center justify-between"
         data-node-id="1:2515"
       >
         <div className="flex flex-col text-start">
@@ -34,7 +34,7 @@ export function PlansKpiMetrics() {
 
       {/* Card 2: الباقات المفعّلة */}
       <div
-        className="bg-white dark:bg-[#221812] rounded-[8px] p-[20px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex items-center justify-between"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-4 sm:p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex items-center justify-between"
         data-node-id="1:2501"
       >
         <div className="flex flex-col text-start">
@@ -57,7 +57,7 @@ export function PlansKpiMetrics() {
 
       {/* Card 3: المكاتب المشتركة */}
       <div
-        className="bg-white dark:bg-[#221812] rounded-[8px] p-[20px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex items-center justify-between"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-4 sm:p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex items-center justify-between"
         data-node-id="1:2483"
       >
         <div className="flex flex-col text-start">
@@ -85,7 +85,7 @@ export function PlansKpiMetrics() {
 
       {/* Card 4: الإيراد الشهري المتكرر (MRR) */}
       <div
-        className="bg-white dark:bg-[#221812] rounded-[8px] p-[20px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex items-center justify-between"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-4 sm:p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex items-center justify-between"
         data-node-id="1:2465"
       >
         <div className="flex flex-col text-start">

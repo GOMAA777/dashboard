@@ -22,13 +22,13 @@ export function DashboardKpiCards() {
 
   return (
     <div
-      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px] w-full"
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full"
       data-node-id="1:35"
       data-name="Section 2: Primary KPI Cards (4 Tiles)"
     >
       {/* KPI 1: إجمالي المكاتب */}
       <div
-        className="bg-white dark:bg-[#221812] rounded-[8px] p-[16px] drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] border border-[#f0eeea]/70 dark:border-[#38271c] flex flex-col justify-between"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-4 sm:p-5 drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] border border-[#f0eeea]/70 dark:border-[#38271c] flex flex-col justify-between"
         data-node-id="1:97"
         data-name="KPI 1"
       >
@@ -88,7 +88,7 @@ export function DashboardKpiCards() {
 
       {/* KPI 2: الاشتراكات النشطة */}
       <div
-        className="bg-white dark:bg-[#221812] rounded-[8px] p-[16px] drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] border border-[#f0eeea]/70 dark:border-[#38271c] flex flex-col justify-between"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-4 sm:p-5 drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] border border-[#f0eeea]/70 dark:border-[#38271c] flex flex-col justify-between"
         data-node-id="1:78"
         data-name="KPI 2"
       >
@@ -148,7 +148,7 @@ export function DashboardKpiCards() {
 
       {/* KPI 3: الإيرادات الشهرية */}
       <div
-        className="bg-white dark:bg-[#221812] rounded-[8px] p-[16px] drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] border border-[#f0eeea]/70 dark:border-[#38271c] flex flex-col justify-between"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-4 sm:p-5 drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] border border-[#f0eeea]/70 dark:border-[#38271c] flex flex-col justify-between"
         data-node-id="1:55"
         data-name="KPI 3"
       >
@@ -213,7 +213,7 @@ export function DashboardKpiCards() {
 
       {/* KPI 4: تذاكر الدعم المفتوحة */}
       <div
-        className="bg-white dark:bg-[#221812] rounded-[8px] p-[16px] drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] border border-[#f0eeea]/70 dark:border-[#38271c] flex flex-col justify-between"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-4 sm:p-5 drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] border border-[#f0eeea]/70 dark:border-[#38271c] flex flex-col justify-between"
         data-node-id="1:36"
         data-name="KPI 4"
       >

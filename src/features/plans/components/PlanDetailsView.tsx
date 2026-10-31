@@ -57,9 +57,9 @@ export function PlanDetailsView({
     "للفرق القانونية النامية والمكاتب المتوسطة التي تتطلب أدوات أتمتة العمليات القضائية والربط";
 
   return (
-    <div className="w-full space-y-[24px] font-['Cairo',sans-serif]">
+    <div className="w-full space-y-6 font-['Cairo',sans-serif]">
       {/* 1. Top Identity & Command Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-[16px] pb-[8px]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2">
         {/* Right: Plan Code, Title & Description */}
         <div className="flex flex-col items-start gap-[6px]">
           <div className="flex items-center gap-[10px]">
@@ -113,9 +113,9 @@ export function PlanDetailsView({
       </div>
 
       {/* 2. Top KPI Metrics (3 Cards) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-[16px]">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Metric 1: Monthly Price */}
-        <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-[18px] shadow-2xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-4 sm:p-5 shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-[10px]">
             <span className="text-[12px] font-semibold text-[#737067] dark:text-[#cdc5bd]">
               السعر الشهري المعتمد
@@ -138,7 +138,7 @@ export function PlanDetailsView({
         </div>
 
         {/* Metric 2: Subscribed Firms */}
-        <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-[18px] shadow-2xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-4 sm:p-5 shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-[10px]">
             <span className="text-[12px] font-semibold text-[#737067] dark:text-[#cdc5bd]">
               المكاتب المشتركة حالياً
@@ -169,7 +169,7 @@ export function PlanDetailsView({
         </div>
 
         {/* Metric 3: Generated Monthly Revenue */}
-        <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-[18px] shadow-2xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-4 sm:p-5 shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-[10px]">
             <span className="text-[12px] font-semibold text-[#737067] dark:text-[#cdc5bd]">
               الإيراد الشهري الناتج
@@ -194,7 +194,7 @@ export function PlanDetailsView({
       </div>
 
       {/* 3. Usage Limits & Cloud Resources (5 Compact Cards Row) */}
-      <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-[20px] shadow-2xs">
+      <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-5 sm:p-6 shadow-2xs">
         <div className="mb-[16px]">
           <h2 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
             حدود الاستخدام والموارد السحابية للباقة
@@ -283,9 +283,9 @@ export function PlanDetailsView({
       </div>
 
       {/* 4. Two-Column Middle Section: Billing Cycles (left) & Features (right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-[16px]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Billing Cycles & Prices (4 cols) */}
-        <div className="lg:col-span-4 bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-[20px] shadow-2xs flex flex-col justify-between">
+        <div className="lg:col-span-4 bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-5 sm:p-6 shadow-2xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-[4px]">
               <h2 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
@@ -494,7 +494,7 @@ export function PlanDetailsView({
       </div>
 
       {/* 5. Subscribed Offices Table */}
-      <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-[20px] shadow-2xs">
+      <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-5 sm:p-6 shadow-2xs">
         {/* Table Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-[10px] pb-[16px] border-b border-[#f0eeea] dark:border-[#38271c]">
           <div className="flex items-center gap-[10px]">

@@ -68,12 +68,12 @@ export function ClientOfficeDetailsView({
 
   return (
     <div
-      className="w-full flex flex-col gap-[24px] font-['Cairo',sans-serif]"
+      className="w-full flex flex-col gap-6 font-['Cairo',sans-serif]"
       data-node-id="1:1778"
     >
       {/* 1. TOP PROFILE HEADER & SUMMARY CARD */}
       <div
-        className="bg-white dark:bg-[#221812] rounded-[8px] p-[24px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col lg:flex-row lg:items-center justify-between gap-[20px] relative overflow-hidden"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative overflow-hidden"
         data-node-id="1:1781"
       >
         {/* Subtle decorative gold ambient glow */}
@@ -192,13 +192,13 @@ export function ClientOfficeDetailsView({
       </div>
 
       {/* 2. OVERVIEW CONTENT GRID (2 COLUMNS: 60% / 40%) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-[24px] w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
         {/* ======================================================== */}
         {/* RIGHT COLUMN (60% - 7 COLS IN RTL) */}
         {/* ======================================================== */}
-        <div className="lg:col-span-7 flex flex-col gap-[24px]">
+        <div className="lg:col-span-7 flex flex-col gap-6">
           {/* SECTION A: معلومات التواصل */}
-          <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[24px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col gap-[16px]">
+          <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col gap-4">
             {/* Header */}
             <div className="border-b border-[#f0eeea] dark:border-[#38271c] pb-[10px] flex items-center justify-between">
               <button
@@ -314,7 +314,7 @@ export function ClientOfficeDetailsView({
           </div>
 
           {/* SECTION B: أحدث الفواتير */}
-          <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[24px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col gap-[16px]">
+          <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col gap-4">
             {/* Header */}
             <div className="border-b border-[#f0eeea] dark:border-[#38271c] pb-[10px] flex items-center justify-between">
               <button
@@ -394,7 +394,7 @@ export function ClientOfficeDetailsView({
           </div>
 
           {/* SECTION C: أحدث تذاكر الدعم الفني */}
-          <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[24px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col gap-[16px]">
+          <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col gap-4">
             {/* Header */}
             <div className="border-b border-[#f0eeea] dark:border-[#38271c] pb-[10px] flex items-center justify-between">
               <button
@@ -467,9 +467,9 @@ export function ClientOfficeDetailsView({
         {/* ======================================================== */}
         {/* LEFT COLUMN (40% - 5 COLS IN RTL) */}
         {/* ======================================================== */}
-        <div className="lg:col-span-5 flex flex-col gap-[24px]">
+        <div className="lg:col-span-5 flex flex-col gap-6">
           {/* SECTION D: تفاصيل الاشتراك الساري */}
-          <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[24px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col gap-[16px]">
+          <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col gap-4">
             {/* Header */}
             <div className="border-b border-[#f0eeea] dark:border-[#38271c] pb-[10px] flex items-center justify-between">
               <span className="bg-[#e8f5e9] border border-[#c8e6c9] dark:bg-[#132c1c] dark:border-emerald-500/40 text-[#1b7340] dark:text-[#6ee7b7] text-[10px] font-bold px-[8px] py-[2px] rounded-full">
@@ -591,7 +591,7 @@ export function ClientOfficeDetailsView({
           </div>
 
           {/* SECTION E: ملاحظات وسجل نشاط الفريق */}
-          <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[24px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col gap-[16px]">
+          <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col gap-4">
             {/* Header */}
             <div className="border-b border-[#f0eeea] dark:border-[#38271c] pb-[10px] flex items-center justify-between">
               <span className="bg-[#f0eeea] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] text-[10px] font-bold px-[8px] py-[2px] rounded-full">

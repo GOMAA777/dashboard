@@ -161,7 +161,7 @@ export function RolesManagementView() {
             {/* Main Title & Command Banner (Figma 1:11533 / 1:11321) */}
           {(currentView === "list" || currentView === "empty") && (
             <div
-              className="bg-white dark:bg-[#221812] rounded-[8px] p-6 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
+              className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               data-node-id="1:11533"
             >
               <div>

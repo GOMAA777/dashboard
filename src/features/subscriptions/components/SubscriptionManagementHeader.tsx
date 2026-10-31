@@ -12,7 +12,7 @@ export function SubscriptionManagementHeader({
 }: SubscriptionManagementHeaderProps) {
   return (
     <div
-      className="bg-white dark:bg-[#1e1c1a] flex flex-col md:flex-row items-start md:items-center justify-between p-6 rounded-[8px] border border-[#f0eeea] dark:border-[#2f2a24] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] w-full gap-4"
+      className="bg-white dark:bg-[#1e1c1a] flex flex-col md:flex-row items-start md:items-center justify-between p-5 sm:p-6 rounded-[8px] border border-[#f0eeea] dark:border-[#2f2a24] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] w-full gap-4"
       data-node-id="1:5241"
       data-name="Main Identity & Command Banner"
     >

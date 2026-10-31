@@ -100,7 +100,7 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
   };
 
   return (
-    <div className="space-y-6 pb-20" data-node-id="1:9529">
+    <div className="space-y-6 pb-28 sm:pb-32" data-node-id="1:9529">
       {/* Header Banner */}
       <div className="bg-white rounded-[8px] p-6 border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between">
         <div>

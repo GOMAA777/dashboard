@@ -68,7 +68,7 @@ export function RenewSubscriptionView({
 
   return (
     <div
-      className="flex flex-col gap-6 w-full font-['Cairo'] pb-12 animate-in fade-in duration-200"
+      className="flex flex-col gap-6 w-full font-['Cairo'] pb-28 sm:pb-32 animate-in fade-in duration-200"
       data-node-id="1:6544"
       data-name="إضافة اشتراك / تجديد اشتراك المكتب"
     >
