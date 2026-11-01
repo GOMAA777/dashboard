@@ -19,12 +19,15 @@ import { UniqueFeaturesTab } from "./tabs/UniqueFeaturesTab";
 import { FeaturesTab } from "./tabs/FeaturesTab";
 import { AIChatTab } from "./tabs/AIChatTab";
 import { SeoTab } from "./tabs/SeoTab";
+import { ThemeOptionsTab } from "./tabs/ThemeOptionsTab";
+import { useLanguage } from "@/lib/i18n";
 
 interface WebsiteSettingsViewProps {
   initialTab?: WebsiteSettingsTab;
 }
 
 export function WebsiteSettingsView({ initialTab = "menu" }: WebsiteSettingsViewProps) {
+  const { direction, isEn } = useLanguage();
   const [activeTab, setActiveTab] = useQueryState<WebsiteSettingsTab>("tab", {
     defaultValue: initialTab,
     parse: (value) => (value ? (value as WebsiteSettingsTab) : "menu"),
@@ -33,6 +36,8 @@ export function WebsiteSettingsView({ initialTab = "menu" }: WebsiteSettingsView
 
   const renderActiveTabContent = () => {
     switch (activeTab) {
+      case "theme-options":
+        return <ThemeOptionsTab />;
       case "menu":
         return <MenuTab />;
       case "use-case":
@@ -61,10 +66,12 @@ export function WebsiteSettingsView({ initialTab = "menu" }: WebsiteSettingsView
         return (
           <div className="bg-white dark:bg-[#221812] rounded-[12px] p-[32px] border border-[rgba(231,229,228,0.8)] dark:border-[#38271c] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] flex flex-col items-center justify-center text-center gap-[12px] min-h-[360px]">
             <h3 className="text-[18px] font-bold text-[#1c1917] dark:text-[#fdfbf7]">
-              إعدادات {activeTab}
+              {isEn ? `Settings: ${activeTab}` : `إعدادات ${activeTab}`}
             </h3>
             <p className="text-[14px] text-[#78716c] dark:text-[#cdc5bd] max-w-[420px]">
-              يتم العمل على مزامنة هذا التبويب مع الهوية البصرية وإعدادات المنصة.
+              {isEn
+                ? "This tab is being synchronized with the platform visual branding and settings."
+                : "يتم العمل على مزامنة هذا التبويب مع الهوية البصرية وإعدادات المنصة."}
             </p>
           </div>
         );
@@ -73,6 +80,7 @@ export function WebsiteSettingsView({ initialTab = "menu" }: WebsiteSettingsView
 
   return (
     <div
+      dir={direction}
       className="flex h-screen h-dvh bg-[#f5f3ef] dark:bg-[#1a120d] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00]"
     >
       {/* 1. Global Navigation Sidebar */}
@@ -89,27 +97,29 @@ export function WebsiteSettingsView({ initialTab = "menu" }: WebsiteSettingsView
               <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex flex-col gap-[4px] text-start">
                   <h1 className="text-[28px] leading-[38px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                    إعدادات الموقع
+                    {isEn ? "Website Settings" : "إعدادات الموقع"}
                   </h1>
                   <p className="text-[14px] leading-[22px] font-normal text-[#514537] dark:text-[#cdc5bd]">
-                    إدارة وتفعيل إعدادات الموقع لدعم الهوية البصرية والألوان وأكواد المنصة
+                    {isEn
+                      ? "Manage and configure website settings to support brand identity, color schemes, and platform scripts"
+                      : "إدارة وتفعيل إعدادات الموقع لدعم الهوية البصرية والألوان وأكواد المنصة"}
                   </p>
                 </div>
               </div>
 
               {/* Layout Body: Secondary Navigation Sidebar + Content Workspace */}
               <div className="flex flex-col lg:flex-row items-start gap-[24px]">
-              {/* Secondary Navigation Aside (Tabs) */}
-              <WebsiteSettingsNav
-                activeTab={activeTab}
-                onSelectTab={(tab) => setActiveTab(tab)}
-              />
+                {/* Secondary Navigation Aside (Tabs) */}
+                <WebsiteSettingsNav
+                  activeTab={activeTab}
+                  onSelectTab={(tab) => setActiveTab(tab)}
+                />
 
-              {/* Active Tab Workspace */}
-              <div className="flex-1 w-full min-w-0">
-                {renderActiveTabContent()}
+                {/* Active Tab Workspace */}
+                <div className="flex-1 w-full min-w-0">
+                  {renderActiveTabContent()}
+                </div>
               </div>
-            </div>
             </div>
           </DashboardPageTransition>
         </main>

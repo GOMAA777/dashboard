@@ -17,8 +17,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/use-ui-store";
+import type { DashboardSupportStatsState } from "@/lib/api/dashboard";
 
-interface ActivityItem {
+export interface ActivityItem {
   id: string;
   icon: React.ComponentType<{ className?: string }>;
   iconClass: string;
@@ -37,88 +38,17 @@ interface ActivityItem {
   isUrgent?: boolean;
 }
 
-const activities: ActivityItem[] = [
-  {
-    id: "1",
-    icon: Building2,
-    iconClass: "w-[16px] h-[15px] text-[#047857] dark:text-[#6ee7b7]",
-    iconBg: "bg-[#ecfdf5] dark:bg-[#12281a]",
-    titlePrefixAr: "تم تسجيل مكتب محاماة جديد: ",
-    titlePrefixEn: "New law office registered: ",
-    titleBoldAr: "مكتب د. عبد العزيز العجلان",
-    titleBoldEn: "Dr. Abdulaziz Al-Ajlan Law Firm",
-    metaAr: "تم التحقق من بيانات وزارة العدل",
-    metaEn: "Verified by Ministry of Justice",
-    timeAr: "منذ 25 دقيقة",
-    timeEn: "25 minutes ago",
-  },
-  {
-    id: "2",
-    icon: CreditCard,
-    iconClass: "w-[15px] h-[15px] text-[#9c6402] dark:text-[#e29d38]",
-    iconBg: "bg-[rgba(123,78,0,0.1)] dark:bg-[rgba(226,157,56,0.15)]",
-    titlePrefixAr: "تم تفعيل اشتراك سنوي: ",
-    titlePrefixEn: "Annual subscription activated: ",
-    titleBoldAr: "الباقة الاحترافية",
-    titleBoldEn: "Professional Plan",
-    titleSuffixAr: " - الدفع عبر مدى",
-    titleSuffixEn: " - Paid via Mada",
-    metaAr: "فاتورة رقم #INV-4921",
-    metaEn: "Invoice #INV-4921",
-    timeAr: "منذ ساعة واحدة",
-    timeEn: "1 hour ago",
-  },
-  {
-    id: "3",
-    icon: Banknote,
-    iconClass: "w-[14px] h-[14px] text-[#047857] dark:text-[#6ee7b7]",
-    iconBg: "bg-[#ecfdf5] dark:bg-[#12281a]",
-    titlePrefixAr: "تم استلام دفعة بنجاح بقيمة ",
-    titlePrefixEn: "Payment received successfully: ",
-    titleBoldAr: "1,800 ر.س",
-    titleBoldEn: "1,800 SAR",
-    isProfit: true,
-    metaAr: "مكتب التميمي للتوثيق",
-    metaEn: "Al-Tamimi Legal Services",
-    timeAr: "منذ 3 ساعات",
-    timeEn: "3 hours ago",
-  },
-  {
-    id: "4",
-    icon: Ticket,
-    iconClass: "w-[15px] h-[12px] text-[#b45309] dark:text-[#fbbf24]",
-    iconBg: "bg-[#fffbeb] dark:bg-[#2b1f0c]",
-    titlePrefixAr: "تم إنشاء تذكرة دعم جديدة: ",
-    titlePrefixEn: "New support ticket created: ",
-    titleBoldAr: "#TK-8422",
-    titleBoldEn: "#TK-8422",
-    titleSuffixAr: ' "استفسار بخصوص الربط"',
-    titleSuffixEn: ' "API Integration Inquiry"',
-    metaAr: "أولوية عاجلة",
-    metaEn: "Urgent Priority",
-    isUrgent: true,
-    timeAr: "منذ 5 ساعات",
-    timeEn: "5 hours ago",
-  },
-  {
-    id: "5",
-    icon: PauseCircle,
-    iconClass: "w-[15px] h-[15px] text-[#625d5d] dark:text-[#a89f91]",
-    iconBg: "bg-[#eae8e4] dark:bg-[#2d1f16]",
-    titlePrefixAr: "تم تعديل حالة مكتب: ",
-    titlePrefixEn: "Office status updated: ",
-    titleBoldAr: "مكتب المحامي بندر السبيعي",
-    titleBoldEn: "Bandar Al-Subaie Law Firm",
-    titleSuffixAr: " إلى معلق مؤقتاً",
-    titleSuffixEn: " to Temporarily Suspended",
-    metaAr: "طلب من صاحب الحساب",
-    metaEn: "Requested by account owner",
-    timeAr: "أمس عند 04:30 م",
-    timeEn: "Yesterday at 04:30 PM",
-  },
-];
+const activities: ActivityItem[] = [];
 
-export function DashboardBottomSection() {
+interface DashboardBottomSectionProps {
+  activities?: ActivityItem[];
+  supportSummary?: DashboardSupportStatsState;
+}
+
+export function DashboardBottomSection({
+  activities: externalActivities,
+  supportSummary: externalSupport,
+}: DashboardBottomSectionProps = {}) {
   const isMounted = useSyncExternalStore(
     () => () => {},
     () => true,
@@ -131,6 +61,17 @@ export function DashboardBottomSection() {
   const isRTL = isMounted ? direction === "rtl" : true;
 
   const LinkIcon = isRTL ? ArrowLeft : ArrowRight;
+
+  const displayedActivities = externalActivities || activities;
+
+  const support = externalSupport || {
+    open: 0,
+    inProgress: 0,
+    awaitingClient: 0,
+    resolved: 0,
+    satisfactionRate: 0,
+    avgResponseMinutes: 0,
+  };
 
   return (
     <div
@@ -175,7 +116,12 @@ export function DashboardBottomSection() {
 
           {/* Activity Timeline List */}
           <div className="flex flex-col gap-[16px] w-full pt-[2px]" data-node-id="1:465">
-            {activities.map((item) => (
+            {displayedActivities.length === 0 ? (
+              <div className="py-[36px] text-center text-[#837565] dark:text-[#a89f91] text-[13px]">
+                {currentLang === "en" ? "No recent activities recorded" : "لا توجد أنشطة مسجلة حديثاً"}
+              </div>
+            ) : (
+              displayedActivities.map((item) => (
               <div
                 key={item.id}
                 className="flex items-start gap-[12px] w-full text-start"
@@ -230,7 +176,8 @@ export function DashboardBottomSection() {
                   </div>
                 </div>
               </div>
-            ))}
+            ))
+          )}
           </div>
         </div>
 
@@ -309,10 +256,10 @@ export function DashboardBottomSection() {
                 <span className="size-[8px] rounded-full bg-[#dc2626] shrink-0" />
               </div>
               <span className="text-[#7f1d1d] dark:text-[#fdfbf7] text-[22px] font-bold font-sans leading-[32px] my-[2px]">
-                12
+                {support.open}
               </span>
               <span className="text-[#b91c1c] dark:text-[#f87171] text-[10px] font-bold leading-[14px]">
-                {currentLang === "en" ? "4 Critical / Urgent" : "4 تذاكر حرجة / ذات أولوية"}
+                {currentLang === "en" ? `${support.open} Active / Urgent` : `${support.open} تذكرة نشطة`}
               </span>
             </div>
 
@@ -328,7 +275,7 @@ export function DashboardBottomSection() {
                 <span className="size-[8px] rounded-full bg-[#d97706] shrink-0" />
               </div>
               <span className="text-[#78350f] dark:text-[#fdfbf7] text-[22px] font-bold font-sans leading-[32px] my-[2px]">
-                8
+                {support.inProgress}
               </span>
               <span className="text-[#b45309] dark:text-[#fbbf24] text-[10px] font-bold leading-[14px]">
                 {currentLang === "en" ? "With Tech Team" : "مع فريق التقنية والربط"}
@@ -347,7 +294,7 @@ export function DashboardBottomSection() {
                 <span className="size-[8px] rounded-full bg-[#837565] shrink-0" />
               </div>
               <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[22px] font-bold font-sans leading-[32px] my-[2px]">
-                5
+                {support.awaitingClient}
               </span>
               <span className="text-[#514537] dark:text-[#a89f91] text-[10px] font-bold leading-[14px]">
                 {currentLang === "en" ? "Pending Documents" : "بانتظار تزويد وثائق"}
@@ -366,7 +313,7 @@ export function DashboardBottomSection() {
                 <span className="size-[8px] rounded-full bg-[#059669] shrink-0" />
               </div>
               <span className="text-[#064e3b] dark:text-[#fdfbf7] text-[22px] font-bold font-sans leading-[32px] my-[2px]">
-                43
+                {support.resolved}
               </span>
               <span className="text-[#047857] dark:text-[#6ee7b7] text-[10px] font-bold leading-[14px]">
                 {currentLang === "en" ? "Successfully Resolved" : "تم حلها بنجاح"}
@@ -389,7 +336,7 @@ export function DashboardBottomSection() {
                   </span>
                 </div>
                 <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[14px] font-bold font-sans leading-[20px]">
-                  {currentLang === "en" ? "18 minutes" : "18 دقيقة"}
+                  {currentLang === "en" ? `${support.avgResponseMinutes} minutes` : `${support.avgResponseMinutes} دقيقة`}
                 </span>
               </div>
 
@@ -414,7 +361,7 @@ export function DashboardBottomSection() {
                 </span>
               </div>
               <span className="text-[#065f46] dark:text-[#6ee7b7] text-[14px] font-bold font-sans leading-[20px]">
-                98.2%
+                {support.satisfactionRate}%
               </span>
             </div>
           </div>
@@ -432,7 +379,7 @@ export function DashboardBottomSection() {
             </span>
           </div>
           <span className="text-[#9c6402] dark:text-[#e29d38] text-[10px] font-bold font-sans leading-[14px]">
-            {currentLang === "en" ? "4 Engineers Online" : "4 مهندسين متصلين"}
+            {currentLang === "en" ? "Support System Online" : "نظام الدعم متصل"}
           </span>
         </div>
       </div>

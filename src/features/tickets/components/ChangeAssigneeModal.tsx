@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { X, Search, UserCheck } from "lucide-react";
 import { Ticket, TicketAssignee } from "../types/tickets.types";
+import { useLanguage } from "@/lib/i18n";
 
 interface ChangeAssigneeModalProps {
   ticket: Ticket;
@@ -17,6 +18,7 @@ export function ChangeAssigneeModal({
   onClose,
   onConfirm,
 }: ChangeAssigneeModalProps) {
+  const { direction, isEn } = useLanguage();
   const [selectedAssigneeId, setSelectedAssigneeId] = useState<string>(
     assignees.find((a) => a.id !== ticket.assignee.id)?.id || assignees[0]?.id || ""
   );
@@ -36,11 +38,12 @@ export function ChangeAssigneeModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs antialiased">
+    <div
+      dir={direction}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs antialiased"
+    >
       <div
         className="bg-white rounded-[16px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] w-full max-w-[540px] overflow-hidden flex flex-col relative text-start animate-in fade-in zoom-in-95 duration-150"
-        data-node-id="1:15321"
-        data-name="إسناد التذكرة لموظف"
       >
         {/* Top Subtle Gold Accent Line */}
         <div className="h-[6px] w-full bg-gradient-to-r from-[#9c6402] via-[#e5b352] to-[#9c6402]" />
@@ -49,7 +52,7 @@ export function ChangeAssigneeModal({
         <button
           type="button"
           onClick={onClose}
-          className="absolute start-[16px] top-[16px] bg-[#f0eeea] hover:bg-[#eae8e4] text-[#514537] size-[32px] rounded-[12px] flex items-center justify-center transition-colors cursor-pointer"
+          className="absolute end-[16px] top-[16px] bg-[#f0eeea] hover:bg-[#eae8e4] text-[#514537] size-[32px] rounded-[12px] flex items-center justify-center transition-colors cursor-pointer"
         >
           <X className="size-[14px]" />
         </button>
@@ -61,10 +64,12 @@ export function ChangeAssigneeModal({
           </div>
           <div className="flex flex-col gap-[2px]">
             <h2 className="text-[#1b1c1a] font-bold text-[20px] sm:text-[22px] leading-[26px]">
-              تغيير الموظف
+              {isEn ? "Reassign Employee" : "تغيير الموظف"}
             </h2>
             <p className="text-[#514537] text-[12px] leading-[18px]">
-              تحديد موظف جديد لمتابعة التذكرة وإشعار أطراف البلاغ فورياً
+              {isEn
+                ? "Assign a new team member to handle this ticket and notify stakeholders"
+                : "تحديد موظف جديد لمتابعة التذكرة وإشعار أطراف البلاغ فورياً"}
             </p>
           </div>
         </div>
@@ -82,7 +87,7 @@ export function ChangeAssigneeModal({
                   {ticket.department.name}
                 </span>
                 <div className="bg-[#ffdad6] text-[#93000a] text-[10px] font-bold px-[6px] py-[1px] rounded-[2px] flex items-center gap-[4px]">
-                  <span>عاجل</span>
+                  <span>{isEn ? "Urgent" : "عاجل"}</span>
                   <div className="size-[5px] rounded-full bg-[#ba1a1a]" />
                 </div>
               </div>
@@ -95,7 +100,7 @@ export function ChangeAssigneeModal({
             {/* Current Assignee Bar */}
             <div className="bg-[rgba(240,238,234,0.7)] rounded-[6px] px-[12px] py-[6px] flex items-center justify-between">
               <span className="bg-[#e4e2de] text-[#514537] text-[10px] font-medium px-[6px] py-[2px] rounded-[2px]">
-                المسؤول الحالي
+                {isEn ? "Current Assignee" : "المسؤول الحالي"}
               </span>
               <span className="text-[12px] font-semibold text-[#1b1c1a]">
                 {ticket.assignee.name}
@@ -106,13 +111,13 @@ export function ChangeAssigneeModal({
           {/* 2. Search & Select New Assignee */}
           <div className="flex flex-col gap-[8px]">
             <div className="flex items-center justify-between">
+              <label className="text-[13px] font-semibold text-[#1b1c1a] flex items-center gap-[4px]">
+                <span>{isEn ? "New Assigned Employee" : "الموظف الجديد المكلّف"}</span>
+                <span className="text-[#ba1a1a]">*</span>
+              </label>
               <span className="text-[11px] text-[#625d5d]">
                 {ticket.department.name}
               </span>
-              <label className="text-[13px] font-semibold text-[#1b1c1a] flex items-center gap-[4px]">
-                <span>الموظف الجديد المكلّف</span>
-                <span className="text-[#ba1a1a]">*</span>
-              </label>
             </div>
 
             {/* Search Input */}
@@ -121,7 +126,11 @@ export function ChangeAssigneeModal({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="ابحث بالاسم أو التخصص داخل القسم..."
+                placeholder={
+                  isEn
+                    ? "Search by name or department specialty..."
+                    : "ابحث بالاسم أو التخصص داخل القسم..."
+                }
                 className="w-full bg-white border border-[#eae8e4] rounded-[8px] h-[38px] px-[12px] pe-[36px] text-[12px] text-[#1b1c1a] placeholder:text-[#837565] focus:outline-none focus:border-[#9c6402] text-start"
               />
               <Search className="absolute end-[12px] top-[11px] size-[15px] text-[#837565] pointer-events-none" />
@@ -143,15 +152,45 @@ export function ChangeAssigneeModal({
                         : "bg-white border-[#eae8e4] hover:bg-[#faf9f6]"
                     }`}
                   >
+                    {/* Employee Identity */}
+                    <div className="flex items-center gap-[8px]">
+                      {/* Initials Avatar */}
+                      <div className="bg-[#9c6402] text-white font-bold text-[11px] size-[34px] rounded-[10px] flex items-center justify-center shrink-0">
+                        {emp.initials}
+                      </div>
+
+                      <div className="flex flex-col text-start">
+                        <div className="flex items-center gap-[6px]">
+                          <span className="font-bold text-[#1b1c1a] text-[13px] leading-[18px]">
+                            {emp.name}
+                          </span>
+                          {emp.isRecommended && (
+                            <span className="bg-[rgba(123,78,0,0.1)] text-[#7b4e00] text-[9px] font-semibold px-[5px] py-[1px] rounded-[2px]">
+                              {isEn ? "Most Suitable" : "الأكثر ملاءمة"}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[#514537] text-[11px] leading-[16px]">
+                          {emp.role}
+                        </span>
+                      </div>
+                    </div>
+
                     {/* Status & Workload */}
-                    <div className="flex flex-col items-start gap-[2px]">
+                    <div className="flex flex-col items-end gap-[2px]">
                       <div className="flex items-center gap-[4px]">
                         <span
                           className={`text-[10px] font-bold ${
                             emp.isAvailable ? "text-[#7b4e00]" : "text-[#625d5d]"
                           }`}
                         >
-                          {emp.isAvailable ? "متاح الآن" : "مشغول جزئياً"}
+                          {isEn
+                            ? emp.isAvailable
+                              ? "Available Now"
+                              : "Partially Busy"
+                            : emp.isAvailable
+                            ? "متاح الآن"
+                            : "مشغول جزئياً"}
                         </span>
                         <div
                           className={`size-[7px] rounded-full ${
@@ -160,32 +199,10 @@ export function ChangeAssigneeModal({
                         />
                       </div>
                       <span className="text-[10px] font-bold text-[#625d5d]">
-                        {emp.activeTicketsCount} تذاكر نشطة
+                        {isEn
+                          ? `${emp.activeTicketsCount} active tickets`
+                          : `${emp.activeTicketsCount} تذاكر نشطة`}
                       </span>
-                    </div>
-
-                    {/* Employee Identity */}
-                    <div className="flex items-center gap-[8px]">
-                      <div className="flex flex-col text-start">
-                        <div className="flex items-center gap-[6px]">
-                          {emp.isRecommended && (
-                            <span className="bg-[rgba(123,78,0,0.1)] text-[#7b4e00] text-[9px] font-semibold px-[5px] py-[1px] rounded-[2px]">
-                              الأكثر ملاءمة
-                            </span>
-                          )}
-                          <span className="font-bold text-[#1b1c1a] text-[13px] leading-[18px]">
-                            {emp.name}
-                          </span>
-                        </div>
-                        <span className="text-[#514537] text-[11px] leading-[16px]">
-                          {emp.role}
-                        </span>
-                      </div>
-
-                      {/* Initials Avatar */}
-                      <div className="bg-[#9c6402] text-white font-bold text-[11px] size-[34px] rounded-[10px] flex items-center justify-center shrink-0">
-                        {emp.initials}
-                      </div>
                     </div>
                   </button>
                 );
@@ -196,13 +213,17 @@ export function ChangeAssigneeModal({
           {/* Reason Input */}
           <div className="flex flex-col gap-[6px]">
             <label className="text-[12px] font-semibold text-[#1b1c1a]">
-              سبب إعادة التعيين (اختياري)
+              {isEn ? "Reassignment Reason (Optional)" : "سبب إعادة التعيين (اختياري)"}
             </label>
             <textarea
               rows={2}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="اكتب ملاحظة أو توجيه للموظف الجديد المكلف..."
+              placeholder={
+                isEn
+                  ? "Write notes or instructions for the newly assigned staff..."
+                  : "اكتب ملاحظة أو توجيه للموظف الجديد المكلف..."
+              }
               className="w-full bg-[#faf9f6] border border-[#eae8e4] rounded-[6px] p-[10px] text-[12px] text-[#1b1c1a] placeholder:text-[#837565] focus:outline-none focus:border-[#9c6402] text-start"
             />
           </div>
@@ -215,14 +236,14 @@ export function ChangeAssigneeModal({
             onClick={onClose}
             className="bg-[#f0eeea] hover:bg-[#eae8e4] text-[#1b1c1a] px-[18px] py-[9px] rounded-[4px] font-semibold text-[13px] transition-colors cursor-pointer"
           >
-            إلغاء
+            {isEn ? "Cancel" : "إلغاء"}
           </button>
           <button
             type="button"
             onClick={handleConfirm}
             className="bg-[#9c6402] hover:bg-[#855402] text-white px-[22px] py-[9px] rounded-[4px] font-semibold text-[13px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-all cursor-pointer"
           >
-            تأكيد إعادة التعيين
+            {isEn ? "Confirm Reassignment" : "تأكيد إعادة التعيين"}
           </button>
         </div>
       </div>

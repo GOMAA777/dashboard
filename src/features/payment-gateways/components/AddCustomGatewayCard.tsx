@@ -2,12 +2,16 @@
 
 import React from "react";
 import { Plus, ArrowLeft } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 interface AddCustomGatewayCardProps {
   onAdd: () => void;
 }
 
 export function AddCustomGatewayCard({ onAdd }: AddCustomGatewayCardProps) {
+  const { t, isEn } = useLanguage();
+
   return (
     <div
       onClick={onAdd}
@@ -20,18 +24,21 @@ export function AddCustomGatewayCard({ onAdd }: AddCustomGatewayCardProps) {
 
       {/* Heading */}
       <h3 className="text-[#1c140f] dark:text-[#fdfbf7] group-hover:text-[#9c6402] dark:group-hover:text-[#e29d38] text-[18px] font-bold leading-[26px] mb-1 transition-colors">
-        إضافة بوابة مخصصة
+        {t("إضافة بوابة مخصصة", "Add Custom Gateway")}
       </h3>
 
       {/* Description */}
       <p className="text-[#514537] dark:text-[#a89f91] text-[12px] leading-[18px] max-w-[280px] mb-4">
-        ربط محفظة إلكترونية محلية جديدة أو بوابة دفع مخصصة مثل Urpay أو STC Pay.
+        {t(
+          "ربط محفظة إلكترونية محلية جديدة أو بوابة دفع مخصصة مثل Urpay أو STC Pay.",
+          "Connect a new digital wallet or custom payment gateway like Urpay or STC Pay."
+        )}
       </p>
 
       {/* Action link */}
       <div className="flex items-center gap-1.5 text-[#7b4e00] dark:text-[#e29d38] text-[12px] font-bold group-hover:gap-2.5 transition-all">
-        <ArrowLeft className="size-3.5 transition-transform rtl:group-hover:-translate-x-1 ltr:group-hover:translate-x-1" />
-        <span>بدء التكوين والربط</span>
+        <ArrowLeft className={cn("size-3.5 transition-transform", isEn && "rotate-180")} />
+        <span>{t("بدء التكوين والربط", "Configure & Connect")}</span>
       </div>
     </div>
   );

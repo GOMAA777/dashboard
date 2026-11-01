@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
 import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
+import { DashboardPageSkeleton } from "@/components/shared/DashboardPageSkeleton";
 import { StaffKpiMetrics } from "./StaffKpiMetrics";
 import { StaffToolbar } from "./StaffToolbar";
 import { StaffTable } from "./StaffTable";
@@ -21,8 +22,22 @@ import { EmployeePreviewModeView } from "./EmployeePreviewModeView";
 import { Employee } from "../types/staff.types";
 import { initialStaffMembers, initialStaffKpis } from "../data/initialStaff";
 import { Plus } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
+import {
+  fetchStaff,
+  fetchStaffStats,
+  fetchStaffById,
+  updateStaff,
+  updateStaffStatus,
+  impersonateStaff,
+  createStaff,
+} from "@/lib/api/staff";
+import { mapStaffResponse, mapStaffFromApi } from "@/lib/api/mappers";
+import { readStats, unwrapData } from "@/lib/api/helpers";
 
 export function StaffManagementView() {
+  const { t, isEn, direction } = useLanguage();
+
   // Navigation & View States
   const [currentView, setCurrentView] = useState<
     "list" | "empty" | "add" | "details" | "preview"
@@ -30,9 +45,42 @@ export function StaffManagementView() {
 
   // Staff State
   const [employees, setEmployees] = useState<Employee[]>(initialStaffMembers);
-  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
-    initialStaffMembers[1] // Default to Sarah Al-Qahtani
-  );
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [apiStaffStats, setApiStaffStats] = useState<{
+    total?: number;
+    active?: number;
+    suspended?: number;
+  } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoading(true);
+    Promise.all([fetchStaff(), fetchStaffStats()])
+      .then(([payload, statsPayload]) => {
+        if (cancelled) return;
+        const mapped = mapStaffResponse(payload);
+        if (mapped.length > 0) {
+          setEmployees(mapped);
+          setSelectedEmployee(mapped[0] || null);
+        }
+        setApiStaffStats({
+          total: readStats(statsPayload, ["total", "total_staff", "staff_count"], 0),
+          active: readStats(statsPayload, ["active", "active_staff"], 0),
+          suspended: readStats(statsPayload, ["suspended", "inactive_staff"], 0),
+        });
+      })
+      .catch(() => {
+        // Keep empty staff if API unavailable.
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Filters State
   const [searchQuery, setSearchQuery] = useState("");
@@ -49,9 +97,7 @@ export function StaffManagementView() {
   const [endPreviewModalOpen, setEndPreviewModalOpen] = useState(false);
 
   // Active Simulated Employee
-  const [previewEmployee, setPreviewEmployee] = useState<Employee | null>(
-    initialStaffMembers[1]
-  );
+  const [previewEmployee, setPreviewEmployee] = useState<Employee | null>(null);
 
   // Filtered employees
   const filteredEmployees = useMemo(() => {
@@ -80,9 +126,9 @@ export function StaffManagementView() {
 
       // Last Login
       if (selectedLastLogin === "today") {
-        if (!emp.lastLogin.time.includes("اليوم")) return false;
+        if (!emp.lastLogin.time.includes("اليوم") && !emp.lastLogin.time.includes("Today")) return false;
       } else if (selectedLastLogin === "week") {
-        if (emp.lastLogin.time.includes("يوماً") || emp.lastLogin.time.includes("لم يسجل")) return false;
+        if (emp.lastLogin.time.includes("يوماً") || emp.lastLogin.time.includes("days") || emp.lastLogin.time.includes("لم يسجل") || emp.lastLogin.time.includes("Never")) return false;
       }
 
       return true;
@@ -91,9 +137,11 @@ export function StaffManagementView() {
 
   // Dynamic KPIs
   const currentKpis = useMemo(() => {
-    const total = employees.length;
-    const activeCount = employees.filter((e) => e.status === "active").length;
-    const suspendedCount = total - activeCount;
+    const total = apiStaffStats?.total || employees.length;
+    const activeCount =
+      apiStaffStats?.active ?? employees.filter((e) => e.status === "active").length;
+    const suspendedCount =
+      apiStaffStats?.suspended ?? total - activeCount;
     return {
       ...initialStaffKpis,
       totalStaff: total,
@@ -101,7 +149,7 @@ export function StaffManagementView() {
       activePercentage: total > 0 ? Number(((activeCount / total) * 100).toFixed(1)) : 0,
       suspendedStaff: suspendedCount,
     };
-  }, [employees]);
+  }, [employees, apiStaffStats]);
 
   // Handlers
   const handleResetFilters = () => {
@@ -109,38 +157,72 @@ export function StaffManagementView() {
     setSelectedRole("all");
     setSelectedStatus("all");
     setSelectedLastLogin("all");
-    toast.info("تمت إعادة ضبط فلاتر البحث.");
+    toast.info(t("تمت إعادة ضبط فلاتر البحث.", "Search filters have been reset."));
   };
 
-  const handleSaveNewEmployee = (newEmp: Employee) => {
-    setEmployees((prev) => [newEmp, ...prev]);
+  const handleSaveNewEmployee = async (newEmp: Employee) => {
+    const payload = {
+      name: newEmp.name,
+      email: newEmp.email,
+      phone: newEmp.phone,
+      job_title: newEmp.jobTitle,
+      role_id: newEmp.role.id,
+      department: newEmp.department,
+    };
+    try {
+      if (selectedEmployee && currentView === "add" && selectedEmployee.id === newEmp.id) {
+        await updateStaff(newEmp.id, payload);
+      } else if (employees.some((e) => e.id === newEmp.id)) {
+        await updateStaff(newEmp.id, payload);
+      } else {
+        await createStaff(payload);
+      }
+    } catch {
+      // Keep local create/update.
+    }
+    setEmployees((prev) => {
+      const exists = prev.some((e) => e.id === newEmp.id);
+      return exists
+        ? prev.map((e) => (e.id === newEmp.id ? newEmp : e))
+        : [newEmp, ...prev];
+    });
     setSelectedEmployee(newEmp);
     setCurrentView("details");
   };
 
   const handleStartLoginAsEmployee = (emp: Employee) => {
     if (emp.status === "suspended") {
-      // Open blocked preview modal per Gov-Sec 402 (Figma 1:10821)
       setErrorModalEmployee(emp);
     } else {
-      // Open supervisor authorization confirmation (Figma 1:10312)
       setLoginModalEmployee(emp);
     }
   };
 
-  const handleConfirmStartSimulation = () => {
+  const handleConfirmStartSimulation = async () => {
     if (loginModalEmployee) {
+      try {
+        await impersonateStaff(loginModalEmployee.id);
+      } catch {
+        // Continue local preview mode.
+      }
       setPreviewEmployee(loginModalEmployee);
       setLoginModalEmployee(null);
       setCurrentView("preview");
       toast.success(
-        `تم بدء وضع المعاينة بصفة الموظف "${loginModalEmployee.name}" بنجاح.`
+        isEn
+          ? `Preview mode as employee "${loginModalEmployee.name}" started successfully.`
+          : `تم بدء وضع المعاينة بصفة الموظف "${loginModalEmployee.name}" بنجاح.`
       );
     }
   };
 
-  const handleConfirmDeactivate = (reason: string) => {
+  const handleConfirmDeactivate = async (reason: string) => {
     if (!deactivateModalEmployee) return;
+    try {
+      await updateStaffStatus(deactivateModalEmployee.id, "suspended");
+    } catch {
+      // Keep local update.
+    }
     setEmployees((prev) =>
       prev.map((e) =>
         e.id === deactivateModalEmployee.id
@@ -148,8 +230,10 @@ export function StaffManagementView() {
               ...e,
               status: "suspended",
               lastLogin: {
-                time: "اليوم",
-                note: reason.trim() ? `سبب الإيقاف: ${reason}` : "تم إيقاف الجلسة بقرار رقابي",
+                time: isEn ? "Today" : "اليوم",
+                note: reason.trim()
+                  ? (isEn ? `Suspension reason: ${reason}` : `سبب الإيقاف: ${reason}`)
+                  : (isEn ? "Session suspended by supervisor" : "تم إيقاف الجلسة بقرار رقابي"),
               },
             }
           : e
@@ -160,17 +244,28 @@ export function StaffManagementView() {
         ...selectedEmployee,
         status: "suspended",
         lastLogin: {
-          time: "اليوم",
-          note: reason.trim() ? `سبب الإيقاف: ${reason}` : "تم إيقاف الجلسة بقرار رقابي",
+          time: isEn ? "Today" : "اليوم",
+          note: reason.trim()
+            ? (isEn ? `Suspension reason: ${reason}` : `سبب الإيقاف: ${reason}`)
+            : (isEn ? "Session suspended by supervisor" : "تم إيقاف الجلسة بقرار رقابي"),
         },
       });
     }
-    toast.success(`تم إيقاف حساب الموظف "${deactivateModalEmployee.name}" فورياً.`);
+    toast.success(
+      isEn
+        ? `Employee account "${deactivateModalEmployee.name}" suspended immediately.`
+        : `تم إيقاف حساب الموظف "${deactivateModalEmployee.name}" فورياً.`
+    );
     setDeactivateModalEmployee(null);
   };
 
-  const handleConfirmActivate = () => {
+  const handleConfirmActivate = async () => {
     if (!activateModalEmployee) return;
+    try {
+      await updateStaffStatus(activateModalEmployee.id, "active");
+    } catch {
+      // Keep local update.
+    }
     setEmployees((prev) =>
       prev.map((e) =>
         e.id === activateModalEmployee.id
@@ -178,9 +273,9 @@ export function StaffManagementView() {
               ...e,
               status: "active",
               lastLogin: {
-                time: "اليوم",
+                time: isEn ? "Today" : "اليوم",
                 ip: "178.80.12.44",
-                location: "الرياض",
+                location: isEn ? "Riyadh" : "الرياض",
               },
             }
           : e
@@ -191,18 +286,22 @@ export function StaffManagementView() {
         ...selectedEmployee,
         status: "active",
         lastLogin: {
-          time: "اليوم",
+          time: isEn ? "Today" : "اليوم",
           ip: "178.80.12.44",
-          location: "الرياض",
+          location: isEn ? "Riyadh" : "الرياض",
         },
       });
     }
-    toast.success(`تم استعادة وتفعيل حساب الموظف "${activateModalEmployee.name}".`);
+    toast.success(
+      isEn
+        ? `Employee account "${activateModalEmployee.name}" restored and activated.`
+        : `تم استعادة وتفعيل حساب الموظف "${activateModalEmployee.name}".`
+    );
     setActivateModalEmployee(null);
   };
 
   return (
-    <div className="flex h-screen h-dvh overflow-hidden bg-background text-foreground transition-colors duration-200 font-sans antialiased">
+    <div dir={direction} className="flex h-screen h-dvh overflow-hidden bg-background text-foreground transition-colors duration-200 font-sans antialiased">
       {/* Sidebar */}
       <DashboardSidebar activeNav="staff" activeSubNav="staff" />
 
@@ -220,13 +319,16 @@ export function StaffManagementView() {
             >
               <div>
                 <h1
-                  className="text-[26px] sm:text-[28px] font-bold text-[#1b1c1a] leading-[36px]"
+                  className="text-[26px] sm:text-[28px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[36px]"
                   data-node-id="1:8716"
                 >
-                  طاقم العمل
+                  {t("طاقم العمل", "Staff Members")}
                 </h1>
-                <p className="text-[14px] text-[#514537] mt-1" data-node-id="1:8714">
-                  إدارة الموظفين الذين لديهم صلاحية الدخول إلى لوحة الإدارة.
+                <p className="text-[14px] text-[#514537] dark:text-[#a89f91] mt-1" data-node-id="1:8714">
+                  {t(
+                    "إدارة الموظفين الذين لديهم صلاحية الدخول إلى لوحة الإدارة.",
+                    "Manage staff members who have access permissions to the admin dashboard."
+                  )}
                 </p>
               </div>
 
@@ -237,7 +339,7 @@ export function StaffManagementView() {
                 data-node-id="1:8705"
               >
                 <Plus className="size-[16px]" />
-                <span>إضافة موظف</span>
+                <span>{t("إضافة موظف", "Add Employee")}</span>
               </button>
             </div>
           )}
@@ -251,7 +353,7 @@ export function StaffManagementView() {
                   onClick={() => setCurrentView("list")}
                   className="text-[12px] text-[#9c6402] hover:underline"
                 >
-                  العودة للجدول المكتمل
+                  {t("العودة للجدول المكتمل", "Back to Full Table")}
                 </button>
               </div>
               <StaffEmptyState onAddEmployee={() => setCurrentView("add")} />
@@ -260,6 +362,9 @@ export function StaffManagementView() {
 
           {/* VIEW: Staff Table (Figma 1:8875) */}
           {currentView === "list" && (
+            isLoading && employees.length === 0 ? (
+              <DashboardPageSkeleton />
+            ) : (
             <div className="space-y-6">
               {/* 4 KPI Metrics */}
               <StaffKpiMetrics kpis={currentKpis} />
@@ -285,6 +390,17 @@ export function StaffManagementView() {
                 onViewDetails={(emp) => {
                   setSelectedEmployee(emp);
                   setCurrentView("details");
+                  void fetchStaffById(emp.id)
+                    .then((payload) => {
+                      const raw = (unwrapData<Record<string, unknown>>(payload) ||
+                        payload) as Record<string, unknown>;
+                      if (raw?.id || raw?.name) {
+                        setSelectedEmployee(mapStaffFromApi(raw));
+                      }
+                    })
+                    .catch(() => {
+                      // Keep list employee.
+                    });
                 }}
                 onLoginAsEmployee={handleStartLoginAsEmployee}
                 onDeactivate={(emp) => setDeactivateModalEmployee(emp)}
@@ -292,6 +408,7 @@ export function StaffManagementView() {
                 onResetPassword={(emp) => setResetPasswordModalEmployee(emp)}
               />
             </div>
+            )
           )}
 
           {/* VIEW: Add Employee (Figma 1:9529) */}
@@ -352,11 +469,16 @@ export function StaffManagementView() {
       <EndPreviewModal
         isOpen={endPreviewModalOpen}
         onClose={() => setEndPreviewModalOpen(false)}
-        employeeName={previewEmployee?.name || "الموظف"}
+        employeeName={previewEmployee?.name || (isEn ? "Employee" : "الموظف")}
         onConfirmEnd={() => {
           setEndPreviewModalOpen(false);
           setCurrentView("details");
-          toast.success("تم إنهاء جلسة المعاينة والعودة بنجاح إلى حساب المشرف العام.");
+          toast.success(
+            t(
+              "تم إنهاء جلسة المعاينة والعودة بنجاح إلى حساب المشرف العام.",
+              "Preview session ended and returned successfully to administrator account."
+            )
+          );
         }}
       />
 

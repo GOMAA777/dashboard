@@ -1,17 +1,54 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Search, ChevronDown, CheckCircle2, AlertTriangle } from "lucide-react";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
 import { initialServerDirectives } from "../data/initialServerDirectives";
 import { ServerDirectiveItem } from "../types/server-info.types";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
+import { DashboardSelect } from "@/components/shared/DashboardSelect";
+import { fetchServerInfo } from "@/lib/api/settings";
+import { unwrapList, asString } from "@/lib/api/helpers";
 
 export function ServerInfoView() {
-  const [directives] = useState<ServerDirectiveItem[]>(initialServerDirectives);
+  const { direction, isEn } = useLanguage();
+  const [directives, setDirectives] = useState<ServerDirectiveItem[]>(initialServerDirectives);
   const [activeTab, setActiveTab] = useState<"all" | "compatible" | "needs_review">("all");
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchServerInfo()
+      .then((payload) => {
+        if (cancelled) return;
+        const list = unwrapList<Record<string, unknown>>(payload);
+        if (list.length === 0) return;
+        setDirectives(
+          list.map((item, idx) => {
+            const statusRaw = asString(item.status, "compatible").toLowerCase();
+            return {
+              id: asString(item.id, String(idx + 1)),
+              orderNumber: idx + 1,
+              title: asString(item.title || item.name, "Directive"),
+              directiveName: asString(item.directive || item.key, "php.ini"),
+              currentValue: asString(item.current_value || item.value, "—"),
+              recommendedValue: asString(item.recommended_value || item.recommended, "—"),
+              status: statusRaw.includes("review") || statusRaw.includes("warn")
+                ? ("needs_review" as const)
+                : ("compatible" as const),
+            };
+          })
+        );
+      })
+      .catch(() => {
+        // Keep mock directives if API unavailable.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filteredDirectives = useMemo(() => {
     return directives.filter((d) => {
@@ -41,6 +78,7 @@ export function ServerInfoView() {
 
   return (
     <div
+      dir={direction}
       className="flex h-screen bg-[#f5f3ef] dark:bg-[#1a120d] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00]"
     >
       {/* 1. Global Navigation Sidebar */}
@@ -55,10 +93,12 @@ export function ServerInfoView() {
           <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex flex-col gap-[4px] text-start">
               <h1 className="text-[28px] leading-[38px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                معلومات السيرفر
+                {isEn ? "Server Information" : "معلومات السيرفر"}
               </h1>
               <p className="text-[14px] leading-[22px] font-normal text-[#514537] dark:text-[#cdc5bd]">
-                فحص ومراقبة البيئة التقنية وإعدادات خادم التطبيق وتوافقها مع متطلبات النظام
+                {isEn
+                  ? "Inspect and monitor the technical environment, application server configurations, and system compatibility"
+                  : "فحص ومراقبة البيئة التقنية وإعدادات خادم التطبيق وتوافقها مع متطلبات النظام"}
               </p>
             </div>
           </div>
@@ -67,7 +107,7 @@ export function ServerInfoView() {
           <div className="bg-white dark:bg-[#221812] rounded-[8px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] flex flex-col overflow-hidden">
             {/* Card Controls Toolbar: Tabs & Page Limit (Figma 1:19071) */}
             <div className="p-[20px] pb-[16px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px] border-b border-[#eae8e4] dark:border-[#38271c]">
-              {/* Tabs Filter (Right in RTL) */}
+              {/* Tabs Filter */}
               <div className="flex items-center bg-[#f5f3ef] dark:bg-[#1a120d] p-[4px] rounded-[8px] border border-[#eae8e4] dark:border-[#38271c]">
                 {/* Tab All */}
                 <button
@@ -80,7 +120,7 @@ export function ServerInfoView() {
                       : "text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
                   )}
                 >
-                  <span>الكل</span>
+                  <span>{isEn ? "All" : "الكل"}</span>
                   <span className="text-[11px] px-[6px] py-[1px] rounded-full bg-[#f0eeea] dark:bg-[#38271c] text-[#7b4e00] dark:text-[#e29d38] font-bold">
                     {directives.length}
                   </span>
@@ -97,7 +137,7 @@ export function ServerInfoView() {
                       : "text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
                   )}
                 >
-                  <span>متوافق</span>
+                  <span>{isEn ? "Compatible" : "متوافق"}</span>
                   <span className="text-[11px] px-[6px] py-[1px] rounded-full bg-[#f0eeea] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] font-bold">
                     {compatibleCount}
                   </span>
@@ -114,26 +154,25 @@ export function ServerInfoView() {
                       : "text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
                   )}
                 >
-                  <span>يحتاج مراجعة</span>
+                  <span>{isEn ? "Needs Review" : "يحتاج مراجعة"}</span>
                   <span className="text-[11px] px-[6px] py-[1px] rounded-full bg-[#f0eeea] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] font-bold">
                     {reviewCount}
                   </span>
                 </button>
               </div>
 
-              {/* Page Limit Selector (Left in RTL) */}
+              {/* Page Limit Selector */}
               <div className="flex items-center gap-[8px] text-[13px] text-[#514537] dark:text-[#cdc5bd]">
-                <span>عرض الصفحة:</span>
-                <div className="relative">
-                  <select
-                    className="bg-[#f5f3ef] dark:bg-[#1a120d] border border-[#eae8e4] dark:border-[#38271c] hover:border-[#9c6402]/40 dark:hover:border-[#e29d38]/40 text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] ps-[14px] pe-[36px] py-[6px] appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] transition-colors"
+                <span>{isEn ? "Page size:" : "عرض الصفحة:"}</span>
+                <div className="w-[130px]">
+                  <DashboardSelect
+                    className="h-[36px] text-[12px] bg-[#f5f3ef] dark:bg-[#1a120d] border-[#eae8e4] dark:border-[#38271c]"
                     defaultValue="10"
                   >
-                    <option value="10" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">10 سجلات</option>
-                    <option value="25" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">25 سجل</option>
-                    <option value="50" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">50 سجل</option>
-                  </select>
-                  <ChevronDown className="absolute top-1/2 -translate-y-1/2 end-[12px] size-[14px] text-[#837565] dark:text-[#8e8680] pointer-events-none" />
+                    <option value="10">{isEn ? "10 records" : "10 سجلات"}</option>
+                    <option value="25">{isEn ? "25 records" : "25 سجل"}</option>
+                    <option value="50">{isEn ? "50 records" : "50 سجل"}</option>
+                  </DashboardSelect>
                 </div>
               </div>
             </div>
@@ -145,7 +184,7 @@ export function ServerInfoView() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="البحث في إعدادات السيرفر أو اسم المتغير..."
+                  placeholder={isEn ? "Search server settings or directive names..." : "البحث في إعدادات السيرفر أو اسم المتغير..."}
                   className="w-full bg-[#f5f3ef] dark:bg-[#1a120d] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder-[#837565] dark:placeholder-[#8e8680] text-[13px] rounded-[6px] ps-[16px] pe-[40px] py-[10px] border border-transparent dark:border-[#38271c] focus:border-[#9c6402] dark:focus:border-[#e29d38] focus:bg-white dark:focus:bg-[#281c15] focus:outline-none transition-all"
                 />
                 <Search className="absolute top-1/2 -translate-y-1/2 end-[14px] size-[16px] text-[#837565] dark:text-[#8e8680]" />
@@ -158,10 +197,10 @@ export function ServerInfoView() {
                 <thead>
                   <tr className="bg-[#f5f3ef]/70 dark:bg-[#1a120d]/80 text-[#514537] dark:text-[#cdc5bd] text-[13px] font-bold border-b border-[#eae8e4] dark:border-[#38271c]">
                     <th className="py-[14px] px-[20px] w-[60px] text-center">#</th>
-                    <th className="py-[14px] px-[20px]">اسم الإعداد والمتغير</th>
-                    <th className="py-[14px] px-[20px]">القيمة الحالية</th>
-                    <th className="py-[14px] px-[20px]">القيمة الموصى بها</th>
-                    <th className="py-[14px] px-[20px] text-center w-[140px]">الحالة</th>
+                    <th className="py-[14px] px-[20px] text-start">{isEn ? "Setting & Directive Name" : "اسم الإعداد والمتغير"}</th>
+                    <th className="py-[14px] px-[20px] text-start">{isEn ? "Current Value" : "القيمة الحالية"}</th>
+                    <th className="py-[14px] px-[20px] text-start">{isEn ? "Recommended Value" : "القيمة الموصى بها"}</th>
+                    <th className="py-[14px] px-[20px] text-center w-[140px]">{isEn ? "Status" : "الحالة"}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#eae8e4] dark:divide-[#38271c] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7]">
@@ -183,7 +222,7 @@ export function ServerInfoView() {
                         </td>
 
                         {/* Title & Variable Name */}
-                        <td className="py-[18px] px-[20px]">
+                        <td className="py-[18px] px-[20px] text-start">
                           <div className="flex flex-col gap-[2px]">
                             <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] text-[14px]">
                               {directive.title}
@@ -195,7 +234,7 @@ export function ServerInfoView() {
                         </td>
 
                         {/* Current Value */}
-                        <td className="py-[18px] px-[20px]">
+                        <td className="py-[18px] px-[20px] text-start">
                           <span
                             className={cn(
                               "font-mono font-bold text-[12px] px-[10px] py-[3px] rounded-[3px] inline-block",
@@ -209,7 +248,7 @@ export function ServerInfoView() {
                         </td>
 
                         {/* Recommended Value */}
-                        <td className="py-[18px] px-[20px]">
+                        <td className="py-[18px] px-[20px] text-start">
                           <div className="flex flex-col gap-[2px]">
                             <span className="font-semibold text-[#514537] dark:text-[#cdc5bd] text-[12px]">
                               {directive.recommendedValue}
@@ -227,12 +266,12 @@ export function ServerInfoView() {
                           {isWarning ? (
                             <span className="inline-flex items-center gap-[4px] bg-[#fef3c7] dark:bg-amber-950/60 text-[#78350f] dark:text-amber-400 border border-transparent dark:border-amber-800/40 text-[11px] font-bold px-[10px] py-[4px] rounded-[3px]">
                               <AlertTriangle className="size-[12px] text-[#78350f] dark:text-amber-400" />
-                              <span>يحتاج مراجعة</span>
+                              <span>{isEn ? "Needs Review" : "يحتاج مراجعة"}</span>
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-[4px] bg-[#d1fae5] dark:bg-emerald-950/60 text-[#065f46] dark:text-emerald-400 border border-transparent dark:border-emerald-800/40 text-[11px] font-bold px-[10px] py-[4px] rounded-[3px]">
                               <CheckCircle2 className="size-[12px] text-[#059669] dark:text-emerald-400" />
-                              <span>متوافق</span>
+                              <span>{isEn ? "Compatible" : "متوافق"}</span>
                             </span>
                           )}
                         </td>
@@ -246,7 +285,9 @@ export function ServerInfoView() {
             {/* Pagination Footer (Figma 1:19054) */}
             <div className="p-[16px] px-[20px] border-t border-[#eae8e4] dark:border-[#38271c] flex flex-col sm:flex-row items-center justify-between gap-[12px]">
               <span className="text-[13px] text-[#514537] dark:text-[#cdc5bd]">
-                عرض 1 إلى {filteredDirectives.length} من أصل {directives.length} إعدادات فنية مسجلة
+                {isEn
+                  ? `Showing 1 to ${filteredDirectives.length} of ${directives.length} registered technical directives`
+                  : `عرض 1 إلى ${filteredDirectives.length} من أصل ${directives.length} إعدادات فنية مسجلة`}
               </span>
 
               <div className="flex items-center gap-[4px]">
@@ -255,7 +296,7 @@ export function ServerInfoView() {
                   disabled
                   className="px-[12px] py-[6px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] bg-[#f5f3ef] dark:bg-[#1a120d] text-[#837565] dark:text-[#8e8680] opacity-60 cursor-not-allowed"
                 >
-                  السابق
+                  {isEn ? "Previous" : "السابق"}
                 </button>
                 <button
                   type="button"
@@ -286,7 +327,7 @@ export function ServerInfoView() {
                   type="button"
                   className="px-[12px] py-[6px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] bg-white dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#38271c] transition-colors cursor-pointer"
                 >
-                  التالي
+                  {isEn ? "Next" : "التالي"}
                 </button>
               </div>
             </div>

@@ -1,4 +1,43 @@
+"use client";
+
+import { useSyncExternalStore } from "react";
+import { useUIStore, AppLanguage, TextDirection } from "@/stores/use-ui-store";
+
 export type Language = "ar" | "en";
+
+export function useLanguage() {
+  const language = useUIStore((state) => state.language);
+  const direction = useUIStore((state) => state.direction);
+  const setLanguage = useUIStore((state) => state.setLanguage);
+  const toggleLanguage = useUIStore((state) => state.toggleLanguage);
+
+  const isMounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+
+  const currentLang: AppLanguage = isMounted ? language : "ar";
+  const isEn = currentLang === "en";
+  const isAr = currentLang === "ar";
+  const currentDir: TextDirection = isMounted ? direction : (currentLang === "ar" ? "rtl" : "ltr");
+
+  const t = (ar: string, en: string) => (isEn ? en : ar);
+
+  return {
+    language: currentLang,
+    direction: currentDir,
+    isEn,
+    isAr,
+    setLanguage,
+    toggleLanguage,
+    t,
+  };
+}
+
+export function translateText(lang: "ar" | "en", ar: string, en: string) {
+  return lang === "en" ? en : ar;
+}
 
 export const translations = {
   ar: {

@@ -13,11 +13,20 @@ const filterOptions = [
   { id: "30d", labelAr: "آخر 30 يومًا", labelEn: "Last 30 Days", hasIcon: false },
 ];
 
-export function DashboardHeaderSection() {
+interface DashboardHeaderSectionProps {
+  onRefresh?: () => Promise<void> | void;
+  isRefreshing?: boolean;
+}
+
+export function DashboardHeaderSection({
+  onRefresh,
+  isRefreshing: externalIsRefreshing,
+}: DashboardHeaderSectionProps = {}) {
   const [activeRange, setActiveRange] = useQueryState("range", {
     defaultValue: "30d",
   });
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [internalRefreshing, setInternalRefreshing] = useState(false);
+  const isRefreshing = externalIsRefreshing ?? internalRefreshing;
 
   const isMounted = useSyncExternalStore(
     () => () => {},
@@ -28,11 +37,15 @@ export function DashboardHeaderSection() {
   const language = useUIStore((state) => state.language);
   const currentLang = isMounted ? language : "ar";
 
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    setTimeout(() => {
-      setIsRefreshing(false);
-    }, 600);
+  const handleRefresh = async () => {
+    if (onRefresh) {
+      await onRefresh();
+    } else {
+      setInternalRefreshing(true);
+      setTimeout(() => {
+        setInternalRefreshing(false);
+      }, 600);
+    }
   };
 
   return (

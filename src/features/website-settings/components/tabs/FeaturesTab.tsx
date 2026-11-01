@@ -1,16 +1,67 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { MessageCircle, PenSquare, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { initialFeatures } from "../../data/initialWebsiteSettings";
 import { FeatureItem } from "../../types/website-settings.types";
 import { cn } from "@/lib/utils";
+import {
+  fetchWebsiteFeatures,
+  createWebsiteFeature,
+  toggleWebsiteItem,
+  deleteWebsiteItem,
+} from "@/lib/api/website";
+import { mapWebsiteFeaturesResponse } from "@/lib/api/mappers";
 
 export function FeaturesTab() {
   const [items, setItems] = useState<FeatureItem[]>(initialFeatures);
 
-  const handleToggleStatus = (id: string) => {
+  const handleAddFeature = async () => {
+    const draft: FeatureItem = {
+      id: `feature-${Date.now()}`,
+      orderNumber: items.length + 1,
+      titleAr: "ميزة جديدة",
+      titleEn: "New Feature",
+      platform: "Web",
+      status: true,
+    };
+    try {
+      await createWebsiteFeature({
+        title_ar: draft.titleAr,
+        title_en: draft.titleEn,
+        platform: draft.platform,
+        status: "active",
+      });
+    } catch {
+      // Keep local create.
+    }
+    setItems((prev) => [...prev, draft]);
+    toast.success("تمت إضافة ميزة جديدة");
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchWebsiteFeatures()
+      .then((payload) => {
+        if (cancelled) return;
+        const mapped = mapWebsiteFeaturesResponse(payload);
+        if (mapped.length > 0) setItems(mapped);
+      })
+      .catch(() => {
+        // Keep mock features if API unavailable.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleToggleStatus = async (id: string) => {
+    try {
+      await toggleWebsiteItem(id);
+    } catch {
+      // Keep local toggle.
+    }
     setItems((prev) =>
       prev.map((item) =>
         item.id === id ? { ...item, status: !item.status } : item
@@ -19,13 +70,27 @@ export function FeaturesTab() {
     toast.success("تم تحديث حالة الميزة");
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteWebsiteItem(id);
+    } catch {
+      // Keep local delete.
+    }
     setItems((prev) => prev.filter((item) => item.id !== id));
     toast.success("تم حذف العنصر بنجاح");
   };
 
   return (
     <div className="bg-white dark:bg-[#221812] rounded-[12px] p-[24px] border border-[rgba(231,229,228,0.8)] dark:border-[#38271c] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] flex flex-col gap-[20px]">
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={handleAddFeature}
+          className="bg-[#9c6402] hover:bg-[#855402] text-white text-[13px] font-bold rounded-[6px] px-4 py-2 transition-colors cursor-pointer"
+        >
+          إضافة ميزة
+        </button>
+      </div>
       <div className="overflow-x-auto rounded-[8px] border border-[#f5f5f4] dark:border-[#38271c]">
         <table className="w-full text-start border-collapse">
           <thead>

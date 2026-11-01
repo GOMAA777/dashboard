@@ -11,6 +11,8 @@ import {
   Lock,
 } from "lucide-react";
 import { Employee } from "../types/staff.types";
+import { useLanguage } from "@/lib/i18n";
+import { ModalPortal } from "@/components/shared/ModalPortal";
 
 interface ActivateEmployeeModalProps {
   isOpen: boolean;
@@ -25,64 +27,55 @@ export function ActivateEmployeeModal({
   employee,
   onConfirm,
 }: ActivateEmployeeModalProps) {
+  const { t, direction } = useLanguage();
+
   if (!isOpen || !employee) return null;
 
   return (
-    <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
-    >
+    <ModalPortal isOpen={isOpen}>
       <div
-        className="bg-white rounded-[12px] border border-[#e6e2dc] shadow-2xl max-w-[580px] w-full overflow-hidden"
-        data-node-id="1:11022"
+        dir={direction}
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 animate-in fade-in duration-200 font-['Cairo']"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
       >
+        <div
+          className="bg-white dark:bg-[#1e1c1a] rounded-[12px] border border-[#e6e2dc] dark:border-[#38271c] shadow-2xl max-w-[580px] w-full overflow-hidden"
+          data-node-id="1:11022"
+          onClick={(e) => e.stopPropagation()}
+        >
         {/* Header */}
-        <div className="p-6 pb-4 flex items-start justify-between">
+        <div className="p-6 pb-4 flex items-start justify-between border-b border-[#f0eeea] dark:border-[#2f2a24]">
+          <div className="flex items-start gap-3 text-start order-1 rtl:order-2">
+            <div className="size-[44px] rounded-[10px] bg-[#eef8f1] dark:bg-[#132c21] flex items-center justify-center shrink-0">
+              <UserCheck className="size-[22px] text-[#1b7340] dark:text-[#34d399]" />
+            </div>
+
+            <div>
+              <h2 className="text-[20px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                {t("تفعيل حساب الموظف؟", "Activate Employee Account?")}
+              </h2>
+              <p className="text-[12px] text-[#79716b] dark:text-[#a89f91] mt-1">
+                {t("منصة الجودي • نظام إدارة طاقم العمل والصلاحيات", "Al-Joudi Platform • Staff & Permissions Governance")}
+              </p>
+            </div>
+          </div>
+
           <button
             type="button"
             onClick={onClose}
-            className="size-[32px] rounded-[6px] hover:bg-[#f5f3ef] text-[#79716b] flex items-center justify-center transition-colors"
+            className="size-[32px] rounded-[6px] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] text-[#79716b] dark:text-[#a89f91] flex items-center justify-center transition-colors cursor-pointer order-2 rtl:order-1"
           >
             <X className="size-[18px]" />
           </button>
-
-          <div className="flex items-start gap-3 text-start">
-            <div>
-              <h2 className="text-[20px] font-bold text-[#1b1c1a]">
-                تفعيل حساب الموظف؟
-              </h2>
-              <p className="text-[12px] text-[#79716b] mt-1">
-                منصة الجودي • نظام إدارة طاقم العمل والصلاحيات
-              </p>
-            </div>
-
-            <div className="size-[44px] rounded-[10px] bg-[#eef8f1] flex items-center justify-center shrink-0">
-              <UserCheck className="size-[22px] text-[#1b7340]" />
-            </div>
-          </div>
         </div>
 
         {/* Content */}
-        <div className="px-6 py-2 space-y-4">
+        <div className="p-6 space-y-4">
           {/* Employee Mini Card */}
-          <div className="bg-[#fcfaf7] p-4 rounded-[8px] border border-[#f0ece5] flex items-center justify-between">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#fff5ea] text-[#d97706] border border-[#fed7aa]">
-              <span className="size-[5px] rounded-full bg-[#d97706]" />
-              موقوف حالياً
-            </span>
-
+          <div className="bg-[#fcfaf7] dark:bg-[#2c2621] p-4 rounded-[8px] border border-[#f0ece5] dark:border-[#38271c] flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="text-start">
-                <h3 className="font-bold text-[14px] text-[#1b1c1a]">
-                  {employee.name}
-                </h3>
-                <span className="text-[11px] text-[#79716b] block">
-                  {employee.empCode} • {employee.jobTitle}
-                </span>
-                <span className="text-[11px] text-[#79716b] font-mono block mt-0.5" dir="ltr">
-                  {employee.email}
-                </span>
-              </div>
-
               <div
                 className={`size-[48px] rounded-[10px] flex items-center justify-center font-bold text-[16px] shrink-0 relative overflow-hidden ${employee.avatarBg} ${employee.avatarText}`}
               >
@@ -97,79 +90,62 @@ export function ActivateEmployeeModal({
                 ) : (
                   employee.initials
                 )}
-                <div className="absolute bottom-0 start-0 size-[14px] rounded-full bg-[#d97706] flex items-center justify-center border-2 border-white">
-                  <Lock className="size-[9px] text-white" />
-                </div>
+              </div>
+
+              <div className="text-start">
+                <h3 className="font-bold text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7]">
+                  {employee.name}
+                </h3>
+                <span className="text-[11px] text-[#79716b] dark:text-[#a89f91] block">
+                  {employee.empCode} • {employee.jobTitle}
+                </span>
+                <span className="text-[11px] text-[#79716b] dark:text-[#a89f91] font-mono block mt-0.5" dir="ltr">
+                  {employee.email}
+                </span>
               </div>
             </div>
-          </div>
 
-          {/* Info box */}
-          <div className="bg-[#faf8f5] border border-[#e8e2d8] rounded-[8px] p-4 flex items-start gap-3 text-start">
-            <ShieldCheck className="size-[18px] text-[#9c6402] shrink-0 mt-0.5" />
-            <p className="text-[12px] text-[#514537] leading-[21px]">
-              سيتمكن الموظف من تسجيل الدخول فوراً وفقاً للصلاحيات الممنوحة لحسابه في موديول الأدوار، وإعادة تفعيل التحقق الثنائي عبر رسالة نصية قصيرة ورمز الدخول المؤقت.
-            </p>
-          </div>
-
-          {/* Restored Permissions */}
-          <div>
-            <div className="flex items-center justify-between text-[12px] mb-2.5">
-              <span className="font-bold text-[#1b1c1a]">
-                الصلاحيات المستعادة تلقائياً:
-              </span>
-              <span className="text-[#79716b] text-[11px]">4 وحدات نظام</span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {[
-                "إدارة عقود باقات الشركات",
-                "إصدار عروض الأسعار",
-                "سجلات التواصل بالعملاء",
-                "التقارير التحليلية الشهرية",
-              ].map((perm, idx) => (
-                <div
-                  key={idx}
-                  className="bg-[#fcfaf7] p-2.5 rounded-[6px] border border-[#f0ece5] flex items-center justify-between text-[12px] text-[#1b1c1a]"
-                >
-                  <span>{perm}</span>
-                  <div className="size-[18px] rounded-full bg-[#fbf5ed] border border-[#ebdcc8] text-[#9c6402] flex items-center justify-center shrink-0">
-                    <Check className="size-[12px]" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Audit Notice */}
-          <div className="bg-[#fcfaf7] border border-[#f0ece5] rounded-[8px] p-3 flex items-start gap-2.5 text-[11px] text-[#79716b] leading-[18px]">
-            <Shield className="size-[14px] text-[#9c6402] shrink-0 mt-0.5" />
-            <span>
-              سيتم تسجيل حركة استعادة التفعيل في سجل الرقابة وتدقيق العمليات باسم المشرف العام (م. عبد العزيز بن فهد ).
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#fff5ea] dark:bg-[#341e13] text-[#d97706] dark:text-[#fbbf24] border border-[#fed7aa] dark:border-[#542918]">
+              <span className="size-[5px] rounded-full bg-[#d97706]" />
+              {t("موقوف حالياً", "Currently Suspended")}
             </span>
+          </div>
+
+          <div className="p-4 bg-[#f0fdf4] dark:bg-[#132c21] border border-[#bbf7d0] dark:border-[#1e4a36] rounded-[8px] flex items-start gap-3 text-start">
+            <ShieldCheck className="size-[20px] text-[#16a34a] shrink-0 mt-0.5" />
+            <div className="text-[12px] text-[#166534] dark:text-[#86efac] leading-relaxed">
+              <span className="font-bold block text-[13px] mb-1">
+                {t("إعادة تفعيل الصلاحيات التشغيلية", "Reactivate Operational Permissions")}
+              </span>
+              {t(
+                "عند تأكيد التفعيل، سيتم استئناف قدرة الموظف على تسجيل الدخول فوراً وممارسة كافة الصلاحيات المرتبطة بدوره الوظيفي.",
+                "Upon confirmation, employee login access will resume immediately along with all permissions associated with their role."
+              )}
+            </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="p-6 pt-4 border-t border-[#f2efe9] flex items-center justify-start gap-3">
+        <div className="p-4 bg-[#fcfaf7] dark:bg-[#25221e] border-t border-[#f0eeea] dark:border-[#2f2a24] flex items-center justify-between gap-3">
           <button
             type="button"
-            onClick={onConfirm}
-            className="px-5 py-2.5 rounded-[6px] bg-[#9e1c1c] hover:bg-[#851616] text-white text-[13px] font-bold flex items-center gap-2 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors"
+            onClick={onClose}
+            className="px-5 py-2.5 bg-[#f0eeea] dark:bg-[#2c2621] hover:bg-[#e6e2dc] text-[#514537] dark:text-[#a89f91] rounded-[6px] text-[13px] font-semibold transition-colors cursor-pointer"
           >
-            <UserCheck className="size-[15px]" />
-            <span>تأكيد التفعيل</span>
+            {t("إلغاء", "Cancel")}
           </button>
 
           <button
             type="button"
-            onClick={onClose}
-            className="px-4 py-2.5 rounded-[6px] bg-[#f5f3ef] hover:bg-[#eae6e0] text-[#514537] text-[13px] font-semibold transition-colors"
+            onClick={onConfirm}
+            className="px-5 py-2.5 bg-[#1b7340] hover:bg-[#145a32] text-white rounded-[6px] text-[13px] font-bold shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
           >
-            إلغاء
+            <Check className="size-[15px]" />
+            <span>{t("تأكيد تفعيل الحساب", "Confirm Account Activation")}</span>
           </button>
         </div>
       </div>
     </div>
+  </ModalPortal>
   );
 }

@@ -1,6 +1,3 @@
-"use server";
-
-import { revalidatePath } from "next/cache";
 import { actionClient } from "@/lib/safe-action";
 import { generalSettingsSchema } from "../schemas/general-settings.schema";
 import { currencySchema } from "../schemas/currency-settings.schema";
@@ -10,14 +7,12 @@ import { z } from "zod";
 export const saveGeneralSettingsAction = actionClient
   .schema(generalSettingsSchema)
   .action(async ({ parsedInput }) => {
-    revalidatePath("/settings/general");
     return { success: true, data: parsedInput };
   });
 
 export const addCurrencyAction = actionClient
   .schema(currencySchema)
   .action(async ({ parsedInput }) => {
-    revalidatePath("/settings/currency");
     return {
       success: true,
       data: parsedInput,
@@ -28,14 +23,12 @@ export const addCurrencyAction = actionClient
 export const deleteCurrencyAction = actionClient
   .schema(z.object({ id: z.string() }))
   .action(async ({ parsedInput }) => {
-    revalidatePath("/settings/currency");
     return { success: true, id: parsedInput.id };
   });
 
 export const addLanguageAction = actionClient
   .schema(languageSchema)
   .action(async ({ parsedInput }) => {
-    revalidatePath("/settings/language");
     return {
       success: true,
       data: parsedInput,
@@ -46,6 +39,5 @@ export const addLanguageAction = actionClient
 export const deleteLanguageAction = actionClient
   .schema(z.object({ id: z.string() }))
   .action(async ({ parsedInput }) => {
-    revalidatePath("/settings/language");
     return { success: true, id: parsedInput.id };
   });

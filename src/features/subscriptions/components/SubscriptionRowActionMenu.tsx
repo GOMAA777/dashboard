@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { MoreVertical, Eye, Edit3, RefreshCw, XCircle } from "lucide-react";
 import { SubscriptionRecord } from "../types/subscription.types";
+import { useLanguage } from "@/lib/i18n";
 
 interface SubscriptionRowActionMenuProps {
   subscription: SubscriptionRecord;
@@ -20,6 +21,7 @@ export function SubscriptionRowActionMenu({
   onRenew,
   onCancel,
 }: SubscriptionRowActionMenuProps) {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [coords, setCoords] = useState<{
     left: number;
@@ -41,7 +43,6 @@ export function SubscriptionRowActionMenu({
     // Prefer opening upward if space below is limited and space above is greater
     const openUp = spaceBelow < menuEstimatedHeight + 12 && spaceAbove > spaceBelow;
 
-    // In RTL tables, the actions column is on the left
     let left = rect.left;
     if (left + menuWidth > window.innerWidth - 8) {
       left = window.innerWidth - menuWidth - 8;
@@ -116,7 +117,7 @@ export function SubscriptionRowActionMenu({
             ? "bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7]"
             : "hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] text-[#514537] dark:text-[#a89f91]"
         }`}
-        aria-label="خيارات الاشتراك"
+        aria-label={t("خيارات الاشتراك", "Subscription options")}
       >
         <MoreVertical className="w-4 h-4" />
       </button>
@@ -143,7 +144,7 @@ export function SubscriptionRowActionMenu({
               className="w-full flex items-center gap-2.5 px-3 py-2 text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] transition-colors cursor-pointer"
             >
               <Eye className="w-3.5 h-3.5 text-[#9c6402] shrink-0" />
-              <span>عرض التفاصيل</span>
+              <span>{t("عرض التفاصيل", "View Details")}</span>
             </button>
 
             <button
@@ -155,7 +156,7 @@ export function SubscriptionRowActionMenu({
               className="w-full flex items-center gap-2.5 px-3 py-2 text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] transition-colors cursor-pointer"
             >
               <Edit3 className="w-3.5 h-3.5 text-[#514537] dark:text-[#a89f91] shrink-0" />
-              <span>تعديل الباقة</span>
+              <span>{t("تعديل الباقة", "Change Plan")}</span>
             </button>
 
             <button
@@ -167,7 +168,7 @@ export function SubscriptionRowActionMenu({
               className="w-full flex items-center gap-2.5 px-3 py-2 text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] transition-colors cursor-pointer"
             >
               <RefreshCw className="w-3.5 h-3.5 text-[#059669] shrink-0" />
-              <span>تجديد فوري</span>
+              <span>{t("تجديد فوري", "Renew Now")}</span>
             </button>
 
             <div className="h-px bg-[#f0eeea] dark:bg-[#2f2a24] my-1" />
@@ -181,7 +182,7 @@ export function SubscriptionRowActionMenu({
               className="w-full flex items-center gap-2.5 px-3 py-2 text-[#dc2626] dark:text-[#f87171] hover:bg-[#fef2f2] dark:hover:bg-[#311616] transition-colors cursor-pointer"
             >
               <XCircle className="w-3.5 h-3.5 text-[#dc2626] dark:text-[#f87171] shrink-0" />
-              <span>إلغاء الاشتراك</span>
+              <span>{t("إلغاء الاشتراك", "Cancel Subscription")}</span>
             </button>
           </div>,
           document.body

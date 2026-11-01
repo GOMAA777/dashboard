@@ -265,7 +265,10 @@ main {
   background-color: #3d2716 !important;
 }
 
-.dark .bg-\[\#eae8e4\] {
+.dark .bg-\[\#eae8e4\],
+.dark .bg-\[\#f0eeea\],
+.dark .bg-\[\#e4e2de\],
+.dark .bg-\[\#ded5c6\] {
   background-color: #2a1f18 !important;
 }
 

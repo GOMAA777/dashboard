@@ -3,6 +3,7 @@
 import React from "react";
 import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
 import { DashboardSelect } from "@/components/shared/DashboardSelect";
+import { useLanguage } from "@/lib/i18n";
 
 interface RolesToolbarProps {
   searchQuery: string;
@@ -21,6 +22,7 @@ export function RolesToolbar({
   onTypeChange,
   onReset,
 }: RolesToolbarProps) {
+  const { t } = useLanguage();
   const hasActiveFilters = selectedType !== "all" || Boolean(searchQuery);
 
   const drawerContent = (
@@ -28,27 +30,39 @@ export function RolesToolbar({
       {/* Role Type Filter */}
       <div className="space-y-2">
         <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-          تصنيف نوع الدور
+          {t("تصنيف نوع الدور", "Role Type Classification")}
         </label>
         <DashboardSelect
           value={selectedType}
           onChange={(e) => onTypeChange(e.target.value)}
         >
-          <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">جميع الأنواع</option>
-          <option value="system" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">أدوار النظام الأساسية (المحمية)</option>
-          <option value="custom" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الأدوار المخصصة</option>
+          <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+            {t("جميع الأنواع", "All Types")}
+          </option>
+          <option value="system" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+            {t("أدوار النظام الأساسية (المحمية)", "Core System Roles (Protected)")}
+          </option>
+          <option value="custom" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+            {t("الأدوار المخصصة", "Custom Roles")}
+          </option>
         </DashboardSelect>
       </div>
 
       {/* Scope / Permissions */}
       <div className="space-y-2">
         <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-          نطاق الصلاحيات
+          {t("نطاق الصلاحيات", "Permissions Scope")}
         </label>
         <DashboardSelect>
-          <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">كافة نطاقات الصلاحيات</option>
-          <option value="full" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">صلاحيات كاملة شاملة</option>
-          <option value="partial" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">صلاحيات وظيفية مخصصة</option>
+          <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+            {t("كافة نطاقات الصلاحيات", "All Permission Scopes")}
+          </option>
+          <option value="full" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+            {t("صلاحيات كاملة شاملة", "Full Comprehensive Access")}
+          </option>
+          <option value="partial" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+            {t("صلاحيات وظيفية مخصصة", "Custom Functional Scope")}
+          </option>
         </DashboardSelect>
       </div>
     </div>
@@ -58,17 +72,17 @@ export function RolesToolbar({
     <UnifiedFilterBar
       searchQuery={searchQuery}
       onSearchChange={onSearchChange}
-      searchPlaceholder="ابحث باسم الدور أو المعرّف البرمجي..."
+      searchPlaceholder={t("ابحث باسم الدور أو المعرّف البرمجي...", "Search by role name or slug...")}
       primaryFilterValue={selectedType}
       onPrimaryFilterChange={onTypeChange}
       primaryFilterOptions={[
-        { label: "جميع الأنواع", value: "all" },
-        { label: "أدوار النظام", value: "system" },
-        { label: "أدوار مخصصة", value: "custom" },
+        { label: t("جميع الأنواع", "All Types"), value: "all" },
+        { label: t("أدوار النظام", "System Roles"), value: "system" },
+        { label: t("أدوار مخصصة", "Custom Roles"), value: "custom" },
       ]}
       hasActiveFilters={hasActiveFilters}
       onReset={onReset}
-      drawerTitle="تصفية الأدوار والصلاحيات"
+      drawerTitle={t("تصفية الأدوار والصلاحيات", "Filter Roles & Permissions")}
       drawerContent={drawerContent}
       className="rounded-b-none border-b-0"
     />

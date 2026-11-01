@@ -17,6 +17,8 @@ import {
   ChevronsRight,
   ChevronsLeft,
 } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 interface SubscriptionManagementTableProps {
   data: SubscriptionRecord[];
@@ -43,13 +45,15 @@ export function SubscriptionManagementTable({
   onPageChange,
   onPageSizeChange,
 }: SubscriptionManagementTableProps) {
+  const { t, isEn } = useLanguage();
+
   const getStatusBadge = (status: SubscriptionStatus, label: string) => {
     switch (status) {
       case "active":
         return (
           <div className="bg-[#ecfdf5] border border-emerald-200 dark:bg-[#132c21] dark:border-emerald-500/40 dark:shadow-[0_0_10px_rgba(16,185,129,0.15)] flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit">
             <span className="font-['Cairo'] font-bold text-[11px] text-[#065f46] dark:text-[#6ee7b7]">
-              {label}
+              {t(label, "Active")}
             </span>
             <div className="bg-[#10b981] shadow-[0_0_8px_#10b981] ring-1 ring-emerald-400/60 rounded-full size-[7px] shrink-0" />
           </div>
@@ -58,7 +62,7 @@ export function SubscriptionManagementTable({
         return (
           <div className="bg-[#fffbeb] border border-amber-200 dark:bg-[#342711] dark:border-amber-500/40 dark:shadow-[0_0_10px_rgba(245,158,11,0.15)] flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit">
             <span className="font-['Cairo'] font-bold text-[11px] text-[#78350f] dark:text-[#fbbf24]">
-              {label}
+              {t(label, "Pending")}
             </span>
             <div className="bg-[#f59e0b] shadow-[0_0_8px_#f59e0b] ring-1 ring-amber-400/60 rounded-full size-[7px] shrink-0" />
           </div>
@@ -67,7 +71,7 @@ export function SubscriptionManagementTable({
         return (
           <div className="bg-[#f0eeea] border border-[#e2ded8] dark:bg-[#2c2621] dark:border-[#4d3627] flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit">
             <span className="font-['Cairo'] font-bold text-[11px] text-[#514537] dark:text-[#cdc5bd]">
-              {label}
+              {t(label, "Cancelled")}
             </span>
             <div className="bg-[#837565] rounded-full size-[7px] shrink-0" />
           </div>
@@ -76,7 +80,7 @@ export function SubscriptionManagementTable({
         return (
           <div className="bg-[#fef2f2] border border-red-200 dark:bg-[#311616] dark:border-red-500/40 dark:shadow-[0_0_10px_rgba(239,68,68,0.15)] flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit">
             <span className="font-['Cairo'] font-bold text-[11px] text-[#991b1b] dark:text-[#f87171]">
-              {label}
+              {t(label, "Expired")}
             </span>
             <div className="bg-[#ef4444] shadow-[0_0_8px_#ef4444] ring-1 ring-red-400/60 rounded-full size-[7px] shrink-0" />
           </div>
@@ -85,7 +89,7 @@ export function SubscriptionManagementTable({
         return (
           <div className="bg-[#fff1f2] border border-rose-200 dark:bg-[#38141b] dark:border-rose-500/40 dark:shadow-[0_0_10px_rgba(244,63,94,0.15)] flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit">
             <span className="font-['Cairo'] font-bold text-[11px] text-[#9f1239] dark:text-[#fb7185]">
-              {label}
+              {t(label, "Rejected")}
             </span>
             <div className="bg-[#e11d48] shadow-[0_0_8px_#e11d48] ring-1 ring-rose-400/60 rounded-full size-[7px] shrink-0" />
           </div>
@@ -112,7 +116,7 @@ export function SubscriptionManagementTable({
         accessorKey: "id",
         header: () => (
           <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
-            رقم الاشتراك
+            {t("رقم الاشتراك", "Subscription ID")}
           </div>
         ),
         cell: ({ row }) => {
@@ -136,7 +140,7 @@ export function SubscriptionManagementTable({
         accessorKey: "firm.name",
         header: () => (
           <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
-            اسم المكتب والترخيص
+            {t("اسم المكتب والترخيص", "Law Firm & License")}
           </div>
         ),
         cell: ({ row }) => {
@@ -149,7 +153,7 @@ export function SubscriptionManagementTable({
               <div className="flex items-center gap-1.5 text-[11px] text-[#514537] dark:text-[#a89f91] font-['Cairo'] pt-0.5">
                 <span>{firm.city}</span>
                 <span>•</span>
-                <span>ترخيص: {firm.licenseNumber}</span>
+                <span>{t("ترخيص:", "License:")} {firm.licenseNumber}</span>
               </div>
             </div>
           );
@@ -159,7 +163,7 @@ export function SubscriptionManagementTable({
         accessorKey: "planName",
         header: () => (
           <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
-            الباقة والدورة
+            {t("الباقة والدورة", "Plan & Cycle")}
           </div>
         ),
         cell: ({ row }) => {
@@ -180,7 +184,7 @@ export function SubscriptionManagementTable({
         accessorKey: "startDate",
         header: () => (
           <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
-            تاريخ البداية
+            {t("تاريخ البداية", "Start Date")}
           </div>
         ),
         cell: ({ row }) => (
@@ -193,8 +197,7 @@ export function SubscriptionManagementTable({
         accessorKey: "renewalDate",
         header: () => (
           <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd] leading-[16px]">
-            <div>موعد التجديد</div>
-            <div>القادم</div>
+            {t("موعد التجديد القادم", "Next Renewal Date")}
           </div>
         ),
         cell: ({ row }) => {
@@ -224,7 +227,7 @@ export function SubscriptionManagementTable({
         accessorKey: "paymentMethod",
         header: () => (
           <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
-            طريقة الدفع
+            {t("طريقة الدفع", "Payment Method")}
           </div>
         ),
         cell: ({ row }) => {
@@ -250,7 +253,7 @@ export function SubscriptionManagementTable({
         accessorKey: "status",
         header: () => (
           <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
-            الحالة
+            {t("الحالة", "Status")}
           </div>
         ),
         cell: ({ row }) => {
@@ -261,7 +264,7 @@ export function SubscriptionManagementTable({
         id: "actions",
         header: () => (
           <div className="text-center font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
-            الإجراءات
+            {t("الإجراءات", "Actions")}
           </div>
         ),
         cell: ({ row }) => (
@@ -277,7 +280,7 @@ export function SubscriptionManagementTable({
         ),
       },
     ],
-    [onViewDetails, onEdit, onRenew, onCancel]
+    [onViewDetails, onEdit, onRenew, onCancel, t]
   );
 
   const paginationState = useMemo<PaginationState>(
@@ -310,7 +313,7 @@ export function SubscriptionManagementTable({
       data-node-id="1:5392"
       data-name="Main Table Container"
     >
-      {/* Table Body Area - Clean responsive container without forced scrollbars */}
+      {/* Table Body Area */}
       <div className="overflow-x-auto w-full max-w-full">
         <table className="w-full border-collapse text-start">
           <thead>
@@ -337,7 +340,10 @@ export function SubscriptionManagementTable({
                   colSpan={columns.length}
                   className="py-12 text-center text-[#837565] dark:text-[#a89f91] font-['Cairo'] text-[14px]"
                 >
-                  لا توجد اشتراكات مطابقة للفلاتر المحددة.
+                  {t(
+                    "لا توجد اشتراكات مطابقة للفلاتر المحددة.",
+                    "No subscriptions match the selected filters."
+                  )}
                 </td>
               </tr>
             ) : (
@@ -377,18 +383,20 @@ export function SubscriptionManagementTable({
         {/* Right in RTL: Count Summary and Custom Rows Per Page Dropdown */}
         <div className="flex flex-wrap items-center gap-4 text-[12px] text-[#514537] dark:text-[#a89f91] font-['Cairo']">
           <div>
-            <span>عرض </span>
+            <span>{t("عرض ", "Showing ")}</span>
             <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{startItem}</span>
-            <span> إلى </span>
+            <span>{t(" إلى ", " to ")}</span>
             <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{endItem}</span>
-            <span> من أصل </span>
+            <span>{t(" من أصل ", " of ")}</span>
             <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{totalItems}</span>
-            <span> مكتب محاماة</span>
+            <span>{t(" مكتب محاماة", " law firms")}</span>
           </div>
 
           {onPageSizeChange && (
             <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#2f2a24] ps-3">
-              <span className="text-[11px] text-[#837565] dark:text-[#a89f91]">صفوف بالصفحة:</span>
+              <span className="text-[11px] text-[#837565] dark:text-[#a89f91]">
+                {t("صفوف بالصفحة:", "Rows per page:")}
+              </span>
               <PageSizeDropdown
                 value={pageSize}
                 onChange={onPageSizeChange}
@@ -404,21 +412,21 @@ export function SubscriptionManagementTable({
             type="button"
             disabled={pageIndex === 0}
             onClick={() => onPageChange(0)}
-            title="الصفحة الأولى"
+            title={t("الصفحة الأولى", "First Page")}
             className="size-8 rounded-[4px] bg-[#f5f3ef] dark:bg-[#2c2621] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#514537] dark:text-[#d1c9bd] flex items-center justify-center transition-colors cursor-pointer"
           >
-            <ChevronsRight className="w-4 h-4" />
+            <ChevronsRight className={cn("w-4 h-4", isEn && "rotate-180")} />
           </button>
 
           <button
             type="button"
             disabled={pageIndex === 0}
             onClick={() => onPageChange(pageIndex - 1)}
-            title="الصفحة السابقة"
+            title={t("الصفحة السابقة", "Previous Page")}
             className="bg-[#f5f3ef] dark:bg-[#2c2621] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#514537] dark:text-[#d1c9bd] px-2.5 py-1.5 rounded-[4px] font-['Cairo'] font-semibold text-[12px] flex items-center gap-1 transition-colors cursor-pointer"
           >
-            <ChevronRight className="w-3.5 h-3.5" />
-            <span>السابق</span>
+            <ChevronRight className={cn("w-3.5 h-3.5", isEn && "rotate-180")} />
+            <span>{t("السابق", "Previous")}</span>
           </button>
 
           <button
@@ -483,21 +491,21 @@ export function SubscriptionManagementTable({
             type="button"
             disabled={pageIndex >= totalPages - 1}
             onClick={() => onPageChange(pageIndex + 1)}
-            title="الصفحة التالية"
+            title={t("الصفحة التالية", "Next Page")}
             className="bg-[#f5f3ef] dark:bg-[#2c2621] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#1b1c1a] dark:text-[#fdfbf7] px-2.5 py-1.5 rounded-[4px] font-['Cairo'] font-semibold text-[12px] flex items-center gap-1 transition-colors cursor-pointer"
           >
-            <span>التالي</span>
-            <ChevronLeft className="w-3.5 h-3.5" />
+            <span>{t("التالي", "Next")}</span>
+            <ChevronLeft className={cn("w-3.5 h-3.5", isEn && "rotate-180")} />
           </button>
 
           <button
             type="button"
             disabled={pageIndex >= totalPages - 1}
             onClick={() => onPageChange(totalPages - 1)}
-            title="الصفحة الأخيرة"
+            title={t("الصفحة الأخيرة", "Last Page")}
             className="size-8 rounded-[4px] bg-[#f5f3ef] dark:bg-[#2c2621] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#514537] dark:text-[#d1c9bd] flex items-center justify-center transition-colors cursor-pointer"
           >
-            <ChevronsLeft className="w-4 h-4" />
+            <ChevronsLeft className={cn("w-4 h-4", isEn && "rotate-180")} />
           </button>
         </div>
       </div>

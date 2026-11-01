@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useQueryState } from "nuqs";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
@@ -14,6 +14,7 @@ import { ChangeSubscriptionPlanModal } from "./ChangeSubscriptionPlanModal";
 import { CancelSubscriptionModal } from "./CancelSubscriptionModal";
 import { AddSubscriptionModal } from "./AddSubscriptionModal";
 import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
+import { DashboardPageSkeleton } from "@/components/shared/DashboardPageSkeleton";
 import {
   SubscriptionRecord,
   SubscriptionStatus,
@@ -27,8 +28,19 @@ import {
   mockWaitingSubscriptionDetails,
 } from "../data/initialSubscriptions";
 import { CreateSubscriptionInput } from "../schemas/subscription.schemas";
+import { useLanguage } from "@/lib/i18n";
+import {
+  fetchSubscriptions,
+  fetchSubscriptionsStats,
+  cancelSubscription,
+  upgradeSubscription,
+  updateSubscriptionStatus,
+} from "@/lib/api/subscriptions";
+import { mapSubscriptionsResponse } from "@/lib/api/mappers";
+import { readStats } from "@/lib/api/helpers";
 
 export function SubscriptionManagementView() {
+  const { direction } = useLanguage();
   // URL Query State using nuqs
   const [view, setView] = useQueryState("view", { defaultValue: "list" });
   const [tab, setTab] = useQueryState("tab", { defaultValue: "all" });
@@ -54,6 +66,47 @@ export function SubscriptionManagementView() {
   const [subscriptions, setSubscriptions] = useState<SubscriptionRecord[]>(
     initialSubscriptionsList
   );
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [kpiStats, setKpiStats] = useState({
+    total: 0,
+    active: 0,
+    expiring: 0,
+    cancelled: 0,
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoading(true);
+    Promise.all([
+      fetchSubscriptions({ tab: tab || "all", page: 1 }),
+      fetchSubscriptionsStats(),
+    ])
+      .then(([subsPayload, statsPayload]) => {
+        if (cancelled) return;
+        const mapped = mapSubscriptionsResponse(subsPayload);
+        if (mapped.length > 0) setSubscriptions(mapped);
+        setKpiStats({
+          total: readStats(statsPayload, ["total", "total_subscriptions", "all"], 0),
+          active: readStats(statsPayload, ["active", "active_subscriptions"], 0),
+          expiring: readStats(statsPayload, ["expiring", "expiring_soon", "pending"], 0),
+          cancelled: readStats(
+            statsPayload,
+            ["cancelled", "cancelled_expired", "expired"],
+            0
+          ),
+        });
+      })
+      .catch(() => {
+        // Keep defaults if API unavailable.
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [tab]);
 
   // Modal dialog states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -188,7 +241,12 @@ export function SubscriptionManagementView() {
     setPageIndex(0);
   };
 
-  const handleStatusChange = (id: string, newStatus: SubscriptionStatus) => {
+  const handleStatusChange = async (id: string, newStatus: SubscriptionStatus) => {
+    try {
+      await updateSubscriptionStatus(id, newStatus);
+    } catch {
+      // Keep local update.
+    }
     setSubscriptions((prev) =>
       prev.map((sub) => {
         if (sub.id === id) {
@@ -210,9 +268,17 @@ export function SubscriptionManagementView() {
     );
   };
 
-  const handleChangePlanSuccess = (newPlanTitle: string) => {
+  const handleChangePlanSuccess = async (newPlanTitle: string) => {
     if (!selectedSubForAction) return;
     const targetId = selectedSubForAction.id;
+    try {
+      await upgradeSubscription(targetId, {
+        new_plan_id: newPlanTitle,
+        billing_cycle: "yearly",
+      });
+    } catch {
+      // Keep local update.
+    }
     setSubscriptions((prev) =>
       prev.map((sub) => {
         if (sub.id === targetId) {
@@ -226,9 +292,14 @@ export function SubscriptionManagementView() {
     );
   };
 
-  const handleCancelSubscriptionSuccess = (reason: string) => {
+  const handleCancelSubscriptionSuccess = async (reason: string) => {
     if (!selectedSubForAction) return;
     const targetId = selectedSubForAction.id;
+    try {
+      await cancelSubscription(targetId, reason);
+    } catch {
+      // Keep local update.
+    }
     setSubscriptions((prev) =>
       prev.map((sub) => {
         if (sub.id === targetId) {
@@ -288,7 +359,7 @@ export function SubscriptionManagementView() {
   };
 
   return (
-    <div className="flex h-screen h-dvh overflow-hidden w-full bg-background text-foreground transition-colors duration-200 font-['Cairo',sans-serif]">
+    <div dir={direction} className="flex h-screen h-dvh overflow-hidden w-full bg-background text-foreground transition-colors duration-200 font-['Cairo',sans-serif]">
       {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar activeNav="subscriptions" />
 
@@ -318,6 +389,8 @@ export function SubscriptionManagementView() {
               onOpenChangePlan={handleStartChangePlan}
               onOpenCancel={handleStartCancel}
             />
+          ) : isLoading && subscriptions.length === 0 ? (
+            <DashboardPageSkeleton />
           ) : (
             <>
               {/* Command Banner */}
@@ -327,10 +400,10 @@ export function SubscriptionManagementView() {
 
               {/* 4 KPI Cards (Total: 128, Active: 86, Expiring: 12, Cancelled: 18) */}
               <SubscriptionKpiCards
-                totalCount={128}
-                activeCount={86}
-                expiringCount={12}
-                cancelledCount={18}
+                totalCount={kpiStats.total}
+                activeCount={kpiStats.active}
+                expiringCount={kpiStats.expiring}
+                cancelledCount={kpiStats.cancelled}
               />
 
               {/* Toolbar: Tab Pills, View Size, Search, Dropdown Filters */}

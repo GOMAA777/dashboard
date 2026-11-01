@@ -13,7 +13,6 @@ import {
 } from "../data/initialSubscriptions";
 import {
   ArrowLeft,
-  ArrowRight,
   Building2,
   MapPin,
   User,
@@ -29,6 +28,15 @@ import {
   Scale,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
+import {
+  approveSubscription,
+  rejectSubscription,
+  fetchSubscriptionById,
+} from "@/lib/api/subscriptions";
+import { mapSubscriptionFromApi } from "@/lib/api/mappers";
+import { unwrapData } from "@/lib/api/helpers";
 
 interface SubscriptionDetailsViewProps {
   initialSubscription?: SubscriptionRecord;
@@ -49,13 +57,44 @@ export function SubscriptionDetailsView({
   onOpenChangePlan,
   onOpenCancel,
 }: SubscriptionDetailsViewProps) {
+  const { t, direction, isEn } = useLanguage();
+
   // Allow toggling between the 4 Figma design states
   const [selectedState, setSelectedState] = useState<SubscriptionStatus>(
     initialSubscription?.status || initialStateVariant
   );
+  const [liveSubscription, setLiveSubscription] = useState<SubscriptionRecord | null>(
+    initialSubscription || null
+  );
+
+  React.useEffect(() => {
+    const id = initialSubscription?.id;
+    if (!id) return;
+    let cancelled = false;
+    fetchSubscriptionById(id)
+      .then((payload) => {
+        if (cancelled) return;
+        const raw = (unwrapData<Record<string, unknown>>(payload) ||
+          payload) as Record<string, unknown>;
+        if (raw?.id || raw?.code) {
+          const mapped = mapSubscriptionFromApi(raw);
+          setLiveSubscription(mapped);
+          setSelectedState(mapped.status);
+        }
+      })
+      .catch(() => {
+        // Keep initial/mock subscription.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [initialSubscription?.id]);
 
   // Select appropriate mock/active record corresponding to the state
   const currentSub: SubscriptionRecord = React.useMemo(() => {
+    if (liveSubscription && liveSubscription.status === selectedState) {
+      return liveSubscription;
+    }
     switch (selectedState) {
       case "cancelled":
         return mockCancelledSubscriptionDetails;
@@ -65,36 +104,47 @@ export function SubscriptionDetailsView({
         return mockWaitingSubscriptionDetails;
       case "active":
       default:
-        return initialSubscription || mockActiveSubscriptionDetails;
+        return liveSubscription || initialSubscription || mockActiveSubscriptionDetails;
     }
-  }, [selectedState, initialSubscription]);
+  }, [selectedState, initialSubscription, liveSubscription]);
 
   const handleReactivate = () => {
     setSelectedState("active");
     onStatusChange?.(currentSub.id, "active");
-    toast.success("تم إرسال طلب إعادة تفعيل الاشتراك بنجاح");
+    toast.success(t("تم إرسال طلب إعادة تفعيل الاشتراك بنجاح", "Subscription reactivation request submitted successfully"));
   };
 
-  const handleApprovePending = () => {
+  const handleApprovePending = async () => {
+    try {
+      await approveSubscription(currentSub.id);
+    } catch {
+      // Keep local approve.
+    }
     setSelectedState("active");
     onStatusChange?.(currentSub.id, "active");
-    toast.success("تمت الموافقة وتفعيل الاشتراك بنجاح");
+    toast.success(t("تمت الموافقة وتفعيل الاشتراك بنجاح", "Subscription approved and activated successfully"));
   };
 
-  const handleRejectPending = () => {
+  const handleRejectPending = async () => {
+    try {
+      await rejectSubscription(currentSub.id, "رفض إداري من لوحة الإدارة");
+    } catch {
+      // Keep local reject.
+    }
     setSelectedState("rejected");
     onStatusChange?.(currentSub.id, "rejected");
-    toast.error("تم رفض طلب الاشتراك وتحويله لحالة الرفض");
+    toast.error(t("تم رفض طلب الاشتراك وتحويله لحالة الرفض", "Subscription request rejected"));
   };
 
   const handleReReview = () => {
     setSelectedState("pending");
     onStatusChange?.(currentSub.id, "pending");
-    toast.info("تم فتح طلب إعادة المراجعة ونقله لقيد الانتظار");
+    toast.info(t("تم فتح طلب إعادة المراجعة ونقله لقيد الانتظار", "Re-review opened and moved to pending"));
   };
 
   return (
     <div
+      dir={direction}
       className="flex flex-col gap-6 w-full font-['Cairo'] pb-12"
       data-name="Subscription Details Main View"
     >
@@ -106,13 +156,13 @@ export function SubscriptionDetailsView({
             onClick={onBack}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] bg-[#f5f3ef] dark:bg-[#2c2621] hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold transition-colors cursor-pointer"
           >
-            <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
-            <span>العودة إلى إدارة الاشتراكات</span>
+            <ArrowLeft className={cn("w-4 h-4", !isEn && "rotate-180")} />
+            <span>{t("العودة إلى إدارة الاشتراكات", "Back to Subscriptions")}</span>
           </button>
           <div className="h-4 w-px bg-[#e5e2dc] dark:bg-[#38332c]" />
           <div>
             <span className="text-[12px] text-[#837565] dark:text-[#a89f91]">
-              رقم الاشتراك:
+              {t("رقم الاشتراك:", "Subscription ID:")}
             </span>
             <span className="font-bold text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] ms-1.5">
               {currentSub.id}
@@ -120,7 +170,7 @@ export function SubscriptionDetailsView({
           </div>
         </div>
 
-        {/* State Simulator Pill Switcher (Allows viewing 1:5878, 1:7196, 1:7769, 1:8149) */}
+        {/* State Simulator Pill Switcher */}
         <div className="flex items-center gap-1 bg-[#f5f3ef] dark:bg-[#2c2621] p-1 rounded-[8px] self-stretch md:self-auto overflow-x-auto">
           <button
             type="button"
@@ -131,7 +181,7 @@ export function SubscriptionDetailsView({
                 : "text-[#514537] dark:text-[#a89f91] hover:text-[#1b1c1a]"
             }`}
           >
-            ● نشط (1:5878)
+            ● {t("نشط (1:5878)", "Active (1:5878)")}
           </button>
 
           <button
@@ -143,7 +193,7 @@ export function SubscriptionDetailsView({
                 : "text-[#514537] dark:text-[#a89f91] hover:text-[#1b1c1a]"
             }`}
           >
-            ● قيد الانتظار (1:8149)
+            ● {t("قيد الانتظار (1:8149)", "Pending (1:8149)")}
           </button>
 
           <button
@@ -155,7 +205,7 @@ export function SubscriptionDetailsView({
                 : "text-[#514537] dark:text-[#a89f91] hover:text-[#1b1c1a]"
             }`}
           >
-            ● ملغي (1:7196)
+            ● {t("ملغي (1:7196)", "Cancelled (1:7196)")}
           </button>
 
           <button
@@ -167,7 +217,7 @@ export function SubscriptionDetailsView({
                 : "text-[#514537] dark:text-[#a89f91] hover:text-[#1b1c1a]"
             }`}
           >
-            ● مرفوض (1:7769)
+            ● {t("مرفوض (1:7769)", "Rejected (1:7769)")}
           </button>
         </div>
 
@@ -179,7 +229,7 @@ export function SubscriptionDetailsView({
             className="bg-[#9c6402] hover:bg-[#825200] text-white px-3.5 py-1.5 rounded-[4px] font-semibold text-[12px] flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            <span>تجديد الاشتراك</span>
+            <span>{t("تجديد الاشتراك", "Renew Subscription")}</span>
           </button>
 
           <button
@@ -187,7 +237,7 @@ export function SubscriptionDetailsView({
             onClick={() => onOpenChangePlan?.(currentSub)}
             className="bg-[#f5f3ef] dark:bg-[#2c2621] hover:bg-[#eae8e4] text-[#1b1c1a] dark:text-[#fdfbf7] border border-[#e4e2de] dark:border-[#38332c] px-3.5 py-1.5 rounded-[4px] font-semibold text-[12px] flex items-center gap-1.5 transition-colors cursor-pointer"
           >
-            <span>تغيير الباقة</span>
+            <span>{t("تغيير الباقة", "Change Plan")}</span>
           </button>
 
           <button
@@ -195,7 +245,7 @@ export function SubscriptionDetailsView({
             onClick={() => onOpenCancel?.(currentSub)}
             className="bg-transparent hover:bg-[#fef2f2] text-[#dc2626] border border-[#fecaca] px-3.5 py-1.5 rounded-[4px] font-semibold text-[12px] flex items-center gap-1.5 transition-colors cursor-pointer"
           >
-            <span>إلغاء الاشتراك</span>
+            <span>{t("إلغاء الاشتراك", "Cancel Subscription")}</span>
           </button>
         </div>
       </div>
@@ -212,10 +262,16 @@ export function SubscriptionDetailsView({
             </div>
             <div>
               <h3 className="font-bold text-[14px] text-[#991b1b] dark:text-[#f87171]">
-                تنبيه: تم إلغاء هذا الاشتراك نهائياً بتاريخ 15 أكتوبر 2024 بناءً على طلب العميل
+                {t(
+                  "تنبيه: تم إلغاء هذا الاشتراك نهائياً بتاريخ 15 أكتوبر 2024 بناءً على طلب العميل",
+                  "Notice: This subscription was permanently cancelled on Oct 15, 2024 per client request"
+                )}
               </h3>
               <p className="text-[12px] text-[#b91c1c] dark:text-[#fca5a5]">
-                تم تجميد الوصول لجميع الخدمات السحابية والربط الحكومي. البيانات محفوظة بصيغة القراءة فقط.
+                {t(
+                  "تم تجميد الوصول لجميع الخدمات السحابية والربط الحكومي. البيانات محفوظة بصيغة القراءة فقط.",
+                  "Cloud services & gov integrations frozen. Data preserved in read-only mode."
+                )}
               </p>
             </div>
           </div>
@@ -224,7 +280,7 @@ export function SubscriptionDetailsView({
             onClick={handleReactivate}
             className="bg-[#dc2626] hover:bg-[#b91c1c] text-white px-4 py-2 rounded-[6px] font-bold text-[12px] shadow-xs transition-colors shrink-0 cursor-pointer"
           >
-            إعادة تفعيل الاشتراك
+            {t("إعادة تفعيل الاشتراك", "Reactivate Subscription")}
           </button>
         </div>
       )}
@@ -240,10 +296,16 @@ export function SubscriptionDetailsView({
             </div>
             <div>
               <h3 className="font-bold text-[14px] text-[#9f1239] dark:text-[#fb7185]">
-                تنبيه: تم رفض طلب الاشتراك بتاريخ 24 أكتوبر 2024
+                {t(
+                  "تنبيه: تم رفض طلب الاشتراك بتاريخ 24 أكتوبر 2024",
+                  "Notice: Subscription request was rejected on Oct 24, 2024"
+                )}
               </h3>
               <p className="text-[12px] text-[#be123c] dark:text-[#fda4af]">
-                السبب: عدم مطابقة السجل التجاري مع ترخيص وزارة العدل المرفق. تم تقييد فتح أي قضايا أو مستخدمين.
+                {t(
+                  "السبب: عدم مطابقة السجل التجاري مع ترخيص وزارة العدل المرفق. تم تقييد فتح أي قضايا أو مستخدمين.",
+                  "Reason: CR does not match the attached MOJ license. Opening cases or users is restricted."
+                )}
               </p>
             </div>
           </div>
@@ -252,7 +314,7 @@ export function SubscriptionDetailsView({
             onClick={handleReReview}
             className="bg-[#be123c] hover:bg-[#9f1239] text-white px-4 py-2 rounded-[6px] font-bold text-[12px] shadow-xs transition-colors shrink-0 cursor-pointer"
           >
-            إعادة المراجعة وفتح الطلب
+            {t("إعادة المراجعة وفتح الطلب", "Re-review & Open Request")}
           </button>
         </div>
       )}
@@ -268,10 +330,16 @@ export function SubscriptionDetailsView({
             </div>
             <div>
               <h3 className="font-bold text-[14px] text-[#78350f] dark:text-[#fbbf24]">
-                إشعار إداري: هذا الاشتراك بانتظار التدقيق الإداري والتراخيص
+                {t(
+                  "إشعار إداري: هذا الاشتراك بانتظار التدقيق الإداري والتراخيص",
+                  "Admin Notice: Subscription pending administrative review & licenses"
+                )}
               </h3>
               <p className="text-[12px] text-[#92400e] dark:text-[#fde68a]">
-                تم تفويض الدفعة البنكية عبر مدى، وبانتظار اعتماد التراخيص الرسمية لتفعيل الحساب للمكتب.
+                {t(
+                  "تم تفويض الدفعة البنكية عبر مدى، وبانتظار اعتماد التراخيص الرسمية لتفعيل الحساب للمكتب.",
+                  "Payment authorized via Mada; awaiting license approval to activate office account."
+                )}
               </p>
             </div>
           </div>
@@ -280,14 +348,14 @@ export function SubscriptionDetailsView({
             onClick={handleApprovePending}
             className="bg-[#059669] hover:bg-[#047857] text-white px-4 py-2 rounded-[6px] font-bold text-[12px] shadow-xs transition-colors shrink-0 cursor-pointer"
           >
-            مراجعة واعتماد الاشتراك
+            {t("مراجعة واعتماد الاشتراك", "Review & Approve")}
           </button>
         </div>
       )}
 
-      {/* Top 4 Cards Grid (Matching Section: High Level Banner with Law Firm Info + Key Numbers) */}
+      {/* Top 4 Cards Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Card 4: تفاصيل المكتب والترخيص (Rightmost 4 columns in RTL) */}
+        {/* Card 4: Office info */}
         <div
           className="lg:col-span-4 bg-white dark:bg-[#1e1c1a] p-5 rounded-[8px] border border-[#f0eeea] dark:border-[#2f2a24] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col justify-between"
           data-node-id="1:5945"
@@ -315,7 +383,7 @@ export function SubscriptionDetailsView({
               <div className="flex items-center justify-between">
                 <span className="text-[#625d5d] dark:text-[#a89f91] flex items-center gap-1">
                   <User className="w-3.5 h-3.5" />
-                  <span>المدير العام:</span>
+                  <span>{t("المدير العام:", "General Manager:")}</span>
                 </span>
                 <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
                   {currentSub.firm.directorName}
@@ -325,7 +393,7 @@ export function SubscriptionDetailsView({
               <div className="flex items-center justify-between">
                 <span className="text-[#625d5d] dark:text-[#a89f91] flex items-center gap-1">
                   <Mail className="w-3.5 h-3.5" />
-                  <span>البريد المعتمد:</span>
+                  <span>{t("البريد المعتمد:", "Official Email:")}</span>
                 </span>
                 <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                   {currentSub.firm.email}
@@ -335,7 +403,7 @@ export function SubscriptionDetailsView({
               <div className="flex items-center justify-between">
                 <span className="text-[#625d5d] dark:text-[#a89f91] flex items-center gap-1">
                   <Phone className="w-3.5 h-3.5" />
-                  <span>الهاتف الموثق:</span>
+                  <span>{t("الهاتف الموثق:", "Verified Phone:")}</span>
                 </span>
                 <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]" dir="ltr">
                   {currentSub.firm.phone}
@@ -349,11 +417,11 @@ export function SubscriptionDetailsView({
             className="w-full mt-4 py-2 bg-[#f0eeea] dark:bg-[#2c2621] hover:bg-[#eae8e4] text-[#1b1c1a] dark:text-[#fdfbf7] rounded-[4px] text-[12px] font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
             <ExternalLink className="w-3.5 h-3.5" />
-            <span>عرض ملف المكتب الكامل</span>
+            <span>{t("عرض ملف المكتب الكامل", "View Full Office Profile")}</span>
           </button>
         </div>
 
-        {/* 3 Metric Cards (Remaining 8 cols in RTL) */}
+        {/* 3 Metric Cards */}
         <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Card 1: الباقة الحالية */}
           <div
@@ -366,12 +434,12 @@ export function SubscriptionDetailsView({
               </div>
               <span className="text-[12px] font-semibold text-[#625d5d] dark:text-[#a89f91]">
                 {selectedState === "cancelled"
-                  ? "الباقة الملغاة"
+                  ? t("الباقة الملغاة", "Cancelled Plan")
                   : selectedState === "rejected"
-                  ? "الباقة المطلوبة"
+                  ? t("الباقة المطلوبة", "Requested Plan")
                   : selectedState === "pending"
-                  ? "الباقة قيد الاعتماد"
-                  : "الباقة الحالية"}
+                  ? t("الباقة قيد الاعتماد", "Pending Plan")
+                  : t("الباقة الحالية", "Current Plan")}
               </span>
             </div>
 
@@ -384,13 +452,13 @@ export function SubscriptionDetailsView({
               </p>
               <div className="mt-2 inline-block px-2 py-0.5 bg-[#f5f3ef] dark:bg-[#2c2621] rounded-[4px] text-[11px] text-[#514537] dark:text-[#d1c9bd] font-medium">
                 {currentSub.billingCycle === "سنوية"
-                  ? "الدورة السنوية (توفير 15%)"
-                  : "الدورة الشهرية المجدولة"}
+                  ? t("الدورة السنوية (توفير 15%)", "Annual Cycle (Save 15%)")
+                  : t("الدورة الشهرية المجدولة", "Monthly Scheduled Cycle")}
               </div>
             </div>
 
             <div className="pt-2 border-t border-[#f0eeea] dark:border-[#2f2a24] text-[11px] text-[#625d5d] dark:text-[#a89f91] flex items-center justify-between">
-              <span>وسيلة الدفع:</span>
+              <span>{t("وسيلة الدفع:", "Payment Method:")}</span>
               <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                 {currentSub.paymentMethod.badgeLabel} {currentSub.paymentMethod.cardNumber}
               </span>
@@ -418,8 +486,8 @@ export function SubscriptionDetailsView({
               </div>
               <span className="text-[12px] font-semibold text-[#625d5d] dark:text-[#a89f91]">
                 {selectedState === "cancelled" || selectedState === "rejected" || selectedState === "pending"
-                  ? "حالة الاشتراك والخدمة"
-                  : "موعد التجديد القادم"}
+                  ? t("حالة الاشتراك والخدمة", "Subscription Status")
+                  : t("موعد التجديد القادم", "Next Renewal Date")}
               </span>
             </div>
 
@@ -427,54 +495,54 @@ export function SubscriptionDetailsView({
               {selectedState === "cancelled" ? (
                 <>
                   <div className="flex items-baseline gap-2">
-                    <span className="font-bold text-[24px] text-[#dc2626]">الخدمة متوقفة</span>
+                    <span className="font-bold text-[24px] text-[#dc2626]">{t("الخدمة متوقفة", "Suspended")}</span>
                     <span className="bg-[#ffebee] text-[#c62828] text-[10px] font-bold px-1.5 py-0.5 rounded-[2px]">
-                      ملغي نهائياً
+                      {t("ملغي نهائياً", "Cancelled")}
                     </span>
                   </div>
                   <p className="text-[12px] text-[#514537] dark:text-[#a89f91] mt-1">
-                    تاريخ الإيقاف: 15 أكتوبر 2024
+                    {t("تاريخ الإيقاف: 15 أكتوبر 2024", "Suspended on: Oct 15, 2024")}
                   </p>
                 </>
               ) : selectedState === "rejected" ? (
                 <>
                   <div className="flex items-baseline gap-2">
-                    <span className="font-bold text-[24px] text-[#be123c]">الطلب مرفوض</span>
+                    <span className="font-bold text-[24px] text-[#be123c]">{t("الطلب مرفوض", "Rejected")}</span>
                   </div>
                   <p className="text-[12px] text-[#625d5d] dark:text-[#a89f91] mt-1">
-                    تم تقييد الوصول للخدمات السحابية
+                    {t("تم تقييد الوصول للخدمات السحابية", "Access to cloud features restricted")}
                   </p>
                 </>
               ) : selectedState === "pending" ? (
                 <>
                   <div className="flex items-baseline gap-2">
                     <span className="font-bold text-[24px] text-[#92400e] dark:text-[#fbbf24]">
-                      قيد الانتظار
+                      {t("قيد الانتظار", "Pending")}
                     </span>
                   </div>
                   <p className="text-[12px] text-[#78350f] dark:text-[#fde68a] mt-1">
-                    مراجعة التراخيص والمطابقة العدلية
+                    {t("مراجعة التراخيص والمطابقة العدلية", "Verifying legal compliance")}
                   </p>
                 </>
               ) : (
                 <>
                   <div className="flex items-baseline gap-2">
                     <span className="font-bold text-[26px] text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      21 يوماً
+                      {t("21 يوماً", "21 Days")}
                     </span>
                     <span className="bg-[#fff8e1] dark:bg-[#342711] text-[#b76e00] dark:text-[#f59e0b] text-[10px] font-bold px-1.5 py-0.5 rounded-[2px]">
-                      متبقي على التجديد
+                      {t("متبقي على التجديد", "Until Renewal")}
                     </span>
                   </div>
                   <p className="text-[12px] text-[#514537] dark:text-[#a89f91] mt-1">
-                    15 أكتوبر 2024
+                    {t("15 أكتوبر 2024", "15 October 2024")}
                   </p>
                 </>
               )}
             </div>
 
             <div className="pt-2 border-t border-[#f0eeea] dark:border-[#2f2a24] text-[11px] text-[#625d5d] dark:text-[#a89f91] flex items-center justify-between">
-              <span>التجديد التلقائي:</span>
+              <span>{t("التجديد التلقائي:", "Auto Renewal:")}</span>
               <span
                 className={`font-bold ${
                   selectedState === "active"
@@ -485,15 +553,15 @@ export function SubscriptionDetailsView({
                 }`}
               >
                 {selectedState === "active"
-                  ? "مفعل ومجدول"
+                  ? t("مفعل ومجدول", "Active & Scheduled")
                   : selectedState === "pending"
-                  ? "مجدول (مشروط)"
-                  : "معطل"}
+                  ? t("مجدول (مشروط)", "Scheduled (Conditional)")
+                  : t("معطل", "Disabled")}
               </span>
             </div>
           </div>
 
-          {/* Card 3: حالة الامتثال والفوترة ZATCA */}
+          {/* Card 3: ZATCA */}
           <div
             className="bg-white dark:bg-[#1e1c1a] p-4 rounded-[8px] border border-[#f0eeea] dark:border-[#2f2a24] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col justify-between"
             data-node-id="1:5883"
@@ -503,21 +571,24 @@ export function SubscriptionDetailsView({
                 <ShieldCheck className="w-4 h-4" />
               </div>
               <span className="text-[12px] font-semibold text-[#625d5d] dark:text-[#a89f91]">
-                حالة الامتثال والفوترة
+                {t("حالة الامتثال والفوترة", "Compliance & Billing")}
               </span>
             </div>
 
             <div className="my-3">
               <div className="inline-block bg-[#e8f5e9] dark:bg-[#132c21] text-[#1b7340] dark:text-[#34d399] font-bold text-[11px] px-2 py-0.5 rounded-[2px]">
-                مطابق لهيئة الزكاة والضريبة ZATCA
+                {t("مطابق لهيئة الزكاة والضريبة ZATCA", "ZATCA Compliant")}
               </div>
               <p className="text-[11px] text-[#625d5d] dark:text-[#a89f91] mt-1.5 leading-relaxed">
-                الفاتورة الإلكترونية - المرحلة الثانية مع رمز الاستجابة السريع المعتمد (QR).
+                {t(
+                  "الفاتورة الإلكترونية - المرحلة الثانية مع رمز الاستجابة السريع المعتمد (QR).",
+                  "E-invoicing Phase 2 with verified cryptographic QR code."
+                )}
               </p>
             </div>
 
             <div className="pt-2 border-t border-[#f0eeea] dark:border-[#2f2a24] text-[10px] text-[#625d5d] dark:text-[#a89f91] flex items-center justify-between bg-[#f5f3ef] dark:bg-[#2c2621] p-1.5 rounded-[4px]">
-              <span>الرقم الضريبي للمكتب:</span>
+              <span>{t("الرقم الضريبي للمكتب:", "Office Tax ID:")}</span>
               <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                 301298457200003
               </span>
@@ -526,7 +597,7 @@ export function SubscriptionDetailsView({
         </div>
       </div>
 
-      {/* Middle Section: Detailed Plan Limits & Actual Consumption (6 Grid Cards) */}
+      {/* Middle Section: Detailed Plan Limits & Actual Consumption */}
       <div
         className="bg-white dark:bg-[#1e1c1a] p-6 rounded-[8px] border border-[#f0eeea] dark:border-[#2f2a24] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]"
         data-node-id="1:5986"
@@ -535,32 +606,32 @@ export function SubscriptionDetailsView({
           <div>
             <h3 className="font-bold text-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">
               {selectedState === "rejected"
-                ? "تفاصيل الباقة المطلوبة (الباقة الذهبية)"
-                : "الميزات وحدود الباقة والاستهلاك الفعلي"}
+                ? t("تفاصيل الباقة المطلوبة (الباقة الذهبية)", "Requested Plan Details (Gold Plan)")
+                : t("الميزات وحدود الباقة والاستهلاك الفعلي", "Plan Limits & Actual Usage")}
             </h3>
             <p className="text-[12px] text-[#625d5d] dark:text-[#a89f91]">
               {selectedState === "cancelled"
-                ? "تم تجميد استهلاك الموارد وحفظ السجلات في وضع القراءة فقط"
+                ? t("تم تجميد استهلاك الموارد وحفظ السجلات في وضع القراءة فقط", "Resource consumption frozen; records archived read-only")
                 : selectedState === "rejected"
-                ? "الحدود المحددة في طلب الاشتراك قبل الرفض الإداري"
+                ? t("الحدود المحددة في طلب الاشتراك قبل الرفض الإداري", "Limits in request prior to rejection")
                 : selectedState === "pending"
-                ? "الحدود المقررة للباقة فور استكمال الاعتماد الإداري"
-                : "مراقبة سعة التخزين، والمستخدمين النشطين، ومعدل استخدام العمليات القانونية للباقة الفضية"}
+                ? t("الحدود المقررة للباقة فور استكمال الاعتماد الإداري", "Designated limits once admin approval completes")
+                : t("مراقبة سعة التخزين، والمستخدمين النشطين، ومعدل استخدام العمليات القانونية للباقة الفضية", "Monitor storage, active users, and legal quota for Silver Plan")}
             </p>
           </div>
           <div className="flex items-center gap-2 text-[10px] font-bold text-[#625d5d] dark:text-[#a89f91] bg-[#f5f3ef] dark:bg-[#2c2621] px-2.5 py-1.5 rounded-[4px]">
             <RefreshCw className="w-3 h-3 text-[#9c6402]" />
-            <span>تحديث البيانات الفوري: منذ 4 دقائق</span>
+            <span>{t("تحديث البيانات الفوري: منذ 4 دقائق", "Live Sync: 4 mins ago")}</span>
           </div>
         </div>
 
         {/* 6 Consumption Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-          {/* Metric 1: فريق العمل والمحامين */}
+          {/* Metric 1 */}
           <div className="bg-[#f5f3ef] dark:bg-[#2c2621] p-4 rounded-[8px] flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="font-bold text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7]">
-                فريق العمل والمحامين
+                {t("فريق العمل والمحامين", "Team & Lawyers")}
               </span>
               <span
                 className={`font-bold text-[12px] px-2 py-0.5 rounded-[2px] ${
@@ -572,11 +643,11 @@ export function SubscriptionDetailsView({
                 }`}
               >
                 {selectedState === "cancelled"
-                  ? "مجمد"
+                  ? t("مجمد", "Frozen")
                   : selectedState === "rejected"
-                  ? "غير مفعل"
+                  ? t("غير مفعل", "Inactive")
                   : selectedState === "pending"
-                  ? "معلق"
+                  ? t("معلق", "Pending")
                   : "80%"}
               </span>
             </div>
@@ -585,14 +656,15 @@ export function SubscriptionDetailsView({
               <div className="flex items-baseline justify-between text-[12px] mb-1.5">
                 <span className="font-bold text-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">
                   {selectedState === "cancelled"
-                    ? "0 مستخدمين"
+                    ? t("0 مستخدمين", "0 Users")
                     : selectedState === "rejected" || selectedState === "pending"
-                    ? "0 مفعل"
-                    : "8 مستخدمين"}
+                    ? t("0 مفعل", "0 Active")
+                    : t("8 مستخدمين", "8 Users")}
                 </span>
-                <span className="text-[#625d5d] dark:text-[#a89f91]">من أصل 10 مستخدمين</span>
+                <span className="text-[#625d5d] dark:text-[#a89f91]">
+                  {t("من أصل 10 مستخدمين", "out of 10 users")}
+                </span>
               </div>
-              {/* Progress bar */}
               <div className="w-full h-2 bg-[#eae8e4] dark:bg-[#38332c] rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full ${
@@ -607,15 +679,15 @@ export function SubscriptionDetailsView({
             </div>
 
             <div className="text-[11px] text-[#625d5d] dark:text-[#a89f91]">
-              {selectedState === "active" ? "متبقي مقعدين فقط" : "صلاحيات الوصول معطلة"}
+              {selectedState === "active" ? t("متبقي مقعدين فقط", "2 seats remaining") : t("صلاحيات الوصول معطلة", "Access suspended")}
             </div>
           </div>
 
-          {/* Metric 2: القضايا والملفات النشطة */}
+          {/* Metric 2 */}
           <div className="bg-[#f5f3ef] dark:bg-[#2c2621] p-4 rounded-[8px] flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="font-bold text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7]">
-                القضايا والملفات النشطة
+                {t("القضايا والملفات النشطة", "Active Cases & Files")}
               </span>
               <span
                 className={`font-bold text-[12px] px-2 py-0.5 rounded-[2px] ${
@@ -627,11 +699,11 @@ export function SubscriptionDetailsView({
                 }`}
               >
                 {selectedState === "cancelled"
-                  ? "أرشيف فقط"
+                  ? t("أرشيف فقط", "Archive Only")
                   : selectedState === "rejected"
                   ? "0%"
                   : selectedState === "pending"
-                  ? "معلق"
+                  ? t("معلق", "Pending")
                   : "73.6%"}
               </span>
             </div>
@@ -639,9 +711,11 @@ export function SubscriptionDetailsView({
             <div className="my-3">
               <div className="flex items-baseline justify-between text-[12px] mb-1.5">
                 <span className="font-bold text-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">
-                  {selectedState === "active" ? "184 قضية" : "0 نشطة"}
+                  {selectedState === "active" ? t("184 قضية", "184 Cases") : t("0 نشطة", "0 Active")}
                 </span>
-                <span className="text-[#625d5d] dark:text-[#a89f91]">من أصل 250 قضية</span>
+                <span className="text-[#625d5d] dark:text-[#a89f91]">
+                  {t("من أصل 250 قضية", "out of 250 cases")}
+                </span>
               </div>
               <div className="w-full h-2 bg-[#eae8e4] dark:bg-[#38332c] rounded-full overflow-hidden">
                 <div
@@ -653,15 +727,15 @@ export function SubscriptionDetailsView({
             </div>
 
             <div className="text-[11px] text-[#625d5d] dark:text-[#a89f91]">
-              {selectedState === "active" ? "متبقي 66 قضية متاحة" : "سجل الحركات معلق"}
+              {selectedState === "active" ? t("متبقي 66 قضية متاحة", "66 cases available") : t("سجل الحركات معلق", "Activity log suspended")}
             </div>
           </div>
 
-          {/* Metric 3: الموكلين والعملاء الموثقين */}
+          {/* Metric 3 */}
           <div className="bg-[#f5f3ef] dark:bg-[#2c2621] p-4 rounded-[8px] flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="font-bold text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7]">
-                الموكلين والعملاء الموثقين
+                {t("الموكلين والعملاء الموثقين", "Verified Clients")}
               </span>
               <span
                 className={`font-bold text-[12px] px-2 py-0.5 rounded-[2px] ${
@@ -673,11 +747,11 @@ export function SubscriptionDetailsView({
                 }`}
               >
                 {selectedState === "cancelled"
-                  ? "مجمد"
+                  ? t("مجمد", "Frozen")
                   : selectedState === "rejected"
                   ? "0%"
                   : selectedState === "pending"
-                  ? "معلق"
+                  ? t("معلق", "Pending")
                   : "62%"}
               </span>
             </div>
@@ -685,9 +759,11 @@ export function SubscriptionDetailsView({
             <div className="my-3">
               <div className="flex items-baseline justify-between text-[12px] mb-1.5">
                 <span className="font-bold text-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">
-                  {selectedState === "active" ? "310 عميل" : "0 موكل"}
+                  {selectedState === "active" ? t("310 عميل", "310 Clients") : t("0 موكل", "0 Clients")}
                 </span>
-                <span className="text-[#625d5d] dark:text-[#a89f91]">من أصل 500 عميل</span>
+                <span className="text-[#625d5d] dark:text-[#a89f91]">
+                  {t("من أصل 500 عميل", "out of 500 clients")}
+                </span>
               </div>
               <div className="w-full h-2 bg-[#eae8e4] dark:bg-[#38332c] rounded-full overflow-hidden">
                 <div
@@ -699,15 +775,15 @@ export function SubscriptionDetailsView({
             </div>
 
             <div className="text-[11px] text-[#625d5d] dark:text-[#a89f91]">
-              {selectedState === "active" ? "متبقي 190 عميلاً" : "قاعدة البيانات مشفرة"}
+              {selectedState === "active" ? t("متبقي 190 عميلاً", "190 clients left") : t("قاعدة البيانات مشفرة", "Database encrypted")}
             </div>
           </div>
 
-          {/* Metric 4: سعة التخزين السحابي الآمن */}
+          {/* Metric 4 */}
           <div className="bg-[#f5f3ef] dark:bg-[#2c2621] p-4 rounded-[8px] flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="font-bold text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7]">
-                سعة التخزين السحابي الآمن
+                {t("سعة التخزين السحابي الآمن", "Secure Cloud Storage")}
               </span>
               <span
                 className={`font-bold text-[12px] px-2 py-0.5 rounded-[2px] ${
@@ -719,11 +795,11 @@ export function SubscriptionDetailsView({
                 }`}
               >
                 {selectedState === "cancelled"
-                  ? "محجوز للقراءة"
+                  ? t("محجوز للقراءة", "Read-only Reserved")
                   : selectedState === "rejected"
-                  ? "غير مخصص"
+                  ? t("غير مخصص", "Unallocated")
                   : selectedState === "pending"
-                  ? "غير مخصص"
+                  ? t("غير مخصص", "Unallocated")
                   : "68%"}
               </span>
             </div>
@@ -731,9 +807,11 @@ export function SubscriptionDetailsView({
             <div className="my-3">
               <div className="flex items-baseline justify-between text-[12px] mb-1.5">
                 <span className="font-bold text-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">
-                  {selectedState === "active" ? "68 جيجابايت" : "0 GB"}
+                  {selectedState === "active" ? t("68 جيجابايت", "68 GB") : "0 GB"}
                 </span>
-                <span className="text-[#625d5d] dark:text-[#a89f91]">من أصل 100 GB</span>
+                <span className="text-[#625d5d] dark:text-[#a89f91]">
+                  {t("من أصل 100 GB", "out of 100 GB")}
+                </span>
               </div>
               <div className="w-full h-2 bg-[#eae8e4] dark:bg-[#38332c] rounded-full overflow-hidden">
                 <div
@@ -745,15 +823,15 @@ export function SubscriptionDetailsView({
             </div>
 
             <div className="text-[11px] text-[#625d5d] dark:text-[#a89f91]">
-              {selectedState === "active" ? "متبقي 32 GB مساحة حرة" : "لا توجد ملفات مرفوعة"}
+              {selectedState === "active" ? t("متبقي 32 GB مساحة حرة", "32 GB remaining free space") : t("لا توجد ملفات مرفوعة", "No files uploaded")}
             </div>
           </div>
 
-          {/* Metric 5: الوكلاء والممثلين النظاميين */}
+          {/* Metric 5 */}
           <div className="bg-[#f5f3ef] dark:bg-[#2c2621] p-4 rounded-[8px] flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="font-bold text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7]">
-                الوكلاء والممثلين النظاميين
+                {t("الوكلاء والممثلين النظاميين", "Agents & Representatives")}
               </span>
               <span
                 className={`font-bold text-[12px] px-2 py-0.5 rounded-[2px] ${
@@ -765,11 +843,11 @@ export function SubscriptionDetailsView({
                 }`}
               >
                 {selectedState === "cancelled"
-                  ? "مجمد"
+                  ? t("مجمد", "Frozen")
                   : selectedState === "rejected"
                   ? "0%"
                   : selectedState === "pending"
-                  ? "معلق"
+                  ? t("معلق", "Pending")
                   : "60%"}
               </span>
             </div>
@@ -777,9 +855,11 @@ export function SubscriptionDetailsView({
             <div className="my-3">
               <div className="flex items-baseline justify-between text-[12px] mb-1.5">
                 <span className="font-bold text-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">
-                  {selectedState === "active" ? "12 وكيلاً" : "0 وكيل"}
+                  {selectedState === "active" ? t("12 وكيلاً", "12 Agents") : t("0 وكيل", "0 Agents")}
                 </span>
-                <span className="text-[#625d5d] dark:text-[#a89f91]">من أصل 20 وكيلاً</span>
+                <span className="text-[#625d5d] dark:text-[#a89f91]">
+                  {t("من أصل 20 وكيلاً", "out of 20 agents")}
+                </span>
               </div>
               <div className="w-full h-2 bg-[#eae8e4] dark:bg-[#38332c] rounded-full overflow-hidden">
                 <div
@@ -791,15 +871,15 @@ export function SubscriptionDetailsView({
             </div>
 
             <div className="text-[11px] text-[#625d5d] dark:text-[#a89f91]">
-              {selectedState === "active" ? "متبقي 8 وكلاء متاحين" : "الربط بنظام الوكالات معطل"}
+              {selectedState === "active" ? t("متبقي 8 وكلاء متاحين", "8 agents available") : t("الربط بنظام الوكالات معطل", "POAs sync disabled")}
             </div>
           </div>
 
-          {/* Metric 6: الخدمات الإضافية والربط الحكومي */}
+          {/* Metric 6 */}
           <div className="bg-[#f5f3ef] dark:bg-[#2c2621] p-4 rounded-[8px] flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="font-bold text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7]">
-                الربط الحكومي والإضافات
+                {t("الربط الحكومي والإضافات", "Gov Sync & Add-ons")}
               </span>
               <span
                 className={`font-bold text-[12px] px-2 py-0.5 rounded-[2px] ${
@@ -810,45 +890,45 @@ export function SubscriptionDetailsView({
                     : "bg-[#e8f5e9] text-[#1b7340]"
                 }`}
               >
-                {selectedState === "active" ? "3 خدمات مفعلة" : "معلق"}
+                {selectedState === "active" ? t("3 خدمات مفعلة", "3 Active Services") : t("معلق", "Suspended")}
               </span>
             </div>
 
             <div className="my-2 space-y-1.5 text-[11px]">
               <div className="flex items-center justify-between">
-                <span className="text-[#514537] dark:text-[#d1c9bd]">بوابة ناجز العدلية:</span>
+                <span className="text-[#514537] dark:text-[#d1c9bd]">{t("بوابة ناجز العدلية:", "Najiz Judicial Portal:")}</span>
                 <span
                   className={`font-bold ${
                     selectedState === "active" ? "text-[#1b7340]" : "text-[#837565]"
                   }`}
                 >
-                  {selectedState === "active" ? "متصل ومفعل" : "معطل"}
+                  {selectedState === "active" ? t("متصل ومفعل", "Connected") : t("معطل", "Disabled")}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[#514537] dark:text-[#d1c9bd]">هيئة الزكاة والضريبة:</span>
+                <span className="text-[#514537] dark:text-[#d1c9bd]">{t("هيئة الزكاة والضريبة:", "ZATCA Authority:")}</span>
                 <span
                   className={`font-bold ${
                     selectedState === "active" ? "text-[#1b7340]" : "text-[#837565]"
                   }`}
                 >
-                  {selectedState === "active" ? "ربط فوري" : "معطل"}
+                  {selectedState === "active" ? t("ربط فوري", "Instant Sync") : t("معطل", "Disabled")}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[#514537] dark:text-[#d1c9bd]">الدعم الفني VIP:</span>
+                <span className="text-[#514537] dark:text-[#d1c9bd]">{t("الدعم الفني VIP:", "VIP Technical Support:")}</span>
                 <span
                   className={`font-bold ${
                     selectedState === "active" ? "text-[#1b7340]" : "text-[#837565]"
                   }`}
                 >
-                  {selectedState === "active" ? "ساري" : "معطل"}
+                  {selectedState === "active" ? t("ساري", "Active") : t("معطل", "Disabled")}
                 </span>
               </div>
             </div>
 
             <div className="text-[11px] text-[#625d5d] dark:text-[#a89f91] pt-1 border-t border-[#eae8e4] dark:border-[#38332c]">
-              {selectedState === "active" ? "جاهزية بنسبة 100%" : "يتطلب اشتراك نشط"}
+              {selectedState === "active" ? t("جاهزية بنسبة 100%", "100% Ready") : t("يتطلب اشتراك نشط", "Requires Active Subscription")}
             </div>
           </div>
         </div>
@@ -856,83 +936,86 @@ export function SubscriptionDetailsView({
 
       {/* Bottom Section: Two Columns (Adaptive based on State) */}
       {selectedState === "pending" ? (
-        /* Variant for Pending (1:8149): Checklist + Pro-Forma Invoice Approval */
+        /* Variant for Pending (1:8149) */
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6" data-node-id="1:8149-bottom">
-          {/* Right Column: سجل المراجعة والتدقيق الإداري (Checklist & Audit) */}
+          {/* Right Column: سجل المراجعة والتدقيق الإداري */}
           <div className="lg:col-span-7 bg-white dark:bg-[#1e1c1a] p-6 rounded-[8px] border border-[#f0eeea] dark:border-[#2f2a24] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]">
             <h3 className="font-bold text-[18px] text-[#1b1c1a] dark:text-[#fdfbf7] mb-3">
-              سجل المراجعة والتدقيق الإداري
+              {t("سجل المراجعة والتدقيق الإداري", "Administrative Review & Audit Log")}
             </h3>
 
             {/* Warning Alert */}
             <div className="bg-[#fffbeb] dark:bg-[#342711] border border-[#fde68a] dark:border-[#5c4217] p-3.5 rounded-[6px] text-[12px] text-[#78350f] dark:text-[#fbbf24] mb-4">
-              <span className="font-bold">سبب التعليق: </span>
-              بانتظار التحقق من ترخيص وزارة العدل رقم 218/41 ومطابقة السجل التجاري التابع للمكتب.
+              <span className="font-bold">{t("سبب التعليق: ", "Suspension Reason: ")}</span>
+              {t(
+                "بانتظار التحقق من ترخيص وزارة العدل رقم 218/41 ومطابقة السجل التجاري التابع للمكتب.",
+                "Awaiting verification of MOJ license #218/41 and matching commercial registration."
+              )}
             </div>
 
             {/* 4-Item Verification Checklist */}
             <div className="space-y-3 mb-6">
               <h4 className="font-bold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7]">
-                قائمة المستندات المطلوبة للاعتماد:
+                {t("قائمة المستندات المطلوبة للاعتماد:", "Required Documents for Approval:")}
               </h4>
 
               <div className="p-3 bg-[#f5f3ef] dark:bg-[#2c2621] rounded-[6px] flex items-center justify-between">
                 <div>
                   <span className="font-semibold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] block">
-                    السجل التجاري الموثق (ساري المفعول)
+                    {t("السجل التجاري الموثق (ساري المفعول)", "Commercial Registration (Active)")}
                   </span>
                   <span className="text-[11px] text-[#625d5d] dark:text-[#a89f91]">
-                    رقم السجل: 1010892019
+                    {t("رقم السجل: 1010892019", "CR Number: 1010892019")}
                   </span>
                 </div>
                 <span className="bg-[#e8f5e9] text-[#1b7340] text-[10px] font-bold px-2 py-1 rounded-[2px] flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>تم التحقق</span>
+                  <span>{t("تم التحقق", "Verified")}</span>
                 </span>
               </div>
 
               <div className="p-3 bg-[#f5f3ef] dark:bg-[#2c2621] rounded-[6px] flex items-center justify-between">
                 <div>
                   <span className="font-semibold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] block">
-                    ترخيص وزارة العدل لمزاولة مهنة المحاماة
+                    {t("ترخيص وزارة العدل لمزاولة مهنة المحاماة", "MOJ Practice License")}
                   </span>
                   <span className="text-[11px] text-[#625d5d] dark:text-[#a89f91]">
-                    رقم الترخيص: 218/41
+                    {t("رقم الترخيص: 218/41", "License Number: 218/41")}
                   </span>
                 </div>
                 <span className="bg-[#fffbeb] text-[#b45309] text-[10px] font-bold px-2 py-1 rounded-[2px] flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5" />
-                  <span>قيد التدقيق</span>
+                  <span>{t("قيد التدقيق", "Under Review")}</span>
                 </span>
               </div>
 
               <div className="p-3 bg-[#f5f3ef] dark:bg-[#2c2621] rounded-[6px] flex items-center justify-between">
                 <div>
                   <span className="font-semibold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] block">
-                    العنوان الوطني الموحد للمكتب
+                    {t("العنوان الوطني الموحد للمكتب", "Unified National Address")}
                   </span>
                   <span className="text-[11px] text-[#625d5d] dark:text-[#a89f91]">
-                    الرمز البريدي: 12211 - مبنى 401
+                    {t("الرمز البريدي: 12211 - مبنى 401", "Postal Code: 12211 - Bldg 401")}
                   </span>
                 </div>
                 <span className="bg-[#e8f5e9] text-[#1b7340] text-[10px] font-bold px-2 py-1 rounded-[2px] flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>تم التحقق</span>
+                  <span>{t("تم التحقق", "Verified")}</span>
                 </span>
               </div>
 
               <div className="p-3 bg-[#f5f3ef] dark:bg-[#2c2621] rounded-[6px] flex items-center justify-between">
                 <div>
                   <span className="font-semibold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] block">
-                    شهادة تسجيل ضريبة القيمة المضافة (ZATCA)
+                    {t("شهادة تسجيل ضريبة القيمة المضافة (ZATCA)", "VAT Registration Certificate (ZATCA)")}
                   </span>
                   <span className="text-[11px] text-[#625d5d] dark:text-[#a89f91]">
-                    الرقم الضريبي: 310928374100003
+                    {t("الرقم الضريبي: 310928374100003", "Tax ID: 310928374100003")}
                   </span>
                 </div>
                 <span className="bg-[#fffbeb] text-[#b45309] text-[10px] font-bold px-2 py-1 rounded-[2px] flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5" />
-                  <span>قيد التدقيق</span>
+                  <span>{t("قيد التدقيق", "Under Review")}</span>
                 </span>
               </div>
             </div>
@@ -940,12 +1023,12 @@ export function SubscriptionDetailsView({
             {/* Timeline Events */}
             <div className="border-t border-[#f0eeea] dark:border-[#2f2a24] pt-4">
               <h4 className="font-bold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] mb-3">
-                تسلسل الإجراءات الإدارية:
+                {t("تسلسل الإجراءات الإدارية:", "Sequence of Administrative Actions:")}
               </h4>
-              <div className="space-y-3 relative pe-4 border-e-2 border-[#eae8e4] dark:border-[#38332c]">
+              <div className={cn("space-y-3 relative", !isEn ? "pe-4 border-e-2" : "ps-4 border-s-2", "border-[#eae8e4] dark:border-[#38332c]")}>
                 {currentSub.timeline?.map((event) => (
                   <div key={event.id} className="relative">
-                    <div className="absolute -right-[21px] top-1 size-2 rounded-full bg-[#9c6402]" />
+                    <div className={cn("absolute top-1 size-2 rounded-full bg-[#9c6402]", !isEn ? "-right-[21px]" : "-left-[21px]")} />
                     <span className="font-bold text-[12px] text-[#1b1c1a] dark:text-[#fdfbf7] block">
                       {event.title}
                     </span>
@@ -961,60 +1044,63 @@ export function SubscriptionDetailsView({
             </div>
           </div>
 
-          {/* Left Column: العمليات المالية والفوترة (Pro-Forma & Action CTAs) */}
+          {/* Left Column: العمليات المالية والفوترة */}
           <div className="lg:col-span-5 bg-white dark:bg-[#1e1c1a] p-6 rounded-[8px] border border-[#f0eeea] dark:border-[#2f2a24] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col justify-between">
             <div>
               <h3 className="font-bold text-[18px] text-[#1b1c1a] dark:text-[#fdfbf7] mb-4">
-                العمليات المالية والفوترة
+                {t("العمليات المالية والفوترة", "Financial Operations & Billing")}
               </h3>
 
               {/* Authorized payment box */}
               <div className="bg-[#f5f3ef] dark:bg-[#2c2621] p-4 rounded-[6px] mb-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-bold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7]">
-                    التفويض البنكي المسبق
+                    {t("التفويض البنكي المسبق", "Pre-authorized Bank Payment")}
                   </span>
                   <span className="bg-[#fff8e1] text-[#b76e00] font-bold text-[10px] px-2 py-0.5 rounded-[2px]">
-                    مفوض بنكياً
+                    {t("مفوض بنكياً", "Authorized")}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-[12px]">
                   <span className="text-[#625d5d] dark:text-[#a89f91]">
-                    مدى (•••• 4421)
+                    {t("مدى (•••• 4421)", "Mada (•••• 4421)")}
                   </span>
                   <span className="font-bold text-[16px] text-[#1b1c1a] dark:text-[#fdfbf7]">
-                    9,200.00 ر.س
+                    {t("9,200.00 ر.س", "9,200.00 SAR")}
                   </span>
                 </div>
                 <p className="text-[10px] text-[#837565] dark:text-[#a89f91] mt-2">
-                  المبلغ محجوز لدى البوابة بانتظار الاعتماد الإداري ليتم إصدار الفاتورة الضريبية النهائية والاستقطاع.
+                  {t(
+                    "المبلغ محجوز لدى البوابة بانتظار الاعتماد الإداري ليتم إصدار الفاتورة الضريبية النهائية والاستقطاع.",
+                    "The amount is pre-authorized awaiting admin approval before generating final tax invoice and debit."
+                  )}
                 </p>
               </div>
 
               {/* Pro-Forma Invoice Draft breakdown */}
               <div className="border border-[#f0eeea] dark:border-[#2f2a24] p-4 rounded-[6px] space-y-2.5 text-[12px]">
                 <div className="font-bold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] pb-2 border-b border-[#f0eeea] dark:border-[#2f2a24]">
-                  تفاصيل مسودة الفاتورة الأولية:
+                  {t("تفاصيل مسودة الفاتورة الأولية:", "Pro-Forma Invoice Draft Breakdown:")}
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-[#625d5d] dark:text-[#a89f91]">
-                    رسوم الاشتراك الأساسية (الباقة الفضية):
+                    {t("رسوم الاشتراك الأساسية (الباقة الفضية):", "Base Subscription Fee (Silver):")}
                   </span>
                   <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                    8,000.00 ر.س
+                    {t("8,000.00 ر.س", "8,000.00 SAR")}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-[#625d5d] dark:text-[#a89f91]">
-                    ضريبة القيمة المضافة (15%):
+                    {t("ضريبة القيمة المضافة (15%):", "Value Added Tax (15%):")}
                   </span>
                   <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                    1,200.00 ر.س
+                    {t("1,200.00 ر.س", "1,200.00 SAR")}
                   </span>
                 </div>
                 <div className="flex items-center justify-between pt-2 border-t border-[#f0eeea] dark:border-[#2f2a24] font-bold text-[14px]">
-                  <span className="text-[#1b1c1a] dark:text-[#fdfbf7]">الإجمالي المستحق:</span>
-                  <span className="text-[#9c6402] dark:text-[#f59e0b]">9,200.00 ر.س</span>
+                  <span className="text-[#1b1c1a] dark:text-[#fdfbf7]">{t("الإجمالي المستحق:", "Total Due:")}</span>
+                  <span className="text-[#9c6402] dark:text-[#f59e0b]">{t("9,200.00 ر.س", "9,200.00 SAR")}</span>
                 </div>
               </div>
             </div>
@@ -1026,64 +1112,70 @@ export function SubscriptionDetailsView({
                 onClick={handleApprovePending}
                 className="w-full bg-[#059669] hover:bg-[#047857] text-white py-2.5 rounded-[6px] font-bold text-[13px] shadow-xs transition-colors cursor-pointer"
               >
-                الموافقة وتفعيل الاشتراك
+                {t("الموافقة وتفعيل الاشتراك", "Approve & Activate")}
               </button>
               <button
                 type="button"
                 onClick={handleRejectPending}
                 className="w-full bg-transparent hover:bg-[#fef2f2] text-[#dc2626] border border-[#fecaca] py-2.5 rounded-[6px] font-bold text-[13px] transition-colors cursor-pointer"
               >
-                رفض الطلب
+                {t("رفض الطلب", "Reject Request")}
               </button>
             </div>
           </div>
         </div>
       ) : selectedState === "rejected" ? (
-        /* Variant for Rejected (1:7769): Rejection Audit & Action Details */
+        /* Variant for Rejected (1:7769) */
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6" data-node-id="1:7769-bottom">
           <div className="lg:col-span-8 bg-white dark:bg-[#1e1c1a] p-6 rounded-[8px] border border-[#f0eeea] dark:border-[#2f2a24] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]">
             <h3 className="font-bold text-[18px] text-[#1b1c1a] dark:text-[#fdfbf7] mb-3">
-              تقرير الرفض الإداري والتدقيق القانوني
+              {t("تقرير الرفض الإداري والتدقيق القانوني", "Administrative Rejection & Audit Report")}
             </h3>
             <div className="bg-[#fff1f2] dark:bg-[#38141b] border border-[#fecdd3] p-4 rounded-[6px] mb-4">
               <div className="font-bold text-[14px] text-[#9f1239] dark:text-[#fb7185] mb-1">
-                سبب الرفض المسجل في النظام:
+                {t("سبب الرفض المسجل في النظام:", "Rejection reason recorded in system:")}
               </div>
               <p className="text-[12px] text-[#be123c] dark:text-[#fda4af] leading-relaxed">
-                عدم تطابق اسم المنشأة في ترخيص مزاولة المهنة الصادر من وزارة العدل مع الاسم المسجل بالسجل التجاري المرفق، إضافة إلى انتهاء صلاحية التفويض البنكي قبل اعتماد الطلب.
+                {t(
+                  "عدم تطابق اسم المنشأة في ترخيص مزاولة المهنة الصادر من وزارة العدل مع الاسم المسجل بالسجل التجاري المرفق، إضافة إلى انتهاء صلاحية التفويض البنكي قبل اعتماد الطلب.",
+                  "Firm name mismatch between MOJ license and attached CR, plus bank authorization expiry prior to approval."
+                )}
               </p>
               <div className="mt-3 pt-2 border-t border-[#fecdd3] dark:border-[#5a1b26] text-[11px] text-[#be123c] flex items-center justify-between">
-                <span>المشرف المسؤول: د. سلطان بن عبد العزيز العتيبي</span>
-                <span>تاريخ القرار: 24 أكتوبر 2024</span>
+                <span>{t("المشرف المسؤول: د. سلطان بن عبد العزيز العتيبي", "Supervisor: Dr. Sultan Al-Otaibi")}</span>
+                <span>{t("تاريخ القرار: 24 أكتوبر 2024", "Decision Date: Oct 24, 2024")}</span>
               </div>
             </div>
 
             <h4 className="font-bold text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] mb-2">
-              الإجراءات المقترحة لتمكين المكتب:
+              {t("الإجراءات المقترحة لتمكين المكتب:", "Suggested Actions to Enable Office:")}
             </h4>
             <ul className="list-disc list-inside text-[12px] text-[#514537] dark:text-[#d1c9bd] space-y-1.5">
-              <li>رفع نسخة حديثة ومطابقة من ترخيص وزارة العدل المحدث.</li>
-              <li>تحديث بيانات الممثل النظامي عبر بوابة الدخول الموحد.</li>
-              <li>إعادة تقديم الطلب وتفويض وسيلة دفع صالحة.</li>
+              <li>{t("رفع نسخة حديثة ومطابقة من ترخيص وزارة العدل المحدث.", "Upload a recent, matching copy of updated MOJ license.")}</li>
+              <li>{t("تحديث بيانات الممثل النظامي عبر بوابة الدخول الموحد.", "Update legal representative info via SSO portal.")}</li>
+              <li>{t("إعادة تقديم الطلب وتفويض وسيلة دفع صالحة.", "Resubmit request and authorize a valid payment method.")}</li>
             </ul>
           </div>
 
           <div className="lg:col-span-4 bg-white dark:bg-[#1e1c1a] p-6 rounded-[8px] border border-[#f0eeea] dark:border-[#2f2a24] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col justify-between">
             <div>
               <h3 className="font-bold text-[18px] text-[#1b1c1a] dark:text-[#fdfbf7] mb-3">
-                إجراءات التدقيق
+                {t("إجراءات التدقيق", "Audit Actions")}
               </h3>
               <p className="text-[12px] text-[#625d5d] dark:text-[#a89f91] mb-4">
-                يمكن لمسؤول النظام إعادة فتح الطلب للمراجعة الاستثنائية بعد التواصل المباشر مع ممثل المكتب.
+                {t(
+                  "يمكن لمسؤول النظام إعادة فتح الطلب للمراجعة الاستثنائية بعد التواصل المباشر مع ممثل المكتب.",
+                  "System admin can reopen request for exceptional review after direct contact with firm."
+                )}
               </p>
               <div className="space-y-2 text-[12px] p-3 bg-[#f5f3ef] dark:bg-[#2c2621] rounded-[6px]">
                 <div className="flex justify-between">
-                  <span className="text-[#625d5d]">حالة البوابة:</span>
-                  <span className="font-bold text-[#be123c]">مقيدة مؤقتاً</span>
+                  <span className="text-[#625d5d]">{t("حالة البوابة:", "Gateway Status:")}</span>
+                  <span className="font-bold text-[#be123c]">{t("مقيدة مؤقتاً", "Temporarily Restricted")}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#625d5d]">نوع الطلب:</span>
-                  <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">اشتراك سنوي جديد</span>
+                  <span className="text-[#625d5d]">{t("نوع الطلب:", "Request Type:")}</span>
+                  <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{t("اشتراك سنوي جديد", "New Annual Subscription")}</span>
                 </div>
               </div>
             </div>
@@ -1093,24 +1185,24 @@ export function SubscriptionDetailsView({
               onClick={handleReReview}
               className="w-full mt-6 bg-[#be123c] hover:bg-[#9f1239] text-white py-2.5 rounded-[6px] font-bold text-[13px] shadow-xs transition-colors cursor-pointer"
             >
-              إعادة فتح الملف للتدقيق
+              {t("إعادة فتح الملف للتدقيق", "Reopen File for Audit")}
             </button>
           </div>
         </div>
       ) : (
-        /* Variant for Active (1:5878) and Cancelled (1:7196): Invoices Table + Timeline */
+        /* Variant for Active (1:5878) and Cancelled (1:7196) */
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6" data-node-id="1:6122">
-          {/* Right Column (8 cols): سجل الفواتير والعمليات المالية */}
+          {/* Right Column (8 cols): Invoices */}
           <div
             className="lg:col-span-8 bg-white dark:bg-[#1e1c1a] p-6 rounded-[8px] border border-[#f0eeea] dark:border-[#2f2a24] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]"
             data-node-id="1:6123"
           >
             <div className="flex items-center justify-between pb-4 border-b border-[#f0eeea] dark:border-[#2f2a24] mb-4">
               <h3 className="font-bold text-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">
-                سجل الفواتير والعمليات المالية
+                {t("سجل الفواتير والعمليات المالية", "Invoice & Billing History")}
               </h3>
               <span className="text-[12px] text-[#837565]">
-                {currentSub.invoices?.length || 0} معاملات مسجلة
+                {currentSub.invoices?.length || 0} {t("معاملات مسجلة", "transactions")}
               </span>
             </div>
 
@@ -1118,11 +1210,11 @@ export function SubscriptionDetailsView({
               <table className="w-full text-start border-collapse text-[12px]">
                 <thead>
                   <tr className="bg-[#f5f3ef] dark:bg-[#2c2621] text-[#625d5d] dark:text-[#a89f91] font-bold border-b border-[#eae8e4] dark:border-[#38332c]">
-                    <th className="p-3">رقم الفاتورة والمرجع</th>
-                    <th className="p-3">تاريخ المعاملة</th>
-                    <th className="p-3">المبلغ المدفوع</th>
-                    <th className="p-3">طريقة الدفع</th>
-                    <th className="p-3">حالة العملية</th>
+                    <th className="p-3 text-start">{t("رقم الفاتورة والمرجع", "Invoice ID & Ref")}</th>
+                    <th className="p-3 text-start">{t("تاريخ المعاملة", "Transaction Date")}</th>
+                    <th className="p-3 text-start">{t("المبلغ المدفوع", "Paid Amount")}</th>
+                    <th className="p-3 text-start">{t("طريقة الدفع", "Payment Method")}</th>
+                    <th className="p-3 text-start">{t("حالة العملية", "Status")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#f0eeea] dark:divide-[#2f2a24]">
@@ -1131,7 +1223,7 @@ export function SubscriptionDetailsView({
                       key={inv.id}
                       className="hover:bg-[#faf9f7] dark:hover:bg-[#25221e] transition-colors"
                     >
-                      <td className="p-3">
+                      <td className="p-3 text-start">
                         <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
                           {inv.id}
                         </span>
@@ -1139,10 +1231,10 @@ export function SubscriptionDetailsView({
                           {inv.subDescription}
                         </span>
                       </td>
-                      <td className="p-3 text-[#625d5d] dark:text-[#a89f91]">
+                      <td className="p-3 text-start text-[#625d5d] dark:text-[#a89f91]">
                         {inv.date}
                       </td>
-                      <td className="p-3">
+                      <td className="p-3 text-start">
                         <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
                           {inv.amount}
                         </span>
@@ -1152,7 +1244,7 @@ export function SubscriptionDetailsView({
                           </span>
                         )}
                       </td>
-                      <td className="p-3">
+                      <td className="p-3 text-start">
                         <span className="text-[#1b1c1a] dark:text-[#fdfbf7] block">
                           {inv.paymentMethod}
                         </span>
@@ -1160,7 +1252,7 @@ export function SubscriptionDetailsView({
                           {inv.paymentMethodDetail}
                         </span>
                       </td>
-                      <td className="p-3">
+                      <td className="p-3 text-start">
                         <span
                           className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-[2px] ${
                             inv.status === "success"
@@ -1189,29 +1281,31 @@ export function SubscriptionDetailsView({
             </div>
           </div>
 
-          {/* Left Column (4 cols): سجل الحركات والتتبع Timeline */}
+          {/* Left Column (4 cols): سجل الحركات والتتبع */}
           <div
             className="lg:col-span-4 bg-white dark:bg-[#1e1c1a] p-6 rounded-[8px] border border-[#f0eeea] dark:border-[#2f2a24] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]"
             data-node-id="1:6224"
           >
             <div className="flex items-center justify-between pb-4 border-b border-[#f0eeea] dark:border-[#2f2a24] mb-4">
               <h3 className="font-bold text-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">
-                سجل الحركات والتتبع
+                {t("سجل الحركات والتتبع", "Activity Log & History")}
               </h3>
               <Clock className="w-4 h-4 text-[#9c6402]" />
             </div>
 
-            <div className="space-y-4 relative pe-4 border-e-2 border-[#eae8e4] dark:border-[#38332c]">
+            <div className={cn("space-y-4 relative", !isEn ? "pe-4 border-e-2" : "ps-4 border-s-2", "border-[#eae8e4] dark:border-[#38332c]")}>
               {currentSub.timeline?.map((ev) => (
                 <div key={ev.id} className="relative">
                   <div
-                    className={`absolute -right-[21px] top-1 size-2 rounded-full ${
+                    className={cn(
+                      "absolute top-1 size-2 rounded-full",
+                      !isEn ? "-right-[21px]" : "-left-[21px]",
                       ev.type === "cancellation"
                         ? "bg-[#dc2626]"
                         : ev.type === "renewal"
                         ? "bg-[#059669]"
                         : "bg-[#9c6402]"
-                    }`}
+                    )}
                   />
                   <h4 className="font-bold text-[12px] text-[#1b1c1a] dark:text-[#fdfbf7]">
                     {ev.title}

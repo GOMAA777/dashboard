@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   ArrowRight,
   User,
@@ -8,6 +8,10 @@ import {
   Scale,
   Mail,
   Phone,
+  PhoneCall,
+  MapPin,
+  Hash,
+  RefreshCw,
   ChevronDown,
   Eye,
   EyeOff,
@@ -16,9 +20,17 @@ import {
   Check,
   Hourglass,
   FileCheck,
+  UploadCloud,
+  Trash2,
+  Image as ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ClientOffice } from "../types/client.types";
+import { useLanguage } from "@/lib/i18n";
+import { DashboardSelect } from "@/components/shared/DashboardSelect";
+import { fetchPlans } from "@/lib/api/plans";
+import { unwrapList } from "@/lib/api/helpers";
+import { normalizeLogoUrl } from "@/lib/api/mappers";
 
 export interface OfficeFormData {
   id?: string;
@@ -27,10 +39,18 @@ export interface OfficeFormData {
   licenseNumber: string;
   email: string;
   phone: string;
+  landline?: string;
+  address?: string;
+  taxNumber?: string;
   city: string;
   plan: string;
+  planId?: number;
+  planType?: string;
   billingCycle?: string;
+  autoRenew?: boolean;
   password?: string;
+  logoFile?: File | null;
+  logoUrl?: string;
 }
 
 interface AddClientOfficeViewProps {
@@ -44,6 +64,7 @@ export function AddClientOfficeView({
   onBack,
   onSuccess,
 }: AddClientOfficeViewProps) {
+  const { t } = useLanguage();
   const isEditMode = Boolean(officeToEdit);
 
   const [showPassword, setShowPassword] = useState(false);
@@ -54,83 +75,187 @@ export function AddClientOfficeView({
       : "paid"
   );
 
-  // Form states initialized from officeToEdit or default
-  const [ownerName, setOwnerName] = useState(
-    officeToEdit ? officeToEdit.owner : "د. عبد العزيز بن فهد العجلان"
-  );
-  const [firmName, setFirmName] = useState(
-    officeToEdit
-      ? officeToEdit.name
-      : "شركة العجلان وشركاؤه للمحاماة والاستشارات"
-  );
+  // Form states: EMPTY for new office, populated only when editing
+  const [ownerName, setOwnerName] = useState(officeToEdit ? officeToEdit.owner : "");
+  const [firmName, setFirmName] = useState(officeToEdit ? officeToEdit.name : "");
   const [licenseNumber, setLicenseNumber] = useState(
-    officeToEdit
-      ? officeToEdit.licenseNumber.replace("ترخيص عدلي: ", "")
-      : "38/412"
+    officeToEdit ? officeToEdit.licenseNumber.replace("ترخيص عدلي: ", "") : ""
   );
-  const [email, setEmail] = useState(
-    officeToEdit ? officeToEdit.email : "contact@alajlan-law.sa"
-  );
+  const [taxNumber, setTaxNumber] = useState(officeToEdit?.taxNumber || "");
+  const [email, setEmail] = useState(officeToEdit ? officeToEdit.email : "");
   const [phone, setPhone] = useState(
-    officeToEdit
-      ? officeToEdit.phone.replace("+966 ", "").replace("+966", "")
-      : "50 123 4567"
+    officeToEdit ? officeToEdit.phone.replace("+966 ", "").replace("+966", "") : ""
   );
+  const [landline, setLandline] = useState(officeToEdit?.landline || "");
+  const [address, setAddress] = useState(officeToEdit?.address || "");
   const [city, setCity] = useState(
     officeToEdit
       ? officeToEdit.city.includes("المملكة العربية السعودية")
         ? officeToEdit.city
         : `المملكة العربية السعودية - ${officeToEdit.city}`
-      : "المملكة العربية السعودية - الرياض"
+      : ""
   );
-  const [password, setPassword] = useState(
-    officeToEdit ? "••••••••••••" : "AlJudy#Law2025"
-  );
+  const [autoRenew, setAutoRenew] = useState(officeToEdit?.autoRenew !== false);
+  const [password, setPassword] = useState(officeToEdit ? "••••••••••••" : "");
+  const [selectedPlanId, setSelectedPlanId] = useState<number>(officeToEdit?.planId || 1);
   const [packageTier, setPackageTier] = useState(
-    officeToEdit
-      ? officeToEdit.plan.includes("شركات")
-        ? "باقة الشركات ( 1,450 ر.س / شهرياً)"
-        : officeToEdit.plan.includes("أساسية")
-        ? "الباقة الأساسية ( 350 ر.س / شهرياً)"
-        : "الباقة الاحترافية ( 750 ر.س / شهرياً - الموصى بها)"
-      : "الباقة الاحترافية ( 750 ر.س / شهرياً - الموصى بها)"
+    officeToEdit?.plan || "باقة التميز العدلي"
   );
   const [billingCycle, setBillingCycle] = useState(
-    "اشتراك سنوي (موصى به - خصم شهرين مجاناً)"
+    officeToEdit?.billingCycle?.includes("شهر")
+      ? "اشتراك شهري عادي"
+      : "اشتراك سنوي (موصى به - خصم شهرين مجاناً)"
   );
+  const [availablePlans, setAvailablePlans] = useState<
+    Array<{ id: number; name: string; monthlyPrice: string; yearlyPrice: string }>
+  >([]);
+
+  // Fetch real plans from server
+  useEffect(() => {
+    let cancelled = false;
+    fetchPlans()
+      .then((res) => {
+        if (cancelled) return;
+        const list = unwrapList<any>(res);
+        if (list.length > 0) {
+          const mapped = list.map((p) => ({
+            id: Number(p.id),
+            name: String(p.name),
+            monthlyPrice: String(p.monthly_price || "0.00"),
+            yearlyPrice: String(p.yearly_price || "0.00"),
+          }));
+          setAvailablePlans(mapped);
+          if (!officeToEdit) {
+            setSelectedPlanId(mapped[0].id);
+            setPackageTier(mapped[0].name);
+          }
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [officeToEdit]);
+
+  // File Upload State
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(
+    normalizeLogoUrl(officeToEdit?.logo) || null
+  );
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Dynamic Password Strength Calculation
+  const calculatePasswordStrength = (pass: string) => {
+    if (!pass) return { score: 0, text: "أدخل كلمة المرور لاحتساب القوة", color: "text-[#837565] dark:text-[#a89f91]" };
+    let score = 0;
+    if (pass.length >= 8) score++;
+    if (/[A-Z]/.test(pass) && /[a-z]/.test(pass)) score++;
+    if (/[0-9]/.test(pass)) score++;
+    if (/[^A-Za-z0-9]/.test(pass)) score++;
+
+    if (score <= 1) return { score: 1, text: "ضعيفة (تحتاج 8 خانات ورموز)", color: "text-[#dc2626]" };
+    if (score === 2) return { score: 2, text: "متوسطة المقبولية", color: "text-[#d97706]" };
+    return { score: 3, text: "قوية ومطابقة للمعايير", color: "text-[#059669] dark:text-[#10b981]" };
+  };
+
+  const pwdStrength = calculatePasswordStrength(password);
+
+  // File Upload Handlers
+  const processLogoFile = (file: File) => {
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("حجم الملف يتجاوز الحد الأقصى المسموح به (2 ميجابايت)");
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      toast.error("يرجى اختيار ملف صورة صالح (PNG, JPG, SVG)");
+      return;
+    }
+    setLogoFile(file);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setLogoPreview(reader.result as string);
+      toast.success(`تم إرفاق الشعار "${file.name}" بنجاح.`);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processLogoFile(file);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) processLogoFile(file);
+  };
+
+  const handleRemoveLogo = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLogoFile(null);
+    setLogoPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    toast.info("تمت إزالة الشعار المرفق.");
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!ownerName || !firmName || !email || !phone) {
-      toast.error("يرجى ملء جميع الحقول الإلزامية");
+    if (!ownerName.trim()) {
+      toast.error("يرجى إدخال اسم صاحب المكتب");
+      return;
+    }
+    if (!firmName.trim()) {
+      toast.error("يرجى إدخال اسم المكتب أو الشركة المهنية");
+      return;
+    }
+    if (!email.trim()) {
+      toast.error("يرجى إدخال البريد الإلكتروني الرسمي للمكتب");
+      return;
+    }
+    if (!phone.trim()) {
+      toast.error("يرجى إدخال رقم الهاتف / الجوال للتواصل");
+      return;
+    }
+    if (!isEditMode && !password.trim()) {
+      toast.error("يرجى تعيين كلمة المرور الأولية للحساب");
       return;
     }
 
+    const selectedPlan = availablePlans.find((p) => p.id === selectedPlanId);
     const cleanPlanName =
       selectedPlanType === "trial"
         ? "تجربة مجانية"
-        : packageTier.includes("الاحترافية")
-        ? "الباقة الاحترافية"
-        : packageTier.includes("الشركات")
-        ? "باقة الشركات"
-        : "الباقة الأساسية";
+        : selectedPlan?.name || packageTier || "باقة التميز العدلي";
 
-    const cleanCity = city.replace("المملكة العربية السعودية - ", "").trim() || "الرياض";
+    const cleanCity = city ? city.replace("المملكة العربية السعودية - ", "").trim() : "الرياض";
+    const resolvedLogoFile = logoFile || fileInputRef.current?.files?.[0] || null;
 
     onSuccess(
       {
         id: officeToEdit?.id,
         name: firmName,
         owner: ownerName,
-        licenseNumber: licenseNumber.startsWith("ترخيص عدلي: ")
-          ? licenseNumber
-          : `ترخيص عدلي: ${licenseNumber}`,
+        licenseNumber: licenseNumber
+          ? licenseNumber.startsWith("ترخيص عدلي: ")
+            ? licenseNumber
+            : `ترخيص عدلي: ${licenseNumber}`
+          : "قيد المراجعة والتحقق",
         email,
         phone: phone.startsWith("+966") ? phone : `+966 ${phone}`,
+        landline: landline.trim() || undefined,
+        address: address.trim() || (cleanCity ? `المملكة العربية السعودية - ${cleanCity}` : undefined),
+        taxNumber: taxNumber.trim() || undefined,
         city: cleanCity,
         plan: cleanPlanName,
+        planId: selectedPlanType === "trial" ? undefined : selectedPlanId,
+        planType: selectedPlanType,
         billingCycle,
-        password,
+        autoRenew,
+        password: password.trim() && password !== "••••••••••••" ? password : undefined,
+        logoFile: resolvedLogoFile,
+        logoUrl: logoPreview || undefined,
       },
       isEditMode
     );
@@ -152,12 +277,18 @@ export function AddClientOfficeView({
         {/* Right: Title & Subtitle */}
         <div className="flex flex-col items-start text-start">
           <h1 className="text-[24px] sm:text-[26px] leading-[34px] sm:leading-[36px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-            {isEditMode ? "تعديل بيانات المكتب" : "إضافة مكتب جديد"}
+            {isEditMode ? t("تعديل بيانات المكتب", "Edit Law Office Details") : t("إضافة مكتب جديد", "Add New Law Office")}
           </h1>
           <p className="text-[#514537] dark:text-[#cdc5bd] text-[13px] leading-[20px] font-normal mt-1">
             {isEditMode
-              ? "قم بتحديث وتعديل بيانات المنشأة القانونية ووسائل التواصل والاشتراكات المعتمدة لمنصة الجودي."
-              : "أضف مكتب محاماة جديدًا إلى المنصة وحدد نوع اشتراكه وبيانات الدخول المعتمدة بدقة وموثوقية عالية."}
+              ? t(
+                  "قم بتحديث وتعديل بيانات المنشأة القانونية ووسائل التواصل والاشتراكات المعتمدة لمنصة الجودي.",
+                  "Update law firm details, contact information, and active subscriptions."
+                )
+              : t(
+                  "أضف مكتب محاماة جديدًا إلى المنصة وحدد نوع اشتراكه وبيانات الدخول المعتمدة بدقة وموثوقية عالية.",
+                  "Add a new law firm to the platform, configure subscription plan, and set up access credentials."
+                )}
           </p>
         </div>
 
@@ -167,8 +298,8 @@ export function AddClientOfficeView({
           onClick={onBack}
           className="bg-white dark:bg-[#2d1f16] hover:bg-[#f5f3ef] dark:hover:bg-[#38271c] border border-[#eae8e4] dark:border-[#4d3627] text-[#1b1c1a] dark:text-[#fdfbf7] px-4 py-2 rounded-[4px] text-[14px] font-semibold flex items-center gap-2 shadow-sm transition-colors cursor-pointer self-start sm:self-auto"
         >
-          <ArrowRight className="size-[15px] stroke-[2.5]" />
-          <span>العودة</span>
+          <ArrowRight className="size-[15px] stroke-[2.5] rtl:rotate-0 rotate-180" />
+          <span>{t("العودة", "Back")}</span>
         </button>
       </div>
 
@@ -178,33 +309,33 @@ export function AddClientOfficeView({
         {/* SECTION 1: بيانات المكتب والمنشأة القانونية */}
         {/* ======================================================== */}
         <div className="flex flex-col gap-[16px] w-full" data-node-id="1:1433">
-          {/* Section Header Bar */}
-          <div className="bg-[#f5f3ef]/50 rounded-[4px] px-[20px] py-[10px] flex items-center justify-between">
-            <span className="bg-[#eae8e4] text-[#514537] text-[10px] font-bold px-[8px] py-[3px] rounded-[2px]">
-              الخطوة الأساسية
-            </span>
-
+          {/* Section Header Bar: Circle & Title on Right, Step Badge on Left */}
+          <div className="bg-[#f5f3ef]/80 dark:bg-[#1a120d] border border-[#eae8e4] dark:border-[#453022] rounded-[4px] px-[20px] py-[10px] flex items-center justify-between">
             <div className="flex items-center gap-[10px]">
+              <div className="bg-[#9c6402] dark:bg-[#c29547] text-[#fff3e9] dark:text-[#1c140f] font-bold text-[13px] size-[28px] rounded-full flex items-center justify-center shrink-0 shadow-xs">
+                ١
+              </div>
               <div className="flex flex-col text-start">
-                <h2 className="text-[17px] font-semibold text-[#1b1c1a] leading-[24px]">
+                <h2 className="text-[17px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[24px]">
                   بيانات المكتب والمنشأة القانونية
                 </h2>
-                <p className="text-[12px] text-[#514537] leading-[18px]">
+                <p className="text-[12px] text-[#514537] dark:text-[#d5cec5] leading-[18px]">
                   المعلومات الأساسية للترخيص والمنشأة ووسائل التواصل المعتمدة للربط القضائي
                 </p>
               </div>
-              <div className="bg-[#9c6402] text-[#fff3e9] font-bold text-[13px] size-[28px] rounded-full flex items-center justify-center shrink-0">
-                ١
-              </div>
             </div>
+
+            <span className="bg-[#eae8e4] dark:bg-[#2c1e15] text-[#514537] dark:text-[#f0e6dc] border border-[#ded5c6] dark:border-[#523b2c] text-[10px] font-bold px-[8px] py-[3px] rounded-[2px]">
+              الخطوة الأساسية
+            </span>
           </div>
 
           {/* Form Fields Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px] pt-[4px]">
             {/* 1. اسم صاحب المكتب */}
             <div className="flex flex-col gap-[6px] text-start">
-              <label className="text-[13px] font-semibold text-[#1b1c1a]">
-                اسم صاحب المكتب <span className="text-[#7b4e00] font-bold">*</span>
+              <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                اسم صاحب المكتب <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
               </label>
               <div className="relative">
                 <input
@@ -212,20 +343,20 @@ export function AddClientOfficeView({
                   required
                   value={ownerName}
                   onChange={(e) => setOwnerName(e.target.value)}
-                  className="w-full h-[44px] bg-[#f5f3ef] border border-transparent focus:border-[#9c6402] rounded-[4px] ps-[38px] pe-[14px] text-[14px] text-[#1b1c1a] focus:outline-none"
-                  placeholder="د. عبد العزيز بن فهد العجلان"
+                  className="w-full h-[44px] bg-[#f5f3ef] dark:bg-[#160e0a] border border-[#eae8e4] dark:border-[#422e20] hover:border-[#9c6402]/40 dark:hover:border-[#e29d38]/50 focus:border-[#9c6402] dark:focus:border-[#e29d38] focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] rounded-[6px] ps-[38px] pe-[14px] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#9e9286] focus:outline-none transition-colors"
+                  placeholder="أدخل الاسم الكامل لصاحب المكتب أو المحامي المسؤول (مثال: د. عبد العزيز بن فهد العجلان)"
                 />
-                <User className="size-[15px] text-[#837565] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
+                <User className="size-[15px] text-[#837565] dark:text-[#a89f91] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
-              <span className="text-[11px] text-[#514537]">
+              <span className="text-[11px] text-[#514537] dark:text-[#d5cec5]">
                 المحامي المسؤول المعتمد بموجب توكيل المنصة.
               </span>
             </div>
 
             {/* 2. اسم المكتب أو الشركة المهنية */}
             <div className="flex flex-col gap-[6px] text-start">
-              <label className="text-[13px] font-semibold text-[#1b1c1a]">
-                اسم المكتب أو الشركة المهنية <span className="text-[#7b4e00] font-bold">*</span>
+              <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                اسم المكتب أو الشركة المهنية <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
               </label>
               <div className="relative">
                 <input
@@ -233,12 +364,12 @@ export function AddClientOfficeView({
                   required
                   value={firmName}
                   onChange={(e) => setFirmName(e.target.value)}
-                  className="w-full h-[44px] bg-[#f5f3ef] border border-transparent focus:border-[#9c6402] rounded-[4px] ps-[38px] pe-[14px] text-[14px] text-[#1b1c1a] focus:outline-none"
-                  placeholder="شركة العجلان وشركاؤه للمحاماة والاستشارات"
+                  className="w-full h-[44px] bg-[#f5f3ef] dark:bg-[#160e0a] border border-[#eae8e4] dark:border-[#422e20] hover:border-[#9c6402]/40 dark:hover:border-[#e29d38]/50 focus:border-[#9c6402] dark:focus:border-[#e29d38] focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] rounded-[6px] ps-[38px] pe-[14px] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#9e9286] focus:outline-none transition-colors"
+                  placeholder="أدخل الاسم التجاري المعتمد للمكتب أو الشركة (مثال: شركة العجلان للمحاماة)"
                 />
-                <Building2 className="size-[15px] text-[#837565] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
+                <Building2 className="size-[15px] text-[#837565] dark:text-[#a89f91] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
-              <span className="text-[11px] text-[#514537]">
+              <span className="text-[11px] text-[#514537] dark:text-[#d5cec5]">
                 الاسم التجاري أو المسجل في قائمة الشركات المهنية.
               </span>
             </div>
@@ -246,32 +377,58 @@ export function AddClientOfficeView({
             {/* 3. رقم الترخيص العدلي */}
             <div className="flex flex-col gap-[6px] text-start">
               <div className="flex items-center justify-between">
-                <span className="bg-[#f0eeea] text-[#514537] text-[10px] font-bold px-[6px] py-[2px] rounded-[2px]">
-                  اختياري
-                </span>
-                <label className="text-[13px] font-semibold text-[#1b1c1a]">
+                <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
                   رقم الترخيص العدلي
                 </label>
+                <span className="bg-[#eae8e4] dark:bg-[#2c1e15] text-[#514537] dark:text-[#f0e6dc] border border-[#ded5c6] dark:border-[#523b2c] text-[10px] font-bold px-[6px] py-[2px] rounded-[2px]">
+                  اختياري
+                </span>
               </div>
               <div className="relative">
                 <input
                   type="text"
                   value={licenseNumber}
                   onChange={(e) => setLicenseNumber(e.target.value)}
-                  className="w-full h-[44px] bg-[#f5f3ef] border border-transparent focus:border-[#9c6402] rounded-[4px] ps-[38px] pe-[14px] text-[14px] text-[#1b1c1a] focus:outline-none"
-                  placeholder="مثال: 38/412"
+                  className="w-full h-[44px] bg-[#f5f3ef] dark:bg-[#160e0a] border border-[#eae8e4] dark:border-[#422e20] hover:border-[#9c6402]/40 dark:hover:border-[#e29d38]/50 focus:border-[#9c6402] dark:focus:border-[#e29d38] focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] rounded-[6px] ps-[38px] pe-[14px] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#9e9286] focus:outline-none transition-colors"
+                  placeholder="أدخل رقم الترخيص الصادر من وزارة العدل (مثال: 38/412)"
                 />
-                <Scale className="size-[15px] text-[#837565] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
+                <Scale className="size-[15px] text-[#837565] dark:text-[#a89f91] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
-              <span className="text-[11px] text-[#514537]">
+              <span className="text-[11px] text-[#514537] dark:text-[#d5cec5]">
                 صادر من وزارة العدل السعودية أو الهيئة السعودية للمحامين.
               </span>
             </div>
 
-            {/* 4. البريد الإلكتروني الرسمي */}
+            {/* 4. الرقم الضريبي للمنشأة (ZATCA) */}
             <div className="flex flex-col gap-[6px] text-start">
-              <label className="text-[13px] font-semibold text-[#1b1c1a]">
-                البريد الإلكتروني الرسمي للمكتب <span className="text-[#7b4e00] font-bold">*</span>
+              <div className="flex items-center justify-between">
+                <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                  الرقم الضريبي للمنشأة (ZATCA)
+                </label>
+                <span className="bg-[#eae8e4] dark:bg-[#2c1e15] text-[#514537] dark:text-[#f0e6dc] border border-[#ded5c6] dark:border-[#523b2c] text-[10px] font-bold px-[6px] py-[2px] rounded-[2px]">
+                  15 رقماً
+                </span>
+              </div>
+              <div className="relative">
+                <input
+                  type="text"
+                  maxLength={15}
+                  value={taxNumber}
+                  onChange={(e) => setTaxNumber(e.target.value.replace(/[^0-9]/g, ""))}
+                  className="w-full h-[44px] bg-[#f5f3ef] dark:bg-[#160e0a] border border-[#eae8e4] dark:border-[#422e20] hover:border-[#9c6402]/40 dark:hover:border-[#e29d38]/50 focus:border-[#9c6402] dark:focus:border-[#e29d38] focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] rounded-[6px] ps-[38px] pe-[14px] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#9e9286] focus:outline-none direction-ltr text-start font-mono transition-colors"
+                  placeholder="301298457200003"
+                />
+                <Hash className="size-[15px] text-[#837565] dark:text-[#a89f91] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+              <span className="text-[11px] text-[#514537] dark:text-[#d5cec5]">
+                الرقم الضريبي المعتمد بهيئة الزكاة والضريبة والجمارك للفوترة الإلكترونية.
+              </span>
+            </div>
+
+            {/* 5. البريد الإلكتروني الرسمي */}
+            <div className="flex flex-col gap-[6px] text-start">
+              <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                البريد الإلكتروني الرسمي للمكتب <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
               </label>
               <div className="relative">
                 <input
@@ -279,23 +436,23 @@ export function AddClientOfficeView({
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-[44px] bg-[#f5f3ef] border border-transparent focus:border-[#9c6402] rounded-[4px] ps-[38px] pe-[14px] text-[14px] text-[#1b1c1a] focus:outline-none direction-ltr text-start"
-                  placeholder="contact@alajlan-law.sa"
+                  className="w-full h-[44px] bg-[#f5f3ef] dark:bg-[#160e0a] border border-[#eae8e4] dark:border-[#422e20] hover:border-[#9c6402]/40 dark:hover:border-[#e29d38]/50 focus:border-[#9c6402] dark:focus:border-[#e29d38] focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] rounded-[6px] ps-[38px] pe-[14px] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#9e9286] focus:outline-none direction-ltr text-start transition-colors"
+                  placeholder="info@lawfirm.sa"
                 />
-                <Mail className="size-[15px] text-[#837565] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
+                <Mail className="size-[15px] text-[#837565] dark:text-[#a89f91] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
-              <span className="text-[11px] text-[#514537]">
+              <span className="text-[11px] text-[#514537] dark:text-[#d5cec5]">
                 سيتم إرسال بيانات الدخول ورمز التفعيل إليه آلياً.
               </span>
             </div>
 
-            {/* 5. رقم الجوال / الهاتف للتواصل */}
+            {/* 6. رقم الجوال / الهاتف للتواصل */}
             <div className="flex flex-col gap-[6px] text-start">
-              <label className="text-[13px] font-semibold text-[#1b1c1a]">
-                رقم الجوال / الهاتف للتواصل <span className="text-[#7b4e00] font-bold">*</span>
+              <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                رقم الجوال / الهاتف للتواصل <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
               </label>
               <div className="flex items-center gap-[8px]">
-                <div className="bg-[#eae8e4] h-[44px] px-[12px] rounded-[4px] flex items-center justify-center text-[12px] font-semibold text-[#1b1c1a] shrink-0">
+                <div className="bg-[#eae8e4] dark:bg-[#2c1e15] border border-[#ded5c6] dark:border-[#523b2c] h-[44px] px-[12px] rounded-[6px] flex items-center justify-center text-[12px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] shrink-0">
                   +966 🇸🇦
                 </div>
                 <div className="relative flex-1">
@@ -304,78 +461,192 @@ export function AddClientOfficeView({
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full h-[44px] bg-[#f5f3ef] border border-transparent focus:border-[#9c6402] rounded-[4px] ps-[38px] pe-[14px] text-[14px] text-[#1b1c1a] focus:outline-none direction-ltr text-start"
+                    className="w-full h-[44px] bg-[#f5f3ef] dark:bg-[#160e0a] border border-[#eae8e4] dark:border-[#422e20] hover:border-[#9c6402]/40 dark:hover:border-[#e29d38]/50 focus:border-[#9c6402] dark:focus:border-[#e29d38] focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] rounded-[6px] ps-[38px] pe-[14px] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#9e9286] focus:outline-none direction-ltr text-start transition-colors"
                     placeholder="50 123 4567"
                   />
-                  <Phone className="size-[14px] text-[#837565] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <Phone className="size-[14px] text-[#837565] dark:text-[#a89f91] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
               </div>
-              <span className="text-[11px] text-[#514537]">
+              <span className="text-[11px] text-[#514537] dark:text-[#d5cec5]">
                 يُستخدم لتأكيد العمليات الحساسة وإشعارات الجلسات العاجلة.
               </span>
             </div>
 
-            {/* 6. المدينة / المقر الرئيسي */}
+            {/* 7. الهاتف المكتبي الثابت */}
             <div className="flex flex-col gap-[6px] text-start">
-              <label className="text-[13px] font-semibold text-[#1b1c1a]">
-                المدينة / المقر الرئيسي <span className="text-[#7b4e00] font-bold">*</span>
-              </label>
-              <div className="relative">
-                <select
-                  aria-label="المدينة / المقر الرئيسي"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className="appearance-none w-full h-[44px] bg-[#f5f3ef] border border-transparent focus:border-[#9c6402] rounded-[4px] ps-[38px] pe-[14px] text-[14px] text-[#1b1c1a] focus:outline-none cursor-pointer"
-                >
-                  <option value="المملكة العربية السعودية - الرياض">المملكة العربية السعودية - الرياض</option>
-                  <option value="المملكة العربية السعودية - جدة">المملكة العربية السعودية - جدة</option>
-                  <option value="المملكة العربية السعودية - الدمام">المملكة العربية السعودية - الدمام</option>
-                  <option value="المملكة العربية السعودية - الخبر">المملكة العربية السعودية - الخبر</option>
-                  <option value="المملكة العربية السعودية - مكة المكرمة">المملكة العربية السعودية - مكة المكرمة</option>
-                  <option value="المملكة العربية السعودية - المدينة المنورة">المملكة العربية السعودية - المدينة المنورة</option>
-                </select>
-                <ChevronDown className="size-[14px] text-[#514537] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
+              <div className="flex items-center justify-between">
+                <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                  الهاتف المكتبي المباشر (الثابت)
+                </label>
+                <span className="bg-[#eae8e4] dark:bg-[#2c1e15] text-[#514537] dark:text-[#f0e6dc] border border-[#ded5c6] dark:border-[#523b2c] text-[10px] font-bold px-[6px] py-[2px] rounded-[2px]">
+                  اختياري
+                </span>
               </div>
+              <div className="relative">
+                <input
+                  type="tel"
+                  value={landline}
+                  onChange={(e) => setLandline(e.target.value)}
+                  className="w-full h-[44px] bg-[#f5f3ef] dark:bg-[#160e0a] border border-[#eae8e4] dark:border-[#422e20] hover:border-[#9c6402]/40 dark:hover:border-[#e29d38]/50 focus:border-[#9c6402] dark:focus:border-[#e29d38] focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] rounded-[6px] ps-[38px] pe-[14px] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#9e9286] focus:outline-none direction-ltr text-start transition-colors"
+                  placeholder="011 482 9900"
+                />
+                <PhoneCall className="size-[15px] text-[#837565] dark:text-[#a89f91] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+              <span className="text-[11px] text-[#514537] dark:text-[#d5cec5]">
+                خط الاستقبال والسنترال الرئيسي للمنشأة.
+              </span>
+            </div>
+
+            {/* 8. المدينة / المقر الرئيسي */}
+            <div className="flex flex-col gap-[6px] text-start">
+              <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                المدينة / المقر الرئيسي <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
+              </label>
+              <DashboardSelect
+                aria-label="المدينة / المقر الرئيسي"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="اختر المدينة / المقر الرئيسي للمكتب..."
+                className="h-[44px] bg-[#f5f3ef] dark:bg-[#160e0a] border-[#eae8e4] dark:border-[#422e20]"
+              >
+                <option value="" disabled>اختر المدينة / المقر الرئيسي للمكتب...</option>
+                <option value="المملكة العربية السعودية - الرياض">المملكة العربية السعودية - الرياض</option>
+                <option value="المملكة العربية السعودية - جدة">المملكة العربية السعودية - جدة</option>
+                <option value="المملكة العربية السعودية - الدمام">المملكة العربية السعودية - الدمام</option>
+                <option value="المملكة العربية السعودية - الخبر">المملكة العربية السعودية - الخبر</option>
+                <option value="المملكة العربية السعودية - مكة المكرمة">المملكة العربية السعودية - مكة المكرمة</option>
+                <option value="المملكة العربية السعودية - المدينة المنورة">المملكة العربية السعودية - المدينة المنورة</option>
+                <option value="المملكة العربية السعودية - الأحساء">المملكة العربية السعودية - الأحساء</option>
+                <option value="المملكة العربية السعودية - أبها">المملكة العربية السعودية - أبها</option>
+                <option value="المملكة العربية السعودية - تبوك">المملكة العربية السعودية - تبوك</option>
+              </DashboardSelect>
+              <span className="text-[11px] text-[#514537] dark:text-[#d5cec5]">
+                منطقة الاختصاص المكاني للمحاكم الابتدائية.
+              </span>
+            </div>
+
+            {/* 9. العنوان الوطني / التفصيلي (Full Width) */}
+            <div className="flex flex-col gap-[6px] text-start md:col-span-2">
+              <div className="flex items-center justify-between">
+                <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                  العنوان الوطني / مقر المكتب الرئيسي
+                </label>
+                <span className="bg-[#eae8e4] dark:bg-[#2c1e15] text-[#514537] dark:text-[#f0e6dc] border border-[#ded5c6] dark:border-[#523b2c] text-[10px] font-bold px-[6px] py-[2px] rounded-[2px]">
+                  موصى به
+                </span>
+              </div>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  className="w-full h-[44px] bg-[#f5f3ef] dark:bg-[#160e0a] border border-[#eae8e4] dark:border-[#422e20] hover:border-[#9c6402]/40 dark:hover:border-[#e29d38]/50 focus:border-[#9c6402] dark:focus:border-[#e29d38] focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] rounded-[6px] ps-[38px] pe-[14px] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#9e9286] focus:outline-none transition-colors"
+                  placeholder="طريق الملك فهد، حي الصحافة، برج النخبة - الطابق 14"
+                />
+                <MapPin className="size-[15px] text-[#837565] dark:text-[#a89f91] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+              <span className="text-[11px] text-[#514537] dark:text-[#d5cec5]">
+                العنوان المسجل في بوابة الهيئة السعودية للمحامين وإشعارات التبليغ القضائي.
+              </span>
             </div>
           </div>
 
-          {/* Identity / Logo Upload Area */}
+          {/* Identity / Logo Upload Area (FULLY FUNCTIONAL FILE INPUT & DRAG/DROP) */}
           <div className="flex flex-col gap-[8px] pt-[8px] text-start">
             <div className="flex items-center justify-between">
-              <span className="bg-[#f0eeea] text-[#514537] text-[10px] font-bold px-[6px] py-[2px] rounded-[2px]">
-                اختياري
-              </span>
-              <label className="text-[13px] font-semibold text-[#1b1c1a]">
+              <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
                 شعار المنشأة / الهوية القانونية
               </label>
+              <span className="bg-[#eae8e4] dark:bg-[#281c15] text-[#514537] dark:text-[#cdc5bd] border border-[#ded5c6] dark:border-[#38271c] text-[10px] font-bold px-[6px] py-[2px] rounded-[2px]">
+                اختياري
+              </span>
             </div>
 
-            <div className="bg-[#f5f3ef] rounded-[8px] p-[20px] flex items-center justify-between gap-[16px]">
-              <span className="bg-[#eae8e4] text-[#514537] text-[10px] font-bold px-[10px] py-[4px] rounded-[2px] shrink-0">
-                2 MB كحد أقصى
-              </span>
+            {/* Hidden native file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/jpg,image/svg+xml"
+              onChange={handleFileChange}
+              className="hidden"
+            />
 
-              <div className="flex-1 flex flex-col items-center sm:items-start text-start">
-                <div className="flex items-center gap-[8px]">
-                  <span className="text-[13px] font-semibold text-[#1b1c1a]">
-                    اسحب الشعار وأفلته هنا
-                  </span>
-                  <span className="text-[12px] text-[#514537]">أو</span>
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDragging(true);
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className={`rounded-[8px] p-[18px] sm:p-[20px] flex items-center justify-between gap-[16px] border border-dashed transition-all cursor-pointer ${
+                isDragging
+                  ? "bg-[#ffddb6]/20 dark:bg-[rgba(226,157,56,0.18)] border-[#9c6402] dark:border-[#e29d38]"
+                  : "bg-[#f5f3ef] dark:bg-[#160e0a] border-[#eae8e4] dark:border-[#422e20] hover:border-[#9c6402]/60 dark:hover:border-[#e29d38]/60"
+              }`}
+            >
+              {logoPreview ? (
+                /* Uploaded Logo Preview */
+                <div className="flex items-center gap-[14px] w-full">
+                  <div className="size-[56px] rounded-[6px] bg-white dark:bg-[#2c1e15] border border-[#eae8e4] dark:border-[#523b2c] p-1 flex items-center justify-center shrink-0 shadow-xs overflow-hidden">
+                    <img
+                      src={logoPreview}
+                      alt="شعار المنشأة"
+                      className="max-h-full max-w-full object-contain"
+                    />
+                  </div>
+
+                  <div className="flex-1 flex flex-col text-start min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] truncate">
+                        {logoFile ? logoFile.name : "تم رفع شعار المنشأة"}
+                      </span>
+                      <span className="bg-[#e8f5e9] dark:bg-[#132c1c] text-[#1b7340] dark:text-[#6ee7b7] border border-[#c8e6c9] dark:border-emerald-500/40 text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0">
+                        جاهز
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-[#514537] dark:text-[#d5cec5] mt-0.5">
+                      {logoFile ? `${(logoFile.size / 1024).toFixed(1)} KB` : "انقر لتغيير الشعار أو سحب صورة جديدة"}
+                    </span>
+                  </div>
+
                   <button
                     type="button"
-                    className="text-[13px] font-bold text-[#7b4e00] hover:underline cursor-pointer"
+                    onClick={handleRemoveLogo}
+                    className="p-2 rounded-[4px] hover:bg-[#fef2f2] dark:hover:bg-[#341616] text-[#dc2626] dark:text-[#f87171] transition-colors cursor-pointer shrink-0"
+                    title="حذف الشعار"
                   >
-                    تصفح الملفات
+                    <Trash2 className="size-[16px]" />
                   </button>
                 </div>
-                <span className="text-[11px] text-[#514537] mt-[2px]">
-                  الملفات المدعومة: PNG, SVG, JPG بحد أقصى 2 ميجابايت (يفضل خلفية شفافة أبعاد 400x400).
-                </span>
-              </div>
+              ) : (
+                /* Empty Upload Prompt */
+                <>
+                  <div className="flex items-center gap-[12px]">
+                    <div className="size-[54px] bg-white dark:bg-[#2c1e15] border border-[#eae8e4] dark:border-[#523b2c] rounded-[6px] shadow-sm flex items-center justify-center text-[#9c6402] dark:text-[#e29d38] shrink-0">
+                      <UploadCloud className="size-[24px]" />
+                    </div>
+                    <div className="flex-1 flex flex-col text-start">
+                      <div className="flex items-center gap-[8px]">
+                        <span className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                          اسحب الشعار وأفلته هنا
+                        </span>
+                        <span className="text-[12px] text-[#514537] dark:text-[#d5cec5]">أو</span>
+                        <span className="text-[13px] font-bold text-[#9c6402] dark:text-[#e29d38] underline">
+                          تصفح الملفات
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-[#514537] dark:text-[#d5cec5] mt-[2px]">
+                        الملفات المدعومة: PNG, SVG, JPG بحد أقصى 2 ميجابايت (يفضل خلفية شفافة أبعاد 400x400).
+                      </span>
+                    </div>
+                  </div>
 
-              <div className="size-[54px] bg-white rounded-[4px] shadow-sm flex items-center justify-center text-[#9c6402] shrink-0">
-                <Scale className="size-[24px]" />
-              </div>
+                  <span className="bg-[#eae8e4] dark:bg-[#2c1e15] text-[#514537] dark:text-[#f0e6dc] border border-[#ded5c6] dark:border-[#523b2c] text-[10px] font-bold px-[10px] py-[4px] rounded-[2px] shrink-0">
+                    2 MB كحد أقصى
+                  </span>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -385,39 +656,44 @@ export function AddClientOfficeView({
         {/* ======================================================== */}
         <div className="flex flex-col gap-[16px] w-full pt-[8px]" data-node-id="1:1543">
           {/* Section Header Bar */}
-          <div className="bg-[#f5f3ef]/50 rounded-[4px] px-[20px] py-[10px] flex items-center justify-between">
-            <div className="flex items-center gap-[10px] ms-auto">
+          <div className="bg-[#f5f3ef]/80 dark:bg-[#1a120d] border border-[#eae8e4] dark:border-[#453022] rounded-[4px] px-[20px] py-[10px] flex items-center justify-between">
+            <div className="flex items-center gap-[10px]">
+              <div className="bg-[#9c6402] dark:bg-[#c29547] text-[#fff3e9] dark:text-[#1c140f] font-bold text-[13px] size-[28px] rounded-full flex items-center justify-center shrink-0 shadow-xs">
+                ٢
+              </div>
               <div className="flex flex-col text-start">
-                <h2 className="text-[17px] font-semibold text-[#1b1c1a] leading-[24px]">
+                <h2 className="text-[17px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[24px]">
                   بيانات الحساب والاشتراك السحابي
                 </h2>
-                <p className="text-[12px] text-[#514537] leading-[18px]">
+                <p className="text-[12px] text-[#514537] dark:text-[#d5cec5] leading-[18px]">
                   إعدادات المصادقة والدخول ونوع الباقة المفعلة للمكتب وصلاحيات الأعضاء
                 </p>
               </div>
-              <div className="bg-[#9c6402] text-[#fff3e9] font-bold text-[13px] size-[28px] rounded-full flex items-center justify-center shrink-0">
-                ٢
-              </div>
             </div>
+
+            <span className="bg-[#eae8e4] dark:bg-[#2c1e15] text-[#514537] dark:text-[#f0e6dc] border border-[#ded5c6] dark:border-[#523b2c] text-[10px] font-bold px-[8px] py-[3px] rounded-[2px]">
+              الوصول والأمان
+            </span>
           </div>
 
           {/* Initial Password Field */}
           <div className="flex flex-col gap-[6px] text-start">
-            <label className="text-[13px] font-semibold text-[#1b1c1a]">
-              كلمة المرور الأولية للحساب <span className="text-[#7b4e00] font-bold">*</span>
+            <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
+              كلمة المرور الأولية للحساب <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
             </label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
-                required
+                required={!isEditMode}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full h-[44px] bg-[#f5f3ef] border border-transparent focus:border-[#9c6402] rounded-[4px] ps-[40px] pe-[14px] text-[14px] text-[#1b1c1a] focus:outline-none direction-ltr text-start font-mono"
+                className="w-full h-[44px] bg-[#f5f3ef] dark:bg-[#160e0a] border border-[#eae8e4] dark:border-[#422e20] hover:border-[#9c6402]/40 dark:hover:border-[#e29d38]/50 focus:border-[#9c6402] dark:focus:border-[#e29d38] focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] rounded-[6px] ps-[40px] pe-[14px] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#9e9286] focus:outline-none direction-ltr text-start font-mono transition-colors"
+                placeholder="أدخل كلمة مرور قوية (8 خانات على الأقل تتضمن رموزاً وأرقاماً)"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute start-[12px] top-1/2 -translate-y-1/2 text-[#514537] hover:text-[#1b1c1a] p-1 cursor-pointer"
+                className="absolute start-[12px] top-1/2 -translate-y-1/2 text-[#514537] dark:text-[#a89f91] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] p-1 cursor-pointer transition-colors"
               >
                 {showPassword ? <EyeOff className="size-[15px]" /> : <Eye className="size-[15px]" />}
               </button>
@@ -425,192 +701,246 @@ export function AddClientOfficeView({
 
             {/* Password strength indicator */}
             <div className="flex items-center gap-[8px] pt-[2px]">
-              <span className="text-[10px] font-semibold text-[#9c6402]">قوية ومطابقة</span>
-              <div className="flex-1 h-[5px] bg-[#eae8e4] rounded-full overflow-hidden flex gap-[4px]">
-                <div className="flex-1 bg-[#9c6402] rounded-full" />
-                <div className="flex-1 bg-[#9c6402] rounded-full" />
-                <div className="flex-1 bg-[#9c6402] rounded-full" />
+              <span className={`text-[10px] font-semibold ${pwdStrength.color}`}>
+                {pwdStrength.text}
+              </span>
+              <div className="flex-1 h-[5px] bg-[#eae8e4] dark:bg-[#2c1e15] rounded-full overflow-hidden flex gap-[4px]">
+                <div
+                  className={`flex-1 rounded-full transition-colors ${
+                    pwdStrength.score >= 1
+                      ? pwdStrength.score === 1
+                        ? "bg-[#dc2626]"
+                        : pwdStrength.score === 2
+                        ? "bg-[#d97706]"
+                        : "bg-[#059669] dark:bg-[#10b981]"
+                      : "bg-[#eae8e4] dark:bg-[#2c1e15]"
+                  }`}
+                />
+                <div
+                  className={`flex-1 rounded-full transition-colors ${
+                    pwdStrength.score >= 2
+                      ? pwdStrength.score === 2
+                        ? "bg-[#d97706]"
+                        : "bg-[#059669] dark:bg-[#10b981]"
+                      : "bg-[#eae8e4] dark:bg-[#2c1e15]"
+                  }`}
+                />
+                <div
+                  className={`flex-1 rounded-full transition-colors ${
+                    pwdStrength.score >= 3
+                      ? "bg-[#059669] dark:bg-[#10b981]"
+                      : "bg-[#eae8e4] dark:bg-[#2c1e15]"
+                  }`}
+                />
               </div>
             </div>
-            <span className="text-[11px] text-[#514537]">
+            <span className="text-[11px] text-[#514537] dark:text-[#d5cec5]">
               يجب أن تحتوي على 8 خانات على الأقل تتضمن أحرفاً كبيرة وصغيرة وأرقاماً ورموزاً.
             </span>
           </div>
 
           {/* Subscription Plan Radio Cards */}
           <div className="flex flex-col gap-[8px] pt-[8px] text-start">
-            <label className="text-[13px] font-semibold text-[#1b1c1a]">
-              نوع وخطة الاشتراك <span className="text-[#7b4e00] font-bold">*</span>
+            <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
+              نوع وخطة الاشتراك <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
             </label>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
               {/* Card 1: باقة مدفوعة (Selected) */}
               <div
                 onClick={() => setSelectedPlanType("paid")}
-                className={`bg-[#f5f3ef] rounded-[8px] p-[16px] flex flex-col gap-[8px] cursor-pointer transition-all border ${
+                className={`rounded-[8px] p-[16px] flex flex-col gap-[8px] cursor-pointer transition-all border ${
                   selectedPlanType === "paid"
-                    ? "border-[#9c6402] ring-1 ring-[#9c6402] shadow-sm"
-                    : "border-transparent opacity-80"
+                    ? "bg-[#f5f3ef] dark:bg-[#261911] border-[#9c6402] dark:border-[#c29547] ring-1 ring-[#9c6402] dark:ring-[#c29547] shadow-sm"
+                    : "bg-[#f5f3ef] dark:bg-[#160e0a] border-[#eae8e4] dark:border-[#422e20] opacity-80"
                 }`}
               >
                 <div className="flex items-start justify-between">
-                  <span className="bg-[#9c6402]/15 text-[#9c6402] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px]">
-                    فوري
-                  </span>
-
                   <div className="flex items-center gap-[8px]">
-                    <div className="flex flex-col text-start">
-                      <span className="text-[16px] font-bold text-[#1b1c1a] leading-[22px]">
-                        باقة مدفوعة
-                      </span>
-                      <span className="text-[11px] text-[#514537] leading-[16px]">
-                        تفعيل فوري لكافة مزايا النظام وسندات القبض
-                      </span>
-                    </div>
-
                     <div
                       className={`size-[20px] rounded-full flex items-center justify-center shrink-0 ${
                         selectedPlanType === "paid"
-                          ? "bg-[#9c6402] text-white"
-                          : "border border-[#837565]"
+                          ? "bg-[#9c6402] dark:bg-[#c29547] text-white dark:text-[#1c140f]"
+                          : "border border-[#837565] dark:border-[#a89f91]"
                       }`}
                     >
                       {selectedPlanType === "paid" && <Check className="size-[12px] stroke-[3]" />}
                     </div>
+                    <div className="flex flex-col text-start">
+                      <span className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[22px]">
+                        باقة مدفوعة
+                      </span>
+                      <span className="text-[11px] text-[#514537] dark:text-[#d5cec5] leading-[16px]">
+                        تفعيل فوري لكافة مزايا النظام وسندات القبض
+                      </span>
+                    </div>
                   </div>
+
+                  <span className="bg-[#9c6402]/15 dark:bg-[#e29d38]/20 text-[#9c6402] dark:text-[#e29d38] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px]">
+                    فوري
+                  </span>
                 </div>
 
-                <div className="bg-white/60 rounded-[4px] px-[10px] py-[6px] flex items-center justify-between text-[11px] font-bold text-[#514537]">
-                  <FileCheck className="size-[14px] text-[#9c6402]" />
+                <div className="bg-white/80 dark:bg-[#1f150f] border border-[#eae8e4] dark:border-[#422e20] rounded-[4px] px-[10px] py-[6px] flex items-center justify-between text-[11px] font-bold text-[#514537] dark:text-[#d5cec5]">
                   <span>وصول كامل لربط ناجز والقضايا غير المحدودة</span>
+                  <FileCheck className="size-[14px] text-[#9c6402] dark:text-[#e29d38]" />
                 </div>
               </div>
 
               {/* Card 2: تجربة مجانية */}
               <div
                 onClick={() => setSelectedPlanType("trial")}
-                className={`bg-[#f5f3ef] rounded-[8px] p-[16px] flex flex-col gap-[8px] cursor-pointer transition-all border ${
+                className={`rounded-[8px] p-[16px] flex flex-col gap-[8px] cursor-pointer transition-all border ${
                   selectedPlanType === "trial"
-                    ? "border-[#9c6402] ring-1 ring-[#9c6402] shadow-sm"
-                    : "border-transparent opacity-80"
+                    ? "bg-[#f5f3ef] dark:bg-[#261911] border-[#9c6402] dark:border-[#c29547] ring-1 ring-[#9c6402] dark:ring-[#c29547] shadow-sm"
+                    : "bg-[#f5f3ef] dark:bg-[#160e0a] border-[#eae8e4] dark:border-[#422e20] opacity-80"
                 }`}
               >
                 <div className="flex items-start justify-between">
-                  <span className="bg-[#e4e2de] text-[#514537] text-[10px] font-semibold px-[8px] py-[2px] rounded-[2px]">
-                    ١٤ يوماً
-                  </span>
-
                   <div className="flex items-center gap-[8px]">
-                    <div className="flex flex-col text-start">
-                      <span className="text-[16px] font-bold text-[#1b1c1a] leading-[22px]">
-                        تجربة مجانية
-                      </span>
-                      <span className="text-[11px] text-[#514537] leading-[16px]">
-                        فترة استكشافية للمكتب لإجراء الاختبارات التشغيلية
-                      </span>
-                    </div>
-
                     <div
                       className={`size-[20px] rounded-full flex items-center justify-center shrink-0 ${
                         selectedPlanType === "trial"
-                          ? "bg-[#9c6402] text-white"
-                          : "border border-[#837565]"
+                          ? "bg-[#9c6402] dark:bg-[#c29547] text-white dark:text-[#1c140f]"
+                          : "border border-[#837565] dark:border-[#a89f91]"
                       }`}
                     >
                       {selectedPlanType === "trial" && <Check className="size-[12px] stroke-[3]" />}
                     </div>
+                    <div className="flex flex-col text-start">
+                      <span className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[22px]">
+                        تجربة مجانية
+                      </span>
+                      <span className="text-[11px] text-[#514537] dark:text-[#d5cec5] leading-[16px]">
+                        فترة استكشافية للمكتب لإجراء الاختبارات التشغيلية
+                      </span>
+                    </div>
                   </div>
+
+                  <span className="bg-[#eae8e4] dark:bg-[#2c1e15] text-[#514537] dark:text-[#f0e6dc] border border-[#ded5c6] dark:border-[#523b2c] text-[10px] font-semibold px-[8px] py-[2px] rounded-[2px]">
+                    ١٤ يوماً
+                  </span>
                 </div>
 
-                <div className="bg-white/60 rounded-[4px] px-[10px] py-[6px] flex items-center justify-between text-[11px] font-bold text-[#514537]">
-                  <Hourglass className="size-[13px] text-[#837565]" />
+                <div className="bg-white/80 dark:bg-[#1f150f] border border-[#eae8e4] dark:border-[#422e20] rounded-[4px] px-[10px] py-[6px] flex items-center justify-between text-[11px] font-bold text-[#514537] dark:text-[#d5cec5]">
                   <span>إمكانية إضافة حتى 3 محامين و 25 قضية</span>
+                  <Hourglass className="size-[13px] text-[#837565] dark:text-[#a89f91]" />
                 </div>
               </div>
             </div>
           </div>
 
           {/* Tier & Billing Configuration Details */}
-          <div className="bg-[#f5f3ef] rounded-[8px] p-[20px] flex flex-col gap-[16px]">
+          <div className="bg-[#f5f3ef] dark:bg-[#160e0a] border border-[#eae8e4] dark:border-[#422e20] rounded-[8px] p-[20px] flex flex-col gap-[16px]">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px]">
-              {/* الباقة المعتمدة */}
+              {/* الباقة المعتمدة (CUSTOM LUXURY DROPDOWN MENU) */}
               <div className="flex flex-col gap-[6px] text-start">
-                <label className="text-[13px] font-semibold text-[#1b1c1a]">
+                <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
                   الباقة المعتمدة
                 </label>
-                <div className="relative">
-                  <select
-                    aria-label="الباقة المعتمدة"
-                    value={packageTier}
-                    onChange={(e) => setPackageTier(e.target.value)}
-                    className="appearance-none w-full h-[44px] bg-white border border-[#eae8e4] rounded-[4px] ps-[38px] pe-[14px] text-[13px] text-[#1b1c1a] focus:outline-none cursor-pointer"
-                  >
-                    <option value="الباقة الاحترافية ( 750 ر.س / شهرياً - الموصى بها)">
-                      الباقة الاحترافية ( 750 ر.س / شهرياً - الموصى بها)
-                    </option>
-                    <option value="باقة الشركات ( 1,450 ر.س / شهرياً)">
-                      باقة الشركات ( 1,450 ر.س / شهرياً)
-                    </option>
-                    <option value="الباقة الأساسية ( 350 ر.س / شهرياً)">
-                      الباقة الأساسية ( 350 ر.س / شهرياً)
-                    </option>
-                  </select>
-                  <ChevronDown className="size-[14px] text-[#514537] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
-                </div>
-                <span className="text-[11px] text-[#514537]">
+                <DashboardSelect
+                  aria-label="الباقة المعتمدة"
+                  value={String(selectedPlanId)}
+                  onChange={(e) => {
+                    const id = Number(e.target.value);
+                    setSelectedPlanId(id);
+                    const found = availablePlans.find((p) => p.id === id);
+                    if (found) setPackageTier(found.name);
+                  }}
+                  className="h-[44px] bg-white dark:bg-[#1f150f] border-[#eae8e4] dark:border-[#422e20]"
+                >
+                  {availablePlans.length > 0 ? (
+                    availablePlans.map((p) => (
+                      <option key={p.id} value={String(p.id)}>
+                        {p.name} ({Number(p.monthlyPrice).toLocaleString("ar-SA")} ر.س / شهرياً - {Number(p.yearlyPrice).toLocaleString("ar-SA")} ر.س / سنوياً)
+                      </option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="1">باقة التميز العدلي ( 2,222 ر.س / شهرياً )</option>
+                      <option value="2">الباقة الاحترافية ( 750 ر.س / شهرياً )</option>
+                      <option value="3">الباقة الأساسية ( 350 ر.س / شهرياً )</option>
+                    </>
+                  )}
+                </DashboardSelect>
+                <span className="text-[11px] text-[#514537] dark:text-[#d5cec5]">
                   تشمل حتى 15 مستخدم، ونظام الفوترة الإلكترونية المرتبط بهيئة الزكاة.
                 </span>
               </div>
 
-              {/* دورة الفوترة والتحصيل */}
+              {/* دورة الفوترة والتحصيل (CUSTOM LUXURY DROPDOWN MENU) */}
               <div className="flex flex-col gap-[6px] text-start">
-                <label className="text-[13px] font-semibold text-[#1b1c1a]">
+                <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
                   دورة الفوترة والتحصيل
                 </label>
-                <div className="relative">
-                  <select
-                    aria-label="دورة الفوترة والتحصيل"
-                    value={billingCycle}
-                    onChange={(e) => setBillingCycle(e.target.value)}
-                    className="appearance-none w-full h-[44px] bg-white border border-[#eae8e4] rounded-[4px] ps-[38px] pe-[14px] text-[13px] text-[#1b1c1a] focus:outline-none cursor-pointer"
-                  >
-                    <option value="اشتراك سنوي (موصى به - خصم شهرين مجاناً)">
-                      اشتراك سنوي (موصى به - خصم شهرين مجاناً)
-                    </option>
-                    <option value="اشتراك نصف سنوي">اشتراك نصف سنوي</option>
-                    <option value="اشتراك شهري عادي">اشتراك شهري عادي</option>
-                  </select>
-                  <ChevronDown className="size-[14px] text-[#514537] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
-                </div>
-                <span className="text-[11px] text-[#514537]">
+                <DashboardSelect
+                  aria-label="دورة الفوترة والتحصيل"
+                  value={billingCycle}
+                  onChange={(e) => setBillingCycle(e.target.value)}
+                  className="h-[44px] bg-white dark:bg-[#1f150f] border-[#eae8e4] dark:border-[#422e20]"
+                >
+                  <option value="اشتراك سنوي (موصى به - خصم شهرين مجاناً)">
+                    اشتراك سنوي (موصى به - خصم شهرين مجاناً)
+                  </option>
+                  <option value="اشتراك نصف سنوي">اشتراك نصف سنوي</option>
+                  <option value="اشتراك شهري عادي">اشتراك شهري عادي</option>
+                </DashboardSelect>
+                <span className="text-[11px] text-[#514537] dark:text-[#d5cec5]">
                   يتم احتساب الفاتورة الأولى بعد التأكيد وإصدار السجل الضريبي.
                 </span>
+              </div>
+
+              {/* التجديد التلقائي للاشتراك */}
+              <div className="flex items-center justify-between p-[14px] bg-white dark:bg-[#1f150f] border border-[#eae8e4] dark:border-[#422e20] rounded-[6px] md:col-span-2">
+                <div className="flex items-center gap-[10px]">
+                  <div className="size-[32px] rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] flex items-center justify-center text-[#9c6402] dark:text-[#e29d38]">
+                    <RefreshCw className="size-[15px]" />
+                  </div>
+                  <div className="flex flex-col text-start">
+                    <span className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                      {t("تفعيل التجديد التلقائي للاشتراك", "Enable Auto-Renewal")}
+                    </span>
+                    <span className="text-[11px] text-[#514537] dark:text-[#d5cec5]">
+                      {t("تجديد الاشتراك آلياً عبر البطاقة المسجلة عند نهاية فترة الاشتراك لتجنب إيقاف الخدمات", "Automatically renew using registered card to avoid service suspension")}
+                    </span>
+                  </div>
+                </div>
+
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={autoRenew}
+                    onChange={(e) => setAutoRenew(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-[#eae8e4] peer-focus:outline-none rounded-full peer dark:bg-[#38271c] peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#9c6402] dark:peer-checked:bg-[#c29547]"></div>
+                </label>
               </div>
             </div>
           </div>
         </div>
 
         {/* System Feedback & Notification Banner */}
-        <div className="bg-[#f5f3ef] rounded-[8px] p-[16px] flex items-start gap-[12px]">
+        <div className="bg-[#f5f3ef] dark:bg-[#1a120d] border border-[#eae8e4] dark:border-[#453022] rounded-[8px] p-[16px] flex items-start gap-[12px]">
           <div className="flex-1 flex flex-col text-start">
-            <span className="text-[13px] font-semibold text-[#1b1c1a]">
+            <span className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
               {isEditMode ? "تحديث سجل المنشأة:" : "إشعار التشغيل الآلي للمكتب:"}
             </span>
-            <p className="text-[12px] text-[#514537] leading-[20px] mt-[2px]">
+            <p className="text-[12px] text-[#514537] dark:text-[#d5cec5] leading-[20px] mt-[2px]">
               {isEditMode
                 ? "سيتم تطبيق التعديلات وتحديث بيانات المنشأة القانونية ووسائل التواصل المعتمدة في سجلات منصة الجودي فوراً."
                 : "سيتم إرسال بريد ترحيبي رسمي فورياً إلى صاحب المكتب يحتوي على رابط تعيين وتأكيد كلمة المرور، وبيانات الخادم المخصص، مع دليل التشغيل الأولي المعتمد لمنصة الجودي."}
             </p>
           </div>
-          <Info className="size-[20px] text-[#9c6402] shrink-0 mt-[2px]" />
+          <Info className="size-[20px] text-[#9c6402] dark:text-[#e29d38] shrink-0 mt-[2px]" />
         </div>
 
         {/* Action Footer */}
-        <div className="pt-[16px] border-t border-[#f0eeea] flex flex-col sm:flex-row items-center justify-between gap-[16px]">
+        <div className="pt-[16px] border-t border-[#f0eeea] dark:border-[#453022] flex flex-col sm:flex-row items-center justify-between gap-[16px]">
           {/* Note */}
-          <div className="flex items-center gap-[8px] text-[12px] text-[#514537]">
-            <CheckCircle2 className="size-[15px] text-[#9c6402]" />
-            <span>جميع الحقول المميزة بعلامة (*) إلزامية للامتثال النظامي</span>
+          <div className="flex items-center gap-[8px] text-[12px] text-[#514537] dark:text-[#d5cec5]">
+            <CheckCircle2 className="size-[15px] text-[#9c6402] dark:text-[#e29d38]" />
+            <span>{t("جميع الحقول المميزة بعلامة (*) إلزامية للامتثال النظامي", "All fields marked with (*) are required for compliance")}</span>
           </div>
 
           {/* Buttons */}
@@ -618,15 +948,15 @@ export function AddClientOfficeView({
             <button
               type="button"
               onClick={onBack}
-              className="bg-[#f0eeea] hover:bg-[#eae8e4] text-[#1b1c1a] px-[24px] py-[10px] rounded-[4px] text-[14px] font-semibold transition-colors cursor-pointer"
+              className="bg-[#f0eeea] dark:bg-[#2c1e15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] border border-[#eae8e4] dark:border-[#523b2c] px-[24px] py-[10px] rounded-[4px] text-[14px] font-semibold transition-colors cursor-pointer"
             >
-              إلغاء
+              {t("إلغاء", "Cancel")}
             </button>
             <button
               type="submit"
-              className="bg-[#9c6402] hover:bg-[#855402] text-white px-[32px] py-[10px] rounded-[4px] text-[14px] font-semibold shadow-sm transition-colors cursor-pointer flex items-center gap-[8px]"
+              className="bg-[#9c6402] hover:bg-[#855402] dark:bg-[#c29547] dark:hover:bg-[#b0833b] text-white dark:text-[#1c140f] px-[32px] py-[10px] rounded-[4px] text-[14px] font-semibold shadow-sm transition-colors cursor-pointer flex items-center gap-[8px]"
             >
-              <span>{isEditMode ? "حفظ التعديلات" : "إضافة المكتب"}</span>
+              <span>{isEditMode ? t("حفظ التعديلات", "Save Changes") : t("إضافة المكتب", "Add Office")}</span>
               {isEditMode ? (
                 <CheckCircle2 className="size-[15px]" />
               ) : (

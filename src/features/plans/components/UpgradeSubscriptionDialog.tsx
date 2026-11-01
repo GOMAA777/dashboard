@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { X, ArrowUp, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { DetailedSubscribedFirm } from "../types/plan.types";
+import { useLanguage } from "@/lib/i18n";
+import { ModalPortal } from "@/components/shared/ModalPortal";
 
 interface UpgradeSubscriptionDialogProps {
   isOpen: boolean;
@@ -18,37 +20,48 @@ export function UpgradeSubscriptionDialog({
   firm,
   onConfirmUpgrade,
 }: UpgradeSubscriptionDialogProps) {
+  const { t } = useLanguage();
   const [selectedTargetPlan, setSelectedTargetPlan] = useState<"gold" | "enterprise">("gold");
   const [effectiveDateOption, setEffectiveDateOption] = useState<"immediate" | "next_cycle">("immediate");
 
   if (!isOpen) return null;
 
-  const firmName = firm?.name || "مكتب د. خالد بن عبد العزيز العجلان للمحاماة";
-  const renewalDate = firm?.renewalDate || "15 يناير 2025";
-  const remainingDays = firm?.remainingDaysText || "متبقي 83 يوماً";
+  const firmName = firm?.name || t("مكتب د. خالد بن عبد العزيز العجلان للمحاماة", "Dr. Khalid Al-Ajlan Law Firm");
+  const renewalDate = firm?.renewalDate || (t("15 يناير 2025", "Jan 15, 2025"));
+  const remainingDays = firm?.remainingDaysText || (t("متبقي 83 يوماً", "83 days remaining"));
 
   const handleConfirm = () => {
+    const targetPlanName =
+      selectedTargetPlan === "gold"
+        ? t("الباقة الذهبية", "Gold Plan")
+        : t("باقة المؤسسات", "Enterprise Plan");
     if (onConfirmUpgrade && firm) {
-      onConfirmUpgrade(firm.id, selectedTargetPlan === "gold" ? "الباقة الذهبية" : "باقة المؤسسات");
+      onConfirmUpgrade(firm.id, targetPlanName);
     } else {
       toast.success(
-        `تمت ترقية اشتراك "${firmName}" إلى ${
-          selectedTargetPlan === "gold" ? "الباقة الذهبية" : "باقة المؤسسات"
-        } بنجاح.`
+        t(
+          `تمت ترقية اشتراك "${firmName}" إلى ${targetPlanName} بنجاح.`,
+          `Successfully upgraded subscription for "${firmName}" to ${targetPlanName}.`
+        )
       );
     }
     onClose();
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-[16px] animate-in fade-in duration-200"
-    >
+    <ModalPortal isOpen={isOpen}>
       <div
-        className="relative w-full max-w-[672px] bg-white dark:bg-[#1e1c1a] rounded-[10px] shadow-2xl border border-[#e2ded7] dark:border-[#38271c] overflow-hidden font-['Cairo',sans-serif]"
-        role="dialog"
-        aria-modal="true"
+        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-xs p-[16px] animate-in fade-in duration-200"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
       >
+        <div
+          className="relative w-full max-w-[672px] bg-white dark:bg-[#1e1c1a] rounded-[10px] shadow-2xl border border-[#e2ded7] dark:border-[#38271c] overflow-hidden font-['Cairo',sans-serif]"
+          role="dialog"
+          aria-modal="true"
+          onClick={(e) => e.stopPropagation()}
+        >
         {/* Header */}
         <div className="flex items-center justify-between p-[20px] pb-[16px] border-b border-[#f0eeea] dark:border-[#38271c]">
           <div className="flex items-center gap-[12px]">
@@ -57,7 +70,7 @@ export function UpgradeSubscriptionDialog({
             </div>
             <div>
               <h2 className="text-[18px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                ترقية اشتراك المكتب
+                {t("ترقية اشتراك المكتب", "Upgrade Law Firm Subscription")}
               </h2>
               <p className="text-[12px] text-[#737067] dark:text-[#cdc5bd]">{firmName}</p>
             </div>
@@ -65,7 +78,7 @@ export function UpgradeSubscriptionDialog({
 
           <div className="flex items-center gap-[12px]">
             <span className="text-[11px] font-bold text-[#514537] dark:text-[#f3c27e] bg-[#f5f3ef] dark:bg-[rgba(226,157,56,0.18)] border border-[#e2ded7] dark:border-[#e29d38]/50 px-[10px] py-[4px] rounded-full">
-              الحالية: الفضية (399 ر.س/ش)
+              {t("الحالية: الفضية (399 ر.س/ش)", "Current: Silver (399 SAR/mo)")}
             </span>
             <button
               type="button"
@@ -82,7 +95,7 @@ export function UpgradeSubscriptionDialog({
           {/* Section 1: Choose Target Plan */}
           <div>
             <h3 className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] mb-[12px]">
-              اختر الباقة المستهدفة للترقية:
+              {t("اختر الباقة المستهدفة للترقية:", "Select Target Plan for Upgrade:")}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-[14px]">
@@ -97,7 +110,7 @@ export function UpgradeSubscriptionDialog({
               >
                 {/* Recommended Ribbon */}
                 <div className="absolute -top-[11px] start-[14px] bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] text-[10px] font-bold px-[10px] py-[2px] rounded-full shadow-2xs">
-                  الموصى بها للمكتب
+                  {t("الموصى بها للمكتب", "Recommended for this firm")}
                 </div>
 
                 <div>
@@ -115,35 +128,37 @@ export function UpgradeSubscriptionDialog({
                         )}
                       </div>
                       <span className="text-[15px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                        الباقة الذهبية
+                        {t("الباقة الذهبية", "Gold Plan")}
                       </span>
                     </div>
 
                     <div className="flex items-baseline gap-[4px]">
                       <span className="text-[17px] font-black text-[#1b1c1a] dark:text-[#fdfbf7]">
-                        699 ر.س
+                        699 {t("ر.س", "SAR")}
                       </span>
-                      <span className="text-[11px] text-[#737067] dark:text-[#cdc5bd]">/ شهر</span>
+                      <span className="text-[11px] text-[#737067] dark:text-[#cdc5bd]">
+                        {t("/ شهر", "/ mo")}
+                      </span>
                     </div>
                   </div>
 
                   <p className="text-[11px] text-[#737067] dark:text-[#cdc5bd] leading-relaxed mb-[12px]">
-                    فرق السعر:{" "}
-                    <span className="font-bold text-[#9c6402] dark:text-[#f3c27e]">+300 ر.س</span>{" "}
-                    شهرياً فقط مع مضاعفة السعة التشغيلية.
+                    {t("فرق السعر:", "Price diff:")}{" "}
+                    <span className="font-bold text-[#9c6402] dark:text-[#f3c27e]">+300 {t("ر.س", "SAR")}</span>{" "}
+                    {t("شهرياً فقط مع مضاعفة السعة التشغيلية.", "monthly with doubled operational quota.")}
                   </p>
                 </div>
 
                 {/* Pill Badges */}
                 <div className="flex flex-wrap items-center gap-[6px] pt-[10px] border-t border-[#f0eeea] dark:border-[#38271c]">
                   <span className="text-[10px] font-bold bg-[#f5f3ef] dark:bg-[#1e1c1a] border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] px-[6px] py-[2px] rounded-full">
-                    10 محامين (+6)
+                    {t("10 محامين (+6)", "10 Lawyers (+6)")}
                   </span>
                   <span className="text-[10px] font-bold bg-[#f5f3ef] dark:bg-[#1e1c1a] border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] px-[6px] py-[2px] rounded-full">
-                    500 قضية (+300)
+                    {t("500 قضية (+300)", "500 Cases (+300)")}
                   </span>
                   <span className="text-[10px] font-bold bg-[#f5f3ef] dark:bg-[#1e1c1a] border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] px-[6px] py-[2px] rounded-full">
-                    15 وكيلاً
+                    {t("15 وكيلاً", "15 Agents")}
                   </span>
                 </div>
               </div>
@@ -172,27 +187,29 @@ export function UpgradeSubscriptionDialog({
                         )}
                       </div>
                       <span className="text-[15px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                        باقة المؤسسات
+                        {t("باقة المؤسسات", "Enterprise Plan")}
                       </span>
                     </div>
                   </div>
 
                   <p className="text-[11px] text-[#737067] dark:text-[#cdc5bd] leading-relaxed mb-[12px]">
-                    سعات مفتوحة غير محدودة للمحامين والقضايا مع مدير حساب خاص
-                    وخوادم مخصصة.
+                    {t(
+                      "سعات مفتوحة غير محدودة للمحامين والقضايا مع مدير حساب خاص وخوادم مخصصة.",
+                      "Unlimited quotas for lawyers and cases with dedicated account manager and dedicated servers."
+                    )}
                   </p>
                 </div>
 
                 {/* Pill Badges */}
                 <div className="flex flex-wrap items-center gap-[6px] pt-[10px] border-t border-[#f0eeea] dark:border-[#38271c]">
                   <span className="text-[10px] font-bold bg-[#f5f3ef] dark:bg-[#1e1c1a] border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] px-[6px] py-[2px] rounded-full">
-                    قضايا مفتوحة
+                    {t("قضايا مفتوحة", "Unlimited Cases")}
                   </span>
                   <span className="text-[10px] font-bold bg-[#f5f3ef] dark:bg-[#1e1c1a] border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] px-[6px] py-[2px] rounded-full">
-                    دعم VIP
+                    {t("دعم VIP", "VIP Support")}
                   </span>
                   <span className="text-[10px] font-bold bg-[#f5f3ef] dark:bg-[#1e1c1a] border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] px-[6px] py-[2px] rounded-full">
-                    محامين غير محدود
+                    {t("محامين غير محدود", "Unlimited Lawyers")}
                   </span>
                 </div>
               </div>
@@ -202,7 +219,7 @@ export function UpgradeSubscriptionDialog({
           {/* Section 2: Effective Date & Billing Mechanism */}
           <div>
             <h3 className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] mb-[12px]">
-              تاريخ سريان الباقة وآلية الفوترة:
+              {t("تاريخ سريان الباقة وآلية الفوترة:", "Effective Date & Billing Model:")}
             </h3>
 
             <div className="space-y-[10px]">
@@ -230,15 +247,17 @@ export function UpgradeSubscriptionDialog({
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <span className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      تفعيل فوري مع احتساب تسوية تناسبية
+                      {t("تفعيل فوري مع احتساب تسوية تناسبية", "Immediate activation with pro-rata settlement")}
                     </span>
                     <span className="text-[13px] font-black text-[#9c6402] dark:text-[#f3c27e]">
-                      828.49 ر.س شامل الضريبة
+                      828.49 {t("ر.س شامل الضريبة", "SAR incl. VAT")}
                     </span>
                   </div>
                   <p className="text-[11px] text-[#737067] dark:text-[#cdc5bd] leading-relaxed mt-[2px]">
-                    يتم ترقية المكتب حالاً واحتساب فارق الأيام المتبقية (
-                    {remainingDays}) حتى موعد التجديد القادم في {renewalDate}.
+                    {t(
+                      `يتم ترقية المكتب حالاً واحتساب فارق الأيام المتبقية (${remainingDays}) حتى موعد التجديد القادم في ${renewalDate}.`,
+                      `Law firm is upgraded immediately with prorated difference for remaining days (${remainingDays}) until renewal on ${renewalDate}.`
+                    )}
                   </p>
                 </div>
               </div>
@@ -267,15 +286,17 @@ export function UpgradeSubscriptionDialog({
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <span className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      السريان مع بداية دورة التجديد القادمة ({renewalDate})
+                      {t(`السريان مع بداية دورة التجديد القادمة (${renewalDate})`, `Effective with next renewal cycle (${renewalDate})`)}
                     </span>
                     <span className="text-[13px] font-bold text-[#737067] dark:text-[#cdc5bd]">
-                      0.00 ر.س الآن
+                      0.00 {t("ر.س الآن", "SAR now")}
                     </span>
                   </div>
                   <p className="text-[11px] text-[#737067] dark:text-[#cdc5bd] leading-relaxed mt-[2px]">
-                    يبقى المكتب على الباقة الفضية حتى نهاية الدورة الحالية مع
-                    جدولة الترقية آلياً في الفاتورة القادمة.
+                    {t(
+                      "يبقى المكتب على الباقة الفضية حتى نهاية الدورة الحالية مع جدولة الترقية آلياً في الفاتورة القادمة.",
+                      "The firm remains on Silver until current cycle ends, automatically scheduling the upgrade on the next invoice."
+                    )}
                   </p>
                 </div>
               </div>
@@ -290,7 +311,7 @@ export function UpgradeSubscriptionDialog({
             onClick={onClose}
             className="px-[18px] py-[9px] rounded-[6px] bg-white dark:bg-[#281c15] border border-[#e2ded7] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#38271c] text-[13px] font-semibold transition-colors cursor-pointer"
           >
-            إلغاء
+            {t("إلغاء", "Cancel")}
           </button>
 
           <button
@@ -299,10 +320,11 @@ export function UpgradeSubscriptionDialog({
             className="px-[20px] py-[9px] rounded-[6px] bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#855402] text-white dark:text-[#1c140f] text-[13px] font-bold flex items-center gap-[6px] shadow-xs transition-colors cursor-pointer"
           >
             <CheckCircle2 className="size-[16px]" />
-            <span>تأكيد الترقية</span>
+            <span>{t("تأكيد الترقية", "Confirm Upgrade")}</span>
           </button>
         </div>
       </div>
     </div>
+  </ModalPortal>
   );
 }

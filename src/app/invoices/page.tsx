@@ -1,13 +1,17 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { Metadata } from "next";
-import { PaymentGatewaysPage } from "@/features/payment-gateways/components/PaymentGatewaysPage";
+import { InvoicesView } from "@/features/invoices/components/InvoicesView";
 
 export const metadata: Metadata = {
-  title: "طرق الدفع | لوحة تحكم منصة الجودي",
+  title: "الفواتير والمالية | لوحة تحكم منصة الجودي",
   description:
-    "إدارة وتكوين بوابات الدفع الإلكتروني المعتمدة لتحصيل رسوم اشتراكات مكاتب المحاماة وفواتير منصة الجودي.",
+    "إدارة الفواتير الضريبية الإلكترونية المعتمدة (ZATCA)، سندات القبض لاشتراكات مكاتب المحاماة، ومطابقة ضريبة القيمة المضافة 15% وتكاملات بوابات الدفع.",
 };
 
 export default function InvoicesPage() {
-  return <PaymentGatewaysPage />;
+  return (
+    <Suspense fallback={null}>
+      <InvoicesView />
+    </Suspense>
+  );
 }

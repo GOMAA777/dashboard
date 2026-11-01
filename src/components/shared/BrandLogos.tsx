@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+import logoMarkImg from "../../../public/logo-mark.png";
 
 export function PaypalBrandIcon({ className = "size-7" }: { className?: string }) {
   return (
@@ -89,7 +90,7 @@ export function AlJoudyLogo({
   return (
     <div className={`relative overflow-hidden shrink-0 flex items-center justify-center ${className}`}>
       <Image
-        src="/logo-mark.png"
+        src={logoMarkImg}
         alt="شعار الجودي"
         width={34}
         height={34}

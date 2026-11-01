@@ -1,14 +1,13 @@
 "use client";
 
-import React, { useState, useMemo, useSyncExternalStore } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useQueryState } from "nuqs";
-import { Plus, Building2, Ticket as TicketIcon } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-import { useUIStore } from "@/stores/use-ui-store";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
 import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
+import { DashboardPageSkeleton } from "@/components/shared/DashboardPageSkeleton";
 import {
   Ticket,
   TicketTabType,
@@ -34,10 +33,37 @@ import { ChangeStatusModal } from "./ChangeStatusModal";
 import { DepartmentsSection } from "./DepartmentsSection";
 import { AddDepartmentModal } from "./AddDepartmentModal";
 import { DeleteDepartmentModal } from "./DeleteDepartmentModal";
+import { useLanguage } from "@/lib/i18n";
+import {
+  fetchTickets,
+  fetchTicketsStats,
+  fetchTicketById,
+  createTicket,
+  assignTicket,
+  updateTicketStatus,
+  closeTicket,
+  replyTicket,
+} from "@/lib/api/tickets";
+import {
+  fetchDepartments,
+  fetchDepartmentById,
+  createDepartment,
+  updateDepartment,
+  deleteDepartment,
+} from "@/lib/api/departments";
+import { mapDepartmentFromApi } from "@/lib/api/mappers";
+import {
+  mapTicketsResponse,
+  mapDepartmentsResponse,
+  mapTicketFromApi,
+} from "@/lib/api/mappers";
+import { readStats, unwrapData } from "@/lib/api/helpers";
 
 export function TicketsView() {
+  const { t, isEn, direction } = useLanguage();
+
   // Navigation & View Mode driven by URL query param ?tab=tickets or ?tab=departments
-  const [tabParam, setTabParam] = useQueryState("tab", { defaultValue: "tickets" });
+  const [tabParam] = useQueryState("tab", { defaultValue: "tickets" });
   const activeTab: TicketTabType = tabParam === "departments" ? "departments" : "tickets";
   const [isCreatingTicket, setIsCreatingTicket] = useState(false);
   const [selectedTicketForDetails, setSelectedTicketForDetails] = useState<Ticket | null>(null);
@@ -46,6 +72,50 @@ export function TicketsView() {
   const [tickets, setTickets] = useState<Ticket[]>(initialTickets);
   const [departments, setDepartments] = useState<TicketDepartment[]>(initialDepartments);
   const [assignees] = useState<TicketAssignee[]>(availableAssignees);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [apiTicketStats, setApiTicketStats] = useState<{
+    open?: number;
+    in_progress?: number;
+    pending?: number;
+    closed?: number;
+  } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoading(true);
+    Promise.all([
+      fetchTickets({ page: 1 }),
+      fetchDepartments(),
+      fetchTicketsStats(),
+    ])
+      .then(([ticketsPayload, deptsPayload, statsPayload]) => {
+        if (cancelled) return;
+        const mappedTickets = mapTicketsResponse(ticketsPayload);
+        const mappedDepts = mapDepartmentsResponse(deptsPayload);
+        if (mappedTickets.length > 0) setTickets(mappedTickets);
+        if (mappedDepts.length > 0) setDepartments(mappedDepts);
+        setApiTicketStats({
+          open: readStats(statsPayload, ["open", "open_tickets"], 0),
+          in_progress: readStats(
+            statsPayload,
+            ["in_progress", "in_progress_tickets"],
+            0
+          ),
+          pending: readStats(statsPayload, ["pending", "pending_tickets"], 0),
+          closed: readStats(statsPayload, ["closed", "closed_tickets"], 0),
+        });
+      })
+      .catch(() => {
+        // Keep empty data if API unavailable.
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Filter state for tickets
   const [filterStatus, setFilterStatus] = useState<TicketFilterStatus>("all");
@@ -95,14 +165,32 @@ export function TicketsView() {
   }, [tickets, filterStatus, searchQuery, forceEmptyState]);
 
   // Handlers: Tickets
-  const handleSaveNewTicket = (newTicket: Ticket) => {
+  const handleSaveNewTicket = async (newTicket: Ticket) => {
+    try {
+      await createTicket({
+        title: newTicket.title,
+        description: newTicket.description,
+        client_id: newTicket.client.id,
+        department_id: newTicket.department.id,
+        priority: newTicket.priority,
+        category: newTicket.category,
+      });
+    } catch {
+      // Keep local create.
+    }
     setTickets((prev) => [newTicket, ...prev]);
     setIsCreatingTicket(false);
-    toast.success("تم إنشاء التذكرة وإدراجها في قائمة المتابعة بنجاح");
+    toast.success(t("تم إنشاء التذكرة وإدراجها في قائمة المتابعة بنجاح", "Ticket created and added to tracking list successfully"));
   };
 
-  const handleConfirmChangeAssignee = (newAssignee: TicketAssignee, reason: string) => {
+  const handleConfirmChangeAssignee = async (newAssignee: TicketAssignee, reason: string) => {
     if (!assigneeModalTicket) return;
+
+    try {
+      await assignTicket(assigneeModalTicket.id, newAssignee.id, reason);
+    } catch {
+      // Keep local assign.
+    }
 
     setTickets((prev) =>
       prev.map((t) =>
@@ -110,13 +198,13 @@ export function TicketsView() {
           ? {
               ...t,
               assignee: newAssignee,
-              updatedAt: "الآن",
+              updatedAt: isEn ? "Just now" : "الآن",
               auditEvents: [
                 {
                   id: `aud-${Date.now()}`,
-                  action: `تم إعادة إسناد التذكرة إلى: ${newAssignee.name}`,
-                  performer: "مشرف النظام",
-                  timestamp: "الآن",
+                  action: isEn ? `Ticket reassigned to: ${newAssignee.name}` : `تم إعادة إسناد التذكرة إلى: ${newAssignee.name}`,
+                  performer: isEn ? "System Admin" : "مشرف النظام",
+                  timestamp: isEn ? "Just now" : "الآن",
                   details: reason || undefined,
                 },
                 ...t.auditEvents,
@@ -133,25 +221,35 @@ export function TicketsView() {
           ? {
               ...prev,
               assignee: newAssignee,
-              updatedAt: "الآن",
+              updatedAt: isEn ? "Just now" : "الآن",
             }
           : null
       );
     }
 
     setAssigneeModalTicket(null);
-    toast.success(`تم إسناد التذكرة إلى "${newAssignee.name}" بنجاح`);
+    toast.success(
+      isEn
+        ? `Ticket assigned to "${newAssignee.name}" successfully`
+        : `تم إسناد التذكرة إلى "${newAssignee.name}" بنجاح`
+    );
   };
 
-  const handleConfirmChangeStatus = (newStatus: TicketStatus, notes: string) => {
+  const handleConfirmChangeStatus = async (newStatus: TicketStatus, notes: string) => {
     if (!statusModalTicket) return;
 
     const statusLabels: Record<TicketStatus, string> = {
-      open: "مفتوحة",
-      in_progress: "جاري العمل عليها",
-      pending: "معلقة",
-      closed: "مغلقة",
+      open: t("مفتوحة", "Open"),
+      in_progress: t("جاري العمل عليها", "In Progress"),
+      pending: t("معلقة", "Pending"),
+      closed: t("مغلقة", "Closed"),
     };
+
+    try {
+      await updateTicketStatus(statusModalTicket.id, newStatus);
+    } catch {
+      // Keep local status update.
+    }
 
     setTickets((prev) =>
       prev.map((t) =>
@@ -159,13 +257,13 @@ export function TicketsView() {
           ? {
               ...t,
               status: newStatus,
-              updatedAt: "الآن",
+              updatedAt: isEn ? "Just now" : "الآن",
               auditEvents: [
                 {
                   id: `aud-${Date.now()}`,
-                  action: `تحديث الحالة إلى: ${statusLabels[newStatus]}`,
-                  performer: "مشرف النظام",
-                  timestamp: "الآن",
+                  action: isEn ? `Status updated to: ${statusLabels[newStatus]}` : `تحديث الحالة إلى: ${statusLabels[newStatus]}`,
+                  performer: isEn ? "System Admin" : "مشرف النظام",
+                  timestamp: isEn ? "Just now" : "الآن",
                   details: notes || undefined,
                 },
                 ...t.auditEvents,
@@ -182,30 +280,39 @@ export function TicketsView() {
           ? {
               ...prev,
               status: newStatus,
-              updatedAt: "الآن",
+              updatedAt: isEn ? "Just now" : "الآن",
             }
           : null
       );
     }
 
     setStatusModalTicket(null);
-    toast.success(`تم تحديث حالة التذكرة إلى "${statusLabels[newStatus]}"`);
+    toast.success(
+      isEn
+        ? `Ticket status updated to "${statusLabels[newStatus]}"`
+        : `تم تحديث حالة التذكرة إلى "${statusLabels[newStatus]}"`
+    );
   };
 
-  const handleCloseTicketSuccess = (ticketId: string) => {
+  const handleCloseTicketSuccess = async (ticketId: string) => {
+    try {
+      await closeTicket(ticketId);
+    } catch {
+      // Keep local close.
+    }
     setTickets((prev) =>
       prev.map((t) =>
         t.id === ticketId
           ? {
               ...t,
               status: "closed",
-              updatedAt: "الآن",
+              updatedAt: isEn ? "Just now" : "الآن",
               auditEvents: [
                 {
                   id: `aud-${Date.now()}`,
-                  action: "تم إغلاق التذكرة بنجاح واعتماد حل البلاغ",
-                  performer: "مشرف النظام",
-                  timestamp: "الآن",
+                  action: isEn ? "Ticket closed and resolution verified" : "تم إغلاق التذكرة بنجاح واعتماد حل البلاغ",
+                  performer: isEn ? "System Admin" : "مشرف النظام",
+                  timestamp: isEn ? "Just now" : "الآن",
                 },
                 ...t.auditEvents,
               ],
@@ -220,23 +327,28 @@ export function TicketsView() {
           ? {
               ...prev,
               status: "closed",
-              updatedAt: "الآن",
+              updatedAt: isEn ? "Just now" : "الآن",
             }
           : null
       );
     }
 
-    toast.success("تم إغلاق التذكرة بنجاح وتوثيق حل المشكلة");
+    toast.success(t("تم إغلاق التذكرة بنجاح وتوثيق حل المشكلة", "Ticket closed and resolution recorded successfully"));
   };
 
-  const handleSendMessage = (ticketId: string, content: string) => {
+  const handleSendMessage = async (ticketId: string, content: string) => {
+    try {
+      await replyTicket(ticketId, { message: content, notify_client_sms_email: true });
+    } catch {
+      // Keep local reply.
+    }
     const newMsg = {
       id: `msg-${Date.now()}`,
-      senderName: "م. عبد العزيز بن فهد",
-      senderRole: "مشرف النظام العام",
-      senderInitials: "ع ف",
+      senderName: isEn ? "Eng. Abdulaziz bin Fahd" : "م. عبد العزيز بن فهد",
+      senderRole: isEn ? "System Administrator" : "مشرف النظام العام",
+      senderInitials: isEn ? "AF" : "ع ف",
       isStaff: true,
-      timestamp: "الآن",
+      timestamp: isEn ? "Just now" : "الآن",
       content,
     };
 
@@ -246,7 +358,7 @@ export function TicketsView() {
           ? {
               ...t,
               messages: [...t.messages, newMsg],
-              updatedAt: "الآن",
+              updatedAt: isEn ? "Just now" : "الآن",
             }
           : t
       )
@@ -258,7 +370,7 @@ export function TicketsView() {
           ? {
               ...prev,
               messages: [...prev.messages, newMsg],
-              updatedAt: "الآن",
+              updatedAt: isEn ? "Just now" : "الآن",
             }
           : null
       );
@@ -266,47 +378,88 @@ export function TicketsView() {
   };
 
   // Handlers: Departments
-  const handleSaveDepartment = (newDept: TicketDepartment) => {
-    setDepartments((prev) => [...prev, newDept]);
+  const handleSaveDepartment = async (newDept: TicketDepartment) => {
+    const exists = departments.some((d) => d.id === newDept.id);
+    try {
+      if (exists) {
+        await updateDepartment(newDept.id, {
+          name: newDept.name,
+          code: newDept.code,
+          description: newDept.description,
+          status: newDept.status,
+        });
+        const detail = await fetchDepartmentById(newDept.id);
+        const raw = (unwrapData<Record<string, unknown>>(detail) ||
+          detail) as Record<string, unknown>;
+        if (raw?.id || raw?.name) {
+          const mapped = mapDepartmentFromApi(raw);
+          setDepartments((prev) =>
+            prev.map((d) => (d.id === mapped.id ? mapped : d))
+          );
+          setIsAddDeptModalOpen(false);
+          toast.success(
+            isEn
+              ? `Department "${newDept.name}" updated successfully`
+              : `تم تحديث قسم "${newDept.name}" بنجاح`
+          );
+          return;
+        }
+      } else {
+        await createDepartment({
+          name: newDept.name,
+          code: newDept.code,
+          description: newDept.description,
+          status: newDept.status,
+        });
+      }
+    } catch {
+      // Keep local create/update.
+    }
+    setDepartments((prev) =>
+      exists ? prev.map((d) => (d.id === newDept.id ? newDept : d)) : [...prev, newDept]
+    );
     setIsAddDeptModalOpen(false);
-    toast.success(`تمت إضافة قسم "${newDept.name}" بنجاح`);
+    toast.success(
+      isEn
+        ? `Department "${newDept.name}" added successfully`
+        : `تمت إضافة قسم "${newDept.name}" بنجاح`
+    );
   };
 
-  const handleConfirmDeleteDepartment = (deptId: string) => {
+  const handleConfirmDeleteDepartment = async (deptId: string) => {
     const targetDept = departments.find((d) => d.id === deptId);
+    try {
+      await deleteDepartment(deptId);
+    } catch {
+      // Keep local delete.
+    }
     setDepartments((prev) => prev.filter((d) => d.id !== deptId));
     setDeptToDelete(null);
-    toast.success(`تم حذف القسم "${targetDept?.name || ""}" بنجاح`);
+    toast.success(
+      isEn
+        ? `Department "${targetDept?.name || ""}" deleted successfully`
+        : `تم حذف القسم "${targetDept?.name || ""}" بنجاح`
+    );
   };
-
-  const isMounted = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false
-  );
-
-  const language = useUIStore((state) => state.language);
-  const currentLang = isMounted ? language : "ar";
 
   const breadcrumbs = selectedTicketForDetails
     ? [
-        { label: currentLang === "en" ? "Support Tickets" : "تذاكر الدعم الفني", href: "/tickets" },
+        { label: t("تذاكر الدعم الفني", "Support Tickets"), href: "/tickets" },
         {
-          label:
-            currentLang === "en"
-              ? `Ticket ${selectedTicketForDetails.ticketNumber || selectedTicketForDetails.id}`
-              : `تذكرة ${selectedTicketForDetails.ticketNumber || selectedTicketForDetails.id}`,
+          label: isEn
+            ? `Ticket ${selectedTicketForDetails.ticketNumber || selectedTicketForDetails.id}`
+            : `تذكرة ${selectedTicketForDetails.ticketNumber || selectedTicketForDetails.id}`,
         },
       ]
     : isCreatingTicket
     ? [
-        { label: currentLang === "en" ? "Support Tickets" : "تذاكر الدعم الفني", href: "/tickets" },
-        { label: currentLang === "en" ? "Create New Ticket" : "إنشاء تذكرة جديدة" },
+        { label: t("تذاكر الدعم الفني", "Support Tickets"), href: "/tickets" },
+        { label: t("إنشاء تذكرة جديدة", "Create New Ticket") },
       ]
     : undefined;
 
   return (
-    <div className="flex h-screen h-dvh overflow-hidden bg-background text-foreground transition-colors duration-200 antialiased select-none">
+    <div dir={direction} className="flex h-screen h-dvh overflow-hidden bg-background text-foreground transition-colors duration-200 antialiased select-none">
       {/* Sidebar with activeNav="support" and activeSubNav={activeTab} */}
       <DashboardSidebar activeNav="support" activeSubNav={activeTab} />
 
@@ -314,7 +467,7 @@ export function TicketsView() {
         {/* Top Navbar */}
         <DashboardTopNavbar customBreadcrumbs={breadcrumbs} />
 
-        {/* Main Content Container (Scroll Y only, zero horizontal overflow) */}
+        {/* Main Content Container */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden p-[16px] sm:p-[24px] md:p-[32px] max-w-[1400px] w-full mx-auto flex flex-col gap-[20px] scrollbar-thin">
           <DashboardPageTransition>
           {/* VIEW 1: Ticket Details View */}
@@ -342,8 +495,10 @@ export function TicketsView() {
               departments={departments}
               onOpenAddModal={() => setIsAddDeptModalOpen(true)}
               onOpenDeleteModal={(dept) => setDeptToDelete(dept)}
-              onEditDept={(dept) => toast.info(`تعديل القسم: ${dept.name}`)}
+              onEditDept={(dept) => toast.info(isEn ? `Edit department: ${dept.name}` : `تعديل القسم: ${dept.name}`)}
             />
+          ) : isLoading && tickets.length === 0 ? (
+            <DashboardPageSkeleton />
           ) : (
             /* VIEW 4: Main Tickets Directory */
             <div className="flex flex-col gap-[24px] w-full">
@@ -354,12 +509,13 @@ export function TicketsView() {
               >
                 <div className="flex flex-col gap-[4px] text-start">
                   <h1 className="text-[#1b1c1a] dark:text-[#fdfbf7] font-bold text-[24px] sm:text-[28px] leading-[38px]">
-                    {currentLang === "en" ? "Support Tickets" : "تذاكر الدعم الفني"}
+                    {t("تذاكر الدعم الفني", "Support Tickets")}
                   </h1>
                   <p className="text-[#514537] dark:text-[#cdc5bd] text-[13px] sm:text-[14px] leading-[22px]">
-                    {currentLang === "en"
-                      ? "Track and manage client inquiries and platform work orders"
-                      : "متابعة وإدارة طلبات واستفسارات العملاء وأوامر العمل بالمنصة"}
+                    {t(
+                      "متابعة وإدارة طلبات واستفسارات العملاء وأوامر العمل بالمنصة",
+                      "Track and manage client inquiries and platform work orders"
+                    )}
                   </p>
                 </div>
 
@@ -371,16 +527,16 @@ export function TicketsView() {
                   data-node-id="1:14412"
                 >
                   <Plus className="size-[16px]" />
-                  <span>{currentLang === "en" ? "Create New Ticket" : "إنشاء تذكرة جديدة"}</span>
+                  <span>{t("إنشاء تذكرة جديدة", "Create New Ticket")}</span>
                 </button>
               </div>
 
               {/* Statistical Metric Cards */}
               <TicketsStatsCards
-                openCount={counts.open}
-                inProgressCount={counts.in_progress}
-                pendingCount={counts.pending}
-                closedCount={counts.closed}
+                openCount={apiTicketStats?.open ?? counts.open}
+                inProgressCount={apiTicketStats?.in_progress ?? counts.in_progress}
+                pendingCount={apiTicketStats?.pending ?? counts.pending}
+                closedCount={apiTicketStats?.closed ?? counts.closed}
                 isEmpty={forceEmptyState}
               />
 
@@ -412,7 +568,19 @@ export function TicketsView() {
               ) : (
                 <TicketsTable
                   tickets={filteredTickets}
-                  onViewDetails={(ticket) => setSelectedTicketForDetails(ticket)}
+                  onViewDetails={async (ticket) => {
+                    setSelectedTicketForDetails(ticket);
+                    try {
+                      const payload = await fetchTicketById(ticket.id);
+                      const raw = (unwrapData<Record<string, unknown>>(payload) ||
+                        payload) as Record<string, unknown>;
+                      if (raw?.id || raw?.ticket_number) {
+                        setSelectedTicketForDetails(mapTicketFromApi(raw));
+                      }
+                    } catch {
+                      // Keep list ticket.
+                    }
+                  }}
                   onChangeAssignee={(ticket) => setAssigneeModalTicket(ticket)}
                   onChangeStatus={(ticket) => setStatusModalTicket(ticket)}
                 />

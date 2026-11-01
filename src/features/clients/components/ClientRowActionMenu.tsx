@@ -8,12 +8,15 @@ import {
   Receipt,
   Ban,
   Trash2,
+  DoorOpen,
 } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 interface ClientRowActionMenuProps {
   isOpen: boolean;
   onClose: () => void;
   onViewDetails: () => void;
+  onEnterOfficeAsAdmin?: () => void;
   onEdit: () => void;
   onManageSubscriptions: () => void;
   onDeactivate: () => void;
@@ -26,12 +29,14 @@ export function ClientRowActionMenu({
   isOpen,
   onClose,
   onViewDetails,
+  onEnterOfficeAsAdmin,
   onEdit,
   onManageSubscriptions,
   onDeactivate,
   onDelete,
   triggerRef,
 }: ClientRowActionMenuProps) {
+  const { t } = useLanguage();
   const menuRef = useRef<HTMLDivElement>(null);
   const anchorRef = useRef<HTMLSpanElement>(null);
   const [coords, setCoords] = useState<{
@@ -46,7 +51,7 @@ export function ClientRowActionMenu({
     const el = triggerRef?.current || anchorRef.current?.parentElement;
     if (el) {
       const rect = el.getBoundingClientRect();
-      const menuEstimatedHeight = 220;
+      const menuEstimatedHeight = 280;
       const menuWidth = 210;
       const spaceBelow = window.innerHeight - rect.bottom;
       const spaceAbove = rect.top;
@@ -129,8 +134,25 @@ export function ClientRowActionMenu({
               className="w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold transition-colors cursor-pointer group"
             >
               <Eye className="size-[15px] text-[#514537] dark:text-[#a89f91] group-hover:text-[#1b1c1a] dark:group-hover:text-[#fdfbf7] shrink-0" />
-              <span className="leading-[18px]">عرض التفاصيل</span>
+              <span className="leading-[18px]">{t("عرض التفاصيل", "View Details")}</span>
             </button>
+
+            {/* 1b. دخول المكتب كمسؤول */}
+            {onEnterOfficeAsAdmin && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onEnterOfficeAsAdmin();
+                }}
+                className="w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] hover:bg-[#fff9ee] dark:hover:bg-[#342711] text-[#9c6402] dark:text-[#e29d38] text-[13px] font-semibold transition-colors cursor-pointer group"
+              >
+                <DoorOpen className="size-[15px] text-[#9c6402] dark:text-[#e29d38] shrink-0" />
+                <span className="leading-[18px]">
+                  {t("دخول المكتب كمسؤول", "Enter Office as Admin")}
+                </span>
+              </button>
+            )}
 
             {/* 2. تعديل بيانات الحساب */}
             <button
@@ -142,7 +164,7 @@ export function ClientRowActionMenu({
               className="w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold transition-colors cursor-pointer group"
             >
               <PenSquare className="size-[15px] text-[#514537] dark:text-[#a89f91] group-hover:text-[#1b1c1a] dark:group-hover:text-[#fdfbf7] shrink-0" />
-              <span className="leading-[18px]">تعديل بيانات الحساب</span>
+              <span className="leading-[18px]">{t("تعديل بيانات الحساب", "Edit Account Details")}</span>
             </button>
 
             {/* 3. إدارة الاشتراكات والفواتير */}
@@ -155,7 +177,7 @@ export function ClientRowActionMenu({
               className="w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold transition-colors cursor-pointer group"
             >
               <Receipt className="size-[15px] text-[#514537] dark:text-[#a89f91] group-hover:text-[#1b1c1a] dark:group-hover:text-[#fdfbf7] shrink-0" />
-              <span className="leading-[18px]">إدارة الاشتراكات والفواتير</span>
+              <span className="leading-[18px]">{t("إدارة الاشتراكات والفواتير", "Manage Subscriptions")}</span>
             </button>
 
             {/* Divider */}
@@ -171,7 +193,7 @@ export function ClientRowActionMenu({
               className="w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] hover:bg-[#fffbeb] dark:hover:bg-[#342711] text-[#b45309] dark:text-[#fbbf24] text-[13px] font-semibold transition-colors cursor-pointer group"
             >
               <Ban className="size-[15px] text-[#b45309] dark:text-[#fbbf24] shrink-0" />
-              <span className="leading-[18px]">تعطيل الحساب مؤقتاً</span>
+              <span className="leading-[18px]">{t("تعطيل الحساب مؤقتاً", "Suspend Account")}</span>
             </button>
 
             {/* 5. حذف المكتب نهائياً */}
@@ -184,7 +206,7 @@ export function ClientRowActionMenu({
               className="w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] hover:bg-[#fef2f2] dark:hover:bg-[#311616] text-[#dc2626] dark:text-[#f87171] text-[13px] font-semibold transition-colors cursor-pointer group"
             >
               <Trash2 className="size-[15px] text-[#dc2626] dark:text-[#f87171] shrink-0" />
-              <span className="leading-[18px]">حذف المكتب نهائياً</span>
+              <span className="leading-[18px]">{t("حذف المكتب نهائياً", "Delete Office")}</span>
             </button>
           </div>,
           document.body

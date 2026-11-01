@@ -1,34 +1,48 @@
-import { loginSchema, type LoginInput } from "../schemas/login.schema";
+import { type LoginInput } from "../schemas/login.schema";
+import { loginAdmin } from "@/lib/api/auth";
 
 export async function loginAction(input: LoginInput) {
-  const result = loginSchema.safeParse(input);
-  if (!result.success) {
-    return {
-      serverError: result.error.issues[0]?.message || "Validation failed",
-      data: null,
-    };
-  }
+  const identifier = input.identifier?.trim() || "";
+  const password = input.password || "";
 
-  const { identifier, password } = result.data;
-
-  // Validate credentials
   if (!identifier || !password) {
     return {
-      serverError: "Invalid credentials provided.",
       data: null,
+      serverError: "يرجى إدخال بيانات الدخول وكلمة المرور",
     };
   }
 
-  return {
-    data: {
-      success: true,
-      user: {
-        id: "usr_1",
-        name: "Eljudy Prog",
-        email: identifier.includes("@") ? identifier : `${identifier}@eljudy.com`,
-        role: "admin",
+  try {
+    const loggedIn = await loginAdmin(identifier, password);
+    return {
+      data: {
+        success: true,
+        user: {
+          id: String(loggedIn.user?.id ?? "admin"),
+          name: String(
+            loggedIn.user?.name ||
+              (loggedIn.user as { full_name?: string } | null | undefined)
+                ?.full_name ||
+              "Admin"
+          ),
+          email:
+            String(loggedIn.user?.email ?? "") ||
+            (identifier.includes("@")
+              ? identifier
+              : `${identifier}@aljudy.sa`),
+          role: String(loggedIn.user?.role ?? "admin"),
+        },
       },
-    },
-    serverError: null,
-  };
+      serverError: null,
+    };
+  } catch (err: unknown) {
+    const message =
+      err && typeof err === "object" && "message" in err
+        ? String((err as { message: unknown }).message)
+        : "تعذر تسجيل الدخول. تحقق من البيانات والمحاولة مرة أخرى.";
+    return {
+      data: null,
+      serverError: message,
+    };
+  }
 }

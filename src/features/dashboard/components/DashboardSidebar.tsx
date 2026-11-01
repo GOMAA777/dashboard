@@ -3,7 +3,7 @@
 import React, { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { toast } from "sonner";
 import userAvatarImg from "../../../../public/figma/user-avatar.png";
 import {
@@ -23,15 +23,17 @@ import {
   Key,
   ChevronLeft,
   ChevronRight,
-  ChevronDown,
   LogOut,
   Ticket,
+  FileText,
+  ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/use-ui-store";
 import { LogoutConfirmModal } from "./LogoutConfirmModal";
 import { AlJoudyLogo } from "@/components/shared/BrandLogos";
 import { clearAuthSession } from "@/lib/auth-client";
+import { withBasePath } from "@/lib/base-path";
 
 interface NavItem {
   id: string;
@@ -46,16 +48,17 @@ interface NavItem {
 const navItems: NavItem[] = [
   { id: "home", labelAr: "الرئيسية", labelEn: "Dashboard", href: "/", icon: LayoutGrid, sizeClass: "size-[16px]" },
   { id: "clients", labelAr: "إدارة العملاء", labelEn: "Client Management", href: "/accounts", icon: Users, sizeClass: "size-[18px]" },
+  { id: "impersonation-logs", labelAr: "سجل الدخول", labelEn: "Access Log", href: "/impersonation-logs", icon: ClipboardList, sizeClass: "size-[17px]" },
   { id: "plans", labelAr: "الباقات والأسعار", labelEn: "Plans & Pricing", href: "/plans", icon: Tag, sizeClass: "size-[17px]" },
   { id: "subscriptions", labelAr: "الاشتراكات", labelEn: "Subscriptions", href: "/subscriptions", icon: CreditCard, sizeClass: "size-[17px]" },
   { id: "staff", labelAr: "طاقم العمل", labelEn: "Staff", href: "/permissions", icon: UserCheck, sizeClass: "size-[19px]" },
   { id: "notifications", labelAr: "الإشعارات", labelEn: "Notifications", href: "/notifications", icon: Bell, sizeClass: "size-[16px]" },
-  { id: "finance", labelAr: "المعاملات المالية", labelEn: "Financial Transactions", href: "/invoices", icon: Receipt, sizeClass: "size-[16px]" },
+  { id: "finance", labelAr: "الفواتير والمالية", labelEn: "Invoices & Finance", href: "/invoices", icon: Receipt, sizeClass: "size-[16px]" },
   { id: "support", labelAr: "الدعم الفني", labelEn: "Technical Support", href: "/tickets", icon: Headphones, sizeClass: "size-[17px]" },
   { id: "site-settings", labelAr: "إعدادات الموقع", labelEn: "Site Settings", href: "/website-settings", icon: Globe, sizeClass: "size-[17px]" },
-  { id: "mail-settings", labelAr: "إعدادات البريد", labelEn: "Mail Settings", href: "#", icon: Mail, sizeClass: "size-[17px]", isUnderConstruction: true },
+  { id: "mail-settings", labelAr: "إعدادات البريد", labelEn: "Mail Settings", href: "/settings/mail", icon: Mail, sizeClass: "size-[17px]" },
   { id: "system-settings", labelAr: "إعدادات النظام", labelEn: "System Settings", href: "/settings/general", icon: Settings, sizeClass: "size-[17px]" },
-  { id: "utility", labelAr: "فواتير", labelEn: "Invoices", href: "/utility/update", icon: AppWindow, sizeClass: "size-[19px]" },
+  { id: "utility", labelAr: "خدمات النظام", labelEn: "System Utility", href: "/utility/update", icon: AppWindow, sizeClass: "size-[19px]" },
 ];
 
 interface DashboardSidebarProps {
@@ -64,7 +67,6 @@ interface DashboardSidebarProps {
 }
 
 export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarProps = {}) {
-  const router = useRouter();
   const pathname = usePathname();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
@@ -77,26 +79,40 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
     }
   };
 
-  const [userDropdownToggles, setUserDropdownToggles] = useState<Record<string, boolean>>({});
+  const isFinanceActive =
+    activeNav === "finance" ||
+    (pathname?.startsWith("/invoices") ?? false) ||
+    (pathname?.startsWith("/payment-gateways") ?? false);
+  const isInvoicesActive = isFinanceActive && (activeSubNav === "invoices" || pathname === "/invoices");
+  const isGatewaysActive = isFinanceActive && (activeSubNav === "gateways" || pathname === "/payment-gateways");
 
   const isSupportActive = activeNav === "support" || (pathname?.startsWith("/tickets") ?? false);
+  const isSupportTicketsActive = isSupportActive && (activeSubNav === "tickets" || (!activeSubNav && pathname?.startsWith("/tickets")));
+  const isSupportDepartmentsActive = isSupportActive && activeSubNav === "departments";
+
   const isStaffActive =
     activeNav === "staff" ||
     (pathname?.startsWith("/permissions") ?? false) ||
-    (pathname?.startsWith("/staff") ?? false);
+    (pathname?.startsWith("/staff") ?? false) ||
+    (pathname?.startsWith("/roles") ?? false);
+  const isStaffTeamActive = isStaffActive && (activeSubNav === "staff" || pathname === "/staff");
+  const isStaffRolesActive = isStaffActive && (activeSubNav === "roles" || (!activeSubNav && (pathname === "/permissions" || pathname === "/roles")));
+
+  const isMailSettingsActive =
+    activeNav === "mail-settings" ||
+    (pathname?.startsWith("/settings/mail") ?? false);
   const isSystemSettingsActive =
     activeNav === "system-settings" ||
-    (pathname?.startsWith("/settings") ?? false);
+    ((pathname?.startsWith("/settings") ?? false) && !isMailSettingsActive);
+  const isGeneralActive = isSystemSettingsActive && (activeSubNav === "general" || pathname === "/settings/general");
+  const isCurrencyActive = isSystemSettingsActive && (activeSubNav === "currency" || pathname === "/settings/currency");
+  const isLanguageActive = isSystemSettingsActive && (activeSubNav === "language" || pathname === "/settings/language");
+
   const isUtilityActive =
     activeNav === "utility" ||
     (pathname?.startsWith("/utility") ?? false);
-
-  const openDropdowns: Record<string, boolean> = {
-    support: userDropdownToggles.support ?? isSupportActive,
-    staff: userDropdownToggles.staff ?? isStaffActive,
-    "system-settings": userDropdownToggles["system-settings"] ?? isSystemSettingsActive,
-    utility: userDropdownToggles.utility ?? isUtilityActive,
-  };
+  const isUpdateActive = isUtilityActive && (activeSubNav === "update" || pathname === "/utility/update");
+  const isServerInfoActive = isUtilityActive && (activeSubNav === "server-info" || pathname === "/utility/server-info");
 
   const direction = useUIStore((state) => state.direction);
   const language = useUIStore((state) => state.language);
@@ -119,7 +135,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
     clearAuthSession();
     setIsLogoutModalOpen(false);
     toast.success(currentLang === "en" ? "Logged out successfully" : "تم تسجيل الخروج بنجاح");
-    router.push("/login");
+    window.location.reload();
   };
 
   return (
@@ -242,12 +258,32 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                 ? pathname === "/"
                 : pathname.startsWith(item.href);
 
+            const hasChildren =
+              item.id === "staff" ||
+              item.id === "finance" ||
+              item.id === "support" ||
+              item.id === "system-settings" ||
+              item.id === "utility";
+
             if (isCollapsed) {
+              const targetHref =
+                item.id === "staff"
+                  ? "/permissions?tab=staff"
+                  : item.id === "finance"
+                    ? "/invoices"
+                    : item.id === "support"
+                      ? "/tickets?tab=tickets"
+                      : item.id === "system-settings"
+                        ? "/settings/general"
+                        : item.id === "utility"
+                          ? "/utility/update"
+                          : item.href;
+
               return (
                 <Link
                   key={item.id}
-                  href={item.href}
-                  onClick={() => handleNavClick(item.href)}
+                  href={targetHref}
+                  onClick={() => handleNavClick(targetHref)}
                   title={itemLabel}
                   className={cn(
                     "size-[44px] rounded-[12px] flex items-center justify-center transition-all duration-200 group relative",
@@ -269,72 +305,39 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
               );
             }
 
-            const hasSubmenu =
-              item.id === "support" ||
-              item.id === "staff" ||
-              item.id === "system-settings" ||
-              item.id === "utility";
-            const isDropdownOpen = !!openDropdowns[item.id];
-
-            if (!hasSubmenu) {
-              return (
-                <Link
-                  key={item.id}
-                  href={item.href}
-                  onClick={() => handleNavClick(item.href)}
-                  className={cn(
-                    "flex items-center gap-[12px] px-[12px] py-[8px] rounded-[12px] transition-colors duration-150 group text-start",
-                    isActive
-                      ? "bg-[#9c6402] text-white dark:text-[#1c140f] shadow-[0px_2px_4px_rgba(156,100,2,0.25)] dark:shadow-none font-bold"
-                      : "text-[#514537] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/60 dark:hover:text-[#fdfbf7]"
-                  )}
-                  data-node-id={isActive ? "1:679" : undefined}
-                >
-                  {/* Icon first (Right in RTL) */}
-                  <div className="size-[20px] flex items-center justify-center shrink-0">
-                    <item.icon
-                      className={cn(
-                        "shrink-0 transition-colors",
-                        item.sizeClass,
-                        isActive
-                          ? "text-white dark:text-[#1c140f]"
-                          : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
-                      )}
-                    />
-                  </div>
-
-                  {/* Word next */}
-                  <span
-                    className={cn(
-                      "text-[14px] leading-[20px] font-semibold flex-1 text-start truncate",
-                      isActive ? "text-white dark:text-[#1c140f] font-bold" : "text-[#514537] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
-                    )}
-                  >
-                    {itemLabel}
-                  </span>
-                </Link>
-              );
-            }
-
             return (
               <React.Fragment key={item.id}>
-                <div
-                  className={cn(
-                    "flex items-center justify-between px-[12px] py-[8px] rounded-[12px] transition-colors duration-150 group",
-                    isActive
-                      ? "bg-[#9c6402] text-white dark:text-[#1c140f] shadow-[0px_2px_4px_rgba(156,100,2,0.25)] dark:shadow-none font-bold"
-                      : "text-[#514537] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/60 dark:hover:text-[#fdfbf7]"
-                  )}
-                  data-node-id={isActive ? "1:679" : undefined}
-                >
-                  {/* Main Link (Icon + Word) */}
+                {hasChildren ? (
+                  <div
+                    className="flex items-center gap-[12px] px-[12px] py-[8px] rounded-[12px] text-start select-none cursor-default text-[#514537] dark:text-[#cdc5bd]"
+                    data-name="nav-parent-header"
+                  >
+                    {/* Icon first (Right in RTL) */}
+                    <div className="size-[20px] flex items-center justify-center shrink-0">
+                      <item.icon
+                        className={cn(
+                          "shrink-0 text-[#837565] dark:text-[#a89f91]",
+                          item.sizeClass
+                        )}
+                      />
+                    </div>
+
+                    {/* Word next */}
+                    <span className="text-[14px] leading-[20px] font-semibold flex-1 text-start truncate text-[#514537] dark:text-[#cdc5bd]">
+                      {itemLabel}
+                    </span>
+                  </div>
+                ) : (
                   <Link
                     href={item.href}
-                    onClick={() => {
-                      handleNavClick(item.href);
-                      setUserDropdownToggles((prev) => ({ ...prev, [item.id]: true }));
-                    }}
-                    className="flex items-center gap-[12px] flex-1 min-w-0"
+                    onClick={() => handleNavClick(item.href)}
+                    className={cn(
+                      "flex items-center gap-[12px] px-[12px] py-[8px] rounded-[12px] transition-colors duration-150 group text-start",
+                      isActive
+                        ? "bg-[#9c6402] text-white dark:text-[#1c140f] shadow-[0px_2px_4px_rgba(156,100,2,0.25)] dark:shadow-none font-bold"
+                        : "text-[#514537] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/60 dark:hover:text-[#fdfbf7]"
+                    )}
+                    data-node-id={isActive ? "1:679" : undefined}
                   >
                     {/* Icon first (Right in RTL) */}
                     <div className="size-[20px] flex items-center justify-center shrink-0">
@@ -352,61 +355,33 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                     {/* Word next */}
                     <span
                       className={cn(
-                        "text-[14px] leading-[20px] font-semibold truncate",
+                        "text-[14px] leading-[20px] font-semibold flex-1 text-start truncate",
                         isActive ? "text-white dark:text-[#1c140f] font-bold" : "text-[#514537] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
                       )}
                     >
                       {itemLabel}
                     </span>
                   </Link>
-
-                  {/* Dropdown Chevron Arrow Button (Left in RTL) */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setUserDropdownToggles((prev) => ({
-                        ...prev,
-                        [item.id]: !isDropdownOpen,
-                      }));
-                    }}
-                    aria-label={`توسيع أو إغلاق قائمة ${item.labelAr}`}
-                    title={`توسيع أو إغلاق قائمة ${item.labelAr}`}
-                    className={cn(
-                      "size-[24px] rounded-[6px] flex items-center justify-center transition-all cursor-pointer ms-2 shrink-0",
-                      isActive
-                        ? "hover:bg-white/20 text-white dark:hover:bg-[#835401]/40 dark:text-[#1c140f]"
-                        : "hover:bg-[#f5f3ef] text-[#837565] group-hover:text-[#9c6402] dark:hover:bg-[#2c221c] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
-                    )}
-                  >
-                    <ChevronDown
-                      className={cn(
-                        "size-[16px] transition-transform duration-200 shrink-0",
-                        isDropdownOpen ? "rotate-180" : "rotate-0"
-                      )}
-                    />
-                  </button>
-                </div>
+                )}
 
                 {/* Sub-items for Staff (فريق العمل والأدوار والصلاحيات) */}
-                {item.id === "staff" && isDropdownOpen && (
+                {item.id === "staff" && (
                   <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#eae8e4] dark:border-[#38271c] my-1">
                     <Link
                       href="/permissions?tab=staff"
                       onClick={() => handleNavClick("/permissions?tab=staff")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
-                        activeSubNav === "roles"
-                          ? "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
-                          : "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                        isStaffTeamActive
+                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                       )}
                     >
                       {/* Connecting dot */}
                       <span
                         className={cn(
                           "size-[6px] rounded-full shrink-0 transition-all",
-                          activeSubNav !== "roles"
+                          isStaffTeamActive
                             ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
                             : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
                         )}
@@ -414,7 +389,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       <Users
                         className={cn(
                           "size-[15px] shrink-0",
-                          activeSubNav !== "roles"
+                          isStaffTeamActive
                             ? "text-[#9c6402] dark:text-[#e29d38]"
                             : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
                         )}
@@ -426,7 +401,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       onClick={() => handleNavClick("/permissions?tab=roles")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
-                        activeSubNav === "roles"
+                        isStaffRolesActive
                           ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
                           : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                       )}
@@ -435,7 +410,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       <span
                         className={cn(
                           "size-[6px] rounded-full shrink-0 transition-all",
-                          activeSubNav === "roles"
+                          isStaffRolesActive
                             ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
                             : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
                         )}
@@ -443,7 +418,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       <Key
                         className={cn(
                           "size-[15px] shrink-0",
-                          activeSubNav === "roles"
+                          isStaffRolesActive
                             ? "text-[#9c6402] dark:text-[#e29d38]"
                             : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
                         )}
@@ -453,24 +428,88 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   </div>
                 )}
 
-                {/* Sub-items for Support (تذاكر الدعم الفني والأقسام) */}
-                {item.id === "support" && isDropdownOpen && (
+                {/* Sub-items for Finance & Invoices (سجل الفواتير وبوابات الدفع) */}
+                {item.id === "finance" && (
                   <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#eae8e4] dark:border-[#38271c] my-1">
                     <Link
-                      href="/tickets?tab=tickets"
-                      onClick={() => handleNavClick("/tickets?tab=tickets")}
+                      href="/invoices"
+                      onClick={() => handleNavClick("/invoices")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
-                        activeSubNav === "departments"
-                          ? "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
-                          : "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                        isInvoicesActive
+                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                       )}
                     >
                       {/* Connecting dot */}
                       <span
                         className={cn(
                           "size-[6px] rounded-full shrink-0 transition-all",
-                          activeSubNav !== "departments"
+                          isInvoicesActive
+                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                        )}
+                      />
+                      <FileText
+                        className={cn(
+                          "size-[15px] shrink-0",
+                          isInvoicesActive
+                            ? "text-[#9c6402] dark:text-[#e29d38]"
+                            : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
+                        )}
+                      />
+                      <span className="truncate">{currentLang === "en" ? "Invoices List" : "سجل الفواتير"}</span>
+                    </Link>
+                    <Link
+                      href="/payment-gateways"
+                      onClick={() => handleNavClick("/payment-gateways")}
+                      className={cn(
+                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
+                        isGatewaysActive
+                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
+                      )}
+                    >
+                      {/* Connecting dot */}
+                      <span
+                        className={cn(
+                          "size-[6px] rounded-full shrink-0 transition-all",
+                          isGatewaysActive
+                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                        )}
+                      />
+                      <CreditCard
+                        className={cn(
+                          "size-[15px] shrink-0",
+                          isGatewaysActive
+                            ? "text-[#9c6402] dark:text-[#e29d38]"
+                            : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
+                        )}
+                      />
+                      <span className="truncate">{currentLang === "en" ? "Payment Gateways" : "بوابات الدفع"}</span>
+                    </Link>
+                  </div>
+                )}
+
+                {/* Sub-items for Support (تذاكر الدعم الفني والأقسام) */}
+                {item.id === "support" && (
+                  <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#eae8e4] dark:border-[#38271c] my-1">
+                    <Link
+                      href="/tickets?tab=tickets"
+                      onClick={() => handleNavClick("/tickets?tab=tickets")}
+                      className={cn(
+                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
+                        isSupportTicketsActive
+                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
+                      )}
+                    >
+                      {/* Connecting dot */}
+                      <span
+                        className={cn(
+                          "size-[6px] rounded-full shrink-0 transition-all",
+                          isSupportTicketsActive
                             ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
                             : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
                         )}
@@ -478,7 +517,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       <Ticket
                         className={cn(
                           "size-[15px] shrink-0",
-                          activeSubNav !== "departments"
+                          isSupportTicketsActive
                             ? "text-[#9c6402] dark:text-[#e29d38]"
                             : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
                         )}
@@ -490,7 +529,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       onClick={() => handleNavClick("/tickets?tab=departments")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
-                        activeSubNav === "departments"
+                        isSupportDepartmentsActive
                           ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
                           : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                       )}
@@ -499,7 +538,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       <span
                         className={cn(
                           "size-[6px] rounded-full shrink-0 transition-all",
-                          activeSubNav === "departments"
+                          isSupportDepartmentsActive
                             ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
                             : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
                         )}
@@ -507,7 +546,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       <Building2
                         className={cn(
                           "size-[15px] shrink-0",
-                          activeSubNav === "departments"
+                          isSupportDepartmentsActive
                             ? "text-[#9c6402] dark:text-[#e29d38]"
                             : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
                         )}
@@ -518,14 +557,14 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                 )}
 
                 {/* Sub-items for System Settings (اعدادت عامة، العملة، اللغة) */}
-                {item.id === "system-settings" && isDropdownOpen && (
+                {item.id === "system-settings" && (
                   <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#eae8e4] dark:border-[#38271c] my-1">
                     <Link
                       href="/settings/general"
                       onClick={() => handleNavClick("/settings/general")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
-                        activeSubNav === "general" || pathname === "/settings/general"
+                        isGeneralActive
                           ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
                           : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                       )}
@@ -533,7 +572,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       <span
                         className={cn(
                           "size-[6px] rounded-full shrink-0 transition-all",
-                          activeSubNav === "general" || pathname === "/settings/general"
+                          isGeneralActive
                             ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
                             : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
                         )}
@@ -546,7 +585,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       onClick={() => handleNavClick("/settings/currency")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
-                        activeSubNav === "currency" || pathname === "/settings/currency"
+                        isCurrencyActive
                           ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
                           : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                       )}
@@ -554,7 +593,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       <span
                         className={cn(
                           "size-[6px] rounded-full shrink-0 transition-all",
-                          activeSubNav === "currency" || pathname === "/settings/currency"
+                          isCurrencyActive
                             ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
                             : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
                         )}
@@ -567,7 +606,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       onClick={() => handleNavClick("/settings/language")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
-                        activeSubNav === "language" || pathname === "/settings/language"
+                        isLanguageActive
                           ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
                           : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                       )}
@@ -575,7 +614,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       <span
                         className={cn(
                           "size-[6px] rounded-full shrink-0 transition-all",
-                          activeSubNav === "language" || pathname === "/settings/language"
+                          isLanguageActive
                             ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
                             : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
                         )}
@@ -586,14 +625,14 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                 )}
 
                 {/* Sub-items for Utility (تحديث النظام، معلومات السيرفر) */}
-                {item.id === "utility" && isDropdownOpen && (
+                {item.id === "utility" && (
                   <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#eae8e4] dark:border-[#38271c] my-1">
                     <Link
                       href="/utility/update"
                       onClick={() => handleNavClick("/utility/update")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
-                        activeSubNav === "update" || pathname === "/utility/update"
+                        isUpdateActive
                           ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
                           : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                       )}
@@ -601,7 +640,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       <span
                         className={cn(
                           "size-[6px] rounded-full shrink-0 transition-all",
-                          activeSubNav === "update" || pathname === "/utility/update"
+                          isUpdateActive
                             ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
                             : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
                         )}
@@ -614,7 +653,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       onClick={() => handleNavClick("/utility/server-info")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
-                        activeSubNav === "server-info" || pathname === "/utility/server-info"
+                        isServerInfoActive
                           ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
                           : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                       )}
@@ -622,7 +661,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       <span
                         className={cn(
                           "size-[6px] rounded-full shrink-0 transition-all",
-                          activeSubNav === "server-info" || pathname === "/utility/server-info"
+                          isServerInfoActive
                             ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
                             : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
                         )}

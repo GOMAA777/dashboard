@@ -14,8 +14,17 @@ import {
   Cell,
 } from "recharts";
 import { useUIStore } from "@/stores/use-ui-store";
+import type { DashboardRevenuePoint, DashboardPlanSlice } from "@/lib/api/dashboard";
 
-export function DashboardAnalyticsSection() {
+interface DashboardAnalyticsSectionProps {
+  revenueData?: DashboardRevenuePoint[];
+  planData?: DashboardPlanSlice[];
+}
+
+export function DashboardAnalyticsSection({
+  revenueData: externalRevenueData,
+  planData: externalPlanData,
+}: DashboardAnalyticsSectionProps = {}) {
   const isMounted = useSyncExternalStore(
     () => () => {},
     () => true,
@@ -27,75 +36,21 @@ export function DashboardAnalyticsSection() {
   const currentLang = isMounted ? language : "ar";
   const isDark = isMounted ? theme === "dark" : false;
 
-  const revenueData = [
-    {
-      monthAr: "مايو (34.2k)",
-      monthEn: "May (34.2k)",
-      value: 34200,
-      labelAr: "مايو 2024",
-      labelEn: "May 2024",
-    },
-    {
-      monthAr: "يونيو (38.5k)",
-      monthEn: "Jun (38.5k)",
-      value: 38500,
-      labelAr: "يونيو 2024",
-      labelEn: "Jun 2024",
-    },
-    {
-      monthAr: "يوليو (41.0k)",
-      monthEn: "Jul (41.0k)",
-      value: 41000,
-      labelAr: "يوليو 2024",
-      labelEn: "Jul 2024",
-    },
-    {
-      monthAr: "أغسطس (44.8k)",
-      monthEn: "Aug (44.8k)",
-      value: 44800,
-      labelAr: "أغسطس 2024",
-      labelEn: "Aug 2024",
-    },
-    {
-      monthAr: "سبتمبر (46.9k)",
-      monthEn: "Sep (46.9k)",
-      value: 46900,
-      labelAr: "سبتمبر 2024",
-      labelEn: "Sep 2024",
-    },
-    {
-      monthAr: "أكتوبر (48.7k)",
-      monthEn: "Oct (48.7k)",
-      value: 48750,
-      labelAr: "أكتوبر 2024 (الأعلى)",
-      labelEn: "Oct 2024 (Peak)",
-      isHighest: true,
-    },
-  ];
+  const defaultRevenueData: DashboardRevenuePoint[] = [];
 
-  const planData = [
-    {
-      nameAr: "الباقة الاحترافية",
-      nameEn: "Professional Plan",
-      value: 68,
-      percentage: "53%",
-      color: "#9c6402",
-    },
-    {
-      nameAr: "باقة الشركات",
-      nameEn: "Enterprise Plan",
-      value: 36,
-      percentage: "28%",
-      color: isDark ? "#d48b28" : "#1c140f",
-    },
-    {
-      nameAr: "الباقة الأساسية",
-      nameEn: "Basic Plan",
-      value: 24,
-      percentage: "19%",
-      color: isDark ? "#5e4533" : "#b9b9b9",
-    },
-  ];
+  const defaultPlanData: DashboardPlanSlice[] = [];
+
+  const revenueData = externalRevenueData || defaultRevenueData;
+
+  const planData = externalPlanData || defaultPlanData;
+
+  const totalRevenue = revenueData.reduce((acc, curr) => acc + curr.value, 0);
+  const formattedTotalRevenue = totalRevenue > 0
+    ? `${totalRevenue.toLocaleString()} ${currentLang === "en" ? "SAR" : "ر.س"}`
+    : `0 ${currentLang === "en" ? "SAR" : "ر.س"}`;
+
+  const highestRevenuePoint = revenueData.find((p) => p.isHighest);
+  const totalPlanOffices = planData.reduce((acc, curr) => acc + curr.value, 0);
 
   return (
     <div
@@ -156,7 +111,7 @@ export function DashboardAnalyticsSection() {
                 {currentLang === "en" ? "Total Period" : "إجمالي الفترة"}
               </span>
               <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[14px] leading-[20px] font-bold font-sans">
-                {currentLang === "en" ? "264,800 SAR" : "264,800 ر.س"}
+                {formattedTotalRevenue}
               </span>
             </div>
           </div>
@@ -164,20 +119,28 @@ export function DashboardAnalyticsSection() {
 
         {/* Chart Area */}
         <div className="w-full h-[250px] mt-4 relative">
-          {/* Static Figma Tooltip Card badge positioned above October */}
-          <div
-            className="absolute top-0 end-[20px] z-10 bg-[#1c140f] dark:bg-[#2e1f16] border border-[#38271c] rounded-[4px] px-[12px] py-[6px] shadow-lg flex flex-col items-center pointer-events-none"
-            data-node-id="1:171"
-          >
-            <span className="text-[#ffddb6] dark:text-[#e29d38] text-[10px] font-bold leading-[14px]">
-              {currentLang === "en" ? "Oct 2024 (Peak)" : "أكتوبر 2024 (الأعلى)"}
-            </span>
-            <span className="text-[#fdfbf7] text-[12px] font-bold leading-[16px]">
-              {currentLang === "en" ? "48,750 SAR" : "48,750 ر.س"}
-            </span>
-            {/* Triangle indicator */}
-            <div className="absolute -bottom-[4px] start-1/2 -translate-x-1/2 size-[8px] bg-[#1c140f] dark:bg-[#2e1f16] border-r border-b border-[#38271c] rotate-45" />
-          </div>
+          {/* Static Figma Tooltip Card badge positioned above Peak */}
+          {highestRevenuePoint && (
+            <div
+              className="absolute top-0 end-[20px] z-10 bg-[#1c140f] dark:bg-[#2e1f16] border border-[#38271c] rounded-[4px] px-[12px] py-[6px] shadow-lg flex flex-col items-center pointer-events-none"
+              data-node-id="1:171"
+            >
+              <span className="text-[#ffddb6] dark:text-[#e29d38] text-[10px] font-bold leading-[14px]">
+                {currentLang === "en" ? highestRevenuePoint.labelEn : highestRevenuePoint.labelAr}
+              </span>
+              <span className="text-[#fdfbf7] text-[12px] font-bold leading-[16px]">
+                {highestRevenuePoint.value.toLocaleString()} {currentLang === "en" ? "SAR" : "ر.س"}
+              </span>
+              {/* Triangle indicator */}
+              <div className="absolute -bottom-[4px] start-1/2 -translate-x-1/2 size-[8px] bg-[#1c140f] dark:bg-[#2e1f16] border-r border-b border-[#38271c] rotate-45" />
+            </div>
+          )}
+
+          {revenueData.length === 0 ? (
+            <div className="h-full flex items-center justify-center text-xs text-[#837565] dark:text-[#a89f91]">
+              {currentLang === "en" ? "No revenue data recorded yet" : "لا توجد بيانات إيرادات مسجلة"}
+            </div>
+          ) : (
 
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
@@ -264,6 +227,7 @@ export function DashboardAnalyticsSection() {
               />
             </AreaChart>
           </ResponsiveContainer>
+          )}
         </div>
       </div>
 
@@ -286,8 +250,8 @@ export function DashboardAnalyticsSection() {
             data-node-id="1:183"
           >
             {currentLang === "en"
-              ? "Share of plans from 128 licensed offices"
-              : "حصة الباقات من إجمالي 128 مكتب مرخص"}
+              ? "Share of plans from licensed offices"
+              : "حصة الباقات من إجمالي المكاتب المرخصة"}
           </p>
         </div>
 
@@ -330,7 +294,7 @@ export function DashboardAnalyticsSection() {
               className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[28px] font-bold font-sans leading-[30px] my-[1px]"
               data-node-id="1:227"
             >
-              128
+              {totalPlanOffices}
             </span>
             <span
               className="text-[#514537] dark:text-[#cdc5bd] text-[10px] font-bold leading-[14px]"
@@ -346,34 +310,40 @@ export function DashboardAnalyticsSection() {
           className="border-t border-[#f0eeea] dark:border-[#38271c] pt-[12px] flex flex-col gap-[8px] w-full"
           data-node-id="1:184"
         >
-          {planData.map((plan, idx) => (
-            <div
-              key={plan.nameEn}
-              className="flex items-center justify-between w-full text-[12px]"
-              data-node-id={`1:${185 + idx * 10}`}
-            >
-              {/* Color indicator and name */}
-              <div className="flex items-center gap-[8px]">
-                <span
-                  className="size-[12px] rounded-full shrink-0"
-                  style={{ backgroundColor: plan.color }}
-                />
-                <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] leading-[16px]">
-                  {currentLang === "en" ? plan.nameEn : plan.nameAr}
-                </span>
-              </div>
-
-              {/* Quantity and Percentage */}
-              <div className="flex items-center gap-[8px]">
-                <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] leading-[16px]">
-                  {plan.value} {currentLang === "en" ? "Offices" : "مكتب"}
-                </span>
-                <span className="font-semibold text-[#625d5d] dark:text-[#a89f91] text-[12px] leading-[16px]">
-                  ({plan.percentage})
-                </span>
-              </div>
+          {planData.length === 0 ? (
+            <div className="py-4 text-center text-xs text-[#837565] dark:text-[#a89f91]">
+              {currentLang === "en" ? "No plans distributed yet" : "لا توجد باقات موزعة حتى الآن"}
             </div>
-          ))}
+          ) : (
+            planData.map((plan, idx) => (
+              <div
+                key={plan.nameEn}
+                className="flex items-center justify-between w-full text-[12px]"
+                data-node-id={`1:${185 + idx * 10}`}
+              >
+                {/* Color indicator and name */}
+                <div className="flex items-center gap-[8px]">
+                  <span
+                    className="size-[12px] rounded-full shrink-0"
+                    style={{ backgroundColor: plan.color }}
+                  />
+                  <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] leading-[16px]">
+                    {currentLang === "en" ? plan.nameEn : plan.nameAr}
+                  </span>
+                </div>
+
+                {/* Quantity and Percentage */}
+                <div className="flex items-center gap-[8px]">
+                  <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] leading-[16px]">
+                    {plan.value} {currentLang === "en" ? "Offices" : "مكتب"}
+                  </span>
+                  <span className="font-semibold text-[#625d5d] dark:text-[#a89f91] text-[12px] leading-[16px]">
+                    ({plan.percentage})
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

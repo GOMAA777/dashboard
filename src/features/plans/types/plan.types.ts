@@ -5,6 +5,7 @@ export interface PlanLimitsData {
   clients: string;
   storage: string;
   support: string;
+  assistants?: string;
   integration?: string;
 }
 
@@ -19,10 +20,15 @@ export interface PlanFeatureItem {
 export interface PricingPlanItem {
   id: string;
   name: string;
+  slug?: string;
   code: string;
   description: string;
+  badge?: string;
+  badgeColor?: string;
+  type?: string;
   monthlyPrice: number;
   annualPrice?: number;
+  yearlyDiscountPercent?: number;
   annualNote?: string;
   subscribedFirmsCount: number;
   sharePercentage: string;
@@ -32,6 +38,7 @@ export interface PricingPlanItem {
   colorTheme?: string;
   limits: PlanLimitsData;
   features?: PlanFeatureItem[];
+  rawFeatures?: string[];
 }
 
 export interface SubscribedFirm {
@@ -56,6 +63,11 @@ export interface DetailedSubscribedFirm {
   city: string;
   owner: string;
   contact: string; // phone or email
+  logo?: string;
+  taxNumber?: string;
+  subscriptionCode?: string;
+  amount?: string;
+  paymentMethod?: string;
   lawyersUsed: number;
   lawyersLimit: number;
   casesUsed: number;
@@ -70,4 +82,4 @@ export interface DetailedSubscribedFirm {
   status: "active" | "expiring_soon" | "trial" | "pending_payment" | "suspended";
 }
 
-export type PlanViewMode = "list" | "create" | "silver-details" | "subscribed-firms";
+export type PlanViewMode = "list" | "create" | "edit" | "silver-details" | "subscribed-firms" | "firm-details";

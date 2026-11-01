@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronsRight,
   ChevronsLeft,
+  DoorOpen,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ClientOffice, TabFilter } from "../types/client.types";
@@ -17,26 +18,34 @@ import { ClientRowActionMenu } from "./ClientRowActionMenu";
 import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
 import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
 import { DashboardSelect } from "@/components/shared/DashboardSelect";
+import { useLanguage } from "@/lib/i18n";
 
 export { initialOffices };
 
 interface ClientManagementTableProps {
   offices?: ClientOffice[];
+  isLoading?: boolean;
   onViewOfficeDetails: (office: ClientOffice) => void;
   onEditOffice: (office: ClientOffice) => void;
+  onEnterOfficeAsAdmin?: (office: ClientOffice) => void;
   onOpenDeactivateModal?: (office: ClientOffice) => void;
   onOpenDeleteModal?: (office: ClientOffice) => void;
+  onManageSubscriptions?: (office: ClientOffice) => void;
 }
 
 export function ClientManagementTable({
   offices: propOffices,
+  isLoading = false,
   onViewOfficeDetails,
   onEditOffice,
+  onEnterOfficeAsAdmin,
   onOpenDeactivateModal,
   onOpenDeleteModal,
+  onManageSubscriptions,
 }: ClientManagementTableProps) {
-  const [internalOffices, setInternalOffices] = useState<ClientOffice[]>(initialOffices);
-  const offices = propOffices || internalOffices;
+  const { t, isEn } = useLanguage();
+  const [internalOffices, setInternalOffices] = useState<ClientOffice[]>([]);
+  const offices = propOffices !== undefined ? propOffices : internalOffices;
   const [activeTab, setActiveTab] = useState<TabFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [openMenuRowId, setOpenMenuRowId] = useState<string | null>(null);
@@ -49,7 +58,8 @@ export function ClientManagementTable({
 
   // Pagination
   const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSize] = useState(6);
+  const [pageSize, setPageSize] = useState(5);
+  const [failedLogos, setFailedLogos] = useState<Record<string, boolean>>({});
 
   const filteredOffices = useMemo(() => {
     const list = offices.filter((item) => {
@@ -79,8 +89,8 @@ export function ClientManagementTable({
 
     return list.sort((a, b) => {
       if (sortOrder === "name") return a.name.localeCompare(b.name, "ar");
-      if (sortOrder === "oldest") return a.id.localeCompare(b.id);
-      return b.id.localeCompare(a.id);
+      if (sortOrder === "oldest") return (Number(a.id) || 0) - (Number(b.id) || 0);
+      return (Number(b.id) || 0) - (Number(a.id) || 0);
     });
   }, [offices, activeTab, searchQuery, planFilter, cityFilter, subscriptionStatusFilter, sortOrder]);
 
@@ -144,14 +154,14 @@ export function ClientManagementTable({
       <UnifiedFilterBar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        searchPlaceholder="ابحث باسم المكتب، المالك، رقم الجوال..."
+        searchPlaceholder={t("ابحث باسم المكتب، المالك، رقم الجوال...", "Search by office name, owner, phone...")}
         primaryFilterValue={activeTab}
         onPrimaryFilterChange={(v) => setActiveTab(v as TabFilter)}
         primaryFilterMode="pills"
         primaryFilterOptions={[
-          { label: "الكل (128)", value: "all" },
-          { label: "النشطة (96)", value: "active" },
-          { label: "المعطلة (14)", value: "suspended" },
+          { label: t("الكل (128)", "All (128)"), value: "all" },
+          { label: t("النشطة (96)", "Active (96)"), value: "active" },
+          { label: t("المعطلة (14)", "Suspended (14)"), value: "suspended" },
         ]}
         hasActiveFilters={
           activeTab !== "all" ||
@@ -169,24 +179,8 @@ export function ClientManagementTable({
           setSubscriptionStatusFilter("all");
           setSortOrder("newest");
         }}
-        actionButton={
-          <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
-            <span className="text-[12px] font-semibold text-[#837565] dark:text-[#8e8680] whitespace-nowrap">
-              الترقيم:
-            </span>
-            <PageSizeDropdown
-              value={pageSize}
-              onChange={(newSize) => {
-                setPageSize(newSize);
-                setPageIndex(0);
-              }}
-              options={[5, 6, 8, 10, 12, 20, 50, 9999]}
-              dropdownPlacement="bottom"
-            />
-          </div>
-        }
-        drawerTitle="تصفية شاملة لمكاتب المحاماة"
-        drawerDescription="خيارات تصفية وفلترة متقدمة للوصول الدقيق لبيانات المنشآت"
+        drawerTitle={t("تصفية شاملة لمكاتب المحاماة", "Comprehensive Law Firm Filters")}
+        drawerDescription={t("خيارات تصفية وفلترة متقدمة للوصول الدقيق لبيانات المنشآت", "Advanced filter options for precise office queries")}
         drawerContent={
           <div className="space-y-6 text-start font-['Cairo',sans-serif]">
             {/* 1. Account Status */}
@@ -284,11 +278,9 @@ export function ClientManagementTable({
                 }}
               >
                 <option value={5} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">5 مكاتب بالصفحة</option>
-                <option value={6} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">6 مكاتب بالصفحة</option>
-                <option value={8} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">8 مكاتب بالصفحة</option>
                 <option value={10} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">10 مكاتب بالصفحة</option>
-                <option value={12} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">12 مكتب بالصفحة</option>
                 <option value={20} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">20 مكتب بالصفحة</option>
+                <option value={50} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">50 مكتب بالصفحة</option>
                 <option value={9999} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">عرض كافة المكاتب (الكل)</option>
               </DashboardSelect>
             </div>
@@ -303,21 +295,59 @@ export function ClientManagementTable({
           <thead>
             <tr className="bg-[#f5f3ef] dark:bg-[#281c15] border-b border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[18px] font-semibold">
               <th className="py-[12px] px-[12px] w-[50px] text-center font-bold">#</th>
-              <th className="py-[12px] px-[16px] whitespace-nowrap">اسم المكتب والترخيص</th>
-              <th className="py-[12px] px-[16px] whitespace-nowrap">المالك</th>
-              <th className="py-[12px] px-[16px] whitespace-nowrap">البريد الإلكتروني</th>
-              <th className="py-[12px] px-[16px] whitespace-nowrap">رقم التواصل</th>
-              <th className="py-[12px] px-[16px] whitespace-nowrap">الباقة الحالية</th>
-              <th className="py-[12px] px-[16px] whitespace-nowrap">حالة الاشتراك</th>
-              <th className="py-[12px] px-[16px] whitespace-nowrap">حالة الحساب</th>
-              <th className="py-[12px] px-[16px] text-center whitespace-nowrap">الإجراءات</th>
+              <th className="py-[12px] px-[16px] whitespace-nowrap">{t("اسم المكتب والترخيص", "Office & License")}</th>
+              <th className="py-[12px] px-[16px] whitespace-nowrap">{t("المالك", "Owner")}</th>
+              <th className="py-[12px] px-[16px] whitespace-nowrap">{t("البريد الإلكتروني", "Email")}</th>
+              <th className="py-[12px] px-[16px] whitespace-nowrap">{t("رقم التواصل", "Phone Number")}</th>
+              <th className="py-[12px] px-[16px] whitespace-nowrap">{t("الباقة الحالية", "Current Plan")}</th>
+              <th className="py-[12px] px-[16px] whitespace-nowrap">{t("حالة الاشتراك", "Subscription")}</th>
+              <th className="py-[12px] px-[16px] whitespace-nowrap">{t("حالة الحساب", "Account Status")}</th>
+              <th className="py-[12px] px-[16px] text-center whitespace-nowrap">{t("الإجراءات", "Actions")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#f0eeea] dark:divide-[#38271c]">
-            {paginatedOffices.length === 0 ? (
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <tr key={`sk-${i}`} className="animate-pulse">
+                  <td className="py-[16px] px-[12px] text-center">
+                    <div className="size-[24px] rounded-[4px] bg-black/5 dark:bg-white/10 mx-auto" />
+                  </td>
+                  <td className="py-[16px] px-[16px]">
+                    <div className="flex items-center gap-[12px]">
+                      <div className="size-[36px] rounded-[4px] bg-black/5 dark:bg-white/10 shrink-0" />
+                      <div className="flex flex-col gap-1.5 flex-1">
+                        <div className="h-4 w-40 bg-black/5 dark:bg-white/10 rounded" />
+                        <div className="h-3 w-24 bg-black/5 dark:bg-white/10 rounded" />
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-[16px] px-[16px]">
+                    <div className="h-4 w-28 bg-black/5 dark:bg-white/10 rounded" />
+                  </td>
+                  <td className="py-[16px] px-[16px]">
+                    <div className="h-4 w-36 bg-black/5 dark:bg-white/10 rounded" />
+                  </td>
+                  <td className="py-[16px] px-[16px]">
+                    <div className="h-4 w-28 bg-black/5 dark:bg-white/10 rounded" />
+                  </td>
+                  <td className="py-[16px] px-[16px]">
+                    <div className="h-5 w-24 bg-black/5 dark:bg-white/10 rounded-full" />
+                  </td>
+                  <td className="py-[16px] px-[16px]">
+                    <div className="h-5 w-20 bg-black/5 dark:bg-white/10 rounded-full" />
+                  </td>
+                  <td className="py-[16px] px-[16px]">
+                    <div className="h-5 w-16 bg-black/5 dark:bg-white/10 rounded-full" />
+                  </td>
+                  <td className="py-[16px] px-[16px] text-center">
+                    <div className="size-[32px] rounded-[4px] bg-black/5 dark:bg-white/10 mx-auto" />
+                  </td>
+                </tr>
+              ))
+            ) : paginatedOffices.length === 0 ? (
               <tr>
                 <td colSpan={9} className="py-[48px] text-center text-[#837565] dark:text-[#8e8680] text-[14px]">
-                  لا توجد مكاتب تطابق معايير البحث الحالية
+                  {t("لا توجد مكاتب تطابق معايير البحث الحالية", "No law offices match the current search criteria")}
                 </td>
               </tr>
             ) : (
@@ -335,11 +365,22 @@ export function ClientManagementTable({
                   {/* 1. اسم المكتب والترخيص */}
                   <td className="py-[16px] px-[16px]">
                     <div className="flex items-center gap-[12px]">
-                      <div
-                        className={`size-[36px] rounded-[4px] flex items-center justify-center font-bold text-[14px] shrink-0 ${office.initialBg} ${office.initialText}`}
-                      >
-                        {office.initial}
-                      </div>
+                      {office.logo && !failedLogos[office.id] ? (
+                        <div className="size-[36px] rounded-[4px] bg-white dark:bg-[#1a120d] border border-[#eae8e4] dark:border-[#422e20] p-0.5 flex items-center justify-center shrink-0 overflow-hidden">
+                          <img
+                            src={office.logo}
+                            alt={office.name}
+                            className="max-h-full max-w-full object-contain"
+                            onError={() => setFailedLogos((prev) => ({ ...prev, [office.id]: true }))}
+                          />
+                        </div>
+                      ) : (
+                        <div
+                          className={`size-[36px] rounded-[4px] flex items-center justify-center font-bold text-[14px] shrink-0 ${office.initialBg} ${office.initialText}`}
+                        >
+                          {office.initial}
+                        </div>
+                      )}
                       <div className="flex flex-col">
                         <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-bold leading-[19px]">
                           {office.name}
@@ -378,7 +419,13 @@ export function ClientManagementTable({
                     <span
                       className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap border ${office.planBadgeClass}`}
                     >
-                      {office.plan}
+                      {isEn
+                        ? office.plan
+                            .replace("الباقة الاحترافية", "Professional")
+                            .replace("باقة الشركات", "Enterprise")
+                            .replace("الباقة الأساسية", "Basic")
+                            .replace("تجربة مجانية", "Free Trial")
+                        : office.plan}
                     </span>
                   </td>
 
@@ -387,10 +434,25 @@ export function ClientManagementTable({
                     <span
                       className={`w-fit inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap border ${office.subscriptionStatus.bgClass} ${office.subscriptionStatus.textClass}`}
                     >
-                      <span>{office.subscriptionStatus.label}</span>
+                      <span>
+                        {isEn
+                          ? office.subscriptionStatus.label === "نشط"
+                            ? "Active"
+                            : office.subscriptionStatus.label === "ساري"
+                            ? "Valid"
+                            : office.subscriptionStatus.label === "منتهي"
+                            ? "Expired"
+                            : office.subscriptionStatus.label
+                          : office.subscriptionStatus.label}
+                      </span>
                       {office.subscriptionStatus.note && (
                         <span className="font-medium text-[10px] opacity-90">
-                          {office.subscriptionStatus.note}
+                          {isEn
+                            ? office.subscriptionStatus.note
+                                .replace("(ساري)", "(Valid)")
+                                .replace("(منتهي)", "(Expired)")
+                                .replace("متبقي", "Remaining")
+                            : office.subscriptionStatus.note}
                         </span>
                       )}
                     </span>
@@ -402,7 +464,15 @@ export function ClientManagementTable({
                       className={`w-fit inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap border ${office.accountStatus.bgClass} ${office.accountStatus.textClass}`}
                     >
                       <span className={`size-[7px] rounded-full shadow-[0_0_8px_currentColor] ring-1 ring-current/40 shrink-0 ${office.accountStatus.dotClass}`} />
-                      <span>{office.accountStatus.label}</span>
+                      <span>
+                        {isEn
+                          ? office.accountStatus.label === "نشط"
+                            ? "Active"
+                            : office.accountStatus.label === "معطل"
+                            ? "Suspended"
+                            : office.accountStatus.label
+                          : office.accountStatus.label}
+                      </span>
                     </span>
                   </td>
 
@@ -412,19 +482,32 @@ export function ClientManagementTable({
                       {/* زر عرض التفاصيل (Eye) */}
                       <button
                         type="button"
-                        aria-label="عرض التفاصيل"
+                        aria-label={t("عرض التفاصيل", "View Details")}
                         onClick={() => onViewOfficeDetails(office)}
                         className="p-[6px] rounded-[4px] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] transition-colors cursor-pointer"
-                        title="عرض التفاصيل"
+                        title={t("عرض التفاصيل", "View Details")}
                       >
                         <Eye className="size-[15px]" />
                       </button>
+
+                      {/* زر دخول المكتب كمسؤول (باب) */}
+                      {onEnterOfficeAsAdmin && (
+                        <button
+                          type="button"
+                          aria-label={t("دخول المكتب كمسؤول", "Enter Office as Admin")}
+                          onClick={() => onEnterOfficeAsAdmin(office)}
+                          className="p-[6px] rounded-[4px] hover:bg-[#fff9ee] dark:hover:bg-[#342711] text-[#9c6402] dark:text-[#e29d38] hover:text-[#825200] transition-colors cursor-pointer"
+                          title={t("دخول المكتب كمسؤول", "Enter Office as Admin")}
+                        >
+                          <DoorOpen className="size-[15px]" />
+                        </button>
+                      )}
 
                       {/* زر القائمة المنسدلة (3 dots) */}
                       <div className="relative">
                         <button
                           type="button"
-                          aria-label="خيارات إضافية"
+                          aria-label={t("خيارات إضافية", "More Options")}
                           onClick={() =>
                             setOpenMenuRowId(openMenuRowId === office.id ? null : office.id)
                           }
@@ -437,9 +520,18 @@ export function ClientManagementTable({
                           isOpen={openMenuRowId === office.id}
                           onClose={() => setOpenMenuRowId(null)}
                           onViewDetails={() => onViewOfficeDetails(office)}
+                          onEnterOfficeAsAdmin={
+                            onEnterOfficeAsAdmin
+                              ? () => onEnterOfficeAsAdmin(office)
+                              : undefined
+                          }
                           onEdit={() => onEditOffice(office)}
                           onManageSubscriptions={() => {
-                            toast.info(`إدارة اشتراكات وفواتير مكتب ${office.name}`);
+                            if (onManageSubscriptions) {
+                              onManageSubscriptions(office);
+                            } else {
+                              toast.info(`إدارة اشتراكات وفواتير مكتب ${office.name}`);
+                            }
                           }}
                           onDeactivate={() => {
                             if (onOpenDeactivateModal) {
@@ -471,24 +563,24 @@ export function ClientManagementTable({
           {/* Right in RTL: Count Summary & Rows per page */}
         <div className="flex flex-wrap items-center gap-4">
           <div>
-            <span>عرض </span>
+            <span>{t("عرض", "Showing")} </span>
             <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{startItem}</span>
-            <span> إلى </span>
+            <span> {t("إلى", "to")} </span>
             <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{endItem}</span>
-            <span> من أصل </span>
+            <span> {t("من أصل", "of")} </span>
             <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{totalItems}</span>
-            <span> مكتب محاماة مسجل</span>
+            <span> {t("مكتب محاماة مسجل", "registered law offices")}</span>
           </div>
 
           <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
-            <span className="text-[11px] text-[#837565] dark:text-[#8e8680]">صفوف بالصفحة:</span>
+            <span className="text-[11px] text-[#837565] dark:text-[#8e8680]">{t("صفوف بالصفحة:", "Rows per page:")}</span>
             <PageSizeDropdown
               value={pageSize}
               onChange={(newSize) => {
                 setPageSize(newSize);
                 setPageIndex(0);
               }}
-              options={[5, 6, 8, 10, 12, 20, 50, 9999]}
+              options={[5, 10, 20, 50]}
               dropdownPlacement="top"
             />
           </div>
@@ -500,21 +592,21 @@ export function ClientManagementTable({
             type="button"
             disabled={safePageIndex === 0 || totalItems === 0}
             onClick={() => setPageIndex(0)}
-            title="الصفحة الأولى"
+            title={t("الصفحة الأولى", "First page")}
             className="size-[30px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center cursor-pointer"
           >
-            <ChevronsRight className="size-[14px]" />
+            <ChevronsRight className="size-[14px] rtl:rotate-0 rotate-180" />
           </button>
 
           <button
             type="button"
             disabled={safePageIndex === 0 || totalItems === 0}
             onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
-            title="الصفحة السابقة"
+            title={t("الصفحة السابقة", "Previous page")}
             className="px-[10px] py-[6px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-[4px] cursor-pointer"
           >
-            <ChevronRight className="size-[13px]" />
-            <span>السابق</span>
+            <ChevronRight className="size-[13px] rtl:rotate-0 rotate-180" />
+            <span>{t("السابق", "Previous")}</span>
           </button>
 
           {totalItems === 0 ? (
@@ -559,21 +651,21 @@ export function ClientManagementTable({
             type="button"
             disabled={safePageIndex >= totalPages - 1 || totalItems === 0}
             onClick={() => setPageIndex((p) => Math.min(totalPages - 1, p + 1))}
-            title="الصفحة التالية"
+            title={t("الصفحة التالية", "Next page")}
             className="px-[10px] py-[6px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#1b1c1a] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-[4px] cursor-pointer"
           >
-            <span>التالي</span>
-            <ChevronLeft className="size-[13px]" />
+            <span>{t("التالي", "Next")}</span>
+            <ChevronLeft className="size-[13px] rtl:rotate-0 rotate-180" />
           </button>
 
           <button
             type="button"
             disabled={safePageIndex >= totalPages - 1 || totalItems === 0}
             onClick={() => setPageIndex(totalPages - 1)}
-            title="الصفحة الأخيرة"
+            title={t("الصفحة الأخيرة", "Last page")}
             className="size-[30px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center cursor-pointer"
           >
-            <ChevronsLeft className="size-[14px]" />
+            <ChevronsLeft className="size-[14px] rtl:rotate-0 rotate-180" />
           </button>
         </div>
       </div>

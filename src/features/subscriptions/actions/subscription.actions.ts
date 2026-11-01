@@ -1,6 +1,3 @@
-"use server";
-
-import { revalidatePath } from "next/cache";
 import { actionClient } from "@/lib/safe-action";
 import {
   updateSubscriptionStatusSchema,
@@ -11,10 +8,6 @@ export const updateSubscriptionStatusAction = actionClient
   .schema(updateSubscriptionStatusSchema)
   .action(async ({ parsedInput }) => {
     const { subscriptionId, action, reason } = parsedInput;
-
-    // Simulate database update
-    // In production, this writes to PostgreSQL / API Client
-    revalidatePath("/subscriptions");
 
     return {
       success: true,
@@ -28,9 +21,6 @@ export const updateSubscriptionStatusAction = actionClient
 export const createSubscriptionAction = actionClient
   .schema(createSubscriptionSchema)
   .action(async ({ parsedInput }) => {
-    // In production, creates subscription record in database
-    revalidatePath("/subscriptions");
-
     return {
       success: true,
       data: parsedInput,

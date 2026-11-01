@@ -2,6 +2,7 @@
 
 import React from "react";
 import { CheckCircle2, Clock, RotateCw, AlertCircle } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 interface TicketsStatsCardsProps {
   openCount?: number;
@@ -12,12 +13,13 @@ interface TicketsStatsCardsProps {
 }
 
 export function TicketsStatsCards({
-  openCount = 18,
-  inProgressCount = 24,
-  pendingCount = 7,
-  closedCount = 342,
+  openCount = 0,
+  inProgressCount = 0,
+  pendingCount = 0,
+  closedCount = 0,
   isEmpty = false,
 }: TicketsStatsCardsProps) {
+  const { t } = useLanguage();
   const displayOpen = isEmpty ? 0 : openCount;
   const displayInProgress = isEmpty ? 0 : inProgressCount;
   const displayPending = isEmpty ? 0 : pendingCount;
@@ -41,7 +43,7 @@ export function TicketsStatsCards({
           </div>
           <div className="flex flex-col items-end">
             <span className="font-medium text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[16px] text-start">
-              التذاكر المفتوحة
+              {t("التذاكر المفتوحة", "Open Tickets")}
             </span>
             <div className="pt-[4px]">
               <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7] text-[28px] leading-[38px] text-start">
@@ -56,7 +58,7 @@ export function TicketsStatsCards({
           ) : (
             <div className="flex gap-[6px] items-center justify-end pt-[8px] w-full">
               <span className="font-bold text-[#1e3a8a] dark:text-[#93c5fd] bg-[#eff6ff] border border-blue-200 dark:bg-[#162233] dark:border-blue-500/40 text-[10px] leading-[14px] px-2 py-0.5 rounded-full">
-                منها 4 تذاكر واردة اليوم
+                {t("منها 4 تذاكر واردة اليوم", "4 received today")}
               </span>
               <div className="bg-[#1e3a8a] dark:bg-[#2563eb] rounded-full size-[6px] shrink-0" />
             </div>
@@ -76,7 +78,7 @@ export function TicketsStatsCards({
           </div>
           <div className="flex flex-col items-end">
             <span className="font-medium text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[16px] text-start">
-              جاري العمل عليها
+              {t("جاري العمل عليها", "In Progress")}
             </span>
             <div className="pt-[4px]">
               <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7] text-[28px] leading-[38px] text-start">
@@ -91,7 +93,7 @@ export function TicketsStatsCards({
           ) : (
             <div className="flex gap-[6px] items-center justify-end pt-[8px] w-full">
               <span className="font-bold text-[#7b4e00] dark:text-[#fbbf24] bg-[#fbf7f0] border border-[#ffddb6] dark:bg-[#2e1d0f] dark:border-amber-500/40 text-[10px] leading-[14px] px-2 py-0.5 rounded-full">
-                متوسط الإنجاز: 3.2 ساعات
+                {t("متوسط الإنجاز: 3.2 ساعات", "Avg Resolution: 3.2 hrs")}
               </span>
               <div className="bg-[#9c6402] dark:bg-[#f59e0b] rounded-full size-[6px] shrink-0" />
             </div>
@@ -111,7 +113,7 @@ export function TicketsStatsCards({
           </div>
           <div className="flex flex-col items-end">
             <span className="font-medium text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[16px] text-start">
-              التذاكر المعلقة
+              {t("التذاكر المعلقة", "Pending Tickets")}
             </span>
             <div className="pt-[4px]">
               <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7] text-[28px] leading-[38px] text-start">
@@ -126,7 +128,7 @@ export function TicketsStatsCards({
           ) : (
             <div className="flex gap-[6px] items-center justify-end pt-[8px] w-full">
               <span className="font-bold text-[#b45309] dark:text-[#fbbf24] bg-[#fffbeb] border border-amber-200 dark:bg-[#2e1d0f] dark:border-amber-500/40 text-[10px] leading-[14px] px-2 py-0.5 rounded-full">
-                بانتظار إفادة مكاتب المحامين
+                {t("بانتظار إفادة مكاتب المحامين", "Awaiting law firms feedback")}
               </span>
               <div className="bg-[#b45309] dark:bg-[#f59e0b] rounded-full size-[6px] shrink-0" />
             </div>
@@ -146,7 +148,7 @@ export function TicketsStatsCards({
           </div>
           <div className="flex flex-col items-end">
             <span className="font-medium text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[16px] text-start">
-              التذاكر المغلقة
+              {t("التذاكر المغلقة", "Closed Tickets")}
             </span>
             <div className="pt-[4px]">
               <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7] text-[28px] leading-[38px] text-start">
@@ -161,7 +163,7 @@ export function TicketsStatsCards({
           ) : (
             <div className="flex gap-[6px] items-center justify-end pt-[8px] w-full">
               <span className="font-bold text-[#137333] dark:text-[#6ee7b7] bg-[#ecfdf5] border border-emerald-200 dark:bg-[#132c1c] dark:border-emerald-500/40 text-[10px] leading-[14px] px-2 py-0.5 rounded-full">
-                نسبة الرضا العامة 98.4%
+                {t("نسبة الرضا العامة 98.4%", "Satisfaction rate 98.4%")}
               </span>
               <div className="bg-[#137333] dark:bg-[#10b981] rounded-full size-[6px] shrink-0" />
             </div>

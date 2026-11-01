@@ -11,6 +11,7 @@ import {
   CustomGatewayBrandIcon,
 } from "@/components/shared/BrandLogos";
 import { PaymentGatewayItem } from "../types/payment-gateways.types";
+import { useLanguage } from "@/lib/i18n";
 
 interface GatewayCardProps {
   gateway: PaymentGatewayItem;
@@ -23,6 +24,7 @@ export function GatewayCard({
   onToggle,
   onOpenSettings,
 }: GatewayCardProps) {
+  const { t, isEn } = useLanguage();
   const {
     name,
     providerSubtitle,
@@ -43,7 +45,7 @@ export function GatewayCard({
       <div className="flex flex-col gap-4">
         {/* Header: Brand Icon on Right, Toggle Switch on Left */}
         <div className="flex items-start justify-between w-full">
-          {/* Brand Info on Start (Right in RTL) */}
+          {/* Brand Info on Start */}
           <div className="flex items-center gap-3">
             {/* Official Brand Badge */}
             {brandType === "bank" && (
@@ -100,7 +102,7 @@ export function GatewayCard({
             </div>
           </div>
 
-          {/* iOS-Style Toggle Switch on Left */}
+          {/* Toggle Switch */}
           <button
             type="button"
             role="switch"
@@ -112,7 +114,11 @@ export function GatewayCard({
           >
             <span
               className={`pointer-events-none inline-block size-[24px] transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                isEnabled ? "-translate-x-[22px]" : "translate-x-0"
+                isEnabled
+                  ? isEn
+                    ? "translate-x-[22px]"
+                    : "-translate-x-[22px]"
+                  : "translate-x-0"
               }`}
             />
           </button>
@@ -150,12 +156,12 @@ export function GatewayCard({
         <div className="border-t border-[#e8e4de]/60 dark:border-[#38271c] pt-4 space-y-2.5 w-full">
           {metaItems.map((meta, idx) => (
             <div key={idx} className="flex items-center justify-between text-xs">
-              {/* Label on Start (Right) */}
+              {/* Label */}
               <span className="text-[#837565] dark:text-[#a89f91] text-start font-normal">
                 {meta.label}
               </span>
 
-              {/* Value on End (Left) */}
+              {/* Value */}
               <div className="flex items-center gap-1.5">
                 {meta.isRecurring && (
                   <Repeat className="size-3 text-[#047857] dark:text-[#34d399]" />
@@ -188,7 +194,7 @@ export function GatewayCard({
           className="bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#34241b] text-[#1c140f] dark:text-[#fdfbf7] border border-transparent dark:border-[#38271c] rounded-[8px] py-2 px-3 text-xs font-semibold w-full flex items-center justify-center gap-2 transition-colors cursor-pointer"
         >
           <Settings className="size-[15px] text-[#514537] dark:text-[#a89f91]" />
-          <span>إعدادات البوابة</span>
+          <span>{t("إعدادات البوابة", "Gateway Settings")}</span>
         </button>
       </div>
     </div>

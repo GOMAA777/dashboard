@@ -4,6 +4,7 @@ import React from "react";
 import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
 import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { staffRoles } from "../data/initialStaff";
+import { useLanguage } from "@/lib/i18n";
 
 interface StaffToolbarProps {
   searchQuery: string;
@@ -30,6 +31,8 @@ export function StaffToolbar({
   onLastLoginChange,
   onResetFilters,
 }: StaffToolbarProps) {
+  const { t } = useLanguage();
+
   const hasActiveFilters =
     selectedRole !== "all" ||
     selectedStatus !== "all" ||
@@ -41,13 +44,15 @@ export function StaffToolbar({
       {/* Role Filter in Drawer */}
       <div className="space-y-2">
         <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-          الدور والصلاحية
+          {t("الدور والصلاحية", "Role & Permission")}
         </label>
         <DashboardSelect
           value={selectedRole}
           onChange={(e) => onRoleChange(e.target.value)}
         >
-          <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">كافة الأدوار والصلاحيات</option>
+          <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+            {t("كافة الأدوار والصلاحيات", "All Roles & Permissions")}
+          </option>
           {staffRoles.map((r) => (
             <option key={r.id} value={r.id} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
               {r.name}
@@ -59,31 +64,45 @@ export function StaffToolbar({
       {/* Status Filter */}
       <div className="space-y-2">
         <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-          حالة الموظف
+          {t("حالة الموظف", "Employee Status")}
         </label>
         <DashboardSelect
           value={selectedStatus}
           onChange={(e) => onStatusChange(e.target.value)}
         >
-          <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">جميع الحالات</option>
-          <option value="active" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">نشط</option>
-          <option value="suspended" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">موقوف</option>
+          <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+            {t("جميع الحالات", "All Statuses")}
+          </option>
+          <option value="active" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+            {t("نشط", "Active")}
+          </option>
+          <option value="suspended" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+            {t("موقوف", "Suspended")}
+          </option>
         </DashboardSelect>
       </div>
 
       {/* Last Login Filter */}
       <div className="space-y-2">
         <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-          آخر تسجيل دخول
+          {t("آخر تسجيل دخول", "Last Login")}
         </label>
         <DashboardSelect
           value={selectedLastLogin}
           onChange={(e) => onLastLoginChange(e.target.value)}
         >
-          <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الكل</option>
-          <option value="today" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">اليوم</option>
-          <option value="week" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">هذا الأسبوع</option>
-          <option value="month" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">هذا الشهر</option>
+          <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+            {t("الكل", "All")}
+          </option>
+          <option value="today" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+            {t("اليوم", "Today")}
+          </option>
+          <option value="week" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+            {t("هذا الأسبوع", "This Week")}
+          </option>
+          <option value="month" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+            {t("هذا الشهر", "This Month")}
+          </option>
         </DashboardSelect>
       </div>
     </div>
@@ -93,17 +112,17 @@ export function StaffToolbar({
     <UnifiedFilterBar
       searchQuery={searchQuery}
       onSearchChange={onSearchChange}
-      searchPlaceholder="ابحث بالاسم، البريد الإلكتروني، أو رقم الموظف..."
+      searchPlaceholder={t("ابحث بالاسم، البريد الإلكتروني، أو رقم الموظف...", "Search by name, email, or employee ID...")}
       primaryFilterValue={selectedStatus}
       onPrimaryFilterChange={onStatusChange}
       primaryFilterOptions={[
-        { label: "الكل", value: "all" },
-        { label: "نشط", value: "active" },
-        { label: "موقوف", value: "suspended" },
+        { label: t("الكل", "All"), value: "all" },
+        { label: t("نشط", "Active"), value: "active" },
+        { label: t("موقوف", "Suspended"), value: "suspended" },
       ]}
       hasActiveFilters={hasActiveFilters}
       onReset={onResetFilters}
-      drawerTitle="تصفية طاقم العمل"
+      drawerTitle={t("تصفية طاقم العمل", "Filter Staff")}
       drawerContent={drawerContent}
     />
   );

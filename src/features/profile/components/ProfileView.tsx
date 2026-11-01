@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import {
   User,
@@ -37,13 +37,45 @@ import { DashboardPageTransition } from "@/components/shared/DashboardPageTransi
 import { DashboardStickyActionBar } from "@/components/shared/DashboardStickyActionBar";
 import { initialProfileData, initialActiveSessions } from "../data/initialProfile";
 import { UserProfileData, ActiveSessionItem } from "../types/profile.types";
+import { useLanguage } from "@/lib/i18n";
+import { fetchAuditLogs } from "@/lib/api/settings";
+import { unwrapList, asString } from "@/lib/api/helpers";
 
 type ProfileTab = "personal" | "email" | "security" | "sessions";
 
 export function ProfileView() {
+  const { direction, isEn } = useLanguage();
   const [activeTab, setActiveTab] = useState<ProfileTab>("personal");
   const [formData, setFormData] = useState<UserProfileData>(initialProfileData);
   const [sessions, setSessions] = useState<ActiveSessionItem[]>(initialActiveSessions);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchAuditLogs()
+      .then((payload) => {
+        if (cancelled) return;
+        const logs = unwrapList<Record<string, unknown>>(payload);
+        if (logs.length === 0) return;
+        setSessions(
+          logs.slice(0, 8).map((log, idx) => ({
+            id: asString(log.id, `session-${idx}`),
+            device: asString(log.action || log.event || log.description, "نشاط إداري"),
+            browser: asString(log.browser || log.user_agent, "—"),
+            os: asString(log.os || log.platform, "—"),
+            location: asString(log.location || log.city, "—"),
+            ipAddress: asString(log.ip || log.ip_address, "—"),
+            lastActive: asString(log.created_at || log.timestamp, "—"),
+            isCurrent: idx === 0,
+          }))
+        );
+      })
+      .catch(() => {
+        // Keep mock sessions if audit logs unavailable.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Email update state
   const [newEmail, setNewEmail] = useState("");
@@ -66,7 +98,7 @@ export function ProfileView() {
     setIsSaving(true);
     setTimeout(() => {
       setIsSaving(false);
-      toast.success("تم حفظ تحديثات الملف الشخصي بنجاح");
+      toast.success(isEn ? "Profile updates saved successfully" : "تم حفظ تحديثات الملف الشخصي بنجاح");
     }, 600);
   };
 
@@ -79,41 +111,41 @@ export function ProfileView() {
     setCurrentPassword("");
     setNewPassword("");
     setConfirmPassword("");
-    toast.info("تم التراجع عن التعديلات غير المحفوظة");
+    toast.info(isEn ? "Unsaved changes discarded" : "تم التراجع عن التعديلات غير المحفوظة");
   };
 
   // Send verification code handler
   const handleSendVerificationCode = () => {
     if (!newEmail.trim() || !newEmail.includes("@")) {
-      toast.error("يرجى إدخال بريد إلكتروني صالح");
+      toast.error(isEn ? "Please enter a valid email address" : "يرجى إدخال بريد إلكتروني صالح");
       return;
     }
     setIsCodeSent(true);
-    toast.success(`تم إرسال رمز التحقق إلى: ${newEmail}`);
+    toast.success(isEn ? `Verification code sent to: ${newEmail}` : `تم إرسال رمز التحقق إلى: ${newEmail}`);
   };
 
   // Confirm verification code handler
   const handleConfirmEmailChange = () => {
     if (emailVerificationCode.trim().length !== 6) {
-      toast.error("يرجى إدخال رمز التحقق المكون من 6 أرقام");
+      toast.error(isEn ? "Please enter the 6-digit verification code" : "يرجى إدخال رمز التحقق المكون من 6 أرقام");
       return;
     }
     setFormData((prev) => ({
       ...prev,
       email: newEmail,
       emailVerified: true,
-      emailVerifiedDate: "الآن (مُحدّث)",
+      emailVerifiedDate: isEn ? "Just now (Updated)" : "الآن (مُحدّث)",
     }));
     setNewEmail("");
     setEmailVerificationCode("");
     setIsCodeSent(false);
-    toast.success("تم تحديث البريد الإلكتروني الرسمي بنجاح وتوثيقه");
+    toast.success(isEn ? "Official email address updated and verified" : "تم تحديث البريد الإلكتروني الرسمي بنجاح وتوثيقه");
   };
 
   // Terminate other sessions
   const handleTerminateOtherSessions = () => {
     setSessions((prev) => prev.filter((s) => s.isCurrent));
-    toast.success("تم تسجيل الخروج بنجاح من جميع الأجهزة الأخرى");
+    toast.success(isEn ? "Logged out from all other devices successfully" : "تم تسجيل الخروج بنجاح من جميع الأجهزة الأخرى");
   };
 
   // Password strength calculation
@@ -127,13 +159,13 @@ export function ProfileView() {
 
     switch (score) {
       case 1:
-        return { score: 25, label: "ضعيفة جداً", color: "bg-red-500" };
+        return { score: 25, label: isEn ? "Very Weak" : "ضعيفة جداً", color: "bg-red-500" };
       case 2:
-        return { score: 50, label: "مقبولة", color: "bg-amber-500" };
+        return { score: 50, label: isEn ? "Fair" : "مقبولة", color: "bg-amber-500" };
       case 3:
-        return { score: 75, label: "جيدة", color: "bg-emerald-500" };
+        return { score: 75, label: isEn ? "Good" : "جيدة", color: "bg-emerald-500" };
       case 4:
-        return { score: 100, label: "قوية جداً ومحمية", color: "bg-[#059669]" };
+        return { score: 100, label: isEn ? "Very Strong & Protected" : "قوية جداً ومحمية", color: "bg-[#059669]" };
       default:
         return { score: 0, label: "", color: "bg-gray-200" };
     }
@@ -142,7 +174,10 @@ export function ProfileView() {
   const pwdStrength = getPasswordStrength(newPassword);
 
   return (
-    <div className="flex h-screen h-dvh overflow-hidden w-full bg-[#f5f3ef] dark:bg-[#121110] text-[#1b1c1a] dark:text-[#fdfbf7] transition-colors duration-200 font-['Cairo',sans-serif]">
+    <div
+      dir={direction}
+      className="flex h-screen h-dvh overflow-hidden w-full bg-[#f5f3ef] dark:bg-[#121110] text-[#1b1c1a] dark:text-[#fdfbf7] transition-colors duration-200 font-['Cairo',sans-serif]"
+    >
       {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar activeNav="profile" />
 
@@ -158,10 +193,12 @@ export function ProfileView() {
             <div className="bg-white dark:bg-[#1e1c1a] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#2f2a24] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex flex-col text-start">
                 <h1 className="text-[24px] sm:text-[28px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                  الملف الشخصي وإعدادات الحساب
+                  {isEn ? "Profile & Account Settings" : "الملف الشخصي وإعدادات الحساب"}
                 </h1>
                 <p className="text-[13px] sm:text-[14px] text-[#514537] dark:text-[#a89f91] mt-0.5">
-                  إدارة البيانات الشخصية، توثيق البريد الإلكتروني، إعدادات كلمة المرور والجلسات لمشرف النظام العام.
+                  {isEn
+                    ? "Manage personal information, email verification, password settings, and active sessions for the super admin."
+                    : "إدارة البيانات الشخصية، توثيق البريد الإلكتروني، إعدادات كلمة المرور والجلسات لمشرف النظام العام."}
                 </p>
               </div>
 
@@ -169,7 +206,7 @@ export function ProfileView() {
               <div className="flex items-center gap-2 bg-[#ecfdf5] dark:bg-[#132c21] border border-emerald-200 dark:border-emerald-500/40 px-3.5 py-1.5 rounded-full w-fit shrink-0">
                 <span className="size-2 rounded-full bg-[#10b981] shadow-[0_0_8px_#10b981] ring-1 ring-emerald-400/60" />
                 <span className="font-bold text-[12px] text-[#065f46] dark:text-[#6ee7b7]">
-                  {formData.statusLabel}
+                  {isEn ? "Active - Verified Admin" : formData.statusLabel}
                 </span>
               </div>
             </div>
@@ -189,12 +226,12 @@ export function ProfileView() {
                   />
                   <button
                     type="button"
-                    onClick={() => toast.info("ميزة تحديث الصورة الشخصية ستتاح في التحديث القادم")}
-                    title="تغيير الصورة الشخصية"
+                    onClick={() => toast.info(isEn ? "Avatar update will be available in the upcoming release" : "ميزة تحديث الصورة الشخصية ستتاح في التحديث القادم")}
+                    title={isEn ? "Change Profile Picture" : "تغيير الصورة الشخصية"}
                     className="absolute inset-0 bg-black/40 text-white opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 cursor-pointer"
                   >
                     <Camera className="size-5" />
-                    <span className="text-[10px] font-bold">تغيير</span>
+                    <span className="text-[10px] font-bold">{isEn ? "Change" : "تغيير"}</span>
                   </button>
                 </div>
 
@@ -213,7 +250,7 @@ export function ProfileView() {
                     <div className="flex items-center justify-center sm:justify-start gap-2 self-center sm:self-auto">
                       <span className="bg-[#f5f3ef] dark:bg-[#2c2621] border border-[#eae8e4] dark:border-[#38332c] text-[#9c6402] dark:text-[#f59e0b] text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
                         <KeyRound className="size-3.5" />
-                        <span>{formData.roleBadge}</span>
+                        <span>{isEn ? "Global Super Admin" : formData.roleBadge}</span>
                       </span>
                     </div>
                   </div>
@@ -236,12 +273,12 @@ export function ProfileView() {
 
                     <div className="flex items-center gap-1.5 bg-[#f5f3ef] dark:bg-[#2c2621] px-3 py-1 rounded-full border border-[#eae8e4] dark:border-[#38332c]">
                       <Calendar className="size-3.5 text-[#837565] dark:text-[#a89f91]" />
-                      <span>تاريخ الانضمام: {formData.joinDate}</span>
+                      <span>{isEn ? `Joined: ${formData.joinDate}` : `تاريخ الانضمام: ${formData.joinDate}`}</span>
                     </div>
 
                     <div className="flex items-center gap-1.5 bg-[#ecfdf5] dark:bg-[#132c21] border border-emerald-200 dark:border-emerald-500/40 text-[#065f46] dark:text-[#6ee7b7] px-3 py-1 rounded-full font-bold text-[11px]">
                       <ShieldCheck className="size-3.5" />
-                      <span>2FA مفعّل</span>
+                      <span>{isEn ? "2FA Enabled" : "2FA مفعّل"}</span>
                     </div>
                   </div>
                 </div>
@@ -261,7 +298,7 @@ export function ProfileView() {
                 )}
               >
                 <User className="size-4" />
-                <span>البيانات الشخصية</span>
+                <span>{isEn ? "Personal Information" : "البيانات الشخصية"}</span>
               </button>
 
               <button
@@ -275,7 +312,7 @@ export function ProfileView() {
                 )}
               >
                 <Mail className="size-4" />
-                <span>البريد الإلكتروني والاتصال</span>
+                <span>{isEn ? "Email & Contact" : "البريد الإلكتروني والاتصال"}</span>
                 <span className="size-2 rounded-full bg-[#10b981]" />
               </button>
 
@@ -290,7 +327,7 @@ export function ProfileView() {
                 )}
               >
                 <Lock className="size-4" />
-                <span>كلمة المرور والأمان</span>
+                <span>{isEn ? "Password & Security" : "كلمة المرور والأمان"}</span>
               </button>
 
               <button
@@ -304,7 +341,7 @@ export function ProfileView() {
                 )}
               >
                 <Laptop className="size-4" />
-                <span>الأجهزة والجلسات</span>
+                <span>{isEn ? "Devices & Sessions" : "الأجهزة والجلسات"}</span>
                 <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-black/5 dark:bg-white/10 text-[#837565] dark:text-[#a89f91]">
                   {sessions.length}
                 </span>
@@ -316,10 +353,12 @@ export function ProfileView() {
               <div className="bg-white dark:bg-[#1e1c1a] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#2f2a24] space-y-6">
                 <div className="border-b border-[#eae8e4] dark:border-[#2f2a24] pb-4 text-start">
                   <h3 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                    المعلومات والبيانات الشخصية
+                    {isEn ? "Personal Information & Details" : "المعلومات والبيانات الشخصية"}
                   </h3>
                   <p className="text-[12px] text-[#837565] dark:text-[#a89f91] mt-0.5">
-                    البيانات الأساسية التي تظهر في سجلات الحوكمة وتقارير تدقيق المنصة.
+                    {isEn
+                      ? "Core profile data displayed in platform governance logs and audit reports."
+                      : "البيانات الأساسية التي تظهر في سجلات الحوكمة وتقارير تدقيق المنصة."}
                   </p>
                 </div>
 
@@ -327,7 +366,7 @@ export function ProfileView() {
                   {/* First Name */}
                   <div className="space-y-1.5 text-start">
                     <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-1">
-                      <span>الاسم الأول</span>
+                      <span>{isEn ? "First Name" : "الاسم الأول"}</span>
                       <span className="text-[#ba1a1a]">*</span>
                     </label>
                     <input
@@ -347,7 +386,7 @@ export function ProfileView() {
                   {/* Last Name */}
                   <div className="space-y-1.5 text-start">
                     <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-1">
-                      <span>اسم العائلة</span>
+                      <span>{isEn ? "Last Name" : "اسم العائلة"}</span>
                       <span className="text-[#ba1a1a]">*</span>
                     </label>
                     <input
@@ -367,7 +406,7 @@ export function ProfileView() {
                   {/* Job Title */}
                   <div className="space-y-1.5 text-start">
                     <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      المسمى الوظيفي
+                      {isEn ? "Job Title" : "المسمى الوظيفي"}
                     </label>
                     <div className="relative">
                       <input
@@ -383,7 +422,7 @@ export function ProfileView() {
                   {/* Department */}
                   <div className="space-y-1.5 text-start">
                     <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      القسم أو الإدارة التابعة
+                      {isEn ? "Department / Division" : "القسم أو الإدارة التابعة"}
                     </label>
                     <input
                       type="text"
@@ -396,7 +435,7 @@ export function ProfileView() {
                   {/* National ID */}
                   <div className="space-y-1.5 text-start">
                     <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      رقم الهوية الوطنية / الإقامة
+                      {isEn ? "National ID / Iqama Number" : "رقم الهوية الوطنية / الإقامة"}
                     </label>
                     <input
                       type="text"
@@ -410,7 +449,7 @@ export function ProfileView() {
                   {/* Phone */}
                   <div className="space-y-1.5 text-start">
                     <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-1">
-                      <span>رقم الهاتف المعتمد</span>
+                      <span>{isEn ? "Verified Phone Number" : "رقم الهاتف المعتمد"}</span>
                       <span className="text-[#ba1a1a]">*</span>
                     </label>
                     <div className="relative">
@@ -428,7 +467,7 @@ export function ProfileView() {
                   {/* City */}
                   <div className="space-y-1.5 text-start">
                     <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      المدينة والدولة
+                      {isEn ? "City & Country" : "المدينة والدولة"}
                     </label>
                     <div className="relative">
                       <input
@@ -444,7 +483,7 @@ export function ProfileView() {
                   {/* Timezone */}
                   <div className="space-y-1.5 text-start">
                     <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      المنطقة الزمنية
+                      {isEn ? "Timezone" : "المنطقة الزمنية"}
                     </label>
                     <div className="relative">
                       <input
@@ -457,10 +496,10 @@ export function ProfileView() {
                     </div>
                   </div>
 
-                  {/* Bio (Col span 2) */}
+                  {/* Bio */}
                   <div className="md:col-span-2 space-y-1.5 text-start">
                     <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      نبذة تعريفية
+                      {isEn ? "Biography" : "نبذة تعريفية"}
                     </label>
                     <textarea
                       rows={3}
@@ -482,16 +521,18 @@ export function ProfileView() {
                     <div>
                       <h3 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-2">
                         <Mail className="size-5 text-[#9c6402] dark:text-[#f59e0b]" />
-                        <span>البريد الإلكتروني المعتمد الحالي</span>
+                        <span>{isEn ? "Current Verified Email Address" : "البريد الإلكتروني المعتمد الحالي"}</span>
                       </h3>
                       <p className="text-[12px] text-[#837565] dark:text-[#a89f91] mt-0.5">
-                        هذا العنوان هو القناة الرسمية الوحيدة المعتمدة لاستلام التنبيهات الأمنية وتأكيدات عمليات النظام.
+                        {isEn
+                          ? "This address is the official primary channel for receiving security alerts and system confirmations."
+                          : "هذا العنوان هو القناة الرسمية الوحيدة المعتمدة لاستلام التنبيهات الأمنية وتأكيدات عمليات النظام."}
                       </p>
                     </div>
 
                     <div className="flex items-center gap-2 bg-[#ecfdf5] dark:bg-[#132c21] border border-emerald-200 dark:border-emerald-500/40 text-[#065f46] dark:text-[#6ee7b7] px-3.5 py-1.5 rounded-full w-fit font-bold text-[12px]">
                       <ShieldCheck className="size-4" />
-                      <span>مُتحقق منه ومُعتمد</span>
+                      <span>{isEn ? "Verified & Approved" : "مُتحقق منه ومُعتمد"}</span>
                       <span className="size-2 rounded-full bg-[#10b981] shadow-[0_0_8px_#10b981]" />
                     </div>
                   </div>
@@ -499,7 +540,7 @@ export function ProfileView() {
                   <div className="bg-[#faf9f7] dark:bg-[#251e18] p-4 rounded-[6px] border border-[#ede8e1] dark:border-[#38271c] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="space-y-1">
                       <span className="text-[11px] font-bold text-[#837565] dark:text-[#a89f91] block">
-                        العنوان الأساسي
+                        {isEn ? "Primary Address" : "العنوان الأساسي"}
                       </span>
                       <span className="text-[15px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] font-mono select-all" dir="ltr">
                         {formData.email}
@@ -511,28 +552,28 @@ export function ProfileView() {
                         type="button"
                         onClick={() => {
                           navigator.clipboard.writeText(formData.email);
-                          toast.success("تم نسخ البريد الإلكتروني إلى الحافظة");
+                          toast.success(isEn ? "Email copied to clipboard" : "تم نسخ البريد الإلكتروني إلى الحافظة");
                         }}
                         className="h-[34px] px-3 rounded-[6px] border border-[#ded5c6] dark:border-[#38271c] bg-white dark:bg-[#1e1c1a] hover:bg-[#f5f3ef] text-[#514537] dark:text-[#cdc5bd] text-[12px] font-semibold flex items-center gap-1.5 cursor-pointer transition-colors"
                       >
                         <Copy className="size-3.5" />
-                        <span>نسخ العنوان</span>
+                        <span>{isEn ? "Copy Address" : "نسخ العنوان"}</span>
                       </button>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-[12px]">
                     <div className="p-3 rounded-[6px] bg-[#f5f3ef] dark:bg-[#2c2621] border border-[#eae8e4] dark:border-[#38271c] space-y-1">
-                      <span className="text-[10px] font-bold text-[#837565] dark:text-[#a89f91] block">تاريخ التحقق</span>
+                      <span className="text-[10px] font-bold text-[#837565] dark:text-[#a89f91] block">{isEn ? "Verification Date" : "تاريخ التحقق"}</span>
                       <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">{formData.emailVerifiedDate}</span>
                     </div>
                     <div className="p-3 rounded-[6px] bg-[#f5f3ef] dark:bg-[#2c2621] border border-[#eae8e4] dark:border-[#38271c] space-y-1">
-                      <span className="text-[10px] font-bold text-[#837565] dark:text-[#a89f91] block">بروتوكول الأمان</span>
-                      <span className="font-semibold text-[#10b981]">TLS 1.3 مشفر بالكامل</span>
+                      <span className="text-[10px] font-bold text-[#837565] dark:text-[#a89f91] block">{isEn ? "Security Protocol" : "بروتوكول الأمان"}</span>
+                      <span className="font-semibold text-[#10b981]">{isEn ? "TLS 1.3 Fully Encrypted" : "TLS 1.3 مشفر بالكامل"}</span>
                     </div>
                     <div className="p-3 rounded-[6px] bg-[#f5f3ef] dark:bg-[#2c2621] border border-[#eae8e4] dark:border-[#38271c] space-y-1">
-                      <span className="text-[10px] font-bold text-[#837565] dark:text-[#a89f91] block">الربط بالمصادقة 2FA</span>
-                      <span className="font-semibold text-[#059669]">مُفعّل ومحمي</span>
+                      <span className="text-[10px] font-bold text-[#837565] dark:text-[#a89f91] block">{isEn ? "2FA Linkage" : "الربط بالمصادقة 2FA"}</span>
+                      <span className="font-semibold text-[#059669]">{isEn ? "Enabled & Protected" : "مُفعّل ومحمي"}</span>
                     </div>
                   </div>
                 </div>
@@ -541,17 +582,19 @@ export function ProfileView() {
                 <div className="bg-white dark:bg-[#1e1c1a] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#2f2a24] text-start space-y-4">
                   <div className="border-b border-[#eae8e4] dark:border-[#2f2a24] pb-4">
                     <h3 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      تحديث وتغيير البريد الإلكتروني
+                      {isEn ? "Update & Change Email Address" : "تحديث وتغيير البريد الإلكتروني"}
                     </h3>
                     <p className="text-[12px] text-[#837565] dark:text-[#a89f91] mt-0.5">
-                      يتطلب تغيير البريد إرسال رمز أمان إلى العنوان الجديد للتحقق من ملكيته قبل اعتماده.
+                      {isEn
+                        ? "Changing your email requires sending a security verification code to the new address."
+                        : "يتطلب تغيير البريد إرسال رمز أمان إلى العنوان الجديد للتحقق من ملكيته قبل اعتماده."}
                     </p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                        البريد الإلكتروني الجديد
+                        {isEn ? "New Email Address" : "البريد الإلكتروني الجديد"}
                       </label>
                       <div className="relative">
                         <input
@@ -573,17 +616,17 @@ export function ProfileView() {
                         className="w-full sm:w-auto h-[42px] px-5 rounded-[6px] bg-[#9c6402] hover:bg-[#855401] text-white text-[13px] font-bold flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-colors"
                       >
                         <Send className="size-4" />
-                        <span>إرسال رمز التحقق</span>
+                        <span>{isEn ? "Send Verification Code" : "إرسال رمز التحقق"}</span>
                       </button>
                     </div>
                   </div>
 
-                  {/* Verification Code Box (Visible when code is sent) */}
+                  {/* Verification Code Box */}
                   {isCodeSent && (
                     <div className="bg-[#fffbeb] dark:bg-[#2c2214] border border-[#fef3c7] dark:border-[#4d3a1f] p-4 rounded-[6px] space-y-3 animate-in fade-in slide-in-from-top-2">
                       <div className="flex items-center gap-2 text-[#92400e] dark:text-[#fbbf24] text-[12px] font-bold">
                         <AlertCircle className="size-4 shrink-0" />
-                        <span>تم إرسال رمز التحقق (رمز تجريبي للاختبار: 123456)</span>
+                        <span>{isEn ? "Verification code sent (Demo test code: 123456)" : "تم إرسال رمز التحقق (رمز تجريبي للاختبار: 123456)"}</span>
                       </div>
 
                       <div className="flex flex-col sm:flex-row items-center gap-3">
@@ -603,7 +646,7 @@ export function ProfileView() {
                           className="w-full sm:w-auto h-[40px] px-4 rounded-[6px] bg-[#059669] hover:bg-[#047857] text-white text-[13px] font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
                         >
                           <Check className="size-4" />
-                          <span>تأكيد واعتماد البريد الجديد</span>
+                          <span>{isEn ? "Confirm & Adopt New Email" : "تأكيد واعتماد البريد الجديد"}</span>
                         </button>
                       </div>
                     </div>
@@ -614,16 +657,18 @@ export function ProfileView() {
                 <div className="bg-white dark:bg-[#1e1c1a] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#2f2a24] text-start space-y-4">
                   <div className="border-b border-[#eae8e4] dark:border-[#2f2a24] pb-4">
                     <h3 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      البريد الإلكتروني الاحتياطي للاسترداد
+                      {isEn ? "Emergency Recovery Email" : "البريد الإلكتروني الاحتياطي للاسترداد"}
                     </h3>
                     <p className="text-[12px] text-[#837565] dark:text-[#a89f91] mt-0.5">
-                      يُستخدم فقط في حالات الطوارئ القصوى لاستعادة صلاحيات الحساب إذا تعذر الوصول للبريد الرئيسي.
+                      {isEn
+                        ? "Used exclusively in high-priority emergencies to recover account privileges."
+                        : "يُستخدم فقط في حالات الطوارئ القصوى لاستعادة صلاحيات الحساب إذا تعذر الوصول للبريد الرئيسي."}
                     </p>
                   </div>
 
                   <div className="space-y-1.5 max-w-xl">
                     <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      البريد الاحتياطي
+                      {isEn ? "Recovery Email" : "البريد الاحتياطي"}
                     </label>
                     <div className="relative">
                       <input
@@ -643,10 +688,12 @@ export function ProfileView() {
                   <div className="border-b border-[#eae8e4] dark:border-[#2f2a24] pb-4">
                     <h3 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-2">
                       <Bell className="size-5 text-[#9c6402] dark:text-[#f59e0b]" />
-                      <span>تفضيلات إشعارات البريد الإلكتروني</span>
+                      <span>{isEn ? "Email Notification Preferences" : "تفضيلات إشعارات البريد الإلكتروني"}</span>
                     </h3>
                     <p className="text-[12px] text-[#837565] dark:text-[#a89f91] mt-0.5">
-                      تحديد نوعية الرسائل والتقارير الدورية التي ترغب في استلامها عبر بريدك الإلكتروني المعتمد.
+                      {isEn
+                        ? "Configure which transactional alerts and periodic digests you want to receive."
+                        : "تحديد نوعية الرسائل والتقارير الدورية التي ترغب في استلامها عبر بريدك الإلكتروني المعتمد."}
                     </p>
                   </div>
 
@@ -655,10 +702,10 @@ export function ProfileView() {
                     <div className="py-3.5 flex items-center justify-between gap-4">
                       <div>
                         <span className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-                          إشعارات الاشتراكات والتراخيص
+                          {isEn ? "Subscriptions & Licensure Notifications" : "إشعارات الاشتراكات والتراخيص"}
                         </span>
                         <span className="text-[12px] text-[#837565] dark:text-[#a89f91]">
-                          استلام تنبيه فوري عند تسجيل اشتراك جديد، طلب تجديد، أو ترقية باقة.
+                          {isEn ? "Immediate alert upon new subscriptions, renewals, or plan upgrades." : "استلام تنبيه فوري عند تسجيل اشتراك جديد، طلب تجديد، أو ترقية باقة."}
                         </span>
                       </div>
                       <input
@@ -681,10 +728,10 @@ export function ProfileView() {
                     <div className="py-3.5 flex items-center justify-between gap-4">
                       <div>
                         <span className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-                          إشعارات الفواتير وعمليات الدفع
+                          {isEn ? "Invoices & Payment Operations" : "إشعارات الفواتير وعمليات الدفع"}
                         </span>
                         <span className="text-[12px] text-[#837565] dark:text-[#a89f91]">
-                          تأكيدات سداد الفواتير الإلكترونية المعتمدة وإشعارات فشل العمليات المالية.
+                          {isEn ? "Confirmations for settled e-invoices and payment transaction failures." : "تأكيدات سداد الفواتير الإلكترونية المعتمدة وإشعارات فشل العمليات المالية."}
                         </span>
                       </div>
                       <input
@@ -703,19 +750,19 @@ export function ProfileView() {
                       />
                     </div>
 
-                    {/* Item 3: Security Alerts (Required) */}
+                    {/* Item 3: Security Alerts */}
                     <div className="py-3.5 flex items-center justify-between gap-4">
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                            تنبيهات الأمان والدخول الحساس
+                            {isEn ? "Critical Security & Login Alerts" : "تنبيهات الأمان والدخول الحساس"}
                           </span>
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#fef2f2] text-[#991b1b] dark:bg-[#311616] dark:text-[#f87171]">
-                            إجباري للأمان
+                            {isEn ? "Mandatory for Security" : "إجباري للأمان"}
                           </span>
                         </div>
                         <span className="text-[12px] text-[#837565] dark:text-[#a89f91]">
-                          إشعار فوري عند تسجيل الدخول من جهاز جديد أو تغيير إعدادات الحساب الحساسة.
+                          {isEn ? "Immediate notice when logging in from a new device or changing sensitive account settings." : "إشعار فوري عند تسجيل الدخول من جهاز جديد أو تغيير إعدادات الحساب الحساسة."}
                         </span>
                       </div>
                       <input
@@ -730,10 +777,10 @@ export function ProfileView() {
                     <div className="py-3.5 flex items-center justify-between gap-4">
                       <div>
                         <span className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-                          التقرير الإداري الأسبوعي الشامل
+                          {isEn ? "Comprehensive Weekly Administrative Digest" : "التقرير الإداري الأسبوعي الشامل"}
                         </span>
                         <span className="text-[12px] text-[#837565] dark:text-[#a89f91]">
-                          ملخص أسبوعي يصل صباح كل خميس بإحصائيات المكاتب، الفواتير، ونشاط الدعم الفني.
+                          {isEn ? "Weekly summary delivered Thursday mornings with law firm metrics, billing, and support stats." : "ملخص أسبوعي يصل صباح كل خميس بإحصائيات المكاتب، الفواتير، ونشاط الدعم الفني."}
                         </span>
                       </div>
                       <input
@@ -764,10 +811,12 @@ export function ProfileView() {
                   <div className="border-b border-[#eae8e4] dark:border-[#2f2a24] pb-4">
                     <h3 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-2">
                       <Lock className="size-5 text-[#9c6402] dark:text-[#f59e0b]" />
-                      <span>تحديث كلمة المرور</span>
+                      <span>{isEn ? "Update Password" : "تحديث كلمة المرور"}</span>
                     </h3>
                     <p className="text-[12px] text-[#837565] dark:text-[#a89f91] mt-0.5">
-                      احرص على استخدام كلمة مرور قوية تحتوي على أحرف كبيرة وصغيرة وأرقام ورموز خاصة.
+                      {isEn
+                        ? "Use a strong password combining uppercase, lowercase, numbers, and special symbols."
+                        : "احرص على استخدام كلمة مرور قوية تحتوي على أحرف كبيرة وصغيرة وأرقام ورموز خاصة."}
                     </p>
                   </div>
 
@@ -775,7 +824,7 @@ export function ProfileView() {
                     {/* Current Password */}
                     <div className="space-y-1.5">
                       <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                        كلمة المرور الحالية
+                        {isEn ? "Current Password" : "كلمة المرور الحالية"}
                       </label>
                       <div className="relative">
                         <input
@@ -797,7 +846,7 @@ export function ProfileView() {
                     {/* New Password */}
                     <div className="space-y-1.5">
                       <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                        كلمة المرور الجديدة
+                        {isEn ? "New Password" : "كلمة المرور الجديدة"}
                       </label>
                       <div className="relative">
                         <input
@@ -819,7 +868,7 @@ export function ProfileView() {
                       {newPassword && (
                         <div className="space-y-1 pt-1">
                           <div className="flex items-center justify-between text-[11px] font-bold">
-                            <span className="text-[#837565] dark:text-[#a89f91]">قوة كلمة المرور:</span>
+                            <span className="text-[#837565] dark:text-[#a89f91]">{isEn ? "Password Strength:" : "قوة كلمة المرور:"}</span>
                             <span className={cn(pwdStrength.score >= 75 ? "text-[#059669]" : "text-[#d97706]")}>
                               {pwdStrength.label}
                             </span>
@@ -837,7 +886,7 @@ export function ProfileView() {
                     {/* Confirm Password */}
                     <div className="space-y-1.5">
                       <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                        تأكيد كلمة المرور الجديدة
+                        {isEn ? "Confirm New Password" : "تأكيد كلمة المرور الجديدة"}
                       </label>
                       <div className="relative">
                         <input
@@ -864,36 +913,38 @@ export function ProfileView() {
                     <div>
                       <h3 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-2">
                         <ShieldCheck className="size-5 text-[#059669]" />
-                        <span>المصادقة الثنائية (2FA)</span>
+                        <span>{isEn ? "Two-Factor Authentication (2FA)" : "المصادقة الثنائية (2FA)"}</span>
                       </h3>
                       <p className="text-[12px] text-[#837565] dark:text-[#a89f91] mt-0.5">
-                        حماية إضافية تطلب رمز أمان مؤقت من هاتفك في كل مرة تسجل فيها الدخول.
+                        {isEn
+                          ? "Extra layer of security requiring a temporary security code from your phone each time you sign in."
+                          : "حماية إضافية تطلب رمز أمان مؤقت من هاتفك في كل مرة تسجل فيها الدخول."}
                       </p>
                     </div>
 
                     <div className="flex items-center gap-2 bg-[#ecfdf5] dark:bg-[#132c21] border border-emerald-200 dark:border-emerald-500/40 text-[#065f46] dark:text-[#6ee7b7] px-3.5 py-1.5 rounded-full w-fit font-bold text-[12px]">
                       <CheckCircle2 className="size-4" />
-                      <span>مفعلة بواسطة التطبيق</span>
+                      <span>{isEn ? "Enabled via Authenticator" : "مفعلة بواسطة التطبيق"}</span>
                     </div>
                   </div>
 
                   <div className="p-4 rounded-[6px] bg-[#faf9f7] dark:bg-[#251e18] border border-[#ede8e1] dark:border-[#38271c] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="space-y-1">
                       <span className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                        تطبيق المصادقة (Authenticator App)
+                        {isEn ? "Authenticator App" : "تطبيق المصادقة (Authenticator App)"}
                       </span>
                       <span className="text-[12px] text-[#837565] dark:text-[#a89f91] block">
-                        مرتبط بتطبيق {formData.twoFactorMethod}.
+                        {isEn ? `Linked with ${formData.twoFactorMethod}.` : `مرتبط بتطبيق ${formData.twoFactorMethod}.`}
                       </span>
                     </div>
 
                     <button
                       type="button"
-                      onClick={() => toast.info("مفاتيح الاسترداد الاحتياطية محفوظة بأمان")}
-                      className="h-[36px] px-4 rounded-[6px] border border-[#ded5c6] dark:border-[#38332c] bg-white dark:bg-[#1e1c1a] hover:bg-[#f5f3ef] text-[#514537] dark:text-[#cdc5bd] text-[12px] font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+                      onClick={() => toast.info(isEn ? "Backup recovery keys are securely stored" : "مفاتيح الاسترداد الاحتياطية محفوظة بأمان")}
+                      className="h-[36px] px-4 rounded-[6px] border border-[#ded5c6] dark:border-[#38271c] bg-white dark:bg-[#1e1c1a] hover:bg-[#f5f3ef] text-[#514537] dark:text-[#cdc5bd] text-[12px] font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
                     >
                       <KeyRound className="size-3.5" />
-                      <span>عرض مفاتيح الاسترداد</span>
+                      <span>{isEn ? "View Recovery Keys" : "عرض مفاتيح الاسترداد"}</span>
                     </button>
                   </div>
                 </div>
@@ -907,10 +958,12 @@ export function ProfileView() {
                   <div>
                     <h3 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-2">
                       <Laptop className="size-5 text-[#9c6402] dark:text-[#f59e0b]" />
-                      <span>الأجهزة والجلسات النشطة حالياً</span>
+                      <span>{isEn ? "Currently Active Devices & Sessions" : "الأجهزة والجلسات النشطة حالياً"}</span>
                     </h3>
                     <p className="text-[12px] text-[#837565] dark:text-[#a89f91] mt-0.5">
-                      قائمة بجميع الأجهزة التي يتوفر لديها تصريح دخول نشط إلى هذا الحساب الإداري.
+                      {isEn
+                        ? "List of all devices currently possessing an active authorization to this administrative account."
+                        : "قائمة بجميع الأجهزة التي يتوفر لديها تصريح دخول نشط إلى هذا الحساب الإداري."}
                     </p>
                   </div>
 
@@ -921,13 +974,18 @@ export function ProfileView() {
                       className="h-[36px] px-3.5 rounded-[6px] bg-[#ba1a1a]/10 hover:bg-[#ba1a1a]/20 text-[#ba1a1a] dark:text-[#f87171] border border-[#ba1a1a]/20 text-[12px] font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
                     >
                       <LogOut className="size-3.5" />
-                      <span>تسجيل الخروج من باقي الأجهزة</span>
+                      <span>{isEn ? "Log Out Other Devices" : "تسجيل الخروج من باقي الأجهزة"}</span>
                     </button>
                   )}
                 </div>
 
                 <div className="divide-y divide-[#eae8e4] dark:divide-[#2f2a24]">
-                  {sessions.map((session) => {
+                  {sessions.length === 0 ? (
+                    <div className="py-8 text-center text-xs text-[#837565] dark:text-[#a89f91]">
+                      {isEn ? "No active sessions" : "لا توجد جلسات نشطة"}
+                    </div>
+                  ) : (
+                    sessions.map((session) => {
                     const isMac = session.os.toLowerCase().includes("mac");
                     const isPhone = session.device.toLowerCase().includes("phone");
                     return (
@@ -953,7 +1011,7 @@ export function ProfileView() {
                               </span>
                               {session.isCurrent && (
                                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#ecfdf5] dark:bg-[#132c21] text-[#065f46] dark:text-[#6ee7b7] border border-emerald-200 dark:border-emerald-500/40">
-                                  الجهاز الحالي
+                                  {isEn ? "Current Device" : "الجهاز الحالي"}
                                 </span>
                               )}
                             </div>
@@ -979,10 +1037,10 @@ export function ProfileView() {
                               type="button"
                               onClick={() => {
                                 setSessions((prev) => prev.filter((s) => s.id !== session.id));
-                                toast.success(`تم إنهاء الجلسة على ${session.device}`);
+                                toast.success(isEn ? `Session ended on ${session.device}` : `تم إنهاء الجلسة على ${session.device}`);
                               }}
                               className="size-8 rounded-[4px] hover:bg-[#ba1a1a]/10 text-[#837565] hover:text-[#ba1a1a] flex items-center justify-center transition-colors cursor-pointer"
-                              title="إنهاء هذه الجلسة"
+                              title={isEn ? "Revoke this session" : "إنهاء هذه الجلسة"}
                             >
                               <LogOut className="size-4" />
                             </button>
@@ -990,15 +1048,17 @@ export function ProfileView() {
                         </div>
                       </div>
                     );
-                  })}
+                  })
+                  )}
                 </div>
               </div>
             )}
+
             {/* 3. Sticky Action Bar */}
             <DashboardStickyActionBar>
               <div className="flex items-center gap-2 text-[12px] text-[#837565] dark:text-[#a89f91]">
                 <ShieldCheck className="size-4 text-[#059669]" />
-                <span>يتم حفظ جميع التعديلات في سجل تدقيق العمليات الإدارية المشفر.</span>
+                <span>{isEn ? "All updates are encrypted and recorded in administrative audit logs." : "يتم حفظ جميع التعديلات في سجل تدقيق العمليات الإدارية المشفر."}</span>
               </div>
 
               <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -1009,7 +1069,7 @@ export function ProfileView() {
                   className="flex-1 sm:flex-initial h-[40px] px-4 rounded-[6px] border border-[#ded5c6] dark:border-[#38271c] bg-white dark:bg-[#1e1c1a] hover:bg-[#f5f3ef] text-[#514537] dark:text-[#cdc5bd] text-[13px] font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
                 >
                   <RotateCcw className="size-4" />
-                  <span>إلغاء التراجع</span>
+                  <span>{isEn ? "Discard Changes" : "إلغاء التراجع"}</span>
                 </button>
 
                 <button
@@ -1019,7 +1079,7 @@ export function ProfileView() {
                   className="flex-1 sm:flex-initial h-[40px] px-6 rounded-[6px] bg-[#9c6402] hover:bg-[#855401] text-white text-[13px] font-bold flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-colors disabled:opacity-50"
                 >
                   <Check className="size-4" />
-                  <span>{isSaving ? "جاري الحفظ..." : "حفظ التعديلات"}</span>
+                  <span>{isSaving ? (isEn ? "Saving..." : "جاري الحفظ...") : (isEn ? "Save Changes" : "حفظ التعديلات")}</span>
                 </button>
               </div>
             </DashboardStickyActionBar>

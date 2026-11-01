@@ -3,12 +3,7 @@ import type { Metadata } from "next";
 import { DashboardAuthGate } from "@/components/shared/DashboardAuthGate";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
-import { DashboardHeaderSection } from "@/features/dashboard/components/DashboardHeaderSection";
-import { DashboardKpiCards } from "@/features/dashboard/components/DashboardKpiCards";
-import { DashboardAnalyticsSection } from "@/features/dashboard/components/DashboardAnalyticsSection";
-import { DashboardLawOfficesTable } from "@/features/dashboard/components/DashboardLawOfficesTable";
-import { DashboardBottomSection } from "@/features/dashboard/components/DashboardBottomSection";
-import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
+import { DashboardHomeView } from "@/features/dashboard/components/DashboardHomeView";
 
 export const metadata: Metadata = {
   title: "الرئيسية - الجودي لوحة الإدارة العليا",
@@ -34,22 +29,7 @@ export default function DashboardHomePage() {
 
           {/* Dashboard Workspace Content (Only area that scrolls on Y, zero horizontal scroll) */}
           <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 space-y-6 w-full max-w-full scrollbar-thin">
-            <DashboardPageTransition>
-              {/* Section 1: Page Introduction & Action Bar */}
-              <DashboardHeaderSection />
-
-              {/* Section 2: Primary KPI Cards (4 Tiles) */}
-              <DashboardKpiCards />
-
-              {/* Section 3: Visual Analytics Section (Revenue Area Chart & Plan Donut) */}
-              <DashboardAnalyticsSection />
-
-              {/* Section 4: Recently Registered Law Offices Table */}
-              <DashboardLawOfficesTable />
-
-              {/* Section 5: Bottom Grid (Recent Activity Feed & Support Summary) */}
-              <DashboardBottomSection />
-            </DashboardPageTransition>
+            <DashboardHomeView />
           </main>
         </div>
       </div>

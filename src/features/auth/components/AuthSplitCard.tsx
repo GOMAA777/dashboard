@@ -7,7 +7,11 @@ import { AuthSideVisual } from "./AuthSideVisual";
 import { LoginForm } from "./LoginForm";
 import { cn } from "@/lib/utils";
 
-export function AuthSplitCard() {
+interface AuthSplitCardProps {
+  onLoginSuccess?: () => void;
+}
+
+export function AuthSplitCard({ onLoginSuccess }: AuthSplitCardProps = {}) {
   const { direction } = useUIStore();
   const isRtl = direction === "rtl";
 
@@ -39,7 +43,7 @@ export function AuthSplitCard() {
             : "lg:rounded-e-[44px] shadow-[10px_0_30px_rgba(0,0,0,0.3)]"
         )}
       >
-        <LoginForm />
+        <LoginForm onLoginSuccess={onLoginSuccess} />
       </motion.div>
     </div>
   );

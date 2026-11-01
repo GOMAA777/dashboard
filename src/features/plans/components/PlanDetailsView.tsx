@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ArrowRight,
   Edit3,
@@ -22,9 +22,14 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import { toast } from "sonner";
-import { PricingPlanItem } from "../types/plan.types";
+import { PricingPlanItem, SubscribedFirm } from "../types/plan.types";
 import { silverSubscribedFirms } from "../data/initialPlans";
 import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
+import { useLanguage } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
+import { fetchPlanById, fetchPlanSubscribers } from "@/lib/api/plans";
+import { mapPlanFromApi, normalizeLogoUrl } from "@/lib/api/mappers";
+import { unwrapData, unwrapList, asString } from "@/lib/api/helpers";
 
 interface PlanDetailsViewProps {
   plan?: PricingPlanItem;
@@ -39,22 +44,85 @@ export function PlanDetailsView({
   onEdit,
   onNavigateToClients,
 }: PlanDetailsViewProps) {
+  const { t, isEn } = useLanguage();
   const [pageSize, setPageSize] = useState<number>(5);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [livePlan, setLivePlan] = useState<PricingPlanItem | undefined>(plan);
+  const [subscribers, setSubscribers] = useState<SubscribedFirm[]>(silverSubscribedFirms);
 
-  const totalItems = silverSubscribedFirms.length;
+  useEffect(() => {
+    setLivePlan(plan);
+    if (!plan?.id) return;
+    let cancelled = false;
+
+    fetchPlanById(plan.id)
+      .then((payload) => {
+        if (cancelled) return;
+        const raw = (unwrapData<Record<string, unknown>>(payload) ||
+          payload) as Record<string, unknown>;
+        if (raw?.id || raw?.name) {
+          setLivePlan(mapPlanFromApi(raw));
+        }
+      })
+      .catch(() => {
+        // Keep prop plan if detail fetch fails.
+      });
+
+    fetchPlanSubscribers(plan.id)
+      .then((payload) => {
+        if (cancelled) return;
+        const list = unwrapList<Record<string, unknown>>(payload);
+        if (list.length > 0) {
+          const mappedSubscribers: SubscribedFirm[] = list.map((item) => {
+            const firmName = asString(item.name || item.firm_name, "مكتب محاماة");
+            const activeSub = (item.active_subscription || {}) as Record<string, unknown>;
+            const billing = asString(activeSub.billing_cycle || item.billing_cycle, "monthly");
+            const subEnd = asString(activeSub.renewal_date || item.subscription_end || item.renewal_date, "—");
+            const subStart = asString(activeSub.start_date || item.subscription_start || item.created_at, "—");
+            const subStatus = asString(activeSub.status || item.status, "active");
+            return {
+              id: asString(item.id, String(Math.random())),
+              initial: firmName.trim().charAt(0) || "م",
+              name: firmName,
+              licenseNumber: asString(item.license_number, "—"),
+              city: asString(item.city, "—"),
+              owner: asString(item.owner_name || item.owner, "—"),
+              ownerRole: "المدير العام للمكتب",
+              subscriptionDate: subStart && subStart.includes("T") ? subStart.split("T")[0] : subStart,
+              renewalDate: subEnd && subEnd.includes("T") ? subEnd.split("T")[0] : subEnd,
+              billingCycle: billing.includes("year") || billing.includes("سنو") ? "سنوي" : "شهري",
+              status: subStatus === "active" ? "active" : "suspended",
+            };
+          });
+          setSubscribers(mappedSubscribers);
+        }
+      })
+      .catch(() => {
+        // Keep default/mock subscribers if API is not reachable
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [plan]);
+
+  const totalItems = subscribers.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const validCurrentPage = Math.min(currentPage, totalPages);
-  const pagedFirms = silverSubscribedFirms.slice(
+  const pagedFirms = subscribers.slice(
     (validCurrentPage - 1) * pageSize,
     validCurrentPage * pageSize
   );
 
-  const planCode = plan?.code || "CODE: PLAN-SLV-02";
-  const planName = plan?.name || "الباقة الفضية";
+  const planCode = livePlan?.code || "CODE: PLAN-SLV-02";
+  const planName = livePlan?.name || t("الباقة الفضية", "Silver Plan");
+  const subscribedFirmsCount = livePlan?.subscribedFirmsCount ?? 0;
   const planDescription =
-    plan?.description ||
-    "للفرق القانونية النامية والمكاتب المتوسطة التي تتطلب أدوات أتمتة العمليات القضائية والربط";
+    livePlan?.description ||
+    t(
+      "للفرق القانونية النامية والمكاتب المتوسطة التي تتطلب أدوات أتمتة العمليات القضائية والربط",
+      "For growing legal teams and mid-sized law firms requiring judicial automation and system integrations"
+    );
 
   return (
     <div className="w-full space-y-6 font-['Cairo',sans-serif]">
@@ -62,12 +130,26 @@ export function PlanDetailsView({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2">
         {/* Right: Plan Code, Title & Description */}
         <div className="flex flex-col items-start gap-[6px]">
-          <div className="flex items-center gap-[10px]">
+          <div className="flex items-center gap-[10px] flex-wrap">
             <span className="font-mono text-[11px] font-semibold text-[#737067] bg-[#f5f3ef] dark:bg-[#281c15] dark:text-[#cdc5bd] dark:border-[#38271c] px-[8px] py-[3px] rounded border border-[#e2ded7]">
               {planCode}
             </span>
+            {livePlan?.badge && (
+              <span
+                className="inline-flex items-center gap-[4px] text-[11px] font-bold px-[10px] py-[2px] rounded-full"
+                style={{
+                  backgroundColor: livePlan.badgeColor ? `${livePlan.badgeColor}18` : "#fef3c7",
+                  color: livePlan.badgeColor || "#d97706",
+                  borderColor: livePlan.badgeColor ? `${livePlan.badgeColor}40` : "#fcd34d",
+                  borderWidth: 1,
+                }}
+              >
+                <span>★</span>
+                <span>{livePlan.badge}</span>
+              </span>
+            )}
             <span className="text-[11px] font-bold text-[#15803d] bg-[#e8f5e9] dark:bg-[#132c1c] dark:text-[#6ee7b7] dark:border-[#165a2e] px-[8px] py-[2px] rounded-full border border-[#c8e6c9]">
-              باقة مفعلة
+              {livePlan?.isActive !== false ? t("باقة مفعلة", "Active Plan") : t("باقة معطلة", "Inactive Plan")}
             </span>
           </div>
 
@@ -76,9 +158,9 @@ export function PlanDetailsView({
               type="button"
               onClick={onBack}
               className="p-[6px] rounded-[6px] hover:bg-[#eae8e4] dark:hover:bg-[#281c15] text-[#737067] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] transition-colors cursor-pointer"
-              title="العودة للباقات"
+              title={t("العودة للباقات", "Back to Plans")}
             >
-              <ArrowRight className="size-[20px]" />
+              <ArrowRight className={cn("size-[20px]", isEn && "rotate-180")} />
             </button>
             <h1 className="text-[28px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7] leading-tight">
               {planName}
@@ -98,16 +180,16 @@ export function PlanDetailsView({
             className="border border-[#e2ded7] dark:border-[#38271c] bg-white dark:bg-[#221812] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] font-bold text-[13px] px-[16px] py-[9px] rounded-[6px] shadow-2xs flex items-center gap-[8px] transition-colors cursor-pointer"
           >
             <Building2 className="size-[16px] text-[#737067] dark:text-[#cdc5bd]" />
-            <span>عرض المكاتب (52)</span>
+            <span>{t(`عرض المكاتب (${subscribedFirmsCount})`, `View Offices (${subscribedFirmsCount})`)}</span>
           </button>
 
           <button
             type="button"
-            onClick={() => onEdit(plan)}
+            onClick={() => onEdit(livePlan)}
             className="bg-[#9c6402] hover:bg-[#855402] dark:bg-[#e29d38] dark:hover:bg-[#d08c2a] text-white dark:text-[#1c140f] font-bold text-[13px] px-[18px] py-[9px] rounded-[6px] shadow-xs flex items-center gap-[8px] transition-all cursor-pointer"
           >
             <Edit3 className="size-[16px]" />
-            <span>تعديل الباقة</span>
+            <span>{t("تعديل الباقة", "Edit Plan")}</span>
           </button>
         </div>
       </div>
@@ -118,21 +200,27 @@ export function PlanDetailsView({
         <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-4 sm:p-5 shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-[10px]">
             <span className="text-[12px] font-semibold text-[#737067] dark:text-[#cdc5bd]">
-              السعر الشهري المعتمد
+              {t("السعر الشهري المعتمد", "Approved Monthly Price")}
             </span>
             <div className="p-[8px] rounded-[6px] bg-[#fbf6ee] text-[#9c6402] dark:bg-[#2d1f16] dark:text-[#e29d38] dark:border dark:border-[#4d3627]/60">
               <CreditCard className="size-[18px]" />
             </div>
           </div>
           <div className="flex items-baseline gap-[6px] mb-[8px]">
-            <span className="text-[28px] font-black text-[#1b1c1a] dark:text-[#fdfbf7]">399</span>
+            <span className="text-[28px] font-black text-[#1b1c1a] dark:text-[#fdfbf7]">
+              {livePlan?.monthlyPrice ?? 399}
+            </span>
             <span className="text-[13px] font-bold text-[#737067] dark:text-[#8e8680]">
-              ر.س / شهر
+              {t("ر.س / شهر", "SAR / month")}
             </span>
           </div>
           <div className="flex items-center gap-[6px]">
             <span className="text-[11px] font-bold text-[#9c6402] bg-[#fbf6ee] dark:bg-[rgba(226,157,56,0.18)] dark:text-[#f3c27e] dark:border-[#e29d38]/50 px-[8px] py-[2px] rounded border border-[#f5e3c8]">
-              خصم 339 ر.س عند السداد السنوي (-15%)
+              {livePlan?.yearlyDiscountPercent
+                ? t(`خصم ${livePlan.yearlyDiscountPercent}% عند السداد السنوي`, `Save ${livePlan.yearlyDiscountPercent}% on annual billing`)
+                : livePlan?.annualPrice
+                ? t(`السعر السنوي: ${livePlan.annualPrice} ر.س`, `Annual: ${livePlan.annualPrice} SAR`)
+                : t("خصم عند السداد السنوي", "Annual billing discount")}
             </span>
           </div>
         </div>
@@ -141,16 +229,18 @@ export function PlanDetailsView({
         <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-4 sm:p-5 shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-[10px]">
             <span className="text-[12px] font-semibold text-[#737067] dark:text-[#cdc5bd]">
-              المكاتب المشتركة حالياً
+              {t("المكاتب المشتركة حالياً", "Currently Subscribed Offices")}
             </span>
             <div className="p-[8px] rounded-[6px] bg-[#fbf6ee] text-[#9c6402] dark:bg-[#2d1f16] dark:text-[#e29d38] dark:border dark:border-[#4d3627]/60">
               <Building2 className="size-[18px]" />
             </div>
           </div>
           <div className="flex items-baseline gap-[6px] mb-[6px]">
-            <span className="text-[28px] font-black text-[#1b1c1a] dark:text-[#fdfbf7]">52</span>
+            <span className="text-[28px] font-black text-[#1b1c1a] dark:text-[#fdfbf7]">
+              {subscribedFirmsCount}
+            </span>
             <span className="text-[13px] font-bold text-[#737067] dark:text-[#8e8680]">
-              مكتباً نشطاً
+              {t("مكتباً نشطاً", "active offices")}
             </span>
           </div>
           {/* Progress bar */}
@@ -158,12 +248,16 @@ export function PlanDetailsView({
             <div className="h-[6px] w-full bg-[#eeebe5] dark:bg-[#38271c] rounded-full overflow-hidden">
               <div
                 className="h-full bg-[#9c6402] dark:bg-[#e29d38] rounded-full"
-                style={{ width: "54%" }}
+                style={{ width: livePlan?.sharePercentage || "40%" }}
               />
             </div>
             <div className="flex justify-between items-center text-[11px] text-[#737067] dark:text-[#cdc5bd] font-medium">
-              <span>54% من إجمالي المكاتب المشتركة</span>
-              <span className="text-[#9c6402] dark:text-[#f3c27e] font-bold">الأكثر طلباً</span>
+              <span>{livePlan?.sharePercentage || `${subscribedFirmsCount} ${t("مكاتب مشتركة", "subscribed offices")}`}</span>
+              {livePlan?.isPopular && (
+                <span className="text-[#9c6402] dark:text-[#f3c27e] font-bold">
+                  {t("الأكثر طلباً", "Most Popular")}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -172,22 +266,24 @@ export function PlanDetailsView({
         <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-4 sm:p-5 shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-[10px]">
             <span className="text-[12px] font-semibold text-[#737067] dark:text-[#cdc5bd]">
-              الإيراد الشهري الناتج
+              {t("الإيراد الشهري الناتج", "Monthly Generated Revenue")}
             </span>
             <div className="p-[8px] rounded-[6px] bg-[#e8f5e9] text-[#15803d] dark:bg-[#132c1c] dark:text-[#6ee7b7] dark:border dark:border-[#165a2e]">
               <TrendingUp className="size-[18px]" />
             </div>
           </div>
           <div className="flex items-baseline gap-[6px] mb-[8px]">
-            <span className="text-[28px] font-black text-[#1b1c1a] dark:text-[#fdfbf7]">20,748</span>
+            <span className="text-[28px] font-black text-[#1b1c1a] dark:text-[#fdfbf7]">
+              {((livePlan?.monthlyPrice ?? 399) * (subscribedFirmsCount || 1)).toLocaleString()}
+            </span>
             <span className="text-[13px] font-bold text-[#737067] dark:text-[#8e8680]">
-              ر.س / شهر
+              {t("ر.س / شهر", "SAR / month")}
             </span>
           </div>
           <div className="flex items-center gap-[6px]">
             <span className="text-[11px] font-bold text-[#15803d] bg-[#e8f5e9] dark:bg-[#132c1c] dark:text-[#6ee7b7] dark:border-[#165a2e] px-[8px] py-[2px] rounded border border-[#c8e6c9] flex items-center gap-[4px]">
               <span>↑</span>
-              <span>+12.4% مقارنة بالربع السابق</span>
+              <span>{t("+12.4% مقارنة بالربع السابق", "+12.4% vs previous quarter")}</span>
             </span>
           </div>
         </div>
@@ -197,25 +293,28 @@ export function PlanDetailsView({
       <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-5 sm:p-6 shadow-2xs">
         <div className="mb-[16px]">
           <h2 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-            حدود الاستخدام والموارد السحابية للباقة
+            {t("حدود الاستخدام والموارد السحابية للباقة", "Plan Usage Limits & Cloud Resources")}
           </h2>
           <p className="text-[12px] text-[#737067] dark:text-[#cdc5bd]">
-            المواصفات التقنية والمخصصات البرمجية لكل مكتب مشترك في الباقة الفضية
+            {t(
+              "المواصفات التقنية والمخصصات البرمجية لكل مكتب مشترك في الباقة الفضية",
+              "Technical specifications and quotas assigned to each law firm subscribed to the Silver Plan"
+            )}
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-[12px]">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-[12px]">
           {/* Limit 1: Lawyers */}
           <div className="bg-[#faf8f5] dark:bg-[#281c15] border border-[#f0eeea] dark:border-[#38271c] rounded-[8px] p-[14px] flex flex-col items-start gap-[8px]">
             <div className="p-[7px] bg-[#fbf6ee] dark:bg-[#2d1f16] border border-[#f5e3c8] dark:border-[#4d3627]/60 text-[#9c6402] dark:text-[#e29d38] rounded-[6px]">
               <Users className="size-[18px]" />
             </div>
             <div>
-              <div className="text-[17px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                4 محامين
+              <div className="text-[15px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                {livePlan?.limits?.lawyers || t("4 محامين", "4 Lawyers")}
               </div>
               <div className="text-[11px] text-[#737067] dark:text-[#8e8680] leading-relaxed mt-[2px]">
-                تراخيص مستخدمين ومستشارين مرخصين
+                {t("تراخيص مستخدمين ومستشارين", "User licenses & consultants")}
               </div>
             </div>
           </div>
@@ -226,11 +325,11 @@ export function PlanDetailsView({
               <Scale className="size-[18px]" />
             </div>
             <div>
-              <div className="text-[17px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                200 قضية
+              <div className="text-[15px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                {livePlan?.limits?.cases || t("200 قضية", "200 Cases")}
               </div>
               <div className="text-[11px] text-[#737067] dark:text-[#8e8680] leading-relaxed mt-[2px]">
-                قضية ومعاملة نشطة في نفس الوقت
+                {t("قضية ومعاملة نشطة بالتوازي", "Active cases & proceedings")}
               </div>
             </div>
           </div>
@@ -241,41 +340,56 @@ export function PlanDetailsView({
               <Briefcase className="size-[18px]" />
             </div>
             <div>
-              <div className="text-[17px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                5 وكلاء
+              <div className="text-[15px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                {livePlan?.limits?.agents || t("5 وكلاء", "5 Agents")}
               </div>
               <div className="text-[11px] text-[#737067] dark:text-[#8e8680] leading-relaxed mt-[2px]">
-                وكلاء ومفوضون شرعيون بصلاحيات محددة
+                {t("وكلاء ومفوضون شرعيون", "Authorized legal agents")}
               </div>
             </div>
           </div>
 
-          {/* Limit 4: Clients */}
+          {/* Limit 4: Assistants */}
           <div className="bg-[#faf8f5] dark:bg-[#281c15] border border-[#f0eeea] dark:border-[#38271c] rounded-[8px] p-[14px] flex flex-col items-start gap-[8px]">
             <div className="p-[7px] bg-[#fbf6ee] dark:bg-[#2d1f16] border border-[#f5e3c8] dark:border-[#4d3627]/60 text-[#9c6402] dark:text-[#e29d38] rounded-[6px]">
               <UserCheck className="size-[18px]" />
             </div>
             <div>
-              <div className="text-[17px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                1,000 عميل
+              <div className="text-[15px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                {livePlan?.limits?.assistants || t("15 مساعدين", "15 Assistants")}
               </div>
               <div className="text-[11px] text-[#737067] dark:text-[#8e8680] leading-relaxed mt-[2px]">
-                سجل موكلين وشركات مع ملفات رقمية
+                {t("مساعدين إداريين وقانونيين", "Admin & legal assistants")}
               </div>
             </div>
           </div>
 
-          {/* Limit 5: Storage */}
+          {/* Limit 5: Clients */}
+          <div className="bg-[#faf8f5] dark:bg-[#281c15] border border-[#f0eeea] dark:border-[#38271c] rounded-[8px] p-[14px] flex flex-col items-start gap-[8px]">
+            <div className="p-[7px] bg-[#fbf6ee] dark:bg-[#2d1f16] border border-[#f5e3c8] dark:border-[#4d3627]/60 text-[#9c6402] dark:text-[#e29d38] rounded-[6px]">
+              <Users className="size-[18px]" />
+            </div>
+            <div>
+              <div className="text-[15px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                {livePlan?.limits?.clients || t("1,000 عميل", "1,000 Clients")}
+              </div>
+              <div className="text-[11px] text-[#737067] dark:text-[#8e8680] leading-relaxed mt-[2px]">
+                {t("سجلات عملاء وموكلين", "Client & corporate dossiers")}
+              </div>
+            </div>
+          </div>
+
+          {/* Limit 6: Storage */}
           <div className="bg-[#faf8f5] dark:bg-[#281c15] border border-[#f0eeea] dark:border-[#38271c] rounded-[8px] p-[14px] flex flex-col items-start gap-[8px]">
             <div className="p-[7px] bg-[#fbf6ee] dark:bg-[#2d1f16] border border-[#f5e3c8] dark:border-[#4d3627]/60 text-[#9c6402] dark:text-[#e29d38] rounded-[6px]">
               <Cloud className="size-[18px]" />
             </div>
             <div>
-              <div className="text-[17px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                20 GB
+              <div className="text-[15px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                {livePlan?.limits?.storage || "20 GB"}
               </div>
               <div className="text-[11px] text-[#737067] dark:text-[#8e8680] leading-relaxed mt-[2px]">
-                تخزين سحابي مشفر للوثائق والمستندات
+                {t("تخزين سحابي مشفر للوثائق", "Encrypted document storage")}
               </div>
             </div>
           </div>
@@ -289,14 +403,14 @@ export function PlanDetailsView({
           <div>
             <div className="flex items-center justify-between mb-[4px]">
               <h2 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                دورات الفوترة والأسعار
+                {t("دورات الفوترة والأسعار", "Billing Cycles & Pricing")}
               </h2>
               <span className="text-[10px] font-bold bg-[#f5f3ef] dark:bg-[#281c15] text-[#737067] dark:text-[#cdc5bd] px-[6px] py-[2px] rounded border border-[#e2ded7] dark:border-[#38271c]">
-                باقة تجارية
+                {t("باقة تجارية", "Commercial Plan")}
               </span>
             </div>
             <p className="text-[12px] text-[#737067] dark:text-[#cdc5bd] mb-[18px]">
-              خيارات الاشتراك الرسمية المتاحة للمكاتب القانونية
+              {t("خيارات الاشتراك الرسمية المتاحة للمكاتب القانونية", "Official subscription options available for law firms")}
             </p>
 
             <div className="space-y-[12px]">
@@ -304,22 +418,22 @@ export function PlanDetailsView({
               <div className="border border-[#e2ded7] dark:border-[#38271c] rounded-[6px] p-[16px] bg-[#faf8f5] dark:bg-[#281c15]">
                 <div className="flex items-center justify-between mb-[6px]">
                   <span className="font-bold text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7]">
-                    الدورة الشهرية
+                    {t("الدورة الشهرية", "Monthly Billing")}
                   </span>
                   <span className="text-[10px] font-bold bg-[#eeebe5] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] px-[6px] py-[2px] rounded">
-                    تجدد تلقائي
+                    {t("تجدد تلقائي", "Auto Renewal")}
                   </span>
                 </div>
                 <div className="flex items-baseline justify-between">
                   <div className="text-[11px] text-[#737067] dark:text-[#8e8680]">
-                    تجدد كل 30 يوماً مع إشعار استباقي
+                    {t("تجدد كل 30 يوماً مع إشعار استباقي", "Renews every 30 days with prior notice")}
                   </div>
-                  <div className="text-left">
+                  <div className="text-left rtl:text-left ltr:text-right">
                     <span className="text-[20px] font-black text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      399
+                      {livePlan?.monthlyPrice ?? 399}
                     </span>
                     <span className="text-[11px] text-[#737067] dark:text-[#8e8680] ms-[4px]">
-                      ر.س / شهرياً
+                      {t("ر.س / شهرياً", "SAR / month")}
                     </span>
                   </div>
                 </div>
@@ -330,23 +444,30 @@ export function PlanDetailsView({
                 <div className="flex items-center justify-between mb-[6px]">
                   <div className="flex items-center gap-[8px]">
                     <span className="font-bold text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      الدورة السنوية (12 شهراً)
+                      {t("الدورة السنوية (12 شهراً)", "Annual Billing (12 months)")}
                     </span>
                   </div>
                   <span className="text-[10px] font-bold bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] px-[8px] py-[2px] rounded">
-                    الأكثر طلباً (-15%)
+                    {livePlan?.yearlyDiscountPercent
+                      ? t(`الأكثر طلباً (-${livePlan.yearlyDiscountPercent}%)`, `Most Popular (-${livePlan.yearlyDiscountPercent}%)`)
+                      : t("الأكثر طلباً (-15%)", "Most Popular (-15%)")}
                   </span>
                 </div>
                 <div className="flex items-baseline justify-between">
                   <div className="text-[11px] text-[#737067] dark:text-[#cdc5bd]">
-                    تعادل 339 ر.س / شهرياً عند الدفع لمرة واحدة
+                    {livePlan?.annualPrice
+                      ? t(
+                          `تعادل ${Math.round(livePlan.annualPrice / 12)} ر.س / شهرياً عند الدفع لمرة واحدة`,
+                          `Equivalent to ${Math.round(livePlan.annualPrice / 12)} SAR / month paid annually`
+                        )
+                      : t("تعادل 339 ر.س / شهرياً عند الدفع لمرة واحدة", "Equivalent to 339 SAR / month paid annually")}
                   </div>
-                  <div className="text-left">
+                  <div className="text-left rtl:text-left ltr:text-right">
                     <span className="text-[22px] font-black text-[#9c6402] dark:text-[#f3c27e]">
-                      4,068
+                      {livePlan?.annualPrice ?? 4068}
                     </span>
                     <span className="text-[11px] text-[#737067] dark:text-[#8e8680] ms-[4px]">
-                      ر.س / سنوياً
+                      {t("ر.س / سنوياً", "SAR / year")}
                     </span>
                   </div>
                 </div>
@@ -355,8 +476,10 @@ export function PlanDetailsView({
           </div>
 
           <div className="pt-[16px] mt-[16px] border-t border-[#f0eeea] dark:border-[#38271c] text-[11px] text-[#737067] dark:text-[#8e8680] leading-relaxed">
-            * جميع الأسعار غير شاملة ضريبة القيمة المضافة 15% ويتم إصدار فاتورة
-            ضريبية إلكترونية فورية لكل دفعة.
+            {t(
+              "* جميع الأسعار غير شاملة ضريبة القيمة المضافة 15% ويتم إصدار فاتورة ضريبية إلكترونية فورية لكل دفعة.",
+              "* All prices exclude 15% VAT. An instant electronic tax invoice is generated for every billing cycle."
+            )}
           </div>
         </div>
 
@@ -364,33 +487,76 @@ export function PlanDetailsView({
         <div className="lg:col-span-8 bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-[20px] shadow-2xs">
           <div className="flex items-center justify-between mb-[4px]">
             <h2 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-              مميزات الباقة وتكاملات المنظومة
+              {t("مميزات الباقة وتكاملات المنظومة", "Plan Features & Ecosystem Integrations")}
             </h2>
             <span className="text-[11px] font-bold bg-[#fbf6ee] dark:bg-[rgba(226,157,56,0.18)] text-[#9c6402] dark:text-[#f3c27e] px-[8px] py-[2px] rounded border border-[#f5e3c8] dark:border-[#e29d38]/50">
-              4 من 6 مميزات
+              {livePlan?.features && livePlan.features.length > 0
+                ? `${livePlan.features.filter((f) => f.isIncluded).length} ${t("مميزات مفعلة", "Active Features")}`
+                : t("4 من 6 مميزات", "4 of 6 Features")}
             </span>
           </div>
           <p className="text-[12px] text-[#737067] dark:text-[#cdc5bd] mb-[16px]">
-            الخدمات المفعلة والمستثناة ضمن اتفاقية مستوى الخدمة لهذه الباقة
+            {t(
+              "الخدمات المفعلة والمستثناة ضمن اتفاقية مستوى الخدمة لهذه الباقة",
+              "Included and excluded services under the SLA agreement for this plan"
+            )}
           </p>
 
           <div className="space-y-[10px]">
-            {/* Feature 1: Priority SLA */}
+            {livePlan?.features && livePlan.features.length > 0 ? (
+              livePlan.features.map((feat) => (
+                <div
+                  key={feat.id}
+                  className="flex items-start justify-between gap-[12px] p-[12px] rounded-[6px] bg-[#faf8f5] dark:bg-[#281c15] border border-[#f0eeea] dark:border-[#38271c]"
+                >
+                  <div className="flex items-start gap-[10px]">
+                    {feat.isIncluded ? (
+                      <CheckCircle2 className="size-[18px] text-[#15803d] dark:text-[#6ee7b7] shrink-0 mt-[2px]" />
+                    ) : (
+                      <XCircle className="size-[18px] text-[#9e9e9e] dark:text-[#6f6760] shrink-0 mt-[2px]" />
+                    )}
+                    <div>
+                      <div className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                        {feat.title}
+                      </div>
+                      {feat.description && (
+                        <div className="text-[11px] text-[#737067] dark:text-[#8e8680] mt-[2px]">
+                          {feat.description}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <span
+                    className={`text-[10px] font-bold px-[8px] py-[3px] rounded border shrink-0 ${
+                      feat.isIncluded
+                        ? "bg-[#e8f5e9] dark:bg-[#132c1c] text-[#15803d] dark:text-[#6ee7b7] border-[#c8e6c9] dark:border-[#165a2e]"
+                        : "bg-[#f5f5f5] dark:bg-[#221812] text-[#757575] dark:text-[#8e8680] border-[#e0e0e0] dark:border-[#38271c]"
+                    }`}
+                  >
+                    {feat.isIncluded ? t("مشمولة في الباقة", "Included in Plan") : t("غير متوفرة", "Not Included")}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <>
+                {/* Feature 1: Priority SLA */}
             <div className="flex items-start justify-between gap-[12px] p-[12px] rounded-[6px] bg-[#faf8f5] dark:bg-[#281c15] border border-[#f0eeea] dark:border-[#38271c]">
               <div className="flex items-start gap-[10px]">
                 <CheckCircle2 className="size-[18px] text-[#15803d] dark:text-[#6ee7b7] shrink-0 mt-[2px]" />
                 <div>
                   <div className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                    دعم فني ذو أولوية للمكتب
+                    {t("دعم فني ذو أولوية للمكتب", "Priority Technical Support for Law Firm")}
                   </div>
                   <div className="text-[11px] text-[#737067] dark:text-[#8e8680] mt-[2px]">
-                    استجابة مضمونة خلال 4 ساعات عمل كحد أقصى مع قناة محادثة
-                    مباشرة.
+                    {t(
+                      "استجابة مضمونة خلال 4 ساعات عمل كحد أقصى مع قناة محادثة مباشرة.",
+                      "Guaranteed response within 4 working hours maximum with a direct live chat channel."
+                    )}
                   </div>
                 </div>
               </div>
               <span className="text-[10px] font-bold bg-[#e8f5e9] dark:bg-[#132c1c] text-[#15803d] dark:text-[#6ee7b7] px-[8px] py-[3px] rounded border border-[#c8e6c9] dark:border-[#165a2e] shrink-0">
-                مشمولة في الباقة
+                {t("مشمولة في الباقة", "Included in Plan")}
               </span>
             </div>
 
@@ -400,16 +566,21 @@ export function PlanDetailsView({
                 <CheckCircle2 className="size-[18px] text-[#15803d] dark:text-[#6ee7b7] shrink-0 mt-[2px]" />
                 <div>
                   <div className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                    الربط التلقائي المباشر مع منصة ناجز ووزارة العدل
+                    {t(
+                      "الربط التلقائي المباشر مع منصة ناجز ووزارة العدل",
+                      "Direct Automatic Integration with Najiz Portal & Ministry of Justice"
+                    )}
                   </div>
                   <div className="text-[11px] text-[#737067] dark:text-[#8e8680] mt-[2px]">
-                    مزامنة الجلسات، التبليغات القضائية، والقرارات التنفيذية
-                    بصورة لحظية.
+                    {t(
+                      "مزامنة الجلسات، التبليغات القضائية، والقرارات التنفيذية بصورة لحظية.",
+                      "Real-time synchronization of court sessions, judicial summons, and enforcement decisions."
+                    )}
                   </div>
                 </div>
               </div>
               <span className="text-[10px] font-bold bg-[#e8f5e9] dark:bg-[#132c1c] text-[#15803d] dark:text-[#6ee7b7] px-[8px] py-[3px] rounded border border-[#c8e6c9] dark:border-[#165a2e] shrink-0">
-                مشمولة في الباقة
+                {t("مشمولة في الباقة", "Included in Plan")}
               </span>
             </div>
 
@@ -419,17 +590,21 @@ export function PlanDetailsView({
                 <CheckCircle2 className="size-[18px] text-[#15803d] dark:text-[#6ee7b7] shrink-0 mt-[2px]" />
                 <div>
                   <div className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                    الفوترة الإلكترونية المتوافقة مع هيئة الزكاة والضريبة (ZATCA
-                    Phase 2)
+                    {t(
+                      "الفوترة الإلكترونية المتوافقة مع هيئة الزكاة والضريبة (ZATCA Phase 2)",
+                      "ZATCA Phase 2 Compliant E-Invoicing Integration"
+                    )}
                   </div>
                   <div className="text-[11px] text-[#737067] dark:text-[#8e8680] mt-[2px]">
-                    إصدار فواتير ضريبية إلكترونية مشفرة برمز QR وفق متطلبات
-                    المرحلة الثانية.
+                    {t(
+                      "إصدار فواتير ضريبية إلكترونية مشفرة برمز QR وفق متطلبات المرحلة الثانية.",
+                      "Generation of encrypted tax e-invoices with QR codes compliant with Phase 2 requirements."
+                    )}
                   </div>
                 </div>
               </div>
               <span className="text-[10px] font-bold bg-[#e8f5e9] dark:bg-[#132c1c] text-[#15803d] dark:text-[#6ee7b7] px-[8px] py-[3px] rounded border border-[#c8e6c9] dark:border-[#165a2e] shrink-0">
-                مشمولة في الباقة
+                {t("مشمولة في الباقة", "Included in Plan")}
               </span>
             </div>
 
@@ -439,16 +614,21 @@ export function PlanDetailsView({
                 <CheckCircle2 className="size-[18px] text-[#15803d] dark:text-[#6ee7b7] shrink-0 mt-[2px]" />
                 <div>
                   <div className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                    تقارير مؤشرات الأداء والتحليلات القضائية
+                    {t(
+                      "تقارير مؤشرات الأداء والتحليلات القضائية",
+                      "Performance KPI Reports & Judicial Analytics"
+                    )}
                   </div>
                   <div className="text-[11px] text-[#737067] dark:text-[#8e8680] mt-[2px]">
-                    لوحات مؤشرات متقدمة لقياس معدلات إنجاز القضايا ومستحقات
-                    أتعاب المحاماة.
+                    {t(
+                      "لوحات مؤشرات متقدمة لقياس معدلات إنجاز القضايا ومستحقات أتعاب المحاماة.",
+                      "Advanced dashboards for measuring case clearance rates and legal fees collections."
+                    )}
                   </div>
                 </div>
               </div>
               <span className="text-[10px] font-bold bg-[#e8f5e9] dark:bg-[#132c1c] text-[#15803d] dark:text-[#6ee7b7] px-[8px] py-[3px] rounded border border-[#c8e6c9] dark:border-[#165a2e] shrink-0">
-                مشمولة في الباقة
+                {t("مشمولة في الباقة", "Included in Plan")}
               </span>
             </div>
 
@@ -458,16 +638,18 @@ export function PlanDetailsView({
                 <XCircle className="size-[18px] text-[#9e9e9e] dark:text-[#8e8680] shrink-0 mt-[2px]" />
                 <div>
                   <div className="text-[13px] font-medium text-[#737067] dark:text-[#8e8680] line-through decoration-1">
-                    مدير حساب استشاري مخصص
+                    {t("مدير حساب استشاري مخصص", "Dedicated Advisory Account Manager")}
                   </div>
                   <div className="text-[11px] text-[#9e9e9e] dark:text-[#6f6760] mt-[2px]">
-                    متاح حصرياً للمشتركين في الباقة الذهبية أو الباقات المخصصة
-                    لكبرى الشركات.
+                    {t(
+                      "متاح حصرياً للمشتركين في الباقة الذهبية أو الباقات المخصصة لكبرى الشركات.",
+                      "Exclusively available for subscribers of Gold or Enterprise tailored packages."
+                    )}
                   </div>
                 </div>
               </div>
               <span className="text-[10px] font-bold bg-[#f5f5f5] dark:bg-[#221812] text-[#757575] dark:text-[#8e8680] px-[8px] py-[3px] rounded border border-[#e0e0e0] dark:border-[#38271c] shrink-0">
-                غير متوفرة
+                {t("غير متوفرة", "Not Included")}
               </span>
             </div>
 
@@ -477,18 +659,22 @@ export function PlanDetailsView({
                 <XCircle className="size-[18px] text-[#9e9e9e] dark:text-[#8e8680] shrink-0 mt-[2px]" />
                 <div>
                   <div className="text-[13px] font-medium text-[#737067] dark:text-[#8e8680] line-through decoration-1">
-                    تكامل واجهة البرمجة (Custom API Integration)
+                    {t("تكامل واجهة البرمجة (Custom API Integration)", "Custom API Integration")}
                   </div>
                   <div className="text-[11px] text-[#9e9e9e] dark:text-[#6f6760] mt-[2px]">
-                    ربط أنظمة الـ ERP الخاصة بالمكتب كـ Oracle و SAP (متوفر في
-                    الباقة المخصصة).
+                    {t(
+                      "ربط أنظمة الـ ERP الخاصة بالمكتب كـ Oracle و SAP (متوفر في الباقة المخصصة).",
+                      "Connecting office ERP systems like Oracle & SAP (available in Enterprise plan)."
+                    )}
                   </div>
                 </div>
               </div>
               <span className="text-[10px] font-bold bg-[#f5f5f5] dark:bg-[#221812] text-[#757575] dark:text-[#8e8680] px-[8px] py-[3px] rounded border border-[#e0e0e0] dark:border-[#38271c] shrink-0">
-                غير متوفرة
+                {t("غير متوفرة", "Not Included")}
               </span>
             </div>
+            </>
+            )}
           </div>
         </div>
       </div>
@@ -499,13 +685,13 @@ export function PlanDetailsView({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-[10px] pb-[16px] border-b border-[#f0eeea] dark:border-[#38271c]">
           <div className="flex items-center gap-[10px]">
             <h2 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-              المكاتب المشتركة في الباقة
+              {t("المكاتب المشتركة في الباقة", "Firms Subscribed to this Plan")}
             </h2>
             <span className="text-[11px] font-bold bg-[#f5f3ef] dark:bg-[#281c15] text-[#514537] dark:text-[#cdc5bd] px-[8px] py-[2px] rounded border border-[#e2ded7] dark:border-[#38271c]">
-              52 مكتباً
+              {subscribedFirmsCount} {t("مكتباً", "firms")}
             </span>
             <span className="text-[12px] text-[#737067] dark:text-[#cdc5bd] hidden md:inline">
-              | استعراض لأحدث المكاتب والشركات القانونية المسجلة في الباقة الفضية
+              | {t(`استعراض لأحدث المكاتب والشركات القانونية المسجلة في ${planName}`, `Overview of recent law firms subscribed to ${planName}`)}
             </span>
           </div>
 
@@ -514,8 +700,8 @@ export function PlanDetailsView({
             onClick={onNavigateToClients || onBack}
             className="text-[13px] font-bold text-[#9c6402] dark:text-[#f3c27e] hover:text-[#855402] dark:hover:text-[#e29d38] flex items-center gap-[4px] cursor-pointer transition-colors"
           >
-            <span>عرض جميع المكاتب المشتركة (52)</span>
-            <span aria-hidden="true">&larr;</span>
+            <span>{t(`عرض جميع المكاتب المشتركة (${subscribedFirmsCount})`, `View all subscribed firms (${subscribedFirmsCount})`)}</span>
+            <span aria-hidden="true" className={cn(isEn && "rotate-180 inline-block")}>&larr;</span>
           </button>
         </div>
 
@@ -524,12 +710,12 @@ export function PlanDetailsView({
           <table className="w-full text-start text-[13px]">
             <thead>
               <tr className="border-b border-[#f0eeea] dark:border-[#38271c] text-[#737067] dark:text-[#cdc5bd] text-[12px] font-semibold">
-                <th className="py-[12px] px-[12px]">اسم المنشأة القانونية</th>
-                <th className="py-[12px] px-[12px]">المدير التنفيذي / المالك</th>
-                <th className="py-[12px] px-[12px]">تاريخ الاشتراك</th>
-                <th className="py-[12px] px-[12px]">موعد التجديد</th>
-                <th className="py-[12px] px-[12px]">دورة السداد والحالة</th>
-                <th className="py-[12px] px-[12px] text-center">الإجراءات</th>
+                <th className="py-[12px] px-[12px] text-start">{t("اسم المنشأة القانونية", "Legal Firm Name")}</th>
+                <th className="py-[12px] px-[12px] text-start">{t("المدير التنفيذي / المالك", "CEO / Owner")}</th>
+                <th className="py-[12px] px-[12px] text-start">{t("تاريخ الاشتراك", "Subscription Date")}</th>
+                <th className="py-[12px] px-[12px] text-start">{t("موعد التجديد", "Renewal Date")}</th>
+                <th className="py-[12px] px-[12px] text-start">{t("دورة السداد والحالة", "Billing Cycle & Status")}</th>
+                <th className="py-[12px] px-[12px] text-center">{t("الإجراءات", "Actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#f0eeea] dark:divide-[#38271c]">
@@ -586,12 +772,12 @@ export function PlanDetailsView({
                     {firm.status === "active" ? (
                       <span className="inline-flex items-center gap-[6px] bg-[#e8f5e9] dark:bg-[#132c1c] text-[#15803d] dark:text-[#6ee7b7] border border-[#c8e6c9] dark:border-[#165a2e] px-[8px] py-[3px] rounded-full text-[11px] font-bold">
                         <span className="size-[6px] rounded-full bg-[#15803d] dark:bg-[#6ee7b7]" />
-                        <span>{firm.billingCycle}</span>
+                        <span>{t(firm.billingCycle, firm.billingCycle === "سنوي" ? "Annual" : "Monthly")}</span>
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-[6px] bg-[#fef3c7] dark:bg-[rgba(226,157,56,0.18)] text-[#92400e] dark:text-[#f3c27e] border border-[#fde68a] dark:border-[#e29d38]/40 px-[8px] py-[3px] rounded-full text-[11px] font-bold">
                         <span className="size-[6px] rounded-full bg-[#f59e0b] dark:bg-[#f3c27e]" />
-                        <span>{firm.billingCycle}</span>
+                        <span>{t(firm.billingCycle, firm.billingCycle === "سنوي" ? "Annual" : "Monthly")}</span>
                       </span>
                     )}
                   </td>
@@ -602,20 +788,20 @@ export function PlanDetailsView({
                       <button
                         type="button"
                         onClick={() =>
-                          toast.info(`عرض تفاصيل منشأة: ${firm.name}`)
+                          toast.info(t(`عرض تفاصيل منشأة: ${firm.name}`, `View firm details: ${firm.name}`))
                         }
                         className="p-[6px] rounded-[4px] hover:bg-[#eae8e4] dark:hover:bg-[#281c15] text-[#737067] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] cursor-pointer"
-                        title="عرض الملف"
+                        title={t("عرض الملف", "View Profile")}
                       >
                         <Eye className="size-[15px]" />
                       </button>
                       <button
                         type="button"
                         onClick={() =>
-                          toast.info(`إدارة اشتراك منشأة: ${firm.name}`)
+                          toast.info(t(`إدارة اشتراك منشأة: ${firm.name}`, `Manage subscription: ${firm.name}`))
                         }
                         className="p-[6px] rounded-[4px] hover:bg-[#eae8e4] dark:hover:bg-[#281c15] text-[#737067] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] cursor-pointer"
-                        title="إعدادات الاشتراك"
+                        title={t("إعدادات الاشتراك", "Subscription Settings")}
                       >
                         <SlidersHorizontal className="size-[15px]" />
                       </button>
@@ -631,12 +817,16 @@ export function PlanDetailsView({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-[12px] pt-[16px] mt-[12px] border-t border-[#f0eeea] dark:border-[#38271c] text-[12px] text-[#737067] dark:text-[#cdc5bd]">
           <div className="flex items-center gap-3">
             <div>
-              عرض {totalItems === 0 ? 0 : (validCurrentPage - 1) * pageSize + 1} إلى{" "}
-              {Math.min(validCurrentPage * pageSize, totalItems)} من أصل {totalItems} مكتباً
+              {t(
+                `عرض ${totalItems === 0 ? 0 : (validCurrentPage - 1) * pageSize + 1} إلى ${Math.min(validCurrentPage * pageSize, totalItems)} من أصل ${totalItems} مكتباً`,
+                `Showing ${totalItems === 0 ? 0 : (validCurrentPage - 1) * pageSize + 1} to ${Math.min(validCurrentPage * pageSize, totalItems)} of ${totalItems} law firms`
+              )}
             </div>
 
             <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
-              <span className="text-[11px] text-[#837565] dark:text-[#cdc5bd]">صفوف بالصفحة:</span>
+              <span className="text-[11px] text-[#837565] dark:text-[#cdc5bd]">
+                {t("صفوف بالصفحة:", "Rows per page:")}
+              </span>
               <PageSizeDropdown
                 value={pageSize}
                 onChange={(newSize) => {
@@ -654,10 +844,10 @@ export function PlanDetailsView({
               type="button"
               disabled={validCurrentPage <= 1}
               onClick={() => setCurrentPage(1)}
-              title="الصفحة الأولى"
+              title={t("الصفحة الأولى", "First Page")}
               className="size-[28px] rounded border border-[#e2ded7] dark:border-[#38271c] bg-white dark:bg-[#221812] text-[#737067] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center"
             >
-              <ChevronsRight className="size-[14px]" />
+              <ChevronsRight className={cn("size-[14px]", isEn && "rotate-180")} />
             </button>
 
             {/* Previous Page */}
@@ -667,8 +857,8 @@ export function PlanDetailsView({
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               className="px-[10px] py-[4px] rounded border border-[#e2ded7] dark:border-[#38271c] bg-white dark:bg-[#221812] text-[#737067] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-[4px]"
             >
-              <ChevronRight className="size-[14px]" />
-              <span>السابق</span>
+              <ChevronRight className={cn("size-[14px]", isEn && "rotate-180")} />
+              <span>{t("السابق", "Previous")}</span>
             </button>
 
             {Array.from({ length: totalPages }).map((_, idx) => {
@@ -696,8 +886,8 @@ export function PlanDetailsView({
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               className="px-[10px] py-[4px] rounded border border-[#e2ded7] dark:border-[#38271c] bg-white dark:bg-[#221812] text-[#737067] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-[4px]"
             >
-              <span>التالي</span>
-              <ChevronLeft className="size-[14px]" />
+              <span>{t("التالي", "Next")}</span>
+              <ChevronLeft className={cn("size-[14px]", isEn && "rotate-180")} />
             </button>
 
             {/* Last Page */}
@@ -705,10 +895,10 @@ export function PlanDetailsView({
               type="button"
               disabled={validCurrentPage >= totalPages}
               onClick={() => setCurrentPage(totalPages)}
-              title="الصفحة الأخيرة"
+              title={t("الصفحة الأخيرة", "Last Page")}
               className="size-[28px] rounded border border-[#e2ded7] dark:border-[#38271c] bg-white dark:bg-[#221812] text-[#737067] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center"
             >
-              <ChevronsLeft className="size-[14px]" />
+              <ChevronsLeft className={cn("size-[14px]", isEn && "rotate-180")} />
             </button>
           </div>
         </div>

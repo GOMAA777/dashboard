@@ -53,6 +53,34 @@ const ROUTE_LABELS: Record<string, { ar: string; en: string }> = {
   "seo": { ar: "تهيئة محركات البحث (SEO)", en: "Search Engine Optimization (SEO)" },
 };
 
+const CUSTOM_LABEL_TRANSLATIONS: Record<string, string> = {
+  "إدارة العملاء": "Client Management",
+  "تفاصيل المكتب": "Office Details",
+  "تعديل بيانات المكتب": "Edit Office Details",
+  "إضافة مكتب محاماة جديد": "Add New Law Office",
+  "إدارة الاشتراكات": "Subscriptions",
+  "إضافة اشتراك جديد": "Add New Subscription",
+  "تعديل الاشتراك": "Edit Subscription",
+  "الباقات والأسعار": "Plans & Pricing",
+  "إضافة باقة جديدة": "Add New Plan",
+  "تعديل الباقة": "Edit Plan",
+  "إنشاء تذكرة جديدة": "Create Ticket",
+  "تفاصيل التذكرة": "Ticket Details",
+  "إضافة عملة": "Add Currency",
+  "إضافة لغة": "Add Language",
+  "تحديث النظام": "System Update",
+  "معلومات السيرفر": "Server Information",
+  "إعدادات الموقع": "Site Settings",
+  "مركز الإشعارات": "Notifications",
+  "تفاصيل الإشعار": "Notification Details",
+  "طرق الدفع": "Payment Gateways",
+  "طاقم العمل": "Staff Members",
+  "الأدوار والصلاحيات": "Roles & Permissions",
+  "الإعدادات العامة": "General Settings",
+  "إعدادات العملة": "Currency Settings",
+  "إعدادات اللغة": "Language Settings",
+};
+
 export function DashboardBreadcrumb({ customItems, className }: DashboardBreadcrumbProps) {
   const pathname = usePathname();
   const language = useUIStore((state) => state.language);
@@ -63,16 +91,20 @@ export function DashboardBreadcrumb({ customItems, className }: DashboardBreadcr
   // drop the home segment so the parent section remains the sole root.
   const effectiveItems = React.useMemo(() => {
     if (!customItems || customItems.length === 0) return null;
+    const translated = customItems.map((item) => ({
+      ...item,
+      label: isEn && CUSTOM_LABEL_TRANSLATIONS[item.label] ? CUSTOM_LABEL_TRANSLATIONS[item.label] : item.label,
+    }));
     if (
-      customItems.length > 1 &&
-      (customItems[0].href === "/" ||
-        customItems[0].label === "الرئيسية" ||
-        customItems[0].label === "Dashboard")
+      translated.length > 1 &&
+      (translated[0].href === "/" ||
+        translated[0].label === "الرئيسية" ||
+        translated[0].label === "Dashboard")
     ) {
-      return customItems.slice(1);
+      return translated.slice(1);
     }
-    return customItems;
-  }, [customItems]);
+    return translated;
+  }, [customItems, isEn]);
 
   const segments = (pathname || "").split("/").filter(Boolean);
   const homeLabel = isEn ? "Dashboard" : "الرئيسية";

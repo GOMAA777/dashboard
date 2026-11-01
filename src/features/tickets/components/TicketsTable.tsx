@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { Ticket } from "../types/tickets.types";
 import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
+import { useLanguage } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 interface TicketsTableProps {
   tickets: Ticket[];
@@ -28,6 +30,7 @@ export function TicketsTable({
   onChangeAssignee,
   onChangeStatus,
 }: TicketsTableProps) {
+  const { t, isEn } = useLanguage();
   const [activeMenuTicketId, setActiveMenuTicketId] = useState<string | null>(null);
   const [pageSize, setPageSize] = useState<number>(5);
   const [pageIndex, setPageIndex] = useState<number>(0);
@@ -47,14 +50,14 @@ export function TicketsTable({
         return (
           <div className="bg-[#fff1f2] border border-rose-200 text-[#9f1239] dark:bg-[#381616] dark:border-rose-500/40 dark:text-[#fca5a5] flex items-center gap-1.5 px-2.5 py-0.5 rounded-full w-fit shrink-0">
             <div className="bg-[#e11d48] shadow-[0_0_8px_#e11d48] ring-1 ring-rose-400/60 rounded-full size-[7px] shrink-0" />
-            <span className="font-bold text-[11px]">عاجلة</span>
+            <span className="font-bold text-[11px]">{t("عاجلة", "Urgent")}</span>
           </div>
         );
       case "medium":
         return (
           <div className="bg-[#fffbeb] border border-amber-200 text-[#92400e] dark:bg-[#2e1d0f] dark:border-amber-500/40 dark:text-[#fbbf24] flex items-center gap-1.5 px-2.5 py-0.5 rounded-full w-fit shrink-0">
             <div className="bg-[#f59e0b] shadow-[0_0_8px_#f59e0b] ring-1 ring-amber-400/60 rounded-full size-[7px] shrink-0" />
-            <span className="font-bold text-[11px]">متوسطة</span>
+            <span className="font-bold text-[11px]">{t("متوسطة", "Medium")}</span>
           </div>
         );
       case "low":
@@ -62,7 +65,7 @@ export function TicketsTable({
         return (
           <div className="bg-[#f5f3ef] border border-[#eae8e4] text-[#514537] dark:bg-[#281c15] dark:border-[#4d3627] dark:text-[#cdc5bd] flex items-center gap-1.5 px-2.5 py-0.5 rounded-full w-fit shrink-0">
             <div className="bg-[#837565] rounded-full size-[7px] shrink-0" />
-            <span className="font-bold text-[11px]">منخفضة</span>
+            <span className="font-bold text-[11px]">{t("منخفضة", "Low")}</span>
           </div>
         );
     }
@@ -75,7 +78,7 @@ export function TicketsTable({
           <div className="bg-[#9c6402]/10 border border-[#9c6402]/30 text-[#9c6402] dark:bg-[rgba(226,157,56,0.18)] dark:border-[#e29d38]/40 dark:text-[#f3c27e] flex items-center gap-1.5 px-2.5 py-0.5 rounded-full w-fit shrink-0">
             <div className="bg-[#9c6402] dark:bg-[#e29d38] shadow-[0_0_8px_#9c6402] ring-1 ring-amber-400/60 rounded-full size-[7px] shrink-0" />
             <span className="font-bold text-[11px]">
-              جاري العمل عليها
+              {t("جاري العمل عليها", "In Progress")}
             </span>
           </div>
         );
@@ -83,14 +86,14 @@ export function TicketsTable({
         return (
           <div className="bg-[#eff6ff] border border-blue-200 text-[#1d4ed8] dark:bg-[#162233] dark:border-blue-500/40 dark:text-[#93c5fd] flex items-center gap-1.5 px-2.5 py-0.5 rounded-full w-fit shrink-0">
             <div className="bg-[#2563eb] shadow-[0_0_8px_#2563eb] ring-1 ring-blue-400/60 rounded-full size-[7px] shrink-0" />
-            <span className="font-bold text-[11px]">مفتوحة</span>
+            <span className="font-bold text-[11px]">{t("مفتوحة", "Open")}</span>
           </div>
         );
       case "pending":
         return (
           <div className="bg-[#fffbeb] border border-amber-200 text-[#92400e] dark:bg-[#2e1d0f] dark:border-amber-500/40 dark:text-[#fbbf24] flex items-center gap-1.5 px-2.5 py-0.5 rounded-full w-fit shrink-0">
             <div className="bg-[#f59e0b] shadow-[0_0_8px_#f59e0b] ring-1 ring-amber-400/60 rounded-full size-[7px] shrink-0" />
-            <span className="font-bold text-[11px]">معلقة</span>
+            <span className="font-bold text-[11px]">{t("معلقة", "Pending")}</span>
           </div>
         );
       case "closed":
@@ -98,7 +101,7 @@ export function TicketsTable({
         return (
           <div className="bg-[#ecfdf5] border border-emerald-200 text-[#065f46] dark:bg-[#132c1c] dark:border-emerald-500/40 dark:text-[#6ee7b7] flex items-center gap-1.5 px-2.5 py-0.5 rounded-full w-fit shrink-0">
             <div className="bg-[#10b981] shadow-[0_0_8px_#10b981] ring-1 ring-emerald-400/60 rounded-full size-[7px] shrink-0" />
-            <span className="font-bold text-[11px]">مغلقة</span>
+            <span className="font-bold text-[11px]">{t("مغلقة", "Closed")}</span>
           </div>
         );
     }
@@ -130,28 +133,28 @@ export function TicketsTable({
           <thead>
             <tr className="bg-[#f0eeea] h-[54px] border-b border-[#eae8e4] text-[#514537] text-[11px] font-bold tracking-[0.5px]">
               <th className="px-[16px] py-[10px] font-bold text-start whitespace-nowrap">
-                رقم التذكرة
+                {t("رقم التذكرة", "Ticket #")}
               </th>
               <th className="px-[16px] py-[10px] font-bold text-start whitespace-nowrap min-w-[240px]">
-                الموضوع والمشكلة
+                {t("الموضوع والمشكلة", "Subject & Issue")}
               </th>
               <th className="px-[16px] py-[10px] font-bold text-start whitespace-nowrap min-w-[170px]">
-                المكتب / المشترك
+                {t("المكتب / المشترك", "Firm / Client")}
               </th>
               <th className="px-[16px] py-[10px] font-bold text-start whitespace-nowrap min-w-[150px]">
-                القسم المسؤول
+                {t("القسم المسؤول", "Department")}
               </th>
               <th className="px-[16px] py-[10px] font-bold text-start whitespace-nowrap min-w-[150px]">
-                الموظف المسؤول
+                {t("الموظف المسؤول", "Assignee")}
               </th>
               <th className="px-[12px] py-[10px] font-bold text-center whitespace-nowrap">
-                الأولوية
+                {t("الأولوية", "Priority")}
               </th>
               <th className="px-[12px] py-[10px] font-bold text-center whitespace-nowrap">
-                الحالة
+                {t("الحالة", "Status")}
               </th>
               <th className="px-[16px] py-[10px] font-bold text-center whitespace-nowrap">
-                الإجراءات
+                {t("الإجراءات", "Actions")}
               </th>
             </tr>
           </thead>
@@ -265,7 +268,7 @@ export function TicketsTable({
                       <button
                         type="button"
                         onClick={() => onViewDetails(ticket)}
-                        title="تفاصيل التذكرة"
+                        title={t("تفاصيل التذكرة", "Ticket details")}
                         className="size-[28px] rounded-[4px] hover:bg-[#f0eeea] flex items-center justify-center text-[#514537] hover:text-[#9c6402] transition-colors cursor-pointer"
                       >
                         <Eye className="size-[14px]" />
@@ -278,7 +281,7 @@ export function TicketsTable({
                           onClick={() =>
                             setActiveMenuTicketId(isMenuOpen ? null : ticket.id)
                           }
-                          title="خيارات إضافية"
+                          title={t("خيارات إضافية", "More options")}
                           className="size-[28px] rounded-[4px] hover:bg-[#f0eeea] flex items-center justify-center text-[#514537] hover:text-[#1b1c1a] transition-colors cursor-pointer"
                         >
                           <MoreHorizontal className="size-[15px]" />
@@ -296,7 +299,7 @@ export function TicketsTable({
                               className="w-full flex items-center gap-[8px] px-[12px] py-[8px] text-[12px] text-[#1b1c1a] hover:bg-[#f5f3ef] transition-colors cursor-pointer"
                             >
                               <Eye className="size-[13px] text-[#9c6402]" />
-                              <span>تفاصيل التذكرة</span>
+                              <span>{t("تفاصيل التذكرة", "Ticket Details")}</span>
                             </button>
                             <button
                               type="button"
@@ -307,7 +310,7 @@ export function TicketsTable({
                               className="w-full flex items-center gap-[8px] px-[12px] py-[8px] text-[12px] text-[#1b1c1a] hover:bg-[#f5f3ef] transition-colors cursor-pointer"
                             >
                               <UserCheck className="size-[13px] text-[#514537]" />
-                              <span>تغيير الموظف المسؤول</span>
+                              <span>{t("تغيير الموظف المسؤول", "Change Assignee")}</span>
                             </button>
                             <button
                               type="button"
@@ -318,7 +321,7 @@ export function TicketsTable({
                               className="w-full flex items-center gap-[8px] px-[12px] py-[8px] text-[12px] text-[#1b1c1a] hover:bg-[#f5f3ef] transition-colors cursor-pointer"
                             >
                               <RefreshCw className="size-[13px] text-[#514537]" />
-                              <span>تغيير حالة التذكرة</span>
+                              <span>{t("تغيير حالة التذكرة", "Change Status")}</span>
                             </button>
                           </div>
                         )}
@@ -340,13 +343,14 @@ export function TicketsTable({
       >
         <div className="flex items-center gap-3 order-1 sm:order-2">
           <div className="text-[12px] text-[#514537] dark:text-[#cdc5bd]">
-            عرض <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{startItem}</span> إلى{" "}
-            <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{endItem}</span> من أصل{" "}
-            <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{tickets.length}</span> تذكرة
+            {t(
+              `عرض ${startItem} إلى ${endItem} من أصل ${tickets.length} تذكرة`,
+              `Showing ${startItem} to ${endItem} of ${tickets.length} tickets`
+            )}
           </div>
 
           <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
-            <span className="text-[11px] text-[#837565] dark:text-[#8e8680]">صفوف بالصفحة:</span>
+            <span className="text-[11px] text-[#837565] dark:text-[#8e8680]">{t("صفوف بالصفحة:", "Rows per page:")}</span>
             <PageSizeDropdown
               value={pageSize}
               onChange={(newSize) => {
@@ -358,16 +362,15 @@ export function TicketsTable({
           </div>
         </div>
 
-        {/* RTL: ChevronsRight is first page, ChevronRight is previous */}
         <div className="flex items-center gap-1.5 order-2 sm:order-1">
           <button
             type="button"
             disabled={safePageIndex === 0}
             onClick={() => setPageIndex(0)}
-            title="الصفحة الأولى"
+            title={t("الصفحة الأولى", "First page")}
             className="size-[32px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#8e8680] hover:bg-[#eae8e4] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
           >
-            <ChevronsRight className="size-[14px]" />
+            <ChevronsRight className={cn("size-[14px]", isEn && "rotate-180")} />
           </button>
 
           <button
@@ -376,8 +379,8 @@ export function TicketsTable({
             onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
             className="bg-[#f5f3ef] dark:bg-[#281c15] flex items-center gap-1 px-3 py-1.5 rounded-[4px] text-[12px] font-semibold text-[#837565] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
-            <ChevronRight className="size-[12px]" />
-            <span>السابق</span>
+            <ChevronRight className={cn("size-[12px]", isEn && "rotate-180")} />
+            <span>{t("السابق", "Previous")}</span>
           </button>
 
           {Array.from({ length: totalPages }, (_, i) => i).map((p) => {
@@ -414,18 +417,18 @@ export function TicketsTable({
             onClick={() => setPageIndex((p) => Math.min(totalPages - 1, p + 1))}
             className="bg-[#f5f3ef] dark:bg-[#281c15] flex items-center gap-1 px-3 py-1.5 rounded-[4px] text-[12px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
-            <span>التالي</span>
-            <ChevronLeft className="size-[12px]" />
+            <span>{t("التالي", "Next")}</span>
+            <ChevronLeft className={cn("size-[12px]", isEn && "rotate-180")} />
           </button>
 
           <button
             type="button"
             disabled={safePageIndex >= totalPages - 1}
             onClick={() => setPageIndex(totalPages - 1)}
-            title="الصفحة الأخيرة"
+            title={t("الصفحة الأخيرة", "Last page")}
             className="size-[32px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#8e8680] hover:bg-[#eae8e4] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
           >
-            <ChevronsLeft className="size-[14px]" />
+            <ChevronsLeft className={cn("size-[14px]", isEn && "rotate-180")} />
           </button>
         </div>
       </div>

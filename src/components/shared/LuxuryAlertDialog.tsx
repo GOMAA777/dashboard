@@ -3,6 +3,8 @@
 import React, { useEffect } from "react";
 import { Trash2, Lock, CheckCircle2, AlertTriangle, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
+import { ModalPortal } from "./ModalPortal";
 
 export interface LuxuryAlertDialogProps {
   isOpen: boolean;
@@ -27,10 +29,12 @@ export function LuxuryAlertDialog({
   title,
   description,
   confirmLabel,
-  cancelLabel = "إلغاء",
+  cancelLabel,
   variant = "danger",
   itemDetails,
 }: LuxuryAlertDialogProps) {
+  const { t } = useLanguage();
+  const finalCancelLabel = cancelLabel || t("إلغاء", "Cancel");
   // ESC key to close
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -50,19 +54,26 @@ export function LuxuryAlertDialog({
 
   const defaultConfirmLabel =
     variant === "danger"
-      ? "تأكيد الحذف"
+      ? t("تأكيد الحذف", "Confirm Delete")
       : variant === "warning"
-      ? "تأكيد التعليق"
-      : "تأكيد التفعيل";
+      ? t("تأكيد التعليق", "Confirm Suspend")
+      : variant === "success"
+      ? t("تأكيد التفعيل", "Confirm Activate")
+      : t("تأكيد", "Confirm");
 
   return (
-    <div
-      role="alertdialog"
-      aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150 select-none"
-    >
-      {/* Dialog Card */}
+    <ModalPortal isOpen={isOpen}>
       <div
+        role="alertdialog"
+        aria-modal="true"
+        className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150 select-none"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+      >
+        {/* Dialog Card */}
+        <div
+          onClick={(e) => e.stopPropagation()}
         className={cn(
           "relative w-full max-w-md rounded-3xl bg-white dark:bg-[#1a1714] border border-[#ded5c6] dark:border-[#2f2a24] shadow-[0_24px_70px_rgba(0,0,0,0.35)] dark:shadow-[0_24px_70px_rgba(0,0,0,0.7)] p-6 text-start overflow-hidden animate-in zoom-in-95 duration-150"
         )}
@@ -140,7 +151,7 @@ export function LuxuryAlertDialog({
             onClick={onClose}
             className="px-4 py-2.5 rounded-xl border border-[#ded5c6] dark:border-[#2f2a24] text-xs font-bold text-[#524b43] dark:text-[#c4bcb1] hover:bg-[#faf8f4] dark:hover:bg-[#201d1a] transition-colors cursor-pointer"
           >
-            {cancelLabel}
+            {finalCancelLabel}
           </button>
 
           <button
@@ -169,5 +180,6 @@ export function LuxuryAlertDialog({
         </div>
       </div>
     </div>
+  </ModalPortal>
   );
 }

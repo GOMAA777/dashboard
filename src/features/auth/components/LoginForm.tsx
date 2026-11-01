@@ -2,21 +2,23 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, ShieldCheck, LogIn, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 import { useUIStore } from "@/stores/use-ui-store";
 import { translations } from "@/lib/i18n";
-import { loginSchema, LoginInput } from "../schemas/login.schema";
+import { LoginInput } from "../schemas/login.schema";
 import { loginAction } from "../actions/login.action";
 import { AlJoudyLogo } from "@/components/shared/BrandLogos";
-import { setAuthSession, getAuthSession } from "@/lib/auth-client";
+import { getAuthSession } from "@/lib/auth-client";
+import { withBasePath } from "@/lib/base-path";
 
-export function LoginForm() {
-  const router = useRouter();
+interface LoginFormProps {
+  onLoginSuccess?: () => void;
+}
+
+export function LoginForm({ onLoginSuccess }: LoginFormProps = {}) {
   const { language, toggleLanguage } = useUIStore();
   const t = translations[language].auth;
   const brand = translations[language].brand;
@@ -24,38 +26,60 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Auto redirect to dashboard if already authenticated
+  // Auto redirect to dashboard if already authenticated (only on separate /login page)
   useEffect(() => {
-    if (getAuthSession()) {
-      router.replace("/");
+    if (!onLoginSuccess && getAuthSession()) {
+      const target =
+        typeof window !== "undefined" && window.location.pathname.includes("/login")
+          ? window.location.pathname.replace(/\/login\/?$/, "") || "/"
+          : withBasePath("/");
+      window.location.replace(target.endsWith("/") ? target : `${target}/`);
     }
-  }, [router]);
+  }, [onLoginSuccess]);
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
   } = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
     defaultValues: {
       identifier: "",
       password: "",
     },
   });
 
+  const handleFinishLogin = () => {
+    toast.success(t.loginSuccess);
+    // Always hard-navigate after login so AuthGate / static export re-reads
+    // the stored token. Soft setState alone can leave the login screen stuck
+    // if the session flag was written but the gate didn't remount.
+    if (typeof window !== "undefined") {
+      const home = withBasePath("/");
+      window.location.assign(home.endsWith("/") ? home : `${home}/`);
+      return;
+    }
+    onLoginSuccess?.();
+  };
+
   const onSubmit = async (data: LoginInput) => {
     setIsSubmitting(true);
     try {
       const res = await loginAction(data);
       if (res?.data?.success) {
-        setAuthSession();
-        toast.success(t.loginSuccess);
-        router.push("/");
-      } else {
-        toast.error(res?.serverError || "Failed to sign in. Please check credentials.");
+        handleFinishLogin();
+        return;
       }
+      toast.error(
+        res?.serverError ||
+          (language === "ar"
+            ? "تعذر تسجيل الدخول. تحقق من البيانات والمحاولة مرة أخرى."
+            : "Login failed. Check your credentials and try again.")
+      );
     } catch {
-      toast.error("An error occurred during sign in.");
+      toast.error(
+        language === "ar"
+          ? "تعذر تسجيل الدخول. تحقق من البيانات والمحاولة مرة أخرى."
+          : "Login failed. Check your credentials and try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -97,7 +121,21 @@ export function LoginForm() {
           {t.signIn}
         </h1>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 text-start">
+        <noscript>
+          <p className="mb-4 text-sm font-semibold text-red-600">
+            يجب تفعيل JavaScript لتسجيل الدخول إلى لوحة التحكم.
+          </p>
+        </noscript>
+
+        <form
+          method="post"
+          action="#"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void handleSubmit(onSubmit)(event);
+          }}
+          className="space-y-4 text-start"
+        >
           {/* Email or Username Pill Input with Animated Floating Label */}
           <div className="space-y-1.5">
             <div className="relative">
@@ -115,11 +153,6 @@ export function LoginForm() {
                 {t.emailOrUsername}
               </label>
             </div>
-            {errors.identifier && (
-              <p className="text-[11px] font-medium text-red-500 px-4">
-                {errors.identifier.message}
-              </p>
-            )}
           </div>
 
           {/* Password Pill Input with Animated Floating Label */}
@@ -151,11 +184,6 @@ export function LoginForm() {
                 )}
               </button>
             </div>
-            {errors.password && (
-              <p className="text-[11px] font-medium text-red-500 px-4">
-                {errors.password.message}
-              </p>
-            )}
           </div>
 
 

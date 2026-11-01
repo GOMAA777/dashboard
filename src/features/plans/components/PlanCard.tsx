@@ -14,8 +14,10 @@ import {
   Pencil,
   Power,
   Trash2,
+  Eye,
 } from "lucide-react";
 import { PricingPlanItem } from "../types/plan.types";
+import { useLanguage } from "@/lib/i18n";
 
 interface PlanCardProps {
   plan: PricingPlanItem;
@@ -36,11 +38,20 @@ export function PlanCard({
   onToggleActive,
   onDelete,
 }: PlanCardProps) {
+  const { t, isEn } = useLanguage();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const displayPrice =
     billingCycle === "annual" && plan.annualPrice
       ? Math.round(plan.annualPrice / 12)
       : plan.monthlyPrice;
+
+  const translatedPlanName = isEn
+    ? plan.name
+        .replace("الباقة الاحترافية", "Professional Plan")
+        .replace("باقة الشركات", "Enterprise Plan")
+        .replace("الباقة الأساسية", "Basic Plan")
+        .replace("تجربة مجانية", "Free Trial")
+    : plan.name;
 
   return (
     <div
@@ -54,14 +65,29 @@ export function PlanCard({
       {plan.isPopular && (
         <div className="absolute -top-[13px] left-1/2 -translate-x-1/2 z-10 bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] text-[11px] font-bold px-[16px] py-[3px] rounded-full shadow-xs flex items-center gap-[4px] whitespace-nowrap">
           <span>★</span>
-          <span>الأكثر اختياراً</span>
+          <span>{t("الأكثر اختياراً", "Most Popular")}</span>
         </div>
       )}
 
       {/* Top Header Row: 3-dot options & status badge */}
       <div className="flex items-center justify-between w-full mb-[12px]">
         {/* Status Pill */}
-        <div className="flex items-center gap-[6px]">
+        <div className="flex items-center gap-[6px] flex-wrap">
+          {plan.badge && (
+            <span
+              className="inline-flex items-center gap-[4px] text-[10px] font-bold px-[7px] py-[2px] rounded-full"
+              style={{
+                backgroundColor: plan.badgeColor ? `${plan.badgeColor}18` : "#fef3c7",
+                color: plan.badgeColor || "#d97706",
+                borderColor: plan.badgeColor ? `${plan.badgeColor}40` : "#fcd34d",
+                borderWidth: 1,
+              }}
+            >
+              <span>★</span>
+              <span>{plan.badge}</span>
+            </span>
+          )}
+
           {plan.isEnterprise && (
             <span className="bg-[#f0eeea] dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 text-[#514537] dark:text-[#cdc5bd] text-[9px] font-bold px-[6px] py-[2px] rounded-[2px] uppercase tracking-wider">
               ENTERPRISE
@@ -80,7 +106,7 @@ export function PlanCard({
                 plan.isActive ? "bg-[#1b7340] dark:bg-[#10b981]" : "bg-[#837565] dark:bg-[#8e8680]"
               }`}
             />
-            <span>{plan.isActive ? "مفعلة" : "معطلة حالياً"}</span>
+            <span>{plan.isActive ? t("مفعلة", "Active") : t("معطلة حالياً", "Inactive")}</span>
           </span>
         </div>
 
@@ -90,7 +116,7 @@ export function PlanCard({
             type="button"
             onClick={() => setIsMenuOpen((prev) => !prev)}
             className="text-[#837565] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] p-1 rounded-sm cursor-pointer"
-            aria-label="خيارات إضافية"
+            aria-label={t("خيارات إضافية", "More Options")}
           >
             <MoreVertical className="size-[15px]" />
           </button>
@@ -101,14 +127,27 @@ export function PlanCard({
                 type="button"
                 onClick={() => {
                   setIsMenuOpen(false);
-                  if (onViewDetails) onViewDetails(plan);
-                  else onEdit(plan);
+                  onEdit(plan);
                 }}
                 className="w-full text-start px-[12px] py-[7px] text-[12px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#faf8f5] dark:hover:bg-[#2c2621] flex items-center gap-[8px] cursor-pointer"
               >
                 <Pencil className="size-[14px] text-[#837565] dark:text-[#cdc5bd]" />
-                <span>تعديل الباقة</span>
+                <span>{t("تعديل الباقة", "Edit Plan")}</span>
               </button>
+
+              {onViewDetails && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    onViewDetails(plan);
+                  }}
+                  className="w-full text-start px-[12px] py-[7px] text-[12px] font-semibold text-[#514537] dark:text-[#cdc5bd] hover:bg-[#faf8f5] dark:hover:bg-[#2c2621] flex items-center gap-[8px] cursor-pointer"
+                >
+                  <Eye className="size-[14px] text-[#837565] dark:text-[#cdc5bd]" />
+                  <span>{t("عرض تفاصيل الباقة", "View Details")}</span>
+                </button>
+              )}
 
               <button
                 type="button"
@@ -120,7 +159,7 @@ export function PlanCard({
                 className="w-full text-start px-[12px] py-[7px] text-[12px] font-semibold text-[#514537] dark:text-[#cdc5bd] hover:bg-[#faf8f5] dark:hover:bg-[#2c2621] flex items-center gap-[8px] cursor-pointer"
               >
                 <Users className="size-[14px] text-[#837565] dark:text-[#cdc5bd]" />
-                <span>عرض المشتركين ({plan.subscribedFirmsCount})</span>
+                <span>{t("عرض المشتركين", "Subscribers")} ({plan.subscribedFirmsCount})</span>
               </button>
 
               <button
@@ -132,7 +171,7 @@ export function PlanCard({
                 className="w-full text-start px-[12px] py-[7px] text-[12px] font-semibold text-[#9c6402] dark:text-[#e29d38] hover:bg-[#fbf6ee] dark:hover:bg-[#2d1f16] flex items-center gap-[8px] cursor-pointer"
               >
                 <Power className="size-[14px] text-[#9c6402] dark:text-[#e29d38]" />
-                <span>{plan.isActive ? "تعطيل الباقة" : "تفعيل الباقة"}</span>
+                <span>{plan.isActive ? t("تعطيل الباقة", "Deactivate Plan") : t("تفعيل الباقة", "Activate Plan")}</span>
               </button>
 
               <button
@@ -144,7 +183,7 @@ export function PlanCard({
                 className="w-full text-start px-[12px] py-[7px] text-[12px] font-semibold text-[#b91c1c] dark:text-[#f87171] hover:bg-[#fee2e2]/40 dark:hover:bg-[#311616] border-t border-[#f0eeea] dark:border-[#2f2a24] mt-[4px] pt-[7px] flex items-center gap-[8px] cursor-pointer"
               >
                 <Trash2 className="size-[14px] text-[#b91c1c] dark:text-[#f87171]" />
-                <span>حذف الباقة</span>
+                <span>{t("حذف الباقة", "Delete Plan")}</span>
               </button>
             </div>
           )}
@@ -154,7 +193,7 @@ export function PlanCard({
       {/* Plan Title & Subtitle */}
       <div className="flex flex-col text-start mb-[16px]">
         <h2 className="text-[20px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[28px]">
-          {plan.name}
+          {translatedPlanName}
         </h2>
         <p className="text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[18px] min-h-[36px] mt-[4px]">
           {plan.description}
@@ -163,37 +202,49 @@ export function PlanCard({
 
       {/* Pricing Block */}
       <div className="bg-[#f5f3ef]/60 dark:bg-[#281c15] border border-transparent dark:border-[#38271c] rounded-[6px] p-[16px] flex flex-col text-start mb-[16px]">
-        <div className="flex items-baseline gap-[6px]">
+        <div className="flex items-baseline gap-[6px] flex-wrap">
           {plan.isEnterprise && (
-            <span className="text-[12px] font-bold text-[#514537] dark:text-[#cdc5bd]">يبدأ من</span>
+            <span className="text-[12px] font-bold text-[#514537] dark:text-[#cdc5bd]">{t("يبدأ من", "Starts at")}</span>
           )}
           <span className="text-[32px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7] leading-none">
             {displayPrice}
           </span>
           <span className="text-[12px] font-semibold text-[#514537] dark:text-[#cdc5bd]">
-            ر.س / شهرياً
+            {t("ر.س / شهرياً", "SAR / mo")}
           </span>
+          {billingCycle === "annual" && Boolean(plan.yearlyDiscountPercent && plan.yearlyDiscountPercent > 0) && (
+            <span className="bg-[#ecfdf5] border border-emerald-300 dark:bg-[#132c1c] dark:border-emerald-500/40 text-[#047857] dark:text-[#6ee7b7] text-[10px] font-bold px-[6px] py-[1px] rounded-full ms-auto">
+              {t(`وفر ${plan.yearlyDiscountPercent}%`, `Save ${plan.yearlyDiscountPercent}%`)}
+            </span>
+          )}
         </div>
         <p className="text-[11px] text-[#837565] dark:text-[#8e8680] leading-[16px] mt-[6px]">
-          {plan.annualNote || "شاملة ضريبة القيمة المضافة ومصاريف السيرفر"}
+          {plan.annualNote || t("شاملة ضريبة القيمة المضافة ومصاريف السيرفر", "Includes VAT and cloud hosting")}
         </p>
       </div>
 
       {/* Subscribed Firms Share Block */}
-      <div className="bg-white dark:bg-[#281c15] border border-[#eae8e4] dark:border-[#38271c] rounded-[4px] p-[10px] flex items-center justify-between text-[11px] font-bold text-[#514537] dark:text-[#cdc5bd] mb-[16px]">
+      <button
+        type="button"
+        onClick={() => onViewSubscribers && onViewSubscribers(plan)}
+        title={t("عرض المكاتب المشتركة في هذه الباقة", "View firms subscribed to this plan")}
+        className="w-full bg-white hover:bg-[#faf8f5] dark:bg-[#281c15] dark:hover:bg-[#34241b] border border-[#eae8e4] dark:border-[#38271c] rounded-[4px] p-[10px] flex items-center justify-between text-[11px] font-bold text-[#514537] dark:text-[#cdc5bd] mb-[16px] transition-colors cursor-pointer group"
+      >
         <div className="flex items-center gap-[6px]">
           <Users className="size-[14px] text-[#9c6402] dark:text-[#e29d38]" />
-          <span>{plan.subscribedFirmsCount} مكتباً مشتركاً</span>
+          <span className="group-hover:text-[#9c6402] dark:group-hover:text-[#e29d38] transition-colors">
+            {plan.subscribedFirmsCount} {t("مكتباً مشتركاً", "subscribed firms")}
+          </span>
         </div>
         <span className="text-[#837565] dark:text-[#8e8680] font-semibold text-[10px]">
           {plan.sharePercentage}
         </span>
-      </div>
+      </button>
 
       {/* Limits & Features Checklist */}
       <div className="flex flex-col gap-[10px] text-start text-[12px] text-[#1b1c1a] dark:text-[#fdfbf7] flex-1 mb-[20px]">
         <span className="text-[11px] font-bold text-[#837565] dark:text-[#8e8680] mb-[2px]">
-          الحدود والمميزات المتضمنة:
+          {t("الحدود والمميزات المتضمنة:", "Limits & Included Features:")}
         </span>
 
         {/* 1. Lawyers */}
@@ -213,6 +264,14 @@ export function PlanCard({
           <Briefcase className="size-[14px] text-[#837565] dark:text-[#e29d38] shrink-0" />
           <span className="leading-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">{plan.limits.agents}</span>
         </div>
+
+        {/* 3.1 Assistants */}
+        {plan.limits.assistants && plan.limits.assistants !== "—" && (
+          <div className="flex items-center gap-[8px]">
+            <UserCheck className="size-[14px] text-[#837565] dark:text-[#e29d38] shrink-0" />
+            <span className="leading-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">{plan.limits.assistants}</span>
+          </div>
+        )}
 
         {/* 4. Clients */}
         <div className="flex items-center gap-[8px]">
@@ -283,14 +342,14 @@ export function PlanCard({
 
             <button
               type="button"
-              onClick={() => (onViewDetails ? onViewDetails(plan) : onEdit(plan))}
+              onClick={() => onEdit(plan)}
               className={`flex-1 py-[8px] px-[14px] rounded-[4px] text-[13px] font-bold shadow-2xs transition-colors cursor-pointer text-center ${
                 plan.isPopular
                   ? "bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#855402] dark:hover:bg-[#c88528] text-white dark:text-[#1c140f]"
                   : "bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] border border-transparent dark:border-[#38271c]"
               }`}
             >
-              تعديل الباقة
+              {t("تعديل الباقة", "Edit Plan")}
             </button>
           </>
         )}

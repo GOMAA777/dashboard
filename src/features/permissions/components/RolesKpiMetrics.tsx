@@ -1,6 +1,9 @@
+"use client";
+
 import React from "react";
 import { ShieldCheck, Key, Users, Shield, Lock, CheckCircle2, BadgeCheck } from "lucide-react";
 import { RoleKpiStats } from "../types/roles.types";
+import { useLanguage } from "@/lib/i18n";
 
 interface RolesKpiMetricsProps {
   kpis: RoleKpiStats;
@@ -8,6 +11,8 @@ interface RolesKpiMetricsProps {
 }
 
 export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps) {
+  const { t } = useLanguage();
+
   if (isEmpty) {
     return (
       <div
@@ -24,7 +29,7 @@ export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps)
           </div>
           <div className="text-start flex flex-col items-end">
             <span className="text-[12px] font-semibold text-[#625d5d] dark:text-[#cdc5bd]">
-              إجمالي الأدوار النشطة
+              {t("إجمالي الأدوار النشطة", "Total Active Roles")}
             </span>
             <div className="flex items-baseline gap-2 mt-1">
               <span className="text-[28px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-none">
@@ -32,7 +37,7 @@ export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps)
               </span>
             </div>
             <span className="text-[10px] font-medium text-[#837565] dark:text-[#8e8680] mt-1">
-              لم يتم تخصيص أدوار
+              {t("لم يتم تخصيص أدوار", "No roles allocated")}
             </span>
           </div>
         </div>
@@ -47,7 +52,7 @@ export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps)
           </div>
           <div className="text-start flex flex-col items-end">
             <span className="text-[12px] font-semibold text-[#625d5d] dark:text-[#cdc5bd]">
-              الموظفون المخصصون
+              {t("الموظفون المخصصون", "Assigned Staff")}
             </span>
             <div className="flex items-baseline gap-2 mt-1">
               <span className="text-[28px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-none">
@@ -55,7 +60,7 @@ export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps)
               </span>
             </div>
             <span className="text-[10px] font-medium text-[#837565] dark:text-[#8e8680] mt-1">
-              بانتظار توزيع الصلاحيات
+              {t("بانتظار توزيع الصلاحيات", "Awaiting role assignments")}
             </span>
           </div>
         </div>
@@ -70,7 +75,7 @@ export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps)
           </div>
           <div className="text-start flex flex-col items-end">
             <span className="text-[12px] font-semibold text-[#625d5d] dark:text-[#cdc5bd]">
-              أمان المنظومة
+              {t("أمان المنظومة", "System Security")}
             </span>
             <div className="flex items-baseline gap-2 mt-1">
               <span className="text-[28px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-none">
@@ -78,7 +83,7 @@ export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps)
               </span>
             </div>
             <span className="text-[10px] font-bold text-[#1b7340] dark:text-[#6ee7b7] mt-1 flex items-center gap-1">
-              محمية ببروتوكول رقابي
+              {t("محمية ببروتوكول رقابي", "Secured with audit protocol")}
             </span>
           </div>
         </div>
@@ -101,11 +106,11 @@ export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps)
         </div>
         <div className="text-start flex flex-col items-end">
           <span className="text-[12px] font-semibold text-[#625d5d] dark:text-[#cdc5bd]" data-node-id="1:11606">
-            إجمالي الأدوار النشطة
+            {t("إجمالي الأدوار النشطة", "Total Active Roles")}
           </span>
           <div className="flex items-baseline gap-1.5 mt-1">
             <span className="text-[10px] font-medium text-[#625d5d] dark:text-[#8e8680]" data-node-id="1:11609">
-              أدوار مفعّلة
+              {t("أدوار مفعّلة", "Active Roles")}
             </span>
             <span className="text-[28px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-none" data-node-id="1:11611">
               {kpis.totalActiveRoles}
@@ -114,7 +119,7 @@ export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps)
           <div className="flex items-center gap-1 mt-1 text-[#1b7340] dark:text-[#6ee7b7]" data-node-id="1:11612">
             <CheckCircle2 className="size-[12px]" />
             <span className="text-[10px] font-bold" data-node-id="1:11614">
-              جاهزة للاستناد الوظيفي
+              {t("جاهزة للاستناد الوظيفي", "Role assignment ready")}
             </span>
           </div>
         </div>
@@ -130,11 +135,11 @@ export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps)
         </div>
         <div className="text-start flex flex-col items-end">
           <span className="text-[12px] font-semibold text-[#625d5d] dark:text-[#cdc5bd]" data-node-id="1:11589">
-            إجمالي الصلاحيات المهيأة
+            {t("إجمالي الصلاحيات المهيأة", "Total Permissions")}
           </span>
           <div className="flex items-baseline gap-1.5 mt-1">
             <span className="text-[10px] font-medium text-[#625d5d] dark:text-[#8e8680]" data-node-id="1:11592">
-              صلاحية
+              {t("صلاحية", "Permissions")}
             </span>
             <span className="text-[28px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-none" data-node-id="1:11594">
               {kpis.totalPermissions}
@@ -143,7 +148,7 @@ export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps)
           <div className="flex items-center gap-1 mt-1 text-[#9c6402] dark:text-[#f3c27e]" data-node-id="1:11595">
             <BadgeCheck className="size-[12px]" />
             <span className="text-[10px] font-bold" data-node-id="1:11597">
-              تغطي 14 وحدة وظيفية
+              {t("تغطي 14 وحدة وظيفية", "Covers 14 modules")}
             </span>
           </div>
         </div>
@@ -159,11 +164,11 @@ export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps)
         </div>
         <div className="text-start flex flex-col items-end">
           <span className="text-[12px] font-semibold text-[#625d5d] dark:text-[#cdc5bd]" data-node-id="1:11572">
-            الموظفون المرتبطون
+            {t("الموظفون المرتبطون", "Associated Staff")}
           </span>
           <div className="flex items-baseline gap-1.5 mt-1">
             <span className="text-[10px] font-medium text-[#625d5d] dark:text-[#8e8680]" data-node-id="1:11575">
-              موظفاً نشطاً
+              {t("موظفاً نشطاً", "Active Staff")}
             </span>
             <span className="text-[28px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-none" data-node-id="1:11577">
               {kpis.totalAssignedStaff}
@@ -172,7 +177,7 @@ export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps)
           <div className="flex items-center gap-1 mt-1 text-[#625d5d] dark:text-[#cdc5bd]" data-node-id="1:11578">
             <Users className="size-[11px]" />
             <span className="text-[10px] font-bold" data-node-id="1:11580">
-              100% من الكادر معتمد
+              {t("100% من الكادر معتمد", "100% of staff verified")}
             </span>
           </div>
         </div>
@@ -188,11 +193,11 @@ export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps)
         </div>
         <div className="text-start flex flex-col items-end">
           <span className="text-[12px] font-semibold text-[#625d5d] dark:text-[#cdc5bd]" data-node-id="1:11555">
-            أدوار النظام الأساسية
+            {t("أدوار النظام الأساسية", "System Core Roles")}
           </span>
           <div className="flex items-baseline gap-1.5 mt-1">
             <span className="text-[10px] font-medium text-[#625d5d] dark:text-[#8e8680]" data-node-id="1:11558">
-              دور محمي
+              {t("دور محمي", "Protected Roles")}
             </span>
             <span className="text-[28px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-none" data-node-id="1:11560">
               {kpis.systemProtectedRoles}
@@ -201,7 +206,7 @@ export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps)
           <div className="flex items-center gap-1 mt-1 text-[#b76e00] dark:text-[#f3c27e]" data-node-id="1:11561">
             <Lock className="size-[11px]" />
             <span className="text-[10px] font-bold" data-node-id="1:11563">
-              غير قابل للحذف أو السحب
+              {t("غير قابل للحذف أو السحب", "Non-deletable")}
             </span>
           </div>
         </div>

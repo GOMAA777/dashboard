@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Building2, ShieldCheck, Clock, Ban, Scale } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 interface SubscriptionKpiCardsProps {
   totalCount?: number;
@@ -16,6 +17,8 @@ export function SubscriptionKpiCards({
   expiringCount = 12,
   cancelledCount = 18,
 }: SubscriptionKpiCardsProps) {
+  const { t } = useLanguage();
+
   return (
     <div
       className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full"
@@ -33,7 +36,7 @@ export function SubscriptionKpiCards({
           </div>
           <div className="flex flex-col items-end text-end">
             <span className="font-['Cairo'] font-semibold text-[12px] text-[#514537] dark:text-[#cdc5bd] leading-[16px]">
-              إجمالي الاشتراكات
+              {t("إجمالي الاشتراكات", "Total Subscriptions")}
             </span>
             <div className="pt-1">
               <span className="font-['Cairo'] font-bold text-[28px] text-[#1b1c1a] dark:text-[#fdfbf7] leading-[38px]">
@@ -46,7 +49,7 @@ export function SubscriptionKpiCards({
         <div className="pt-3 flex items-center justify-end gap-1.5 border-t border-[#f0eeea]/60 dark:border-[#38271c] mt-3">
           <Scale className="w-3 h-3 text-[#9c6402] dark:text-[#e29d38]" />
           <span className="font-['Cairo'] font-bold text-[10px] text-[#514537] dark:text-[#cdc5bd]">
-            موزعة عبر 4 باقات قانونية معتمدة
+            {t("موزعة عبر 4 باقات قانونية معتمدة", "Distributed across 4 approved legal plans")}
           </span>
         </div>
       </div>
@@ -62,7 +65,7 @@ export function SubscriptionKpiCards({
           </div>
           <div className="flex flex-col items-end text-end">
             <span className="font-['Cairo'] font-semibold text-[12px] text-[#514537] dark:text-[#cdc5bd] leading-[16px]">
-              الاشتراكات النشطة
+              {t("الاشتراكات النشطة", "Active Subscriptions")}
             </span>
             <div className="flex items-center gap-2 pt-1">
               <span className="bg-[#ecfdf5] border border-emerald-200 dark:bg-[#132c21] dark:border-emerald-500/40 font-['Cairo'] font-bold text-[10px] text-[#065f46] dark:text-[#6ee7b7] px-2.5 py-0.5 rounded-full leading-[14px]">
@@ -77,7 +80,7 @@ export function SubscriptionKpiCards({
 
         <div className="pt-3 flex items-center justify-end gap-1.5 border-t border-[#f0eeea]/60 dark:border-[#38271c] mt-3">
           <span className="font-['Cairo'] font-bold text-[10px] text-[#514537] dark:text-[#cdc5bd]">
-            صلاحية وصول سارية المفعول
+            {t("صلاحية وصول سارية المفعول", "Active operational access")}
           </span>
           <div className="bg-[#10b981] shadow-[0_0_8px_#10b981] ring-1 ring-emerald-400/60 rounded-full size-[7px] shrink-0" />
         </div>
@@ -94,11 +97,11 @@ export function SubscriptionKpiCards({
           </div>
           <div className="flex flex-col items-end text-end">
             <span className="font-['Cairo'] font-semibold text-[12px] text-[#514537] dark:text-[#cdc5bd] leading-[16px]">
-              تنتهي خلال 7 أيام
+              {t("تنتهي خلال 7 أيام", "Expiring in 7 Days")}
             </span>
             <div className="flex items-center gap-2 pt-1">
               <span className="bg-[#fffbeb] border border-amber-200 dark:bg-[#342711] dark:border-amber-500/40 font-['Cairo'] font-bold text-[10px] text-[#78350f] dark:text-[#fbbf24] px-2.5 py-0.5 rounded-full leading-[14px]">
-                حرجة
+                {t("حرجة", "Critical")}
               </span>
               <span className="font-['Cairo'] font-bold text-[28px] text-[#b45309] dark:text-[#fbbf24] leading-[38px]">
                 {expiringCount}
@@ -110,7 +113,7 @@ export function SubscriptionKpiCards({
         <div className="pt-3 flex items-center justify-end gap-1.5 border-t border-[#f0eeea]/60 dark:border-[#38271c] mt-3">
           <Clock className="w-3 h-3 text-[#b45309] dark:text-[#e29d38]" />
           <span className="font-['Cairo'] font-bold text-[10px] text-[#92400e] dark:text-[#fbbf24]">
-            تتطلب متابعة وإشعار تجديد فوري
+            {t("تتطلب متابعة وإشعار تجديد فوري", "Requires urgent renewal follow-up")}
           </span>
         </div>
       </div>
@@ -126,7 +129,7 @@ export function SubscriptionKpiCards({
           </div>
           <div className="flex flex-col items-end text-end">
             <span className="font-['Cairo'] font-semibold text-[12px] text-[#514537] dark:text-[#cdc5bd] leading-[16px]">
-              الاشتراكات المنتهية والملغاة
+              {t("الاشتراكات المنتهية والملغاة", "Expired & Cancelled Subscriptions")}
             </span>
             <div className="flex items-center gap-2 pt-1">
               <span className="bg-[#f0eeea] border border-[#e2ded8] dark:bg-[#2c2621] dark:border-[#4d3627] font-['Cairo'] font-bold text-[10px] text-[#514537] dark:text-[#cdc5bd] px-2.5 py-0.5 rounded-full leading-[14px]">
@@ -141,7 +144,7 @@ export function SubscriptionKpiCards({
 
         <div className="pt-3 flex items-center justify-end gap-1.5 border-t border-[#f0eeea]/60 dark:border-[#38271c] mt-3">
           <span className="font-['Cairo'] font-bold text-[10px] text-[#514537] dark:text-[#cdc5bd]">
-            حسابات متوقفة أو قيد التحصيل
+            {t("حسابات متوقفة أو قيد التحصيل", "Suspended or in recovery")}
           </span>
           <div className="bg-[#dc2626] rounded-full size-[8px] shrink-0" />
         </div>

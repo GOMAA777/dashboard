@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useQueryState } from "nuqs";
 import { toast } from "sonner";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
 import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
+import { DashboardPageSkeleton } from "@/components/shared/DashboardPageSkeleton";
 import { NotificationItem } from "../types/notifications.types";
 import { initialNotificationsList } from "../data/initialNotifications";
 import { NotificationsListView } from "./NotificationsListView";
@@ -20,8 +21,19 @@ import {
   sendNotificationAction,
   deleteNotificationAction,
 } from "../actions/notifications.actions";
+import { useLanguage } from "@/lib/i18n";
+import {
+  fetchAnnouncements,
+  fetchAnnouncementById,
+  createAnnouncement,
+  deleteAnnouncement,
+} from "@/lib/api/announcements";
+import { mapNotificationsResponse, mapNotificationFromApi } from "@/lib/api/mappers";
+import { unwrapData } from "@/lib/api/helpers";
 
 export function NotificationsManagementView() {
+  const { direction, isEn } = useLanguage();
+
   // Navigation & View URL State with nuqs
   const [view, setView] = useQueryState("view", { defaultValue: "list" });
 
@@ -29,6 +41,27 @@ export function NotificationsManagementView() {
   const [notifications, setNotifications] = useState<NotificationItem[]>(
     initialNotificationsList
   );
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoading(true);
+    fetchAnnouncements()
+      .then((payload) => {
+        if (cancelled) return;
+        const mapped = mapNotificationsResponse(payload);
+        if (mapped.length > 0) setNotifications(mapped);
+      })
+      .catch(() => {
+        // Keep mock notifications if API unavailable.
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Modals & Active Items State
   const [deleteTarget, setDeleteTarget] = useState<NotificationItem | null>(null);
@@ -66,7 +99,7 @@ export function NotificationsManagementView() {
     setEditingDraft(null);
   };
 
-  // Step 1 of Sending: User clicks "ارسال الاشعار" on form -> open confirmation modal (1:13564)
+  // Step 1 of Sending: User clicks "ارسال الاشعار" on form -> open confirmation modal
   const handleStageSend = (values: SendNotificationFormValues) => {
     setPendingFormData(values);
     setIsConfirmOpen(true);
@@ -74,18 +107,27 @@ export function NotificationsManagementView() {
 
   // Save as Draft
   const handleSaveDraft = (values: SendNotificationFormValues) => {
+    const timeStr = new Date().toLocaleTimeString(isEn ? "en-US" : "ar-SA", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
     const newDraft: NotificationItem = {
       id: `notif-draft-${Date.now()}`,
       code: `NTF-${Math.floor(1000 + Math.random() * 9000)}`,
       title: values.title,
       description: values.description,
       status: "draft",
-      statusLabel: "مسودة غير مرسلة",
-      sentAt: "اليوم • " + new Date().toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" }),
+      statusLabel: isEn ? "Unsent Draft" : "مسودة غير مرسلة",
+      sentAt: (isEn ? "Today • " : "اليوم • ") + timeStr,
       audienceType: values.audienceType,
       targetAudienceLabel:
         values.audienceType === "all"
-          ? "جميع مكاتب المحاماة المشتركة (842 مكتب)"
+          ? isEn
+            ? "All Subscribed Law Firms (842 Firms)"
+            : "جميع مكاتب المحاماة المشتركة (842 مكتب)"
+          : isEn
+          ? "Specific Law Firm"
           : "مكتب محدد بعينه",
       targetCount: values.audienceType === "all" ? 842 : 1,
       actionUrl: values.actionUrl,
@@ -93,74 +135,125 @@ export function NotificationsManagementView() {
       imageFileName: values.imageFileName,
       imageFileSize: values.imageFileSize,
       imageDimensions: values.imageDimensions,
-      categoryBadge: values.categoryBadge || "مسودة إشعار",
-      actionButtonText: values.actionButtonText || "متابعة الإجراء",
+      categoryBadge:
+        values.categoryBadge || (isEn ? "Draft Notification" : "مسودة إشعار"),
+      actionButtonText:
+        values.actionButtonText || (isEn ? "Follow Up Action" : "متابعة الإجراء"),
     };
 
     setNotifications((prev) => [newDraft, ...prev]);
-    toast.success("تم حفظ الإشعار كمسودة بنجاح");
+    toast.success(
+      isEn
+        ? "Notification saved as draft successfully"
+        : "تم حفظ الإشعار كمسودة بنجاح"
+    );
     setView("list");
   };
 
-  // Step 2 of Sending: User clicks "ارسال الاشعار" in confirmation modal
+  // Step 2 of Sending: User clicks confirm in confirmation modal
   const handleExecuteSend = async () => {
     if (!pendingFormData) return;
 
     setIsSending(true);
 
     try {
-      const result = await sendNotificationAction(pendingFormData);
+      let apiOk = false;
+      try {
+        await createAnnouncement({
+          title: pendingFormData.title,
+          description: pendingFormData.description,
+          body: pendingFormData.description,
+          audience_type: pendingFormData.audienceType,
+          action_url: pendingFormData.actionUrl,
+          status: "sent",
+        });
+        apiOk = true;
+      } catch {
+        const result = await sendNotificationAction(pendingFormData);
+        apiOk = Boolean(result?.data?.success);
+      }
 
-      if (result?.data?.success) {
-        const resData = result.data;
+      if (apiOk) {
+        const timeStr = new Date().toLocaleTimeString(isEn ? "en-US" : "ar-SA", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        const notificationId = `NTF-${Math.floor(1000 + Math.random() * 9000)}`;
+        const verificationCode = `${notificationId}-OK`;
+        const dispatchedCount = pendingFormData.audienceType === "all" ? 842 : 1;
+
         const newNotification: NotificationItem = {
           id: `notif-${Date.now()}`,
-          code: resData.notificationId,
+          code: notificationId,
           title: pendingFormData.title,
           description: pendingFormData.description,
           status: "sent",
-          statusLabel: "تم الإرسال",
-          sentAt: "الآن • " + new Date().toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" }),
+          statusLabel: isEn ? "Sent" : "تم الإرسال",
+          sentAt: (isEn ? "Now • " : "الآن • ") + timeStr,
           audienceType: pendingFormData.audienceType,
           targetAudienceLabel:
             pendingFormData.audienceType === "all"
-              ? "جميع مكاتب المحاماة المشتركة"
+              ? isEn
+                ? "All Subscribed Law Firms"
+                : "جميع مكاتب المحاماة المشتركة"
+              : isEn
+              ? "Specific Law Firm"
               : "مكتب محدد بعينه",
-          targetCount: resData.dispatchedCount,
+          targetCount: dispatchedCount,
           actionUrl: pendingFormData.actionUrl,
           imageUrl: pendingFormData.imageUrl,
           imageFileName: pendingFormData.imageFileName,
           imageFileSize: pendingFormData.imageFileSize,
           imageDimensions: pendingFormData.imageDimensions,
           priority: "high",
-          categoryBadge: pendingFormData.categoryBadge || "الأمان والامتثال العدلي",
-          actionButtonText: pendingFormData.actionButtonText || "تحديث إعدادات الأمان الآن",
+          categoryBadge:
+            pendingFormData.categoryBadge ||
+            (isEn ? "Security & Regulatory Compliance" : "الأمان والامتثال العدلي"),
+          actionButtonText:
+            pendingFormData.actionButtonText ||
+            (isEn ? "Update Security Settings Now" : "تحديث إعدادات الأمان الآن"),
         };
 
-        // Add to active notifications
         setNotifications((prev) => [newNotification, ...prev]);
 
         setLastDispatchedInfo({
           title: pendingFormData.title,
           actionUrl: pendingFormData.actionUrl,
-          verificationCode: resData.verificationCode,
-          targetCount: resData.dispatchedCount,
-          formattedTimestamp: resData.formattedTimestamp,
+          verificationCode,
+          targetCount: dispatchedCount,
+          formattedTimestamp: new Intl.DateTimeFormat(isEn ? "en-US" : "ar-SA", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          }).format(new Date()),
         });
 
         setIsConfirmOpen(false);
         setIsSuccessOpen(true);
-        toast.success("تم إرسال الإشعار وتوثيق العملية بسجل التدقيق الأمني بنجاح");
+        toast.success(
+          isEn
+            ? "Notification dispatched and logged to audit trail successfully"
+            : "تم إرسال الإشعار وتوثيق العملية بسجل التدقيق الأمني بنجاح"
+        );
       } else {
-        // Show failure modal (1:13732)
         setIsConfirmOpen(false);
         setIsFailureOpen(true);
-        toast.error("تعذر إرسال الإشعار. تم تسجيل الخطأ.");
+        toast.error(
+          isEn
+            ? "Failed to send notification. Error logged."
+            : "تعذر إرسال الإشعار. تم تسجيل الخطأ."
+        );
       }
     } catch {
       setIsConfirmOpen(false);
       setIsFailureOpen(true);
-      toast.error("تعذر إرسال الإشعار، يرجى إعادة المحاولة.");
+      toast.error(
+        isEn
+          ? "Failed to send notification, please retry."
+          : "تعذر إرسال الإشعار، يرجى إعادة المحاولة."
+      );
     } finally {
       setIsSending(false);
     }
@@ -173,21 +266,30 @@ export function NotificationsManagementView() {
     await handleExecuteSend();
   };
 
-  // Execute Final Deletion (Figma 1:13810)
+  // Execute Final Deletion
   const handleExecuteDelete = async (notificationId: string) => {
     setIsDeleting(true);
 
     try {
-      const res = await deleteNotificationAction({ notificationId });
-      if (res?.data?.success) {
-        setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
-        setDeleteTarget(null);
-        toast.success("تم حذف الإشعار نهائياً من شاشة الإشعارات.");
-      } else {
-        toast.error("حدث خطأ أثناء محاولة الحذف.");
+      try {
+        await deleteAnnouncement(notificationId);
+      } catch {
+        const res = await deleteNotificationAction({ notificationId });
+        if (!res?.data?.success) throw new Error("delete failed");
       }
+      setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+      setDeleteTarget(null);
+      toast.success(
+        isEn
+          ? "Notification permanently deleted from dashboard."
+          : "تم حذف الإشعار نهائياً من شاشة الإشعارات."
+      );
     } catch {
-      toast.error("تعذر إتمام عملية الحذف.");
+      toast.error(
+        isEn
+          ? "Could not complete deletion."
+          : "تعذر إتمام عملية الحذف."
+      );
     } finally {
       setIsDeleting(false);
     }
@@ -196,13 +298,17 @@ export function NotificationsManagementView() {
   const breadcrumbs =
     view === "new"
       ? [
-          { label: "مركز الإشعارات", href: "/notifications" },
-          { label: "إرسال إشعار جديد" },
+          {
+            label: isEn ? "Notification Center" : "مركز الإشعارات",
+            href: "/notifications",
+          },
+          { label: isEn ? "Send New Notification" : "إرسال إشعار جديد" },
         ]
       : undefined;
 
   return (
     <div
+      dir={direction}
       className="flex h-screen h-dvh overflow-hidden bg-background text-foreground transition-colors duration-200 font-sans antialiased"
     >
       {/* Dashboard Sidebar with Notifications highlighted */}
@@ -214,26 +320,42 @@ export function NotificationsManagementView() {
 
         <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 w-full space-y-6 scrollbar-thin">
           <DashboardPageTransition>
-          {view === "list" ? (
-            <NotificationsListView
-              notifications={notifications}
-              onOpenCreate={handleOpenCreate}
-              onViewDetails={(item) => setViewingDetails(item)}
-              onInitiateDelete={(item) => setDeleteTarget(item)}
-            />
-          ) : (
-            <SendNotificationView
-              onBack={handleBackToList}
-              onSubmitSend={handleStageSend}
-              onSaveDraft={handleSaveDraft}
-              initialData={editingDraft}
-            />
-          )}
+            {view === "list" ? (
+              isLoading && notifications.length === 0 ? (
+                <DashboardPageSkeleton />
+              ) : (
+                <NotificationsListView
+                  notifications={notifications}
+                  onOpenCreate={handleOpenCreate}
+                  onViewDetails={async (item) => {
+                    setViewingDetails(item);
+                    try {
+                      const payload = await fetchAnnouncementById(item.id);
+                      const raw = (unwrapData<Record<string, unknown>>(payload) ||
+                        payload) as Record<string, unknown>;
+                      if (raw?.id || raw?.title) {
+                        setViewingDetails(mapNotificationFromApi(raw));
+                      }
+                    } catch {
+                      // Keep list item.
+                    }
+                  }}
+                  onInitiateDelete={(item) => setDeleteTarget(item)}
+                />
+              )
+            ) : (
+              <SendNotificationView
+                onBack={handleBackToList}
+                onSubmitSend={handleStageSend}
+                onSaveDraft={handleSaveDraft}
+                initialData={editingDraft}
+              />
+            )}
           </DashboardPageTransition>
         </main>
       </div>
 
-      {/* MODAL 1: Confirm Send (Figma 1:13564) */}
+      {/* MODAL 1: Confirm Send */}
       {pendingFormData && (
         <ConfirmSendModal
           isOpen={isConfirmOpen}
@@ -244,7 +366,7 @@ export function NotificationsManagementView() {
         />
       )}
 
-      {/* MODAL 2: Send Success (Figma 1:13647) */}
+      {/* MODAL 2: Send Success */}
       <SendSuccessModal
         isOpen={isSuccessOpen}
         onClose={() => setIsSuccessOpen(false)}
@@ -260,7 +382,7 @@ export function NotificationsManagementView() {
         notificationData={lastDispatchedInfo}
       />
 
-      {/* MODAL 3: Send Failure (Figma 1:13732) */}
+      {/* MODAL 3: Send Failure */}
       {pendingFormData && (
         <SendFailureModal
           isOpen={isFailureOpen}
@@ -275,7 +397,7 @@ export function NotificationsManagementView() {
         />
       )}
 
-      {/* MODAL 4: Delete Notification Confirmation (Figma 1:13810) */}
+      {/* MODAL 4: Delete Notification Confirmation */}
       <DeleteNotificationModal
         notification={deleteTarget}
         isOpen={Boolean(deleteTarget)}

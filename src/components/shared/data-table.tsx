@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Loader2 } from "lucide-react";
 import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
+import { useLanguage } from "@/lib/i18n";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -42,8 +43,10 @@ export function DataTable<TData, TValue>({
   sorting,
   onSortingChange,
   isLoading = false,
-  emptyMessage = "No results found.",
+  emptyMessage,
 }: DataTableProps<TData, TValue>) {
+  const { t } = useLanguage();
+  const finalEmptyMessage = emptyMessage || t("لا توجد بيانات متاحة.", "No results found.");
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
@@ -97,7 +100,7 @@ export function DataTable<TData, TValue>({
                 >
                   <div className="flex items-center justify-center gap-2 text-muted-foreground">
                     <Loader2 className="h-5 w-5 animate-spin" />
-                    <span>Loading data...</span>
+                    <span>{t("جاري تحميل البيانات...", "Loading data...")}</span>
                   </div>
                 </TableCell>
               </TableRow>
@@ -123,7 +126,7 @@ export function DataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center text-muted-foreground"
                 >
-                  {emptyMessage}
+                  {finalEmptyMessage}
                 </TableCell>
               </TableRow>
             )}
@@ -135,10 +138,13 @@ export function DataTable<TData, TValue>({
         <div className="flex items-center justify-between px-2">
           <div className="flex items-center gap-3">
             <div className="text-sm text-muted-foreground">
-              صفحة {pagination.pageIndex + 1} من {Math.max(1, pageCount)}
+              {t(
+                `صفحة ${pagination.pageIndex + 1} من ${Math.max(1, pageCount)}`,
+                `Page ${pagination.pageIndex + 1} of ${Math.max(1, pageCount)}`
+              )}
             </div>
             <div className="flex items-center gap-2 border-s border-border ps-3">
-              <span className="text-[11px] text-muted-foreground">صفوف بالصفحة:</span>
+              <span className="text-[11px] text-muted-foreground">{t("صفوف بالصفحة:", "Rows per page:")}</span>
               <PageSizeDropdown
                 value={pagination.pageSize}
                 onChange={(newSize) => {
@@ -158,7 +164,7 @@ export function DataTable<TData, TValue>({
               size="icon-sm"
               onClick={() => onPaginationChange?.({ ...pagination, pageIndex: 0 })}
               disabled={pagination.pageIndex === 0 || isLoading}
-              title="الصفحة الأولى"
+              title={t("الصفحة الأولى", "First page")}
             >
               <ChevronsLeft className="h-4 w-4 rtl:rotate-180" />
             </Button>
@@ -172,7 +178,7 @@ export function DataTable<TData, TValue>({
                 })
               }
               disabled={pagination.pageIndex === 0 || isLoading}
-              title="الصفحة السابقة"
+              title={t("الصفحة السابقة", "Previous page")}
             >
               <ChevronLeft className="h-4 w-4 rtl:rotate-180" />
             </Button>
@@ -190,7 +196,7 @@ export function DataTable<TData, TValue>({
                   ? pagination.pageIndex >= pageCount - 1
                   : !table.getCanNextPage() || isLoading
               }
-              title="الصفحة التالية"
+              title={t("الصفحة التالية", "Next page")}
             >
               <ChevronRight className="h-4 w-4 rtl:rotate-180" />
             </Button>
@@ -204,7 +210,7 @@ export function DataTable<TData, TValue>({
                 })
               }
               disabled={pageCount <= 0 || pagination.pageIndex >= pageCount - 1 || isLoading}
-              title="الصفحة الأخيرة"
+              title={t("الصفحة الأخيرة", "Last page")}
             >
               <ChevronsRight className="h-4 w-4 rtl:rotate-180" />
             </Button>

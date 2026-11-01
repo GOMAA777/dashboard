@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
 
 export interface PageSizeDropdownProps {
   value: number;
@@ -21,6 +22,7 @@ export function PageSizeDropdown({
 }: PageSizeDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -47,8 +49,8 @@ export function PageSizeDropdown({
   }, [isOpen]);
 
   const formatOptionLabel = (opt: number) => {
-    if (opt >= 9999) return "عرض الكل";
-    return `${opt} صفوف`;
+    if (opt >= 9999) return t("عرض الكل", "Show All");
+    return `${opt} ${t("صفوف", "rows")}`;
   };
 
   return (

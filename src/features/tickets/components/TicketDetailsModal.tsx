@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Ticket } from "../types/tickets.types";
+import { useLanguage } from "@/lib/i18n";
 
 interface TicketDetailsModalProps {
   ticket: Ticket;
@@ -38,6 +39,7 @@ export function TicketDetailsModal({
   onCloseTicketSuccess,
   onSendMessage,
 }: TicketDetailsModalProps) {
+  const { direction, isEn } = useLanguage();
   const [replyText, setReplyText] = useState("");
 
   const handleSendReply = (e: React.FormEvent) => {
@@ -45,19 +47,49 @@ export function TicketDetailsModal({
     if (!replyText.trim()) return;
     onSendMessage(ticket.id, replyText.trim());
     setReplyText("");
-    toast.success("تم إرسال الرد وإشعار العميل بنجاح");
+    toast.success(
+      isEn
+        ? "Reply sent and client notified successfully"
+        : "تم إرسال الرد وإشعار العميل بنجاح"
+    );
+  };
+
+  const getPriorityLabel = (priority: string) => {
+    switch (priority) {
+      case "urgent":
+        return isEn ? "Urgent" : "عاجلة";
+      case "medium":
+        return isEn ? "Medium" : "متوسطة";
+      case "low":
+        return isEn ? "Low" : "منخفضة";
+      default:
+        return priority;
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "open":
+        return isEn ? "Open" : "مفتوحة";
+      case "in_progress":
+        return isEn ? "In Progress" : "جاري العمل عليها";
+      case "pending":
+        return isEn ? "Pending" : "معلقة";
+      case "closed":
+        return isEn ? "Closed" : "مغلقة";
+      default:
+        return status;
+    }
   };
 
   return (
     <div
+      dir={direction}
       className="flex flex-col gap-[20px] w-full pb-[40px]"
-      data-node-id="1:15536"
-      data-name="تفاصيل التذكرة"
     >
       {/* Primary Header & Key Actions Section */}
       <div
         className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-[16px]"
-        data-node-id="1:15540"
       >
         {/* Ticket Title & Metadata */}
         <div className="flex flex-col gap-[6px] text-start">
@@ -66,23 +98,11 @@ export function TicketDetailsModal({
               {ticket.ticketNumber}
             </span>
             <div className="bg-[#ffdad6] text-[#93000a] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px] flex items-center gap-[4px]">
-              <span>
-                {ticket.priority === "urgent"
-                  ? "عاجلة"
-                  : ticket.priority === "medium"
-                  ? "متوسطة"
-                  : "منخفضة"}
-              </span>
+              <span>{getPriorityLabel(ticket.priority)}</span>
               <div className="size-[5px] rounded-full bg-[#ba1a1a]" />
             </div>
             <div className="bg-[rgba(255,221,182,0.4)] text-[#9c6402] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px]">
-              {ticket.status === "open"
-                ? "مفتوحة"
-                : ticket.status === "in_progress"
-                ? "جاري العمل عليها"
-                : ticket.status === "pending"
-                ? "معلقة"
-                : "مغلقة"}
+              {getStatusLabel(ticket.status)}
             </div>
           </div>
 
@@ -93,15 +113,23 @@ export function TicketDetailsModal({
           <div className="flex items-center gap-[12px] text-[#837565] text-[12px] flex-wrap pt-[2px]">
             <div className="flex items-center gap-[4px]">
               <Clock className="size-[13px]" />
-              <span>تاريخ الإنشاء: {ticket.createdAt}</span>
+              <span>
+                {isEn ? `Created: ${ticket.createdAt}` : `تاريخ الإنشاء: ${ticket.createdAt}`}
+              </span>
             </div>
             <span>•</span>
-            <div>آخر نشاط: {ticket.updatedAt} (بواسطة {ticket.assignee.name})</div>
+            <div>
+              {isEn
+                ? `Last activity: ${ticket.updatedAt} (by ${ticket.assignee.name})`
+                : `آخر نشاط: ${ticket.updatedAt} (بواسطة ${ticket.assignee.name})`}
+            </div>
             {ticket.judicialReference && (
               <>
                 <span>•</span>
                 <span className="font-mono text-[#514537]">
-                  المعرف العدلي: {ticket.judicialReference}
+                  {isEn
+                    ? `Judicial Ref: ${ticket.judicialReference}`
+                    : `المعرف العدلي: ${ticket.judicialReference}`}
                 </span>
               </>
             )}
@@ -115,8 +143,8 @@ export function TicketDetailsModal({
             onClick={onBack}
             className="bg-white border border-[#eae8e4] hover:bg-[#f5f3ef] text-[#1b1c1a] flex items-center gap-[6px] px-[14px] py-[8px] rounded-[4px] font-semibold text-[13px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-colors cursor-pointer"
           >
-            <ArrowRight className="size-[13px]" />
-            <span>العودة للتذاكر</span>
+            <ArrowRight className={`size-[13px] ${isEn ? "rotate-180" : ""}`} />
+            <span>{isEn ? "Back to Tickets" : "العودة للتذاكر"}</span>
           </button>
 
           <button
@@ -125,7 +153,7 @@ export function TicketDetailsModal({
             className="bg-[#f0eeea] hover:bg-[#eae8e4] text-[#1b1c1a] flex items-center gap-[6px] px-[16px] py-[8px] rounded-[4px] font-semibold text-[13px] transition-colors cursor-pointer"
           >
             <RefreshCw className="size-[14px] text-[#514537]" />
-            <span>تغيير الحالة</span>
+            <span>{isEn ? "Change Status" : "تغيير الحالة"}</span>
           </button>
 
           <button
@@ -134,7 +162,7 @@ export function TicketDetailsModal({
             className="bg-[#f0eeea] hover:bg-[#eae8e4] text-[#1b1c1a] flex items-center gap-[6px] px-[16px] py-[8px] rounded-[4px] font-semibold text-[13px] transition-colors cursor-pointer"
           >
             <UserCheck className="size-[14px] text-[#514537]" />
-            <span>إسناد لموظف</span>
+            <span>{isEn ? "Reassign Staff" : "إسناد لموظف"}</span>
           </button>
 
           {ticket.status !== "closed" && (
@@ -144,7 +172,7 @@ export function TicketDetailsModal({
               className="bg-[#9c6402] hover:bg-[#855402] text-white flex items-center gap-[6px] px-[20px] py-[8px] rounded-[4px] font-semibold text-[13px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-all cursor-pointer"
             >
               <CheckCircle2 className="size-[15px]" />
-              <span>إغلاق التذكرة بنجاح</span>
+              <span>{isEn ? "Close Ticket Successfully" : "إغلاق التذكرة بنجاح"}</span>
             </button>
           )}
         </div>
@@ -152,20 +180,21 @@ export function TicketDetailsModal({
 
       {/* Main Workstation Layout (Split 2-Columns) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-[20px] w-full">
-        {/* Right Column: Main Content (8 cols on desktop) */}
+        {/* Main Content Column (8 cols on desktop) */}
         <div className="lg:col-span-8 flex flex-col gap-[20px]">
           {/* Card 1: Problem Detailed Overview */}
           <div
             className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 flex flex-col gap-[16px]"
-            data-node-id="1:15581"
           >
             <div className="border-b border-[#eae8e4] pb-[14px] flex items-center justify-between">
               <span className="bg-[#f0eeea] text-[#514537] text-[10px] font-bold px-[10px] py-[4px] rounded-[4px]">
-                تصنيف العطل: {ticket.category || "تكامل API"}
+                {isEn
+                  ? `Category: ${ticket.category || "API Integration"}`
+                  : `تصنيف العطل: ${ticket.category || "تكامل API"}`}
               </span>
               <div className="flex items-center gap-[8px]">
                 <h2 className="text-[#1b1c1a] font-bold text-[18px] leading-[26px]">
-                  بيانات ووصف المشكلة التقنية
+                  {isEn ? "Technical Issue Details & Overview" : "بيانات ووصف المشكلة التقنية"}
                 </h2>
                 <div className="bg-[rgba(123,78,0,0.1)] size-[36px] rounded-[4px] flex items-center justify-center shrink-0">
                   <AlertTriangle className="size-[18px] text-[#9c6402]" />
@@ -181,11 +210,12 @@ export function TicketDetailsModal({
           {/* Card 2: Attached Technical Files */}
           <div
             className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 flex flex-col gap-[16px]"
-            data-node-id="1:15598"
           >
             <div className="border-b border-[#eae8e4] pb-[12px]">
               <h3 className="text-[#1b1c1a] font-bold text-[16px] leading-[24px] text-start">
-                المرفقات والملفات الفنية المرفوعة ({ticket.attachments.length})
+                {isEn
+                  ? `Attached Files & Technical Artifacts (${ticket.attachments.length})`
+                  : `المرفقات والملفات الفنية المرفوعة (${ticket.attachments.length})`}
               </h3>
             </div>
 
@@ -216,17 +246,23 @@ export function TicketDetailsModal({
                     <div className="flex items-center gap-[4px]">
                       <button
                         type="button"
-                        onClick={() => toast.info(`فتح الملف: ${file.name}`)}
+                        onClick={() =>
+                          toast.info(isEn ? `Opening: ${file.name}` : `فتح الملف: ${file.name}`)
+                        }
                         className="size-[24px] rounded-[2px] hover:bg-[#eae8e4] flex items-center justify-center text-[#514537] cursor-pointer"
-                        title="معاينة"
+                        title={isEn ? "Preview" : "معاينة"}
                       >
                         <Eye className="size-[13px]" />
                       </button>
                       <button
                         type="button"
-                        onClick={() => toast.success(`جاري تنزيل: ${file.name}`)}
+                        onClick={() =>
+                          toast.success(
+                            isEn ? `Downloading: ${file.name}` : `جاري تنزيل: ${file.name}`
+                          )
+                        }
                         className="size-[24px] rounded-[2px] hover:bg-[#eae8e4] flex items-center justify-center text-[#514537] cursor-pointer"
-                        title="تحميل"
+                        title={isEn ? "Download" : "تحميل"}
                       >
                         <Download className="size-[13px]" />
                       </button>
@@ -246,10 +282,12 @@ export function TicketDetailsModal({
           <div className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 flex flex-col gap-[20px]">
             <div className="border-b border-[#eae8e4] pb-[12px] flex items-center justify-between">
               <span className="text-[#837565] text-[11px]">
-                {ticket.messages.length} رسائل متبادلة
+                {isEn
+                  ? `${ticket.messages.length} messages exchanged`
+                  : `${ticket.messages.length} رسائل متبادلة`}
               </span>
               <h3 className="text-[#1b1c1a] font-bold text-[16px] leading-[24px]">
-                سجل المراسلات والاستجابة
+                {isEn ? "Conversation & Response Log" : "سجل المراسلات والاستجابة"}
               </h3>
             </div>
 
@@ -301,7 +339,11 @@ export function TicketDetailsModal({
                   rows={3}
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
-                  placeholder="اكتب ردك هنا لإرساله فورياً إلى العميل عبر قنوات التنبيه المعتمدة..."
+                  placeholder={
+                    isEn
+                      ? "Type your reply here to immediately notify the client via authorized channels..."
+                      : "اكتب ردك هنا لإرساله فورياً إلى العميل عبر قنوات التنبيه المعتمدة..."
+                  }
                   className="w-full bg-[#faf9f6] border border-[#eae8e4] rounded-[6px] p-[12px] text-[13px] text-[#1b1c1a] placeholder:text-[#837565] focus:outline-none focus:border-[#9c6402] text-start"
                 />
               </div>
@@ -310,11 +352,13 @@ export function TicketDetailsModal({
                 <div className="flex items-center gap-[8px]">
                   <button
                     type="button"
-                    onClick={() => toast.info("ميزة إرفاق ملف بالرد")}
+                    onClick={() =>
+                      toast.info(isEn ? "Attach file feature" : "ميزة إرفاق ملف بالرد")
+                    }
                     className="flex items-center gap-[4px] text-[#837565] hover:text-[#1b1c1a] text-[12px] px-[8px] py-[4px] rounded hover:bg-[#f0eeea] cursor-pointer"
                   >
                     <Paperclip className="size-[13px]" />
-                    <span>إرفاق ملف</span>
+                    <span>{isEn ? "Attach file" : "إرفاق ملف"}</span>
                   </button>
                 </div>
 
@@ -323,7 +367,7 @@ export function TicketDetailsModal({
                   className="bg-[#9c6402] hover:bg-[#855402] text-white flex items-center gap-[6px] px-[20px] py-[8px] rounded-[4px] font-semibold text-[13px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-all cursor-pointer"
                 >
                   <Send className="size-[13px]" />
-                  <span>إرسال الرد</span>
+                  <span>{isEn ? "Send Reply" : "إرسال الرد"}</span>
                 </button>
               </div>
             </form>
@@ -334,7 +378,7 @@ export function TicketDetailsModal({
             <div className="border-b border-[#eae8e4] pb-[12px] flex items-center justify-between">
               <History className="size-[16px] text-[#837565]" />
               <h3 className="text-[#1b1c1a] font-bold text-[16px] leading-[24px]">
-                سجل النشاط والتدقيق الإداري
+                {isEn ? "Activity Log & Audit Trail" : "سجل النشاط والتدقيق الإداري"}
               </h3>
             </div>
 
@@ -353,7 +397,7 @@ export function TicketDetailsModal({
                         {evt.action}
                       </span>
                       <span className="text-[#837565] text-[10px]">
-                        بواسطة: {evt.performer}
+                        {isEn ? `By: ${evt.performer}` : `بواسطة: ${evt.performer}`}
                       </span>
                     </div>
                     <div className="size-[8px] rounded-full bg-[#9c6402]/60 mt-[4px]" />
@@ -364,7 +408,7 @@ export function TicketDetailsModal({
           </div>
         </div>
 
-        {/* Left Column: Sidebar Cards (4 cols on desktop) */}
+        {/* Sidebar Column (4 cols on desktop) */}
         <div className="lg:col-span-4 flex flex-col gap-[20px]">
           {/* Card 1: Client Details Card */}
           <div className="bg-white rounded-[8px] p-[20px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 flex flex-col gap-[14px]">
@@ -373,7 +417,7 @@ export function TicketDetailsModal({
                 CR: {ticket.client.crNumber}
               </span>
               <h3 className="text-[#1b1c1a] font-bold text-[15px]">
-                بيانات المكتب المشترك
+                {isEn ? "Client Firm Details" : "بيانات المكتب المشترك"}
               </h3>
             </div>
 
@@ -383,7 +427,7 @@ export function TicketDetailsModal({
                   {ticket.client.firm}
                 </span>
                 <span className="text-[#514537] text-[12px]">
-                  المسؤول: {ticket.client.name}
+                  {isEn ? `Contact: ${ticket.client.name}` : `المسؤول: ${ticket.client.name}`}
                 </span>
               </div>
 
@@ -408,9 +452,11 @@ export function TicketDetailsModal({
                 onClick={onOpenAssigneeModal}
                 className="text-[#9c6402] text-[11px] font-bold hover:underline cursor-pointer"
               >
-                تغيير
+                {isEn ? "Change" : "تغيير"}
               </button>
-              <h3 className="text-[#1b1c1a] font-bold text-[15px]">الموظف المكلف</h3>
+              <h3 className="text-[#1b1c1a] font-bold text-[15px]">
+                {isEn ? "Assigned Employee" : "الموظف المكلف"}
+              </h3>
             </div>
 
             <div className="flex items-center gap-[12px] text-start">
@@ -435,24 +481,34 @@ export function TicketDetailsModal({
           <div className="bg-white rounded-[8px] p-[20px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 flex flex-col gap-[14px]">
             <div className="border-b border-[#eae8e4] pb-[10px] text-start">
               <h3 className="text-[#1b1c1a] font-bold text-[15px]">
-                اتفاقية مستوى الخدمة (SLA)
+                {isEn ? "Service Level Agreement (SLA)" : "اتفاقية مستوى الخدمة (SLA)"}
               </h3>
             </div>
 
             <div className="flex flex-col gap-[10px] text-start text-[12px]">
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-[#1b1c1a]">{ticket.channelLabel}</span>
-                <span className="text-[#514537]">قناة البلاغ:</span>
+                <span className="text-[#514537]">
+                  {isEn ? "Ticket Channel:" : "قناة البلاغ:"}
+                </span>
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="font-bold text-[#ba1a1a]">4 ساعات كحد أقصى</span>
-                <span className="text-[#514537]">الهدف الزمني للحل:</span>
+                <span className="font-bold text-[#ba1a1a]">
+                  {isEn ? "4 Hours Maximum" : "4 ساعات كحد أقصى"}
+                </span>
+                <span className="text-[#514537]">
+                  {isEn ? "Resolution Target:" : "الهدف الزمني للحل:"}
+                </span>
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="font-semibold text-[#047857]">متبقي ساعتان و 15 دقيقة</span>
-                <span className="text-[#514537]">حالة المؤقت:</span>
+                <span className="font-semibold text-[#047857]">
+                  {isEn ? "2h 15m remaining" : "متبقي ساعتان و 15 دقيقة"}
+                </span>
+                <span className="text-[#514537]">
+                  {isEn ? "Timer Status:" : "حالة المؤقت:"}
+                </span>
               </div>
 
               <div className="h-[4px] bg-[#eae8e4] rounded-full overflow-hidden w-full mt-[4px]">

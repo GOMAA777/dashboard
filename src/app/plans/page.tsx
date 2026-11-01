@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { Metadata } from "next";
 import { PlansView } from "@/features/plans/components/PlansView";
 
@@ -9,5 +9,9 @@ export const metadata: Metadata = {
 };
 
 export default function PlansPage() {
-  return <PlansView />;
+  return (
+    <Suspense fallback={null}>
+      <PlansView />
+    </Suspense>
+  );
 }

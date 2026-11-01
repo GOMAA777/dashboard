@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { withBasePath } from "@/lib/base-path";
 
 export default function GlobalError({
   error: _error,
@@ -13,7 +14,7 @@ export default function GlobalError({
   const handleHomeClick = () => {
     if (typeof window !== "undefined") {
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-      window.location.href = "/";
+      window.location.href = withBasePath("/");
     }
   };
 

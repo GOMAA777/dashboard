@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Plus, Check, ShieldCheck, Headphones } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 interface TicketsEmptyStateProps {
   onCreateTicket: () => void;
@@ -14,6 +15,8 @@ export function TicketsEmptyState({
   onResetFilter,
   isFiltered = false,
 }: TicketsEmptyStateProps) {
+  const { t } = useLanguage();
+
   return (
     <div
       className="bg-white rounded-[8px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 p-[48px] sm:p-[64px] flex flex-col items-center justify-center text-center w-full min-h-[460px] relative overflow-hidden"
@@ -47,14 +50,20 @@ export function TicketsEmptyState({
       <div className="max-w-[560px] flex flex-col items-center gap-[12px] mb-[32px]">
         <h2 className="text-[#1b1c1a] font-bold text-[24px] sm:text-[28px] leading-[36px] tracking-[-0.5px]">
           {isFiltered
-            ? "لا توجد نتائج مطابقة لبحثك"
-            : "لا توجد تذاكر دعم فني نشطة حالياً"}
+            ? t("لا توجد نتائج مطابقة لبحثك", "No matching results found")
+            : t("لا توجد تذاكر دعم فني نشطة حالياً", "No active support tickets currently")}
         </h2>
 
         <p className="text-[#514537] font-medium text-[14px] sm:text-[15px] leading-[26px]">
           {isFiltered
-            ? "لم نتمكن من العثور على أي تذاكر تطابق معايير البحث أو التصفية الحالية. يمكنك إعادة تعيين التصفية."
-            : "لم يتم تسجيل أي بلاغات أو نزاعات تشغيلية في النظام حتى هذه اللحظة، أو لا توجد نتائج مطابقة لمعايير البحث والتصفية المحددة أعلاه. بوابات التوثيق تعمل باستقرار كامل."}
+            ? t(
+                "لم نتمكن من العثور على أي تذاكر تطابق معايير البحث أو التصفية الحالية. يمكنك إعادة تعيين التصفية.",
+                "We couldn't find any tickets matching your search or filter criteria. You can reset filters."
+              )
+            : t(
+                "لم يتم تسجيل أي بلاغات أو نزاعات تشغيلية في النظام حتى هذه اللحظة، أو لا توجد نتائج مطابقة لمعايير البحث والتصفية المحددة أعلاه. بوابات التوثيق تعمل باستقرار كامل.",
+                "No technical issues or disputes registered at the moment. Verification portals are operating stably."
+              )}
         </p>
       </div>
 
@@ -67,7 +76,7 @@ export function TicketsEmptyState({
           data-node-id="1:16132"
         >
           <Plus className="size-[16px]" />
-          <span>إنشاء تذكرة جديدة</span>
+          <span>{t("إنشاء تذكرة جديدة", "Create New Ticket")}</span>
         </button>
 
         {isFiltered && onResetFilter && (
@@ -76,7 +85,7 @@ export function TicketsEmptyState({
             onClick={onResetFilter}
             className="bg-[#f0eeea] hover:bg-[#eae8e4] text-[#1b1c1a] px-[18px] py-[10px] rounded-[4px] font-semibold text-[14px] leading-[20px] transition-colors cursor-pointer"
           >
-            إعادة تعيين البحث
+            {t("إعادة تعيين البحث", "Reset Search")}
           </button>
         )}
       </div>

@@ -16,12 +16,13 @@ import { cn } from "@/lib/utils";
 import { ClientRowActionMenu } from "@/features/clients/components/ClientRowActionMenu";
 import { useUIStore } from "@/stores/use-ui-store";
 
-interface LawOfficeRow {
+export interface LawOfficeRow {
   id: string;
   initialAr: string;
   initialEn: string;
   initialBg: string;
   initialText: string;
+  logo?: string;
   nameAr: string;
   nameEn: string;
   licenseAr: string;
@@ -51,175 +52,14 @@ interface LawOfficeRow {
   };
 }
 
-const officesData: LawOfficeRow[] = [
-  {
-    id: "1",
-    initialAr: "ع",
-    initialEn: "A",
-    initialBg: "bg-[#ffddb6] dark:bg-[#3d2716]",
-    initialText: "text-[#9c6402] dark:text-[#e29d38]",
-    nameAr: "مكتب د. عبد العزيز بن فهد العجلان",
-    nameEn: "Dr. Abdulaziz Al-Ajlan Law Firm",
-    licenseAr: "ترخيص عدلي: 38/194",
-    licenseEn: "MoJ License: 38/194",
-    code: "JUD-8902",
-    ownerAr: "عبد العزيز العجلان",
-    ownerEn: "Abdulaziz Al-Ajlan",
-    planAr: "الاحترافية",
-    planEn: "Professional",
-    planBadgeClass: "bg-[#9c6402]/10 border border-[#9c6402]/30 text-[#9c6402] dark:bg-[rgba(226,157,56,0.18)] dark:border-[#e29d38]/40 dark:text-[#f3c27e]",
-    registrationDateAr: "22 أكتوبر 2024",
-    registrationDateEn: "22 Oct 2024",
-    accountStatus: {
-      labelAr: "نشط",
-      labelEn: "Active",
-      bgClass: "bg-[#ecfdf5] border border-emerald-200 dark:bg-[#132c1c] dark:border-emerald-500/40 dark:shadow-[0_0_10px_rgba(16,185,129,0.15)]",
-      textClass: "text-[#065f46] dark:text-[#6ee7b7]",
-      dotClass: "bg-[#10b981] shadow-[0_0_8px_#10b981] ring-1 ring-emerald-400/60",
-    },
-    subscriptionStatus: {
-      labelAr: "ساري",
-      labelEn: "Valid",
-      bgClass: "bg-[#ecfdf5] border border-emerald-200 dark:bg-[#132c1c] dark:border-emerald-500/40",
-      textClass: "text-[#065f46] dark:text-[#6ee7b7]",
-      icon: CheckCircle2,
-    },
-  },
-  {
-    id: "2",
-    initialAr: "ش",
-    initialEn: "S",
-    initialBg: "bg-[#1c140f] dark:bg-[#2d1f16]",
-    initialText: "text-[#ffddb6] dark:text-[#e29d38]",
-    nameAr: "شركة الشريف وشركاؤه للمحاماة والاستشارات",
-    nameEn: "Al-Sharif & Partners Legal Firm",
-    licenseAr: "ترخيص عدلي: 41/502",
-    licenseEn: "MoJ License: 41/502",
-    code: "JUD-8895",
-    ownerAr: "تركي الشريف",
-    ownerEn: "Turki Al-Sharif",
-    planAr: "شركات",
-    planEn: "Enterprise",
-    planBadgeClass: "bg-[#1c140f] border border-[#1c140f] text-white dark:bg-[#38261b] dark:border-[#e29d38]/40 dark:text-[#ffddb6]",
-    registrationDateAr: "20 أكتوبر 2024",
-    registrationDateEn: "20 Oct 2024",
-    accountStatus: {
-      labelAr: "نشط",
-      labelEn: "Active",
-      bgClass: "bg-[#ecfdf5] border border-emerald-200 dark:bg-[#132c1c] dark:border-emerald-500/40 dark:shadow-[0_0_10px_rgba(16,185,129,0.15)]",
-      textClass: "text-[#065f46] dark:text-[#6ee7b7]",
-      dotClass: "bg-[#10b981] shadow-[0_0_8px_#10b981] ring-1 ring-emerald-400/60",
-    },
-    subscriptionStatus: {
-      labelAr: "ساري",
-      labelEn: "Valid",
-      bgClass: "bg-[#ecfdf5] border border-emerald-200 dark:bg-[#132c1c] dark:border-emerald-500/40",
-      textClass: "text-[#065f46] dark:text-[#6ee7b7]",
-      icon: CheckCircle2,
-    },
-  },
-  {
-    id: "3",
-    initialAr: "ت",
-    initialEn: "T",
-    initialBg: "bg-[#eae8e4] dark:bg-[#2a1d15]",
-    initialText: "text-[#514537] dark:text-[#cdc5bd]",
-    nameAr: "مكتب المستشار فهد التميمي للتوثيق والقانون",
-    nameEn: "Fahad Al-Tamimi Legal Services",
-    licenseAr: "ترخيص عدلي: 36/902",
-    licenseEn: "MoJ License: 36/902",
-    code: "JUD-8861",
-    ownerAr: "فهد التميمي",
-    ownerEn: "Fahad Al-Tamimi",
-    planAr: "الاحترافية",
-    planEn: "Professional",
-    planBadgeClass: "bg-[#9c6402]/10 border border-[#9c6402]/30 text-[#9c6402] dark:bg-[rgba(226,157,56,0.18)] dark:border-[#e29d38]/40 dark:text-[#f3c27e]",
-    registrationDateAr: "18 أكتوبر 2024",
-    registrationDateEn: "18 Oct 2024",
-    accountStatus: {
-      labelAr: "نشط",
-      labelEn: "Active",
-      bgClass: "bg-[#ecfdf5] border border-emerald-200 dark:bg-[#132c1c] dark:border-emerald-500/40 dark:shadow-[0_0_10px_rgba(16,185,129,0.15)]",
-      textClass: "text-[#065f46] dark:text-[#6ee7b7]",
-      dotClass: "bg-[#10b981] shadow-[0_0_8px_#10b981] ring-1 ring-emerald-400/60",
-    },
-    subscriptionStatus: {
-      labelAr: "ينتهي قريباً",
-      labelEn: "Expiring Soon",
-      bgClass: "bg-[#fffbeb] border border-amber-200 dark:bg-[#2e1d0f] dark:border-amber-500/40 dark:shadow-[0_0_10px_rgba(245,158,11,0.15)]",
-      textClass: "text-[#92400e] dark:text-[#fbbf24]",
-      dotColor: "bg-[#f59e0b] shadow-[0_0_8px_#f59e0b] ring-1 ring-amber-400/60",
-    },
-  },
-  {
-    id: "4",
-    initialAr: "م",
-    initialEn: "M",
-    initialBg: "bg-[#eae8e4] dark:bg-[#2a1d15]",
-    initialText: "text-[#514537] dark:text-[#cdc5bd]",
-    nameAr: "مجموعة الميزان القضائي للاستشارات",
-    nameEn: "Al-Mizan Judicial Consulting Group",
-    licenseAr: "ترخيص عدلي: 44/110",
-    licenseEn: "MoJ License: 44/110",
-    code: "JUD-8840",
-    ownerAr: "عبد الله السبيعي",
-    ownerEn: "Abdullah Al-Subaie",
-    planAr: "الأساسية",
-    planEn: "Basic",
-    planBadgeClass: "bg-[#f5f3ef] border border-[#eae8e4] text-[#514537] dark:bg-[#281c15] dark:border-[#4d3627] dark:text-[#cdc5bd]",
-    registrationDateAr: "15 أكتوبر 2024",
-    registrationDateEn: "15 Oct 2024",
-    accountStatus: {
-      labelAr: "قيد التحقق",
-      labelEn: "Under Review",
-      bgClass: "bg-[#fffbeb] border border-amber-200 dark:bg-[#2e1d0f] dark:border-amber-500/40 dark:shadow-[0_0_10px_rgba(245,158,11,0.15)]",
-      textClass: "text-[#92400e] dark:text-[#fbbf24]",
-      dotClass: "bg-[#f59e0b] shadow-[0_0_8px_#f59e0b] ring-1 ring-amber-400/60",
-    },
-    subscriptionStatus: {
-      labelAr: "تجريبي (14 يوم)",
-      labelEn: "Trial (14 Days)",
-      bgClass: "bg-[#eff6ff] border border-blue-200 dark:bg-[#162233] dark:border-blue-500/40",
-      textClass: "text-[#1d4ed8] dark:text-[#93c5fd]",
-      icon: Timer,
-    },
-  },
-  {
-    id: "5",
-    initialAr: "ن",
-    initialEn: "N",
-    initialBg: "bg-[#1c140f] dark:bg-[#2d1f16]",
-    initialText: "text-[#ffddb6] dark:text-[#e29d38]",
-    nameAr: "مكتب المحامي ناصر بن فهد الدوسري",
-    nameEn: "Nasser Al-Dossari Law Firm",
-    licenseAr: "ترخيص عدلي: 39/781",
-    licenseEn: "MoJ License: 39/781",
-    code: "JUD-8812",
-    ownerAr: "ناصر الدوسري",
-    ownerEn: "Nasser Al-Dossari",
-    planAr: "الاحترافية",
-    planEn: "Professional",
-    planBadgeClass: "bg-[#9c6402]/10 border border-[#9c6402]/30 text-[#9c6402] dark:bg-[rgba(226,157,56,0.18)] dark:border-[#e29d38]/40 dark:text-[#f3c27e]",
-    registrationDateAr: "12 أكتوبر 2024",
-    registrationDateEn: "12 Oct 2024",
-    accountStatus: {
-      labelAr: "نشط",
-      labelEn: "Active",
-      bgClass: "bg-[#ecfdf5] border border-emerald-200 dark:bg-[#132c1c] dark:border-emerald-500/40 dark:shadow-[0_0_10px_rgba(16,185,129,0.15)]",
-      textClass: "text-[#065f46] dark:text-[#6ee7b7]",
-      dotClass: "bg-[#10b981] shadow-[0_0_8px_#10b981] ring-1 ring-emerald-400/60",
-    },
-    subscriptionStatus: {
-      labelAr: "ساري",
-      labelEn: "Valid",
-      bgClass: "bg-[#ecfdf5] border border-emerald-200 dark:bg-[#132c1c] dark:border-emerald-500/40",
-      textClass: "text-[#065f46] dark:text-[#6ee7b7]",
-      icon: CheckCircle2,
-    },
-  },
-];
+const officesData: LawOfficeRow[] = [];
 
-export function DashboardLawOfficesTable() {
+
+interface DashboardLawOfficesTableProps {
+  offices?: LawOfficeRow[];
+}
+
+export function DashboardLawOfficesTable({ offices: externalOffices }: DashboardLawOfficesTableProps = {}) {
   const router = useRouter();
   const [openMenuRowId, setOpenMenuRowId] = useState<string | null>(null);
 
@@ -235,9 +75,10 @@ export function DashboardLawOfficesTable() {
   const isRTL = isMounted ? direction === "rtl" : true;
 
   const LinkIcon = isRTL ? ArrowLeft : ArrowRight;
+  const [failedLogos, setFailedLogos] = useState<Record<string, boolean>>({});
 
-  // Display only the top 5 recently registered law offices as specified (no pagination)
-  const displayedOffices = officesData.slice(0, 5);
+  // Display top 5 recently registered law offices
+  const displayedOffices = (externalOffices || officesData).slice(0, 5);
 
   return (
     <div
@@ -284,7 +125,7 @@ export function DashboardLawOfficesTable() {
             <LinkIcon className="size-[11px] block text-[#9c6402] dark:text-[#e29d38] transition-transform group-hover:scale-110" />
           </div>
           <span className="text-[12px] leading-[16px] font-bold">
-            {currentLang === "en" ? "View All Offices (128)" : "عرض كل المكاتب (128)"}
+            {currentLang === "en" ? "View All Offices" : "عرض كل المكاتب"}
           </span>
         </Link>
       </div>
@@ -325,7 +166,14 @@ export function DashboardLawOfficesTable() {
 
           {/* Body Rows */}
           <tbody className="divide-y divide-[#f0eeea] dark:divide-[#38271c]" data-node-id="1:262">
-            {displayedOffices.map((row, index) => (
+            {displayedOffices.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="py-[36px] text-center text-[#837565] dark:text-[#a89f91] text-[13px]">
+                  {currentLang === "en" ? "No registered law offices found" : "لا توجد مكاتب مسجلة حتى الآن"}
+                </td>
+              </tr>
+            ) : (
+              displayedOffices.map((row, index) => (
               <tr
                 key={row.id}
                 onClick={() => router.push(`/accounts?officeId=${row.id}`)}
@@ -340,16 +188,27 @@ export function DashboardLawOfficesTable() {
                 {/* 1. Office Name */}
                 <td className="py-[16px] px-[20px]">
                   <div className="flex items-center gap-[12px]">
-                    {/* Initials Avatar Box */}
-                    <div
-                      className={cn(
-                        "size-[32px] rounded-[4px] flex items-center justify-center font-bold text-[10px] shrink-0",
-                        row.initialBg,
-                        row.initialText
-                      )}
-                    >
-                      {currentLang === "en" ? row.initialEn : row.initialAr}
-                    </div>
+                    {/* Initials Avatar Box or Logo */}
+                    {row.logo && !failedLogos[row.id] ? (
+                      <div className="size-[32px] rounded-[4px] bg-white dark:bg-[#1a120d] border border-[#eae8e4] dark:border-[#422e20] p-0.5 flex items-center justify-center shrink-0 overflow-hidden">
+                        <img
+                          src={row.logo}
+                          alt={row.nameAr}
+                          className="max-h-full max-w-full object-contain"
+                          onError={() => setFailedLogos((prev) => ({ ...prev, [row.id]: true }))}
+                        />
+                      </div>
+                    ) : (
+                      <div
+                        className={cn(
+                          "size-[32px] rounded-[4px] flex items-center justify-center font-bold text-[10px] shrink-0",
+                          row.initialBg,
+                          row.initialText
+                        )}
+                      >
+                        {currentLang === "en" ? row.initialEn : row.initialAr}
+                      </div>
+                    )}
 
                     {/* Name + License & Code */}
                     <div className="flex flex-col text-start">
@@ -499,7 +358,7 @@ export function DashboardLawOfficesTable() {
                   </div>
                 </td>
               </tr>
-            ))}
+            )))}
           </tbody>
         </table>
       </div>

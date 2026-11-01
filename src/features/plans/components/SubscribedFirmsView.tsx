@@ -19,26 +19,114 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import { toast } from "sonner";
-import { DetailedSubscribedFirm } from "../types/plan.types";
-import { detailedSilverSubscribedFirms } from "../data/initialPlans";
+import { DetailedSubscribedFirm, PricingPlanItem } from "../types/plan.types";
+import { detailedSilverSubscribedFirms, getSubscribedFirmsForPlan, initialPricingPlans } from "../data/initialPlans";
 import { UpgradeSubscriptionDialog } from "./UpgradeSubscriptionDialog";
 import { DeactivateSubscriptionDialog } from "./DeactivateSubscriptionDialog";
 import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
 import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
 import { DashboardSelect } from "@/components/shared/DashboardSelect";
+import { useLanguage } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
+import { fetchPlanSubscribers } from "@/lib/api/plans";
+import { unwrapList, asString, asNumber } from "@/lib/api/helpers";
+import { normalizeLogoUrl } from "@/lib/api/mappers";
 
 interface SubscribedFirmsViewProps {
+  plan?: PricingPlanItem;
   onBack: () => void;
   onAddNewFirm?: () => void;
+  onViewOfficeDetails?: (firm: DetailedSubscribedFirm) => void;
+}
+
+function mapSubscriberFirm(raw: Record<string, unknown>): DetailedSubscribedFirm {
+  const name = asString(raw.name || raw.firm_name, "مكتب");
+  const activeSub = (raw.active_subscription || {}) as Record<string, unknown>;
+  const statusRaw = asString(activeSub.status || raw.status || raw.subscription_status, "active").toLowerCase();
+  const status: DetailedSubscribedFirm["status"] = statusRaw.includes("trial")
+    ? "trial"
+    : statusRaw.includes("suspend") || statusRaw.includes("تعطيل")
+      ? "suspended"
+      : statusRaw.includes("pend")
+        ? "pending_payment"
+        : statusRaw.includes("expir")
+          ? "expiring_soon"
+          : "active";
+
+  const rawRenewal = asString(activeSub.renewal_date || raw.subscription_end || raw.renewal_date || raw.ends_at, "");
+  let remainingDaysText = "—";
+  if (rawRenewal) {
+    try {
+      const diffMs = new Date(rawRenewal).getTime() - Date.now();
+      const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+      remainingDaysText = diffDays > 0 ? `${diffDays} يوماً` : "منتهي";
+    } catch {
+      // ignore
+    }
+  }
+
+  const rawCycle = asString(activeSub.billing_cycle || raw.billing_cycle, "yearly").toLowerCase();
+  const renewalCycle = rawCycle.includes("month") || rawCycle.includes("شهر") ? "شهري" : "سنوي";
+
+  return {
+    id: asString(raw.id, String(Math.random())),
+    initial: name.trim().charAt(0) || "م",
+    name,
+    licenseNumber: asString(raw.license_number, "—"),
+    city: asString(raw.city, "—"),
+    owner: asString(raw.owner_name || raw.owner, "—"),
+    contact: asString(raw.phone || raw.email, "—"),
+    logo: normalizeLogoUrl(raw.logo ? String(raw.logo) : undefined),
+    taxNumber: raw.tax_number ? asString(raw.tax_number) : undefined,
+    subscriptionCode: activeSub.subscription_code ? asString(activeSub.subscription_code) : undefined,
+    amount: activeSub.amount ? asString(activeSub.amount) : undefined,
+    paymentMethod: activeSub.payment_method ? asString(activeSub.payment_method) : undefined,
+    lawyersUsed: asNumber(raw.lawyers_used, 0),
+    lawyersLimit: asNumber(raw.lawyers_limit || (raw.plan as any)?.max_lawyers, 8),
+    casesUsed: asNumber(raw.cases_used, 0),
+    casesLimit: asNumber(raw.cases_limit || (raw.plan as any)?.max_cases, 350),
+    agentsUsed: asNumber(raw.agents_used, 0),
+    agentsLimit: asNumber(raw.agents_limit || (raw.plan as any)?.max_power_of_attorney, 555),
+    renewalDate: rawRenewal && rawRenewal.includes("T") ? rawRenewal.split("T")[0] : rawRenewal || "—",
+    renewalCycle,
+    remainingDaysText,
+    status,
+  };
 }
 
 export function SubscribedFirmsView({
+  plan,
   onBack,
   onAddNewFirm,
+  onViewOfficeDetails,
 }: SubscribedFirmsViewProps) {
-  const [firms, setFirms] = useState<DetailedSubscribedFirm[]>(
-    detailedSilverSubscribedFirms
+  const { t, isEn } = useLanguage();
+  const currentPlan = plan || initialPricingPlans[1];
+  const [firms, setFirms] = useState<DetailedSubscribedFirm[]>(() =>
+    getSubscribedFirmsForPlan(currentPlan)
   );
+
+  useEffect(() => {
+    if (plan) {
+      setFirms(getSubscribedFirmsForPlan(plan));
+      setCurrentPage(1);
+    }
+    if (!plan?.id) return;
+    let cancelled = false;
+    fetchPlanSubscribers(plan.id)
+      .then((payload) => {
+        if (cancelled) return;
+        const mapped = unwrapList<Record<string, unknown>>(payload).map(mapSubscriberFirm);
+        if (mapped.length > 0) setFirms(mapped);
+      })
+      .catch(() => {
+        // Keep mock subscribers if API unavailable.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [plan]);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<
     "all" | "active" | "trial" | "near_limit" | "overdue"
@@ -211,21 +299,23 @@ export function SubscribedFirmsView({
               type="button"
               onClick={onBack}
               className="p-[6px] rounded-[6px] hover:bg-[#eae8e4] dark:hover:bg-[#281c15] text-[#737067] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] transition-colors cursor-pointer"
-              title="العودة لتفاصيل الباقة"
+              title={t("العودة للباقات", "Back to Plans")}
             >
-              <ArrowRight className="size-[20px]" />
+              <ArrowRight className={cn("size-[20px]", isEn && "rotate-180")} />
             </button>
             <h1 className="text-[24px] md:text-[26px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7] leading-tight">
-              المكاتب المشتركة في الباقة
+              {t("المكاتب المشتركة في", "Offices Subscribed to")} {currentPlan.name}
             </h1>
             <span className="font-bold text-[11px] text-[#514537] dark:text-[#cdc5bd] bg-[#f5f3ef] dark:bg-[#281c15] border border-[#e2ded7] dark:border-[#38271c] px-[10px] py-[3px] rounded">
-              الباقة الفضية | 399 ر.س / شهرياً
+              {currentPlan.name} | {currentPlan.monthlyPrice} {t("ر.س / شهرياً", "SAR / month")}
             </span>
           </div>
 
           <p className="text-[13px] text-[#737067] dark:text-[#cdc5bd] max-w-[650px] leading-relaxed">
-            متابعة المكاتب المسجلة على هذه الباقة وإدارة اشتراكاتها ومراقبة حدود
-            استهلاك الموارد.
+            {t(
+              `متابعة المكاتب المسجلة على ${currentPlan.name} وإدارة اشتراكاتها ومراقبة حدود استهلاك الموارد.`,
+              `Monitor law firms registered to ${currentPlan.name}, manage their subscriptions, and observe resource quotas.`
+            )}
           </p>
         </div>
 
@@ -234,12 +324,12 @@ export function SubscribedFirmsView({
           <button
             type="button"
             onClick={
-              onAddNewFirm || (() => toast.info("فتح نموذج إضافة اشتراك مكتب جديد"))
+              onAddNewFirm || (() => toast.info(t("فتح نموذج إضافة اشتراك مكتب جديد", "Open add new law firm subscription form")))
             }
             className="bg-[#9c6402] hover:bg-[#855402] dark:bg-[#e29d38] dark:hover:bg-[#d08c2a] text-white dark:text-[#1c140f] font-bold text-[13px] px-[18px] py-[9px] rounded-[6px] shadow-xs flex items-center gap-[8px] transition-colors cursor-pointer"
           >
             <Plus className="size-[16px] stroke-[2.5]" />
-            <span>إضافة اشتراك مكتب</span>
+            <span>{t("إضافة اشتراك مكتب", "Add Office Subscription")}</span>
           </button>
         </div>
       </div>
@@ -250,19 +340,21 @@ export function SubscribedFirmsView({
         <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-4 sm:p-5 shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-[10px]">
             <span className="text-[12px] font-semibold text-[#737067] dark:text-[#cdc5bd]">
-              إجمالي المكاتب المشتركة
+              {t("إجمالي المكاتب المشتركة", "Total Subscribed Offices")}
             </span>
             <div className="p-[8px] rounded-[6px] bg-[#fbf6ee] dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 text-[#9c6402] dark:text-[#e29d38]">
               <Building2 className="size-[18px]" />
             </div>
           </div>
           <div className="flex items-baseline gap-[6px] mb-[6px]">
-            <span className="text-[28px] font-black text-[#1b1c1a] dark:text-[#fdfbf7]">52</span>
-            <span className="text-[13px] font-bold text-[#737067] dark:text-[#8e8680]">مكتباً</span>
+            <span className="text-[28px] font-black text-[#1b1c1a] dark:text-[#fdfbf7]">{currentPlan.subscribedFirmsCount}</span>
+            <span className="text-[13px] font-bold text-[#737067] dark:text-[#8e8680]">
+              {t("مكتباً", "offices")}
+            </span>
           </div>
           <div>
             <span className="text-[10px] font-bold bg-[#fbf6ee] dark:bg-[#2e1d0f] text-[#9c6402] dark:text-[#fbbf24] px-[8px] py-[2px] rounded-full border border-[#f5e3c8] dark:border-amber-500/40">
-              54% من إجمالي المنصة
+              {currentPlan.sharePercentage || t("حصة الباقة من المنصة", "Plan platform share")}
             </span>
           </div>
         </div>
@@ -271,19 +363,23 @@ export function SubscribedFirmsView({
         <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-4 sm:p-5 shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-[10px]">
             <span className="text-[12px] font-semibold text-[#737067] dark:text-[#cdc5bd]">
-              اشتراكات نشطة
+              {t("اشتراكات نشطة", "Active Subscriptions")}
             </span>
             <div className="p-[8px] rounded-[6px] bg-[#e8f5e9] dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 text-[#15803d] dark:text-[#e29d38]">
               <ShieldCheck className="size-[18px]" />
             </div>
           </div>
           <div className="flex items-baseline gap-[6px] mb-[6px]">
-            <span className="text-[28px] font-black text-[#1b1c1a] dark:text-[#fdfbf7]">48</span>
-            <span className="text-[13px] font-bold text-[#737067] dark:text-[#8e8680]">مكتباً</span>
+            <span className="text-[28px] font-black text-[#1b1c1a] dark:text-[#fdfbf7]">
+              {Math.max(1, Math.round(currentPlan.subscribedFirmsCount * 0.92))}
+            </span>
+            <span className="text-[13px] font-bold text-[#737067] dark:text-[#8e8680]">
+              {t("مكتباً", "offices")}
+            </span>
           </div>
           <div>
             <span className="text-[10px] font-bold bg-[#e8f5e9] dark:bg-[#132c1c] text-[#15803d] dark:text-[#6ee7b7] px-[8px] py-[2px] rounded-full border border-[#c8e6c9] dark:border-emerald-500/40">
-              • 92.3% نشط
+              {t("• 92.3% نشط", "• 92.3% active")}
             </span>
           </div>
         </div>
@@ -292,19 +388,23 @@ export function SubscribedFirmsView({
         <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-4 sm:p-5 shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-[10px]">
             <span className="text-[12px] font-semibold text-[#737067] dark:text-[#cdc5bd]">
-              اشتراكات قيد التجربة
+              {t("اشتراكات قيد التجربة", "Trial Subscriptions")}
             </span>
             <div className="p-[8px] rounded-[6px] bg-[#e0f2fe] dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 text-[#0369a1] dark:text-[#e29d38]">
               <Hourglass className="size-[18px]" />
             </div>
           </div>
           <div className="flex items-baseline gap-[6px] mb-[6px]">
-            <span className="text-[28px] font-black text-[#1b1c1a] dark:text-[#fdfbf7]">3</span>
-            <span className="text-[13px] font-bold text-[#737067] dark:text-[#8e8680]">مكاتب</span>
+            <span className="text-[28px] font-black text-[#1b1c1a] dark:text-[#fdfbf7]">
+              {Math.max(1, Math.round(currentPlan.subscribedFirmsCount * 0.058))}
+            </span>
+            <span className="text-[13px] font-bold text-[#737067] dark:text-[#8e8680]">
+              {t("مكاتب", "offices")}
+            </span>
           </div>
           <div>
             <span className="text-[10px] font-bold bg-[#e0f2fe] dark:bg-[#1e293b] text-[#0369a1] dark:text-[#93c5fd] px-[8px] py-[2px] rounded-full border border-[#bae6fd] dark:border-blue-500/40">
-              فترة تجريبية سارية
+              {t("فترة تجريبية سارية", "Active trial period")}
             </span>
           </div>
         </div>
@@ -313,19 +413,23 @@ export function SubscribedFirmsView({
         <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] p-4 sm:p-5 shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-[10px]">
             <span className="text-[12px] font-semibold text-[#737067] dark:text-[#cdc5bd]">
-              اشتراكات منتهية أو متأخرة
+              {t("اشتراكات منتهية أو متأخرة", "Expired or Overdue Subscriptions")}
             </span>
             <div className="p-[8px] rounded-[6px] bg-[#fee2e2] dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 text-[#b91c1c] dark:text-[#e29d38]">
               <BellRing className="size-[18px]" />
             </div>
           </div>
           <div className="flex items-baseline gap-[6px] mb-[6px]">
-            <span className="text-[28px] font-black text-[#b91c1c] dark:text-[#f87171]">1</span>
-            <span className="text-[13px] font-bold text-[#737067] dark:text-[#8e8680]">مكتب واحد</span>
+            <span className="text-[28px] font-black text-[#b91c1c] dark:text-[#f87171]">
+              {Math.max(1, currentPlan.subscribedFirmsCount - Math.round(currentPlan.subscribedFirmsCount * 0.92) - Math.max(1, Math.round(currentPlan.subscribedFirmsCount * 0.058)))}
+            </span>
+            <span className="text-[13px] font-bold text-[#737067] dark:text-[#8e8680]">
+              {t("مكاتب", "offices")}
+            </span>
           </div>
           <div>
             <span className="text-[10px] font-bold bg-[#fee2e2] dark:bg-[#2c1515] text-[#b91c1c] dark:text-[#fca5a5] px-[8px] py-[2px] rounded-full border border-[#fecaca] dark:border-rose-500/40">
-              • يتطلب متابعة مالية
+              {t("• يتطلب متابعة مالية", "• Requires financial follow-up")}
             </span>
           </div>
         </div>
@@ -335,7 +439,10 @@ export function SubscribedFirmsView({
       <UnifiedFilterBar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        searchPlaceholder="ابحث باسم المكتب، المالك، رقم الترخيص، أو السجل..."
+        searchPlaceholder={t(
+          "ابحث باسم المكتب، المالك، رقم الترخيص، أو السجل...",
+          "Search by office name, owner, license, or CR..."
+        )}
         primaryFilterValue={activeTab}
         onPrimaryFilterChange={(v) =>
           setActiveTab(
@@ -343,11 +450,11 @@ export function SubscribedFirmsView({
           )
         }
         primaryFilterOptions={[
-          { label: "الكل (128)", value: "all" },
-          { label: "النشطة (96)", value: "active" },
-          { label: "تحت التجربة (18)", value: "trial" },
-          { label: "اقترب من الحد (14)", value: "near_limit" },
-          { label: "متعثر الدفع (14)", value: "overdue" },
+          { label: t("الكل (128)", "All (128)"), value: "all" },
+          { label: t("النشطة (96)", "Active (96)"), value: "active" },
+          { label: t("تحت التجربة (18)", "Trial (18)"), value: "trial" },
+          { label: t("اقترب من الحد (14)", "Near Limit (14)"), value: "near_limit" },
+          { label: t("متعثر الدفع (14)", "Overdue (14)"), value: "overdue" },
         ]}
         hasActiveFilters={
           activeTab !== "all" ||
@@ -363,52 +470,72 @@ export function SubscribedFirmsView({
           setRenewalFilter("all");
           setResourceFilter("all");
         }}
-        drawerTitle="تصفية المشتركين في الباقة"
+        drawerTitle={t("تصفية المشتركين في الباقة", "Filter Plan Subscribers")}
         drawerContent={
           <div className="space-y-4 text-start font-['Cairo',sans-serif]">
             {/* Status Filter */}
             <div className="space-y-2">
               <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-                حالة الاشتراك
+                {t("حالة الاشتراك", "Subscription Status")}
               </label>
               <DashboardSelect
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
-                <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الكل</option>
-                <option value="active" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">نشط</option>
-                <option value="trial" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">قيد التجربة</option>
-                <option value="pending" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">بانتظار السداد</option>
+                <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+                  {t("الكل", "All")}
+                </option>
+                <option value="active" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+                  {t("نشط", "Active")}
+                </option>
+                <option value="trial" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+                  {t("قيد التجربة", "Trial")}
+                </option>
+                <option value="pending" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+                  {t("بانتظار السداد", "Pending Payment")}
+                </option>
               </DashboardSelect>
             </div>
 
             {/* Renewal Filter */}
             <div className="space-y-2">
               <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-                موعد التجديد
+                {t("موعد التجديد", "Renewal Schedule")}
               </label>
               <DashboardSelect
                 value={renewalFilter}
                 onChange={(e) => setRenewalFilter(e.target.value)}
               >
-                <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الكل</option>
-                <option value="annual" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">سنوي</option>
-                <option value="monthly" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">شهري</option>
+                <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+                  {t("الكل", "All")}
+                </option>
+                <option value="annual" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+                  {t("سنوي", "Annual")}
+                </option>
+                <option value="monthly" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+                  {t("شهري", "Monthly")}
+                </option>
               </DashboardSelect>
             </div>
 
             {/* Resource Filter */}
             <div className="space-y-2">
               <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-                استهلاك الموارد
+                {t("استهلاك الموارد", "Resource Usage")}
               </label>
               <DashboardSelect
                 value={resourceFilter}
                 onChange={(e) => setResourceFilter(e.target.value)}
               >
-                <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الكل</option>
-                <option value="high" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">استهلاك مرتفع (&gt;80%)</option>
-                <option value="full" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">بلغ الحد الأقصى</option>
+                <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+                  {t("الكل", "All")}
+                </option>
+                <option value="high" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+                  {t("استهلاك مرتفع (>80%)", "High Usage (>80%)")}
+                </option>
+                <option value="full" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+                  {t("بلغ الحد الأقصى", "Max Quota Reached")}
+                </option>
               </DashboardSelect>
             </div>
           </div>
@@ -416,38 +543,60 @@ export function SubscribedFirmsView({
       />
 
       {/* 4. Comprehensive Data Table */}
-      <div className="bg-white rounded-[8px] border border-[#e2ded7] shadow-2xs overflow-hidden">
+      <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e2ded7] dark:border-[#38271c] shadow-2xs overflow-hidden">
         <div className="overflow-x-auto scrollbar-none">
           <table className="w-full text-start text-[12px]">
             <thead>
-              <tr className="bg-[#faf8f5] border-b border-[#f0eeea] text-[#737067] font-semibold">
-                <th className="py-[12px] px-[14px]">اسم المنشأة والمكتب</th>
-                <th className="py-[12px] px-[14px]">المالك والمسؤول</th>
-                <th className="py-[12px] px-[14px]">المحامين (حد 4)</th>
-                <th className="py-[12px] px-[14px]">القضايا (حد 200)</th>
-                <th className="py-[12px] px-[14px]">الوكلاء (حد 5)</th>
-                <th className="py-[12px] px-[14px]">التجديد الدوري</th>
-                <th className="py-[12px] px-[14px]">حالة الاشتراك</th>
-                <th className="py-[12px] px-[14px] text-center">الإجراءات</th>
+              <tr className="bg-[#faf8f5] dark:bg-[#281c15] border-b border-[#f0eeea] dark:border-[#38271c] text-[#737067] dark:text-[#cdc5bd] font-semibold">
+                <th className="py-[12px] px-[14px] text-start">{t("اسم المنشأة والمكتب", "Firm & Office Name")}</th>
+                <th className="py-[12px] px-[14px] text-start">{t("المالك والمسؤول", "Owner & Officer")}</th>
+                <th className="py-[12px] px-[14px] text-start">{t("المحامين (حد 4)", "Lawyers (Max 4)")}</th>
+                <th className="py-[12px] px-[14px] text-start">{t("القضايا (حد 200)", "Cases (Max 200)")}</th>
+                <th className="py-[12px] px-[14px] text-start">{t("الوكلاء (حد 5)", "Agents (Max 5)")}</th>
+                <th className="py-[12px] px-[14px] text-start">{t("التجديد الدوري", "Periodic Renewal")}</th>
+                <th className="py-[12px] px-[14px] text-start">{t("حالة الاشتراك", "Subscription Status")}</th>
+                <th className="py-[12px] px-[14px] text-center">{t("الإجراءات", "Actions")}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#f0eeea]">
-              {paginatedFirms.map((firm) => (
+            <tbody className="divide-y divide-[#f0eeea] dark:divide-[#38271c]">
+              {paginatedFirms.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-8 text-center text-xs text-[#837565] dark:text-[#a89f91]">
+                    {t("لا يوجد مشتركون في هذه الباقة", "No subscribers in this plan")}
+                  </td>
+                </tr>
+              ) : (
+                paginatedFirms.map((firm) => (
                 <tr
                   key={firm.id}
-                  className="hover:bg-[#faf8f5] transition-colors"
+                  className="hover:bg-[#faf8f5] dark:hover:bg-[#281c15]/60 transition-colors"
                 >
                   {/* Firm name & details */}
                   <td className="py-[14px] px-[14px]">
                     <div className="flex items-center gap-[10px]">
-                      <div className="size-[34px] rounded-[6px] bg-[#f5f3ef] border border-[#e2ded7] flex items-center justify-center font-bold text-[#9c6402] shrink-0">
-                        {firm.initial}
+                      <div className="size-[34px] rounded-[6px] bg-[#f5f3ef] dark:bg-[#281c15] border border-[#e2ded7] dark:border-[#38271c] flex items-center justify-center font-bold text-[#9c6402] dark:text-[#e29d38] shrink-0 overflow-hidden">
+                        {firm.logo ? (
+                          <img
+                            src={firm.logo}
+                            alt={firm.name}
+                            className="size-full object-cover rounded-[6px]"
+                            onError={(e) => {
+                              (e.currentTarget as HTMLElement).style.display = "none";
+                            }}
+                          />
+                        ) : (
+                          firm.initial
+                        )}
                       </div>
                       <div>
-                        <div className="font-bold text-[#1b1c1a]">
+                        <button
+                          type="button"
+                          onClick={() => onViewOfficeDetails?.(firm)}
+                          className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7] hover:text-[#9c6402] dark:hover:text-[#f3c27e] transition-colors text-start cursor-pointer block"
+                        >
                           {firm.name}
-                        </div>
-                        <div className="text-[11px] text-[#737067]">
+                        </button>
+                        <div className="text-[11px] text-[#737067] dark:text-[#8e8680]">
                           {firm.licenseNumber} • {firm.city}
                         </div>
                       </div>
@@ -456,8 +605,8 @@ export function SubscribedFirmsView({
 
                   {/* Owner & contact */}
                   <td className="py-[14px] px-[14px]">
-                    <div className="font-bold text-[#1b1c1a]">{firm.owner}</div>
-                    <div className="text-[11px] text-[#737067]">
+                    <div className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{firm.owner}</div>
+                    <div className="text-[11px] text-[#737067] dark:text-[#8e8680]">
                       {firm.contact}
                     </div>
                   </td>
@@ -466,25 +615,25 @@ export function SubscribedFirmsView({
                   <td className="py-[14px] px-[14px] min-w-[120px]">
                     <div className="space-y-[4px]">
                       <div className="flex items-center justify-between text-[11px]">
-                        <span className="font-bold text-[#1b1c1a]">
+                        <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                           {firm.lawyersUsed} / {firm.lawyersLimit}
                         </span>
                         {firm.lawyersUsed >= firm.lawyersLimit ? (
-                          <span className="text-[10px] font-bold text-[#b91c1c] bg-[#fee2e2] px-[4px] py-[1px] rounded">
-                            بلغ الحد
+                          <span className="text-[10px] font-bold text-[#b91c1c] dark:text-[#f87171] bg-[#fee2e2] dark:bg-[#381a1a] px-[4px] py-[1px] rounded">
+                            {t("بلغ الحد", "Maxed")}
                           </span>
                         ) : (
-                          <span className="text-[10px] text-[#15803d]">
-                            متبقي {firm.lawyersLimit - firm.lawyersUsed}
+                          <span className="text-[10px] text-[#15803d] dark:text-[#6ee7b7]">
+                            {t(`متبقي ${firm.lawyersLimit - firm.lawyersUsed}`, `${firm.lawyersLimit - firm.lawyersUsed} left`)}
                           </span>
                         )}
                       </div>
-                      <div className="h-[4px] w-full bg-[#eeebe5] rounded-full overflow-hidden">
+                      <div className="h-[4px] w-full bg-[#eeebe5] dark:bg-[#38271c] rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full ${
                             firm.lawyersUsed >= firm.lawyersLimit
-                              ? "bg-[#b91c1c]"
-                              : "bg-[#15803d]"
+                              ? "bg-[#b91c1c] dark:bg-[#ef4444]"
+                              : "bg-[#15803d] dark:bg-[#22c55e]"
                           }`}
                           style={{
                             width: `${(firm.lawyersUsed / firm.lawyersLimit) * 100}%`,
@@ -498,27 +647,27 @@ export function SubscribedFirmsView({
                   <td className="py-[14px] px-[14px] min-w-[130px]">
                     <div className="space-y-[4px]">
                       <div className="flex items-center justify-between text-[11px]">
-                        <span className="font-bold text-[#1b1c1a]">
+                        <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                           {firm.casesUsed} / {firm.casesLimit}
                         </span>
                         {firm.casesCritical ? (
-                          <span className="text-[10px] font-bold text-[#b91c1c] bg-[#fee2e2] px-[4px] py-[1px] rounded">
-                            {Math.round((firm.casesUsed / firm.casesLimit) * 100)}% (حرج)
+                          <span className="text-[10px] font-bold text-[#b91c1c] dark:text-[#f87171] bg-[#fee2e2] dark:bg-[#381a1a] px-[4px] py-[1px] rounded">
+                            {Math.round((firm.casesUsed / firm.casesLimit) * 100)}% ({t("حرج", "Critical")})
                           </span>
                         ) : (
-                          <span className="text-[10px] text-[#737067]">
+                          <span className="text-[10px] text-[#737067] dark:text-[#8e8680]">
                             {Math.round((firm.casesUsed / firm.casesLimit) * 100)}%
                           </span>
                         )}
                       </div>
-                      <div className="h-[4px] w-full bg-[#eeebe5] rounded-full overflow-hidden">
+                      <div className="h-[4px] w-full bg-[#eeebe5] dark:bg-[#38271c] rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full ${
                             firm.casesCritical
-                              ? "bg-[#b91c1c]"
+                              ? "bg-[#b91c1c] dark:bg-[#ef4444]"
                               : firm.casesUsed / firm.casesLimit > 0.7
-                              ? "bg-[#d97706]"
-                              : "bg-[#15803d]"
+                              ? "bg-[#d97706] dark:bg-[#f59e0b]"
+                              : "bg-[#15803d] dark:bg-[#22c55e]"
                           }`}
                           style={{
                             width: `${(firm.casesUsed / firm.casesLimit) * 100}%`,
@@ -532,25 +681,25 @@ export function SubscribedFirmsView({
                   <td className="py-[14px] px-[14px] min-w-[110px]">
                     <div className="space-y-[4px]">
                       <div className="flex items-center justify-between text-[11px]">
-                        <span className="font-bold text-[#1b1c1a]">
+                        <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                           {firm.agentsUsed} / {firm.agentsLimit}
                         </span>
                         {firm.agentsUsed >= firm.agentsLimit ? (
-                          <span className="text-[10px] font-bold text-[#b91c1c]">
-                            مكتمل
+                          <span className="text-[10px] font-bold text-[#b91c1c] dark:text-[#f87171]">
+                            {t("مكتمل", "Maxed")}
                           </span>
                         ) : (
-                          <span className="text-[10px] text-[#737067]">
+                          <span className="text-[10px] text-[#737067] dark:text-[#8e8680]">
                             {Math.round((firm.agentsUsed / firm.agentsLimit) * 100)}%
                           </span>
                         )}
                       </div>
-                      <div className="h-[4px] w-full bg-[#eeebe5] rounded-full overflow-hidden">
+                      <div className="h-[4px] w-full bg-[#eeebe5] dark:bg-[#38271c] rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full ${
                             firm.agentsUsed >= firm.agentsLimit
-                              ? "bg-[#b91c1c]"
-                              : "bg-[#15803d]"
+                              ? "bg-[#b91c1c] dark:bg-[#ef4444]"
+                              : "bg-[#15803d] dark:bg-[#22c55e]"
                           }`}
                           style={{
                             width: `${(firm.agentsUsed / firm.agentsLimit) * 100}%`,
@@ -565,18 +714,18 @@ export function SubscribedFirmsView({
                     <div className="flex items-center gap-[6px]">
                       <span
                         className={`font-bold ${
-                          firm.isOverdue ? "text-[#b91c1c]" : "text-[#1b1c1a]"
+                          firm.isOverdue ? "text-[#b91c1c] dark:text-[#f87171]" : "text-[#1b1c1a] dark:text-[#fdfbf7]"
                         }`}
                       >
                         {firm.renewalDate}
                       </span>
-                      <span className="text-[10px] font-bold bg-[#f5f3ef] text-[#514537] px-[6px] py-[1px] rounded border border-[#e2ded7]">
-                        {firm.renewalCycle}
+                      <span className="text-[10px] font-bold bg-[#f5f3ef] dark:bg-[#281c15] text-[#514537] dark:text-[#cdc5bd] px-[6px] py-[1px] rounded border border-[#e2ded7] dark:border-[#38271c]">
+                        {t(firm.renewalCycle, firm.renewalCycle === "سنوي" ? "Annual" : "Monthly")}
                       </span>
                     </div>
                     <div
                       className={`text-[11px] mt-[2px] ${
-                        firm.isOverdue ? "text-[#b91c1c] font-bold" : "text-[#737067]"
+                        firm.isOverdue ? "text-[#b91c1c] dark:text-[#f87171] font-bold" : "text-[#737067] dark:text-[#8e8680]"
                       }`}
                     >
                       {firm.remainingDaysText}
@@ -586,37 +735,37 @@ export function SubscribedFirmsView({
                   {/* Subscription status badge */}
                   <td className="py-[14px] px-[14px]">
                     {firm.status === "active" && (
-                      <span className="inline-flex items-center gap-[4px] text-[11px] font-bold text-[#15803d] bg-[#e8f5e9] px-[8px] py-[3px] rounded-full border border-[#c8e6c9]">
-                        <span className="size-[6px] rounded-full bg-[#15803d]" />
-                        <span>نشط</span>
+                      <span className="inline-flex items-center gap-[4px] text-[11px] font-bold text-[#15803d] dark:text-[#6ee7b7] bg-[#e8f5e9] dark:bg-[#132c1c] px-[8px] py-[3px] rounded-full border border-[#c8e6c9] dark:border-[#165a2e]">
+                        <span className="size-[6px] rounded-full bg-[#15803d] dark:bg-[#6ee7b7]" />
+                        <span>{t("نشط", "Active")}</span>
                       </span>
                     )}
 
                     {firm.status === "expiring_soon" && (
-                      <span className="inline-flex items-center gap-[4px] text-[11px] font-bold text-[#92400e] bg-[#fef3c7] px-[8px] py-[3px] rounded-full border border-[#fde68a]">
-                        <span className="size-[6px] rounded-full bg-[#f59e0b]" />
-                        <span>ينتهي قريباً</span>
+                      <span className="inline-flex items-center gap-[4px] text-[11px] font-bold text-[#92400e] dark:text-[#f3c27e] bg-[#fef3c7] dark:bg-[rgba(226,157,56,0.18)] px-[8px] py-[3px] rounded-full border border-[#fde68a] dark:border-[#e29d38]/40">
+                        <span className="size-[6px] rounded-full bg-[#f59e0b] dark:bg-[#f3c27e]" />
+                        <span>{t("ينتهي قريباً", "Expiring Soon")}</span>
                       </span>
                     )}
 
                     {firm.status === "trial" && (
-                      <span className="inline-flex items-center gap-[4px] text-[11px] font-bold text-[#0369a1] bg-[#e0f2fe] px-[8px] py-[3px] rounded-full border border-[#bae6fd]">
-                        <span className="size-[6px] rounded-full bg-[#0284c7]" />
-                        <span>قيد التجربة</span>
+                      <span className="inline-flex items-center gap-[4px] text-[11px] font-bold text-[#0369a1] dark:text-[#93c5fd] bg-[#e0f2fe] dark:bg-[#1e293b] px-[8px] py-[3px] rounded-full border border-[#bae6fd] dark:border-blue-500/40">
+                        <span className="size-[6px] rounded-full bg-[#0284c7] dark:bg-[#60a5fa]" />
+                        <span>{t("قيد التجربة", "Trial")}</span>
                       </span>
                     )}
 
                     {firm.status === "pending_payment" && (
-                      <span className="inline-flex items-center gap-[4px] text-[11px] font-bold text-[#b91c1c] bg-[#fee2e2] px-[8px] py-[3px] rounded-full border border-[#fecaca]">
-                        <span className="size-[6px] rounded-full bg-[#b91c1c]" />
-                        <span>بانتظار السداد</span>
+                      <span className="inline-flex items-center gap-[4px] text-[11px] font-bold text-[#b91c1c] dark:text-[#f87171] bg-[#fee2e2] dark:bg-[#2c1515] px-[8px] py-[3px] rounded-full border border-[#fecaca] dark:border-rose-500/40">
+                        <span className="size-[6px] rounded-full bg-[#b91c1c] dark:bg-[#f87171]" />
+                        <span>{t("بانتظار السداد", "Pending Payment")}</span>
                       </span>
                     )}
 
                     {firm.status === "suspended" && (
-                      <span className="inline-flex items-center gap-[4px] text-[11px] font-bold text-[#737067] bg-[#f5f3ef] px-[8px] py-[3px] rounded-full border border-[#e2ded7]">
-                        <span className="size-[6px] rounded-full bg-[#737067]" />
-                        <span>معطل</span>
+                      <span className="inline-flex items-center gap-[4px] text-[11px] font-bold text-[#737067] dark:text-[#cdc5bd] bg-[#f5f3ef] dark:bg-[#281c15] px-[8px] py-[3px] rounded-full border border-[#e2ded7] dark:border-[#38271c]">
+                        <span className="size-[6px] rounded-full bg-[#737067] dark:text-[#8e8680]" />
+                        <span>{t("معطل", "Suspended")}</span>
                       </span>
                     )}
                   </td>
@@ -628,35 +777,38 @@ export function SubscribedFirmsView({
                       onClick={(e) => toggleFirmMenu(e, firm)}
                       className={`p-[6px] rounded-[4px] transition-colors cursor-pointer ${
                         openMenuFirm?.firm.id === firm.id
-                          ? "bg-[#eae8e4] text-[#1b1c1a]"
-                          : "text-[#737067] hover:bg-[#eae8e4] hover:text-[#1b1c1a]"
+                          ? "bg-[#eae8e4] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7]"
+                          : "text-[#737067] dark:text-[#cdc5bd] hover:bg-[#eae8e4] dark:hover:bg-[#281c15] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
                       }`}
-                      title="خيارات إضافية"
+                      title={t("خيارات إضافية", "More options")}
                     >
                       <MoreVertical className="size-[16px]" />
                     </button>
                   </td>
                 </tr>
-              ))}
+              ))
+              )}
             </tbody>
           </table>
         </div>
 
         {/* Table Footer with Pagination */}
-        <div className="p-[14px] border-t border-[#f0eeea] flex flex-col sm:flex-row sm:items-center justify-between gap-[12px] text-[12px] text-[#737067] font-['Cairo']">
+        <div className="p-[14px] border-t border-[#f0eeea] dark:border-[#38271c] flex flex-col sm:flex-row sm:items-center justify-between gap-[12px] text-[12px] text-[#737067] dark:text-[#cdc5bd] font-['Cairo']">
           <div className="flex flex-wrap items-center gap-4">
             <div>
-              <span>عرض </span>
-              <span className="font-bold text-[#1b1c1a]">{startItem}</span>
-              <span> إلى </span>
-              <span className="font-bold text-[#1b1c1a]">{endItem}</span>
-              <span> من أصل </span>
-              <span className="font-bold text-[#1b1c1a]">{totalItems}</span>
-              <span> مكتباً مسجلاً في الباقة</span>
+              <span>{t("عرض ", "Showing ")}</span>
+              <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{startItem}</span>
+              <span>{t(" إلى ", " to ")}</span>
+              <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{endItem}</span>
+              <span>{t(" من أصل ", " of ")}</span>
+              <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{currentPlan.subscribedFirmsCount}</span>
+              <span>{t(` مكتباً مسجلاً في ${currentPlan.name}`, ` law firms registered in ${currentPlan.name}`)}</span>
             </div>
 
-            <div className="flex items-center gap-2 border-s border-[#e2ded7] ps-3">
-              <span className="text-[11px] text-[#737067]">صفوف بالصفحة:</span>
+            <div className="flex items-center gap-2 border-s border-[#e2ded7] dark:border-[#38271c] ps-3">
+              <span className="text-[11px] text-[#737067] dark:text-[#cdc5bd]">
+                {t("صفوف بالصفحة:", "Rows per page:")}
+              </span>
               <PageSizeDropdown
                 value={pageSize}
                 onChange={(newSize) => {
@@ -673,28 +825,28 @@ export function SubscribedFirmsView({
               type="button"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(1)}
-              title="الصفحة الأولى"
-              className="size-[28px] rounded border border-[#e2ded7] bg-white text-[#737067] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center"
+              title={t("الصفحة الأولى", "First Page")}
+              className="size-[28px] rounded border border-[#e2ded7] dark:border-[#38271c] bg-white dark:bg-[#221812] text-[#737067] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center"
             >
-              <ChevronsRight className="size-[14px]" />
+              <ChevronsRight className={cn("size-[14px]", isEn && "rotate-180")} />
             </button>
 
             <button
               type="button"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              title="الصفحة السابقة"
-              className="px-[10px] py-[4px] rounded border border-[#e2ded7] bg-white text-[#737067] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-[4px]"
+              title={t("الصفحة السابقة", "Previous Page")}
+              className="px-[10px] py-[4px] rounded border border-[#e2ded7] dark:border-[#38271c] bg-white dark:bg-[#221812] text-[#737067] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-[4px]"
             >
-              <ChevronRight className="size-[14px]" />
-              <span>السابق</span>
+              <ChevronRight className={cn("size-[14px]", isEn && "rotate-180")} />
+              <span>{t("السابق", "Previous")}</span>
             </button>
 
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => {
               if (totalPages > 5 && Math.abs(p - currentPage) > 2 && p !== 1 && p !== totalPages) {
                 if (p === 2 || p === totalPages - 1) {
                   return (
-                    <span key={p} className="px-[2px] text-[#737067]">
+                    <span key={p} className="px-[2px] text-[#737067] dark:text-[#cdc5bd]">
                       ...
                     </span>
                   );
@@ -709,8 +861,8 @@ export function SubscribedFirmsView({
                   onClick={() => setCurrentPage(p)}
                   className={`size-[28px] rounded font-bold text-[12px] flex items-center justify-center cursor-pointer transition-colors ${
                     isActive
-                      ? "bg-[#9c6402] text-white"
-                      : "border border-[#e2ded7] bg-white text-[#1b1c1a] hover:bg-[#f5f3ef]"
+                      ? "bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f]"
+                      : "border border-[#e2ded7] dark:border-[#38271c] bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15]"
                   }`}
                 >
                   {p}
@@ -722,21 +874,21 @@ export function SubscribedFirmsView({
               type="button"
               disabled={currentPage >= totalPages}
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              title="الصفحة التالية"
-              className="px-[10px] py-[4px] rounded border border-[#e2ded7] bg-white text-[#737067] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-[4px]"
+              title={t("الصفحة التالية", "Next Page")}
+              className="px-[10px] py-[4px] rounded border border-[#e2ded7] dark:border-[#38271c] bg-white dark:bg-[#221812] text-[#737067] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-[4px]"
             >
-              <span>التالي</span>
-              <ChevronLeft className="size-[14px]" />
+              <span>{t("التالي", "Next")}</span>
+              <ChevronLeft className={cn("size-[14px]", isEn && "rotate-180")} />
             </button>
 
             <button
               type="button"
               disabled={currentPage >= totalPages}
               onClick={() => setCurrentPage(totalPages)}
-              title="الصفحة الأخيرة"
-              className="size-[28px] rounded border border-[#e2ded7] bg-white text-[#737067] hover:bg-[#f5f3ef] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center"
+              title={t("الصفحة الأخيرة", "Last Page")}
+              className="size-[28px] rounded border border-[#e2ded7] dark:border-[#38271c] bg-white dark:bg-[#221812] text-[#737067] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center"
             >
-              <ChevronsLeft className="size-[14px]" />
+              <ChevronsLeft className={cn("size-[14px]", isEn && "rotate-180")} />
             </button>
           </div>
         </div>
@@ -753,37 +905,39 @@ export function SubscribedFirmsView({
             ...(openMenuFirm.coords.bottom !== undefined ? { bottom: `${openMenuFirm.coords.bottom}px` } : {}),
             zIndex: 9999,
           }}
-          className="w-[190px] bg-white rounded-[6px] shadow-[0px_8px_24px_rgba(0,0,0,0.14)] border border-[#e2ded7] p-[4px] text-start animate-in fade-in-50 zoom-in-95 select-none font-['Cairo',sans-serif]"
+          className="w-[190px] bg-white dark:bg-[#1e1c1a] rounded-[6px] shadow-[0px_8px_24px_rgba(0,0,0,0.14)] border border-[#e2ded7] dark:border-[#38271c] p-[4px] text-start animate-in fade-in-50 zoom-in-95 select-none font-['Cairo',sans-serif]"
         >
           <button
             type="button"
             onClick={() => handleOpenUpgrade(openMenuFirm.firm)}
-            className="w-full flex items-center gap-[8px] px-[10px] py-[7px] text-[12px] font-semibold text-[#1b1c1a] hover:bg-[#faf8f5] rounded-[4px] cursor-pointer"
+            className="w-full flex items-center gap-[8px] px-[10px] py-[7px] text-[12px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#faf8f5] dark:hover:bg-[#281c15] rounded-[4px] cursor-pointer"
           >
-            <ArrowUp className="size-[14px] text-[#9c6402]" />
-            <span>ترقية اشتراك المكتب</span>
+            <ArrowUp className="size-[14px] text-[#9c6402] dark:text-[#e29d38]" />
+            <span>{t("ترقية اشتراك المكتب", "Upgrade Subscription")}</span>
           </button>
 
           <button
             type="button"
             onClick={() => handleOpenDeactivate(openMenuFirm.firm)}
-            className="w-full flex items-center gap-[8px] px-[10px] py-[7px] text-[12px] font-semibold text-[#b91c1c] hover:bg-[#fee2e2]/40 rounded-[4px] cursor-pointer"
+            className="w-full flex items-center gap-[8px] px-[10px] py-[7px] text-[12px] font-semibold text-[#b91c1c] dark:text-[#f87171] hover:bg-[#fee2e2]/40 dark:hover:bg-[#381a1a] rounded-[4px] cursor-pointer"
           >
-            <Ban className="size-[14px] text-[#b91c1c]" />
-            <span>تعطيل اشتراك المكتب</span>
+            <Ban className="size-[14px] text-[#b91c1c] dark:text-[#f87171]" />
+            <span>{t("تعطيل اشتراك المكتب", "Deactivate Subscription")}</span>
           </button>
 
           <button
             type="button"
             onClick={() => {
-              const firmName = openMenuFirm.firm.name;
+              const firm = openMenuFirm.firm;
               setOpenMenuFirm(null);
-              toast.info(`عرض تفاصيل ${firmName}`);
+              if (onViewOfficeDetails) {
+                onViewOfficeDetails(firm);
+              }
             }}
-            className="w-full flex items-center gap-[8px] px-[10px] py-[7px] text-[12px] font-semibold text-[#514537] hover:bg-[#faf8f5] rounded-[4px] cursor-pointer"
+            className="w-full flex items-center gap-[8px] px-[10px] py-[7px] text-[12px] font-semibold text-[#514537] dark:text-[#cdc5bd] hover:bg-[#faf8f5] dark:hover:bg-[#281c15] rounded-[4px] cursor-pointer"
           >
             <Eye className="size-[14px]" />
-            <span>عرض تفاصيل المكتب</span>
+            <span>{t("عرض تفاصيل المكتب", "View Office Details")}</span>
           </button>
         </div>,
         document.body

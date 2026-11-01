@@ -1,13 +1,19 @@
+"use client";
+
 import React from "react";
 import { Users, Plus, ShieldCheck } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 interface StaffEmptyStateProps {
   onAddEmployee: () => void;
 }
 
 export function StaffEmptyState({ onAddEmployee }: StaffEmptyStateProps) {
+  const { t, direction } = useLanguage();
+
   return (
     <div
+      dir={direction}
       className="bg-white rounded-[8px] border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] p-8 sm:p-14 flex flex-col items-center justify-center text-center"
       data-node-id="1:8718"
     >
@@ -26,7 +32,7 @@ export function StaffEmptyState({ onAddEmployee }: StaffEmptyStateProps) {
         className="text-[26px] sm:text-[28px] font-bold text-[#1b1c1a] mb-2 leading-[36px]"
         data-node-id="1:8721"
       >
-        لا يوجد موظفون حتى الآن
+        {t("لا يوجد موظفون حتى الآن", "No Staff Members Yet")}
       </h2>
 
       {/* Description */}
@@ -34,8 +40,10 @@ export function StaffEmptyState({ onAddEmployee }: StaffEmptyStateProps) {
         className="text-[14px] text-[#514537] max-w-[520px] leading-[24px] mb-6"
         data-node-id="1:8723"
       >
-        أضف أول موظف إلى لوحة الجودي وحدد بياناته وصلاحياته للبدء في إدارة وتوزيع
-        المهام الإدارية بأمان.
+        {t(
+          "أضف أول موظف إلى لوحة الجودي وحدد بياناته وصلاحياته للبدء في إدارة وتوزيع المهام الإدارية بأمان.",
+          "Add your first employee to Al-Judy dashboard, configure credentials and roles to start distributing tasks securely."
+        )}
       </p>
 
       {/* Action Button */}
@@ -46,7 +54,7 @@ export function StaffEmptyState({ onAddEmployee }: StaffEmptyStateProps) {
         data-node-id="1:8725"
       >
         <Plus className="size-[16px]" />
-        <span>إضافة موظف</span>
+        <span>{t("إضافة موظف", "Add Employee")}</span>
       </button>
 
       {/* Compliance / Security Note Box */}
@@ -56,10 +64,13 @@ export function StaffEmptyState({ onAddEmployee }: StaffEmptyStateProps) {
         </div>
         <div className="flex flex-col text-[13px] leading-[22px]">
           <span className="font-bold text-[#1b1c1a]">
-            ملاحظة أمنية ونظامية:
+            {t("ملاحظة أمنية ونظامية:", "Security & Compliance Note:")}
           </span>
           <span className="text-[#514537]">
-            يمكنك تعيين أدوار محددة وصلاحيات مقيدة لكل موظف لضمان حماية بيانات العملاء وفق ضوابط الامتثال والأنظمة العدلية بالمملكة العربية السعودية.
+            {t(
+              "يمكنك تعيين أدوار محددة وصلاحيات مقيدة لكل موظف لضمان حماية بيانات العملاء وفق ضوابط الامتثال والأنظمة العدلية بالمملكة العربية السعودية.",
+              "You can assign specific roles and restricted permissions to each staff member to ensure client data protection under Saudi judicial compliance."
+            )}
           </span>
         </div>
       </div>

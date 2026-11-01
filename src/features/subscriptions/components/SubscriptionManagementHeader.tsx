@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Plus } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 interface SubscriptionManagementHeaderProps {
   onAddSubscription: () => void;
@@ -10,6 +11,8 @@ interface SubscriptionManagementHeaderProps {
 export function SubscriptionManagementHeader({
   onAddSubscription,
 }: SubscriptionManagementHeaderProps) {
+  const { t } = useLanguage();
+
   return (
     <div
       className="bg-white dark:bg-[#1e1c1a] flex flex-col md:flex-row items-start md:items-center justify-between p-5 sm:p-6 rounded-[8px] border border-[#f0eeea] dark:border-[#2f2a24] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] w-full gap-4"
@@ -19,10 +22,13 @@ export function SubscriptionManagementHeader({
       {/* Right in RTL: Title & Subtitle */}
       <div className="flex flex-col items-start text-start">
         <h1 className="font-['Cairo'] font-bold text-[28px] text-[#1b1c1a] dark:text-[#fdfbf7] leading-[38px]">
-          إدارة الاشتراكات
+          {t("إدارة الاشتراكات", "Subscription Management")}
         </h1>
         <p className="font-['Cairo'] font-normal text-[14px] text-[#514537] dark:text-[#a89f91] mt-0.5 leading-[22px]">
-          متابعة اشتراكات مكاتب المحاماة، دورات الفوترة، وحالات التجديد والتحصيل التلقائي.
+          {t(
+            "متابعة اشتراكات مكاتب المحاماة، دورات الفوترة، وحالات التجديد والتحصيل التلقائي.",
+            "Monitor law firm subscriptions, billing cycles, automated renewals, and collections."
+          )}
         </p>
       </div>
 
@@ -36,7 +42,7 @@ export function SubscriptionManagementHeader({
           data-name="Button"
         >
           <Plus className="w-4 h-4 shrink-0" />
-          <span>إضافة اشتراك </span>
+          <span>{t("إضافة اشتراك", "Add Subscription")}</span>
         </button>
       </div>
     </div>

@@ -1,0 +1,4324 @@
+{
+  "collection": {
+    "info": {
+      "_postman_id": "9c31e88e-4fa7-4646-9e4b-0682ac23b57d",
+      "name": "SaaS Super Admin Management API (منصة الجودي)",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+      "createdAt": "2026-10-31T13:16:32.000Z",
+      "updatedAt": "2026-10-31T13:53:11.000Z",
+      "lastUpdatedBy": "50014550",
+      "uid": "50014550-9c31e88e-4fa7-4646-9e4b-0682ac23b57d"
+    },
+    "item": [
+      {
+        "name": "01. Dashboard (الرئيسية)",
+        "item": [
+          {
+            "name": "01. نظرة عامة على لوحة التحكم",
+            "id": "31fd1dd4-edbe-4d98-8a68-258bb70fca83",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/dashboard?company_id=2",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "dashboard"
+                ],
+                "query": [
+                  {
+                    "key": "company_id",
+                    "value": "2"
+                  }
+                ]
+              },
+              "description": "إحصائيات المنصة، الإيرادات، توزيع الباقات، أحدث المكاتب، وملخص الدعم الفني"
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:25:59.000Z",
+            "uid": "50014550-31fd1dd4-edbe-4d98-8a68-258bb70fca83"
+          }
+        ],
+        "id": "677a088a-aba3-4ea9-a50c-28f5c2a65c87",
+        "createdAt": "2026-10-31T13:16:33.000Z",
+        "updatedAt": "2026-10-31T13:16:33.000Z",
+        "uid": "50014550-677a088a-aba3-4ea9-a50c-28f5c2a65c87"
+      },
+      {
+        "name": "02. Law Firms Management (إدارة العملاء والمكاتب)",
+        "item": [
+          {
+            "name": "01. إحصائيات المكاتب (KPIs)",
+            "id": "013b7350-544b-4728-9325-a428b98cc087",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/firms/stats",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "firms",
+                  "stats"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-013b7350-544b-4728-9325-a428b98cc087"
+          },
+          {
+            "name": "02. قائمة مكاتب المحاماة (مع الفلترة والبحث)",
+            "id": "10feaf44-d619-4e29-b794-cff9e42df42b",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/firms?status=all&page=1&per_page=10",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "firms"
+                ],
+                "query": [
+                  {
+                    "key": "status",
+                    "value": "all"
+                  },
+                  {
+                    "key": "page",
+                    "value": "1"
+                  },
+                  {
+                    "key": "per_page",
+                    "value": "10"
+                  }
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-10feaf44-d619-4e29-b794-cff9e42df42b"
+          },
+          {
+            "name": "03. إضافة مكتب محاماة جديد (Step 1 + Step 2)",
+            "id": "b7682fd3-ffd5-4aed-8d7d-b80c2b6cce55",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"owner_name\": \"د. خالد بن عبد العزيز العجلان\",\n    \"name\": \"شركة العجلان وشركاؤه للمحاماة والاستشارات القانونية\",\n    \"license_number\": \"38\\/412\",\n    \"email\": \"contact1793455841@alajlan-law.sa\",\n    \"phone\": \"+966501234567\",\n    \"landline\": \"0114829900\",\n    \"city\": \"الرياض\",\n    \"address\": \"طريق الملك فهد، حي الصحافة، برج النخبة - الطابق 14\",\n    \"password\": \"AlJudy#Law2025\",\n    \"plan_type\": \"paid\",\n    \"plan_id\": 1,\n    \"billing_cycle\": \"yearly\"\n}\n\n //plan_type --------- ENUM('trial','basic','professional','enterprise','paid')\n",
+                "options": {
+                  "raw": {
+                    "language": "json"
+                  }
+                }
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/firms",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "firms"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:41:36.000Z",
+            "uid": "50014550-b7682fd3-ffd5-4aed-8d7d-b80c2b6cce55"
+          },
+          {
+            "name": "04. عرض الملف الكامل للمكتب وتفاصيل الاستهلاك",
+            "id": "638a1361-12d1-438d-85c0-e0f058a7fbea",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/firms/{{firm_id}}",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "firms",
+                  "{{firm_id}}"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-638a1361-12d1-438d-85c0-e0f058a7fbea"
+          },
+          {
+            "name": "05. تحديث بيانات مكتب محاماة",
+            "id": "07d82ff0-8260-4890-9c58-b6f16b43d182",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "PUT",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"name\": \"شركة العجلان الدولية للمحاماة\",\n    \"phone\": \"+966501239876\",\n    \"city\": \"الرياض\",\n    \"tax_number\": \"301298457200003\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/firms/{{firm_id}}",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "firms",
+                  "{{firm_id}}"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-07d82ff0-8260-4890-9c58-b6f16b43d182"
+          },
+          {
+            "name": "06. تعطيل مؤقت / تفعيل حساب المكتب",
+            "id": "8dad2a44-3a46-4667-858e-96716bcb8a03",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "PATCH",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"status\": \"suspended\",\n    \"reason\": \"بناءً على طلب صاحب الحساب للتطوير\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/firms/{{firm_id}}/status",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "firms",
+                  "{{firm_id}}",
+                  "status"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-8dad2a44-3a46-4667-858e-96716bcb8a03"
+          },
+          {
+            "name": "07. إضافة ملاحظة داخلية خاصة بفريق العمل على المكتب",
+            "id": "023fe62a-5532-4037-8f6d-5db464e11b51",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"note\": \"تم التواصل هاتفياً مع رئيس المكتب وتم الاتفاق على ترقية الباقة مع بداية الشهر القادم.\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/firms/{{firm_id}}/notes",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "firms",
+                  "{{firm_id}}",
+                  "notes"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-023fe62a-5532-4037-8f6d-5db464e11b51"
+          },
+          {
+            "name": "08. حذف المكتب نهائياً من المنظومة",
+            "id": "78bcf0af-8743-4fcd-8d2d-26a0ad9ec1c1",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "DELETE",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/firms/{{firm_id}}",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "firms",
+                  "{{firm_id}}"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-78bcf0af-8743-4fcd-8d2d-26a0ad9ec1c1"
+          }
+        ],
+        "id": "a5e61de2-43af-4453-877e-6628b69889f1",
+        "createdAt": "2026-10-31T13:16:33.000Z",
+        "updatedAt": "2026-10-31T13:16:33.000Z",
+        "uid": "50014550-a5e61de2-43af-4453-877e-6628b69889f1"
+      },
+      {
+        "name": "03. Plans & Pricing (الباقات والأسعار)",
+        "item": [
+          {
+            "name": "01. إحصائيات الباقات والـ MRR",
+            "id": "ff34430e-a807-4a83-b944-4c47ddd5bc03",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/plans/stats",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "plans",
+                  "stats"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-ff34430e-a807-4a83-b944-4c47ddd5bc03"
+          },
+          {
+            "name": "02. استعراض كافة الباقات والأسعار",
+            "id": "d035cc4c-f53c-4f10-ad88-9c77d1a56e51",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/plans",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "plans"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-d035cc4c-f53c-4f10-ad88-9c77d1a56e51"
+          },
+          {
+            "name": "03. إنشاء باقة اشتراك جديدة (4 خطوات فيجما)",
+            "id": "31e88384-acaf-4edc-9a52-8b135a11daea",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"name\": \"باقة التميز العدلي\",\n    \"description\": \"مخصصة للمكاتب والشركات المهنية القانونية التي تتطلب تكاملاً فورياً مع بوابة ناجز وإدارة الفروع.\",\n    \"badge\": \"فئة التميز الذهبية\",\n    \"badge_color\": \"#d97706\",\n    \"type\": \"paid\",\n    \"monthly_price\": 549,\n    \"yearly_price\": 5290,\n    \"yearly_discount_percent\": 19,\n    \"max_lawyers\": 8,\n    \"max_cases\": 350,\n    \"max_power_of_attorney\": 10,\n    \"max_clients\": 2000,\n    \"max_assistants\": 15,\n    \"storage_limit_gb\": 50,\n    \"support_level\": \"دعم فني واستجابة بأولوية قصوى (VIP SLA)\",\n    \"features\": [\n        \"مدير حساب قانوني معتمد شخصي\",\n        \"تقارير الذكاء القضائي ومؤشرات الأداء المالي (KPIs)\",\n        \"فوترة إلكترونية متوافقة كلياً (ZATCA Phase 2)\",\n        \"ربط تكاملي فوري مع بوابة ناجز ومساند\"\n    ],\n    \"is_popular\": true,\n    \"status\": \"active\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/plans",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "plans"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-31e88384-acaf-4edc-9a52-8b135a11daea"
+          },
+          {
+            "name": "04. تفاصيل الباقة المحددة",
+            "id": "b4020f2b-8197-4ce0-8154-e24aa8bd7b68",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/plans/{{plan_id}}",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "plans",
+                  "{{plan_id}}"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-b4020f2b-8197-4ce0-8154-e24aa8bd7b68"
+          },
+          {
+            "name": "05. تعديل بيانات الباقة والأسعار",
+            "id": "1a40d4d3-1867-46dd-9731-6df8393ee463",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "PUT",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"monthly_price\": 599,\n    \"storage_limit_gb\": 60\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/plans/{{plan_id}}",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "plans",
+                  "{{plan_id}}"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-1a40d4d3-1867-46dd-9731-6df8393ee463"
+          },
+          {
+            "name": "06. تغيير حالة الباقة (تفعيل / تعطيل الباقة)",
+            "id": "ae1e209d-90d7-4138-b3d2-d6a74075c2fe",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "PATCH",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"status\": \"disabled\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/plans/{{plan_id}}/status",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "plans",
+                  "{{plan_id}}",
+                  "status"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-ae1e209d-90d7-4138-b3d2-d6a74075c2fe"
+          },
+          {
+            "name": "07. استعراض المكاتب المشتركة في هذه الباقة",
+            "id": "310ca4bf-4f08-47a9-b4c8-51b2aa1029c0",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/plans/{{plan_id}}/subscribers",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "plans",
+                  "{{plan_id}}",
+                  "subscribers"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-310ca4bf-4f08-47a9-b4c8-51b2aa1029c0"
+          },
+          {
+            "name": "08. حذف الباقة (مع فحص منع الحذف إذا وجد مشتركون)",
+            "id": "8b0b76a2-134c-4258-9924-58e1b430cb47",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "DELETE",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/plans/{{plan_id}}",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "plans",
+                  "{{plan_id}}"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-8b0b76a2-134c-4258-9924-58e1b430cb47"
+          }
+        ],
+        "id": "d938368e-20f8-4a89-afe5-d1e17cf0765d",
+        "createdAt": "2026-10-31T13:16:33.000Z",
+        "updatedAt": "2026-10-31T13:16:33.000Z",
+        "uid": "50014550-d938368e-20f8-4a89-afe5-d1e17cf0765d"
+      },
+      {
+        "name": "04. Subscriptions Management (إدارة الاشتراكات)",
+        "item": [
+          {
+            "name": "01. إحصائيات الاشتراكات والتجديدات القريبة",
+            "id": "ca7cb7fc-11d1-4e8f-bed1-ea998c72d2b6",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/subscriptions/stats",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "subscriptions",
+                  "stats"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-ca7cb7fc-11d1-4e8f-bed1-ea998c72d2b6"
+          },
+          {
+            "name": "02. قائمة الاشتراكات (الكل / نشطة / قيد الانتظار / منتهية)",
+            "id": "c1d5d6d4-2eef-4d0c-b546-33c3c3a70769",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/subscriptions?tab=all&page=1",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "subscriptions"
+                ],
+                "query": [
+                  {
+                    "key": "tab",
+                    "value": "all"
+                  },
+                  {
+                    "key": "page",
+                    "value": "1"
+                  }
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-c1d5d6d4-2eef-4d0c-b546-33c3c3a70769"
+          },
+          {
+            "name": "03. عرض تفاصيل الاشتراك (نشط / قيد الانتظار / مرفوض / ملغي)",
+            "id": "4aa4fed4-43ad-4961-bc20-fb1bc87bf0c1",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/subscriptions/{{subscription_id}}",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "subscriptions",
+                  "{{subscription_id}}"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-4aa4fed4-43ad-4961-bc20-fb1bc87bf0c1"
+          },
+          {
+            "name": "04. الموافقة وتفعيل طلب الاشتراك قيد الانتظار",
+            "id": "751827df-c6d8-4f4d-8d47-a7467db63637",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/subscriptions/{{subscription_id}}/approve",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "subscriptions",
+                  "{{subscription_id}}",
+                  "approve"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-751827df-c6d8-4f4d-8d47-a7467db63637"
+          },
+          {
+            "name": "05. رفض طلب الاشتراك مع تسجيل السبب",
+            "id": "a19e667b-7ff8-47eb-897f-2bf3df375a5a",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"reason\": \"عدم تطابق السجل التجاري مع وثيقة ترخيص المحاماة الصادرة من وزارة العدل، مع وجود تعارض في الرقم الضريبي للمنشأة.\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/subscriptions/{{subscription_id}}/reject",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "subscriptions",
+                  "{{subscription_id}}",
+                  "reject"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-a19e667b-7ff8-47eb-897f-2bf3df375a5a"
+          },
+          {
+            "name": "06. تجديد اشتراك المكتب وإصدار فاتورة إلكترونية",
+            "id": "3dd93dc8-c780-4d96-8b9b-aca189f08170",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"period\": \"year\",\n    \"payment_method\": \"mada\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/subscriptions/{{subscription_id}}/renew",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "subscriptions",
+                  "{{subscription_id}}",
+                  "renew"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-3dd93dc8-c780-4d96-8b9b-aca189f08170"
+          },
+          {
+            "name": "07. ترقية اشتراك المكتب لباقة أعلى",
+            "id": "a09bc28f-a997-4a45-9857-daf185433df2",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"new_plan_id\": 3,\n    \"billing_cycle\": \"yearly\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/subscriptions/{{subscription_id}}/upgrade",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "subscriptions",
+                  "{{subscription_id}}",
+                  "upgrade"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-a09bc28f-a997-4a45-9857-daf185433df2"
+          },
+          {
+            "name": "08. إلغاء اشتراك المكتب وإيقاف التجديد التلقائي",
+            "id": "62cf0a1c-9cda-4f3f-8a13-982edb1d3a6e",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"reason\": \"تم إلغاء التجديد التلقائي بناءً على طلب المنشأة كتابياً.\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/subscriptions/{{subscription_id}}/cancel",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "subscriptions",
+                  "{{subscription_id}}",
+                  "cancel"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-62cf0a1c-9cda-4f3f-8a13-982edb1d3a6e"
+          },
+          {
+            "name": "09. تغيير حالة الاشتراك يدوياً",
+            "id": "877dbf1a-4a6a-4869-a15b-f50b1ab9fef2",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "PATCH",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"status\": \"suspended\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/subscriptions/{{subscription_id}}/status",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "subscriptions",
+                  "{{subscription_id}}",
+                  "status"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-877dbf1a-4a6a-4869-a15b-f50b1ab9fef2"
+          }
+        ],
+        "id": "c22f3da3-9257-42c4-bafc-288ee45fbde0",
+        "createdAt": "2026-10-31T13:16:33.000Z",
+        "updatedAt": "2026-10-31T13:16:33.000Z",
+        "uid": "50014550-c22f3da3-9257-42c4-bafc-288ee45fbde0"
+      },
+      {
+        "name": "05. Staff & Team (طاقم العمل)",
+        "item": [
+          {
+            "name": "01. إحصائيات طاقم العمل وتواجد اليوم",
+            "id": "fd1bd54e-fcf7-4527-a345-0349b39c6e6b",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/staff/stats",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "staff",
+                  "stats"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-fd1bd54e-fcf7-4527-a345-0349b39c6e6b"
+          },
+          {
+            "name": "02. قائمة الموظفين والمشرفين",
+            "id": "b0530eb3-433b-472d-859e-21af8e0b5569",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/staff",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "staff"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-b0530eb3-433b-472d-859e-21af8e0b5569"
+          },
+          {
+            "name": "03. إضافة موظف جديد لطاقم الإدارة",
+            "id": "e993d616-142c-4a08-9783-63c9f610cb90",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"name\": \"راكان بن كمال الحارثي\",\n    \"emp_code\": \"EMP-130\",\n    \"email\": \"r.alharbi1793455841@aljudy.sa\",\n    \"phone\": \"+966571120049\",\n    \"password\": \"StaffPass@2025\",\n    \"department_id\": 6,\n    \"role_id\": 3,\n    \"status\": \"active\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/staff",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "staff"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-e993d616-142c-4a08-9783-63c9f610cb90"
+          },
+          {
+            "name": "04. تفاصيل الموظف والصلاحيات والتذاكر المسندة",
+            "id": "58cc7336-2fa9-4a92-833e-62401a5eac7e",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/staff/{{staff_id}}",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "staff",
+                  "{{staff_id}}"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-58cc7336-2fa9-4a92-833e-62401a5eac7e"
+          },
+          {
+            "name": "05. تحديث بيانات الموظف",
+            "id": "ee429779-59ed-496d-a60a-fda97e01e31c",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "PUT",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"phone\": \"+966571129999\",\n    \"department_id\": 6\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/staff/{{staff_id}}",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "staff",
+                  "{{staff_id}}"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-ee429779-59ed-496d-a60a-fda97e01e31c"
+          },
+          {
+            "name": "06. إيقاف / تفعيل حساب الموظف",
+            "id": "329925d4-5af0-4d67-99bc-a5244e46705d",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "PATCH",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"status\": \"suspended\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/staff/{{staff_id}}/status",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "staff",
+                  "{{staff_id}}",
+                  "status"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-329925d4-5af0-4d67-99bc-a5244e46705d"
+          },
+          {
+            "name": "07. إعادة تعيين كلمة المرور للموظف",
+            "id": "41252e28-6f64-4dc7-ae67-4a4aa7cf1e1f",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"password\": \"NewSecretPass@2025\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/staff/{{staff_id}}/reset-password",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "staff",
+                  "{{staff_id}}",
+                  "reset-password"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-41252e28-6f64-4dc7-ae67-4a4aa7cf1e1f"
+          },
+          {
+            "name": "08. الدخول كالموظف (Impersonate Token)",
+            "id": "911c61bb-5b28-496e-81a2-3ffe47f40f2b",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/staff/{{staff_id}}/impersonate",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "staff",
+                  "{{staff_id}}",
+                  "impersonate"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-911c61bb-5b28-496e-81a2-3ffe47f40f2b"
+          },
+          {
+            "name": "09. حذف حساب الموظف",
+            "id": "62815abe-f148-466f-9834-3ce5499b733a",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "DELETE",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/staff/{{staff_id}}",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "staff",
+                  "{{staff_id}}"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-62815abe-f148-466f-9834-3ce5499b733a"
+          }
+        ],
+        "id": "280238cb-ac7a-4c87-94e9-44deb3cabfc1",
+        "createdAt": "2026-10-31T13:16:33.000Z",
+        "updatedAt": "2026-10-31T13:16:33.000Z",
+        "uid": "50014550-280238cb-ac7a-4c87-94e9-44deb3cabfc1"
+      },
+      {
+        "name": "06. Roles & Permissions (الأدوار والصلاحيات)",
+        "item": [
+          {
+            "name": "01. إحصائيات الأدوار ومصفوفة الصلاحيات",
+            "id": "7fe42697-27cf-4cc1-9b0d-aea9b57f296c",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/roles/stats",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "roles",
+                  "stats"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-7fe42697-27cf-4cc1-9b0d-aea9b57f296c"
+          },
+          {
+            "name": "02. دليل وصلاحيات النظام المتاحة بالكامل",
+            "id": "0e03c2d6-b452-4b2b-823e-83045a30d8fa",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/roles/permissions",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "roles",
+                  "permissions"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-0e03c2d6-b452-4b2b-823e-83045a30d8fa"
+          },
+          {
+            "name": "03. قائمة الأدوار الوظيفية",
+            "id": "f2a3848d-5a23-4b44-8e9d-91a00564325f",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/roles",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "roles"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-f2a3848d-5a23-4b44-8e9d-91a00564325f"
+          },
+          {
+            "name": "04. إضافة دور وظيفي جديد",
+            "id": "19aa671a-71ac-487c-8a59-0f6a13a4f9c0",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"name\": \"مشرف عمليات الفروع والمناطق\",\n    \"slug\": \"branch-operations-supervisor\",\n    \"description\": \"متابعة فتح فروع مكاتب المحاماة في مختلف مناطق المملكة والتدقيق الجغرافي.\",\n    \"permissions\": [\n        \"dashboard.view\",\n        \"firms.view\",\n        \"firms.edit\",\n        \"tickets.view\"\n    ]\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/roles",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "roles"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-19aa671a-71ac-487c-8a59-0f6a13a4f9c0"
+          },
+          {
+            "name": "05. عرض بيانات وصلاحيات الدور",
+            "id": "59cb0605-c993-412c-a9cb-3275ee3bc67f",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/roles/{{role_id}}",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "roles",
+                  "{{role_id}}"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-59cb0605-c993-412c-a9cb-3275ee3bc67f"
+          },
+          {
+            "name": "06. تعديل الصلاحيات الممنوحة للدور",
+            "id": "1d879ac1-1e86-4376-8293-7fdfb46aedba",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "PUT",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"name\": \"مشرف عمليات الفروع الإقليمية\",\n    \"permissions\": [\n        \"dashboard.view\",\n        \"firms.view\",\n        \"firms.edit\",\n        \"firms.status_change\",\n        \"tickets.view\",\n        \"tickets.reply\"\n    ]\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/roles/{{role_id}}",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "roles",
+                  "{{role_id}}"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-1d879ac1-1e86-4376-8293-7fdfb46aedba"
+          },
+          {
+            "name": "07. إعادة تعيين الموظفين لدور آخر تمهيداً لحذف الدور",
+            "id": "4890a409-dea0-4053-9483-40c5b7b1f9c5",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"target_role_id\": 2\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/roles/{{role_id}}/reassign-staff",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "roles",
+                  "{{role_id}}",
+                  "reassign-staff"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-4890a409-dea0-4053-9483-40c5b7b1f9c5"
+          },
+          {
+            "name": "08. حذف الدور الوظيفي (مع حماية الأدوار المحمية وارتباط الموظفين)",
+            "id": "1c8c8292-1a96-4af1-8250-6a494a6b194f",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "DELETE",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/roles/{{role_id}}",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "roles",
+                  "{{role_id}}"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-1c8c8292-1a96-4af1-8250-6a494a6b194f"
+          }
+        ],
+        "id": "24385b98-9ef2-4cbf-ace2-31886945fd45",
+        "createdAt": "2026-10-31T13:16:33.000Z",
+        "updatedAt": "2026-10-31T13:16:33.000Z",
+        "uid": "50014550-24385b98-9ef2-4cbf-ace2-31886945fd45"
+      },
+      {
+        "name": "07. Departments (الأقسام والهيكل التنظيمي)",
+        "item": [
+          {
+            "name": "01. قائمة الأقسام",
+            "id": "9ff30a80-f8f9-43da-99b2-c434eddaa648",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/departments",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "departments"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-9ff30a80-f8f9-43da-99b2-c434eddaa648"
+          },
+          {
+            "name": "02. إضافة قسم جديد",
+            "id": "7a52ec8d-5b85-4dc3-ab94-6334d2e0acc6",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"name\": \"قسم الوساطة والتحكيم التجاري الدولي\",\n    \"code\": \"DEP-07\",\n    \"description\": \"إدارة ملفات وهيئات التحكيم والنزاعات المالية الكبرى.\",\n    \"status\": \"active\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/departments",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "departments"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-7a52ec8d-5b85-4dc3-ab94-6334d2e0acc6"
+          },
+          {
+            "name": "03. عرض تفاصيل القسم",
+            "id": "c6331a6c-8078-471c-a691-0f3c3abe37e4",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/departments/1",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "departments",
+                  "1"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-c6331a6c-8078-471c-a691-0f3c3abe37e4"
+          },
+          {
+            "name": "04. تحديث بيانات القسم",
+            "id": "ac72ebe0-d46f-4b9a-ac80-d522759f586c",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "PUT",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"name\": \"قسم قضايا العمل والنزاعات العمالية المحدث\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/departments/1",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "departments",
+                  "1"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-ac72ebe0-d46f-4b9a-ac80-d522759f586c"
+          },
+          {
+            "name": "05. حذف القسم",
+            "id": "d77bc856-da96-45e0-925f-1f24cdad3c94",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "DELETE",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/departments/1",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "departments",
+                  "1"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-d77bc856-da96-45e0-925f-1f24cdad3c94"
+          }
+        ],
+        "id": "541300e8-059b-4c8c-8166-3c53a650ca4a",
+        "createdAt": "2026-10-31T13:16:33.000Z",
+        "updatedAt": "2026-10-31T13:16:33.000Z",
+        "uid": "50014550-541300e8-059b-4c8c-8166-3c53a650ca4a"
+      },
+      {
+        "name": "08. Support Tickets (تذاكر الدعم الفني)",
+        "item": [
+          {
+            "name": "01. إحصائيات تذاكر الدعم ونسب الرضا",
+            "id": "5944a3e3-c133-4b1f-a665-a6052cf285e6",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/tickets/stats",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "tickets",
+                  "stats"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-5944a3e3-c133-4b1f-a665-a6052cf285e6"
+          },
+          {
+            "name": "02. استعراض قائمة التذاكر (فلترة بالأولوية والحالة)",
+            "id": "7ae68d44-cd84-4015-afae-fab02f70fca0",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/tickets?status=open&priority=urgent",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "tickets"
+                ],
+                "query": [
+                  {
+                    "key": "status",
+                    "value": "open"
+                  },
+                  {
+                    "key": "priority",
+                    "value": "urgent"
+                  }
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-7ae68d44-cd84-4015-afae-fab02f70fca0"
+          },
+          {
+            "name": "03. إنشاء تذكرة دعم فني جديدة",
+            "id": "a5b9848a-7ce2-4983-8c64-7aa57e09fbf9",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"company_id\": 1,\n    \"subject\": \"تعذر مزامنة صك حكم قضائي من بوابة ناجز التابعة لوزارة العدل\",\n    \"description\": \"توقف استرجاع الجلسات والبيانات الصادرة من محكمة الاستئناف التجارية بالرياض عند الساعة 10:00 ص.\",\n    \"department_id\": 6,\n    \"priority\": \"urgent\",\n    \"channel\": \"portal\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/tickets",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "tickets"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-a5b9848a-7ce2-4983-8c64-7aa57e09fbf9"
+          },
+          {
+            "name": "04. تفاصيل التذكرة وسجل المحادثة والملاحظات الداخلية",
+            "id": "bf34d6ad-d739-460c-9110-dcee4f51971a",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/tickets/{{ticket_id}}",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "tickets",
+                  "{{ticket_id}}"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-bf34d6ad-d739-460c-9110-dcee4f51971a"
+          },
+          {
+            "name": "05. كتابة رد موجه للعميل أو ملاحظة داخلية خاصة",
+            "id": "fc919fcd-57d9-4a92-9d84-93b0b3ea76ba",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"message\": \"تم التواصل مع فريق الربط التقني بوزارة العدل وتم تحديث مفاتيح الـ SSL وباتت المزامنة تعمل بنجاح الآن.\",\n    \"is_internal_note\": false,\n    \"notify_client_sms_email\": true\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/tickets/{{ticket_id}}/reply",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "tickets",
+                  "{{ticket_id}}",
+                  "reply"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-fc919fcd-57d9-4a92-9d84-93b0b3ea76ba"
+          },
+          {
+            "name": "06. إضافة ملاحظة داخلية خاصة بالفريق التقني فقط",
+            "id": "8dd89efd-4fb0-4635-93fc-aeb442d136ad",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"message\": \"ملاحظة خاصة: الخلل كان بسبب انتهاء التوكن المؤقت لبوابة ناجز، قمنا بتجديد الاتصال يدوياً.\",\n    \"is_internal_note\": true\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/tickets/{{ticket_id}}/reply",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "tickets",
+                  "{{ticket_id}}",
+                  "reply"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-8dd89efd-4fb0-4635-93fc-aeb442d136ad"
+          },
+          {
+            "name": "07. إسناد التذكرة لموظف دعم مختص",
+            "id": "ec8a6b8c-2252-40f2-8308-f2fd58889fdd",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"staff_id\": 2,\n    \"reason\": \"اختصاص تكامل واجهات ناجز\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/tickets/{{ticket_id}}/assign",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "tickets",
+                  "{{ticket_id}}",
+                  "assign"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-ec8a6b8c-2252-40f2-8308-f2fd58889fdd"
+          },
+          {
+            "name": "08. تغيير حالة التذكرة (مفتوحة / جاري / معلقة / مغلقة)",
+            "id": "ed770825-290f-448d-b2d3-08fbe94ec126",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "PATCH",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"status\": \"in_progress\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/tickets/{{ticket_id}}/status",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "tickets",
+                  "{{ticket_id}}",
+                  "status"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-ed770825-290f-448d-b2d3-08fbe94ec126"
+          },
+          {
+            "name": "09. إغلاق التذكرة بنجاح واعتماد المعالجة",
+            "id": "91da21b5-0e55-4a76-958e-4c32e63be100",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/tickets/{{ticket_id}}/close",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "tickets",
+                  "{{ticket_id}}",
+                  "close"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-91da21b5-0e55-4a76-958e-4c32e63be100"
+          }
+        ],
+        "id": "0020c0c4-262a-4a03-9174-16964de6a246",
+        "createdAt": "2026-10-31T13:16:33.000Z",
+        "updatedAt": "2026-10-31T13:16:33.000Z",
+        "uid": "50014550-0020c0c4-262a-4a03-9174-16964de6a246"
+      },
+      {
+        "name": "09. Payment Gateways & Invoices (طرق الدفع والفوترة)",
+        "item": [
+          {
+            "name": "01. استعراض بوابات الدفع ومعايير التشفير والزكاة",
+            "id": "36716e04-7bcc-4aee-a038-f93de927d739",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/payment-gateways",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "payment-gateways"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-36716e04-7bcc-4aee-a038-f93de927d739"
+          },
+          {
+            "name": "02. تفاصيل إعدادات بوابة محددة (مثل Stripe)",
+            "id": "9b30ea7f-d1fe-4849-b2f6-f04d065562b6",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/payment-gateways/stripe",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "payment-gateways",
+                  "stripe"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-9b30ea7f-d1fe-4849-b2f6-f04d065562b6"
+          },
+          {
+            "name": "03. تعديل مفاتيح وإعدادات بوابة الدفع",
+            "id": "c1e54b23-4784-4373-945d-0a843c043945",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "PUT",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"mode\": \"live\",\n    \"is_recurring_supported\": true,\n    \"supported_currencies\": [\n        \"SAR\",\n        \"USD\",\n        \"AED\"\n    ],\n    \"config\": {\n        \"publishable_key\": \"pk_live_aljudy_demo_2025\",\n        \"apple_pay\": true,\n        \"mada\": true\n    }\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/payment-gateways/stripe",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "payment-gateways",
+                  "stripe"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-c1e54b23-4784-4373-945d-0a843c043945"
+          },
+          {
+            "name": "04. تعطيل / تفعيل بوابة دفع",
+            "id": "88087bd8-b1e3-4337-829f-94e2f2232969",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "PATCH",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"status\": \"active\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/payment-gateways/stripe/status",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "payment-gateways",
+                  "stripe",
+                  "status"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-88087bd8-b1e3-4337-829f-94e2f2232969"
+          },
+          {
+            "name": "05. فحص حالة الاتصال ببوابة الدفع (Ping Test)",
+            "id": "f4a094d5-106a-4cc9-a0c5-f0c90d083671",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/payment-gateways/stripe/test",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "payment-gateways",
+                  "stripe",
+                  "test"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-f4a094d5-106a-4cc9-a0c5-f0c90d083671"
+          },
+          {
+            "name": "06. قائمة فواتير الاشتراكات المركزية للمنصة",
+            "id": "4abca6d5-af28-4ed8-b664-c746216ea553",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/invoices",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "invoices"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-4abca6d5-af28-4ed8-b664-c746216ea553"
+          },
+          {
+            "name": "07. تفاصيل الفاتورة الإلكترونية ومطابقة ZATCA QR",
+            "id": "53e08771-1aee-4f6a-b9fb-a361e487d344",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/invoices/1",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "invoices",
+                  "1"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-53e08771-1aee-4f6a-b9fb-a361e487d344"
+          }
+        ],
+        "id": "cf290074-9a42-4e33-937f-01292d4ef9c0",
+        "createdAt": "2026-10-31T13:16:33.000Z",
+        "updatedAt": "2026-10-31T13:16:33.000Z",
+        "uid": "50014550-cf290074-9a42-4e33-937f-01292d4ef9c0"
+      },
+      {
+        "name": "10. Central Announcements (الإشعارات المركزية)",
+        "item": [
+          {
+            "name": "01. قائمة الإعلانات والإشعارات المركزية",
+            "id": "983cb568-b7fe-4a3d-8386-9ed5a725291d",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/announcements",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "announcements"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-983cb568-b7fe-4a3d-8386-9ed5a725291d"
+          },
+          {
+            "name": "02. إرسال إشعار مركزي جديد للمكاتب",
+            "id": "48508623-2309-492d-b9cc-e8354e14fa8e",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"title\": \"تحديث هام: إضافة خيار التحقق الثنائي (2FA) عبر نفاذ الوطني لكافة المحامين\",\n    \"content\": \"نود إحاطة جميع مكاتب المحاماة بأنه تم تفعيل الدخول الموحد الآمن عبر نفاذ لتعزيز سرية بيانات القضايا.\",\n    \"target_audience\": \"all\",\n    \"action_url\": \"https:\\/\\/aljudy.sa\\/updates\\/nafaz-2fa\",\n    \"action_label\": \"طريقة التفعيل\",\n    \"status\": \"sent\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/announcements",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "announcements"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-48508623-2309-492d-b9cc-e8354e14fa8e"
+          },
+          {
+            "name": "03. عرض تفاصيل إشعار محدد",
+            "id": "d8e9b585-af27-4716-826a-12741972fb37",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/announcements/1",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "announcements",
+                  "1"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-d8e9b585-af27-4716-826a-12741972fb37"
+          },
+          {
+            "name": "04. حذف إشعار",
+            "id": "2be403f2-5025-452b-93ab-172d7ae59b94",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "DELETE",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/announcements/1",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "announcements",
+                  "1"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-2be403f2-5025-452b-93ab-172d7ae59b94"
+          }
+        ],
+        "id": "bd6a1871-a2e2-44d3-b29c-5ac3a52716d5",
+        "createdAt": "2026-10-31T13:16:33.000Z",
+        "updatedAt": "2026-10-31T13:16:33.000Z",
+        "uid": "50014550-bd6a1871-a2e2-44d3-b29c-5ac3a52716d5"
+      },
+      {
+        "name": "11. System Settings & Server (إعدادات النظام والسيرفر)",
+        "item": [
+          {
+            "name": "01. استعراض الإعدادات العامة للمنصة",
+            "id": "bdf7113e-9865-4f16-8532-c6bdb756da48",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/settings/general",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "settings",
+                  "general"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-bdf7113e-9865-4f16-8532-c6bdb756da48"
+          },
+          {
+            "name": "02. تحديث الإعدادات العامة والهوية البصرية والروابط",
+            "id": "2c71e1c5-55fc-4476-80dc-7203631bcffe",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"system_title\": \"منصة الجودي لإدارة الشؤون القانونية والمحاماة\",\n    \"company_name\": \"مجموعة الجودي للأنظمة والحلول التقنية\",\n    \"slogan\": \"المنظومة السحابية المتكاملة لتمكين المحامين وإدارة الدعاوى والتوثيق\",\n    \"phone\": \"+966 11 456 7890\",\n    \"email\": \"support@aljudy.sa\",\n    \"license_code\": \"JDY-2024-ENT-8849-SA-AUTH\",\n    \"timezone\": \"Asia\\/Riyadh\",\n    \"default_currency\": \"SAR\",\n    \"primary_color\": \"#9C6402\",\n    \"api_docs_url\": \"https:\\/\\/developer.aljudy.sa\\/v2\\/docs\",\n    \"whatsapp_guide_url\": \"https:\\/\\/aljudy.sa\\/guides\\/integrations\\/whatsapp\",\n    \"telegram_guide_url\": \"https:\\/\\/aljudy.sa\\/guides\\/integrations\\/telegram\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/settings/general",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "settings",
+                  "general"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-2c71e1c5-55fc-4476-80dc-7203631bcffe"
+          },
+          {
+            "name": "03. فحص إعدادات السيرفر التقنية (معلومات السيرفر)",
+            "id": "d8ffba53-aa90-4e78-99b9-bd5a271101bc",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/settings/server-info",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "settings",
+                  "server-info"
+                ]
+              },
+              "description": "فحص file_uploads, memory_limit, max_execution_time, allow_url_fopen ومقارنتها مع التوصيات"
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-d8ffba53-aa90-4e78-99b9-bd5a271101bc"
+          },
+          {
+            "name": "04. استعلام حالة تحديث النظام المركزية",
+            "id": "72038c75-40ef-488b-b726-d4a6b96f07da",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/settings/system-update",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "settings",
+                  "system-update"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-72038c75-40ef-488b-b726-d4a6b96f07da"
+          },
+          {
+            "name": "05. بدء ترقية وتحديث نواة النظام (v4.4.0 إلى v4.5.0)",
+            "id": "227650fe-9f0d-4ed1-80d3-3a8b72d468b2",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/settings/system-update",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "settings",
+                  "system-update"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-227650fe-9f0d-4ed1-80d3-3a8b72d468b2"
+          },
+          {
+            "name": "06. سجل العمليات والإجراءات والتدقيق (Audit Logs)",
+            "id": "bb097c89-e454-40c3-89d6-7d5255794053",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/audit-logs",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "audit-logs"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-bb097c89-e454-40c3-89d6-7d5255794053"
+          }
+        ],
+        "id": "b18c1b32-f424-4abb-b345-62f24e59812b",
+        "createdAt": "2026-10-31T13:16:33.000Z",
+        "updatedAt": "2026-10-31T13:16:33.000Z",
+        "uid": "50014550-b18c1b32-f424-4abb-b345-62f24e59812b"
+      },
+      {
+        "name": "12. Currencies & Languages (العملات واللغات)",
+        "item": [
+          {
+            "name": "01. قائمة العملات وأسعار الصرف",
+            "id": "50d295ff-db61-44f8-bf22-27ffeb1ab6d5",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/currencies",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "currencies"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-50d295ff-db61-44f8-bf22-27ffeb1ab6d5"
+          },
+          {
+            "name": "02. إضافة عملة جديدة",
+            "id": "69ca739e-b34a-458e-9665-8a1188efadc4",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"name\": \"الريال القطري\",\n    \"code\": \"QAR\",\n    \"symbol\": \"ر.ق\",\n    \"exchange_rate\": 3.64,\n    \"status\": \"active\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/currencies",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "currencies"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-69ca739e-b34a-458e-9665-8a1188efadc4"
+          },
+          {
+            "name": "03. تعيين عملة كافتراضية للنظام",
+            "id": "84d7081f-75a7-4ed0-9855-994ada66cfbe",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/currencies/{{currency_id}}/default",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "currencies",
+                  "{{currency_id}}",
+                  "default"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-84d7081f-75a7-4ed0-9855-994ada66cfbe"
+          },
+          {
+            "name": "04. حذف عملة",
+            "id": "54f28526-9f24-4432-b2bb-fca6d5c37051",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "DELETE",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/currencies/{{currency_id}}",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "currencies",
+                  "{{currency_id}}"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-54f28526-9f24-4432-b2bb-fca6d5c37051"
+          },
+          {
+            "name": "05. قائمة اللغات والاتجاهات",
+            "id": "d6e6cece-f52c-473d-b771-8f3014a93f53",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/languages",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "languages"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-d6e6cece-f52c-473d-b771-8f3014a93f53"
+          },
+          {
+            "name": "06. إضافة لغة جديدة",
+            "id": "6f11e5bd-2ae0-4d9a-985c-a95c8a6096d8",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"name\": \"Türkçe\",\n    \"code\": \"tr\",\n    \"direction\": \"ltr\",\n    \"status\": \"active\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/languages",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "languages"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-6f11e5bd-2ae0-4d9a-985c-a95c8a6096d8"
+          },
+          {
+            "name": "07. تعيين لغة كافتراضية للنظام",
+            "id": "f70802a7-cfad-4d5a-af50-a5ac65fb441a",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/languages/{{language_id}}/default",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "languages",
+                  "{{language_id}}",
+                  "default"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-f70802a7-cfad-4d5a-af50-a5ac65fb441a"
+          },
+          {
+            "name": "08. حذف لغة",
+            "id": "3535e74f-a13a-4aa4-8b29-77abc9d41bcd",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "DELETE",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/languages/{{language_id}}",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "languages",
+                  "{{language_id}}"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-3535e74f-a13a-4aa4-8b29-77abc9d41bcd"
+          }
+        ],
+        "id": "342d5cf7-6c89-424a-9a27-34b6df7ed150",
+        "createdAt": "2026-10-31T13:16:33.000Z",
+        "updatedAt": "2026-10-31T13:16:33.000Z",
+        "uid": "50014550-342d5cf7-6c89-424a-9a27-34b6df7ed150"
+      },
+      {
+        "name": "13. Website CMS (إعدادات الموقع التعريفي)",
+        "item": [
+          {
+            "name": "01. خيارات مظهر الموقع والخطوط والشعارات",
+            "id": "3b4a6555-d5a9-4bc4-8b63-96fe8d9324b2",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/website/theme",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "website",
+                  "theme"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-3b4a6555-d5a9-4bc4-8b63-96fe8d9324b2"
+          },
+          {
+            "name": "02. تحديث خيارات مظهر الموقع",
+            "id": "6db516d7-c66d-4140-bb32-209e3a14d3be",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"headline_font\": \"Jost\",\n    \"body_font\": \"Poppins\",\n    \"theme\": \"Modern (عصري)\",\n    \"disable_landing_page\": false,\n    \"language_switcher\": true\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/website/theme",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "website",
+                  "theme"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-6db516d7-c66d-4140-bb32-209e3a14d3be"
+          },
+          {
+            "name": "03. إعدادات محركات البحث ووسوم المشاركة (SEO & OG)",
+            "id": "838bd27c-1a8e-452d-a0b7-8317507fcd60",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/website/seo",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "website",
+                  "seo"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-838bd27c-1a8e-452d-a0b7-8317507fcd60"
+          },
+          {
+            "name": "04. تحديث إعدادات محركات البحث وSEO",
+            "id": "0c15faec-bf3c-4652-b6cd-03fa52e29503",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"language\": \"ar\",\n    \"author_name\": \"منصة الجودي للأنظمة القانونية | Al Judy Legal SaaS\",\n    \"meta_title\": \"الجودي | المنظومة السحابية الرائدة لإدارة مكاتب المحاماة والشركات القانونية\",\n    \"meta_keywords\": \"محاماة, إدارة مكاتب المحاماة, استشارات قانونية, قضايا, نظام الجودي, عقود ذكية\",\n    \"meta_description\": \"نظام الجودي السحابي هو الحل التقني الأكثر تطوراً للمحامين والشركات القانونية في المملكة العربية السعودية والخليج.\",\n    \"og_title\": \"منصة الجودي | النظام الرقمي الأذكى لإدارة مكاتب المحاماة\",\n    \"og_description\": \"انضم إلى نخبة مكاتب المحاماة الرائدة في إدارة القضايا والعملاء والعقود عبر منصة سحابية واحدة بمعايير أمان بنكية.\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/website/seo",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "website",
+                  "seo"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-0c15faec-bf3c-4652-b6cd-03fa52e29503"
+          },
+          {
+            "name": "05. استعلام بيانات قسم الهيرو (Hero Section)",
+            "id": "a65d794b-6d32-4526-ad51-bc848ada5baf",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/website/hero",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "website",
+                  "hero"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-a65d794b-6d32-4526-ad51-bc848ada5baf"
+          },
+          {
+            "name": "06. تحديث قسم الهيرو",
+            "id": "8b6baccc-21a4-43e5-a1ae-f30ef4d69991",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"title\": \"التسويق الفوري وإدارة العمليات القانونية لعملك\",\n    \"subtitle\": \"تمتع بتواصل مباشر وسريع مع موكليك، وأدر كافة الدعاوى والجلسات والتوثيق بأعلى معايير الحوكمة.\",\n    \"description\": \"حل سحابي مخصص للمحامين والشركات المهنية القانونية.\",\n    \"action_button\": true,\n    \"action_button_label\": \"ابدأ تجربتك المجانية (14 يوماً)\",\n    \"action_button_url\": \"\\/register\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/website/hero",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "website",
+                  "hero"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-8b6baccc-21a4-43e5-a1ae-f30ef4d69991"
+          },
+          {
+            "name": "07. استعراض عناصر قسم المميزات (Features)",
+            "id": "d2ccbd09-2287-40aa-8a63-03a73cace02a",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/website/sections/features",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "website",
+                  "sections",
+                  "features"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-d2ccbd09-2287-40aa-8a63-03a73cace02a"
+          },
+          {
+            "name": "08. إضافة عنصر جديد في قسم المميزات",
+            "id": "4d3ebd2c-a432-4edd-b822-3a8a5d42a602",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"title\": \"أرشفة ذكية مشفرة للمستندات\",\n    \"subtitle\": \"حماية بنكية وحفظ فوري لصكوك الأحكام\",\n    \"description\": \"نظام أرشفة قانوني متكامل يتيح البحث النصي الفوري داخل مذكرات الدعوى ومسودات العقود.\",\n    \"type\": \"CloudArchive\",\n    \"sort_order\": 1,\n    \"is_active\": true\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/admin/website/sections/features",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "website",
+                  "sections",
+                  "features"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-4d3ebd2c-a432-4edd-b822-3a8a5d42a602"
+          },
+          {
+            "name": "09. تفعيل / تعطيل عنصر في الموقع",
+            "id": "bccbe2b4-250e-46f4-b991-965094cd00d8",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "PATCH",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/website/items/1/toggle",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "website",
+                  "items",
+                  "1",
+                  "toggle"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-bccbe2b4-250e-46f4-b991-965094cd00d8"
+          },
+          {
+            "name": "10. حذف عنصر من الموقع",
+            "id": "be54d664-6a14-40e6-9cdf-58817eb5aa39",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "DELETE",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/website/items/1",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "website",
+                  "items",
+                  "1"
+                ]
+              }
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-be54d664-6a14-40e6-9cdf-58817eb5aa39"
+          }
+        ],
+        "id": "b04bff15-232e-4e4e-8759-3e3d3efff04a",
+        "createdAt": "2026-10-31T13:16:33.000Z",
+        "updatedAt": "2026-10-31T13:16:33.000Z",
+        "uid": "50014550-b04bff15-232e-4e4e-8759-3e3d3efff04a"
+      },
+      {
+        "name": "14. Utility & Impersonation (المعاينة والدخول كالمكتب)",
+        "item": [
+          {
+            "name": "01. بدء المعاينة المباشرة والدخول كالمكتب (Impersonate Firm)",
+            "id": "fae4d833-9e15-48f7-b497-54f6a1a96dbb",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/utility/login-as-firm/{{firm_id}}",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "utility",
+                  "login-as-firm",
+                  "{{firm_id}}"
+                ]
+              },
+              "description": "يقوم بإنشاء جلسة دخول فورية باسم رئيس المكتب لمعاينة لوحة تحكم المكتب والتأكد من سير العمل."
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-fae4d833-9e15-48f7-b497-54f6a1a96dbb"
+          },
+          {
+            "name": "02. إنهاء وضع المعاينة المباشرة",
+            "id": "2edfc9e7-6a0e-4401-b9b0-f462a61954e0",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}",
+                  "type": "text"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/utility/end-preview",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "utility",
+                  "end-preview"
+                ]
+              },
+              "description": "إنهاء وضع المعاينة والعودة الكاملة للوحة الإدارة العليا."
+            },
+            "response": [],
+            "createdAt": "2026-10-31T13:16:33.000Z",
+            "updatedAt": "2026-10-31T13:16:33.000Z",
+            "uid": "50014550-2edfc9e7-6a0e-4401-b9b0-f462a61954e0"
+          }
+        ],
+        "id": "92feff06-cbcc-474d-a486-1988a06c775f",
+        "createdAt": "2026-10-31T13:16:33.000Z",
+        "updatedAt": "2026-10-31T13:16:33.000Z",
+        "uid": "50014550-92feff06-cbcc-474d-a486-1988a06c775f"
+      }
+    ],
+    "variable": [
+      {
+        "key": "base_url",
+        "value": "http://127.0.0.1:8000/api"
+      },
+      {
+        "key": "admin_token",
+        "value": ""
+      },
+      {
+        "key": "firm_id",
+        "value": "1"
+      },
+      {
+        "key": "plan_id",
+        "value": "1"
+      },
+      {
+        "key": "subscription_id",
+        "value": "1"
+      },
+      {
+        "key": "staff_id",
+        "value": "1"
+      },
+      {
+        "key": "role_id",
+        "value": "1"
+      },
+      {
+        "key": "ticket_id",
+        "value": "1"
+      },
+      {
+        "key": "currency_id",
+        "value": "1"
+      },
+      {
+        "key": "language_id",
+        "value": "1"
+      }
+    ]
+  }
+}

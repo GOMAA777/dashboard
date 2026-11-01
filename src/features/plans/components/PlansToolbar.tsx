@@ -3,6 +3,7 @@
 import React from "react";
 import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
 import { DashboardSelect } from "@/components/shared/DashboardSelect";
+import { useLanguage } from "@/lib/i18n";
 
 interface PlansToolbarProps {
   searchQuery: string;
@@ -27,6 +28,7 @@ export function PlansToolbar({
   onSortByChange,
   counts,
 }: PlansToolbarProps) {
+  const { t } = useLanguage();
   const hasActiveFilters =
     statusFilter !== "all" ||
     billingCycle !== "monthly" ||
@@ -45,7 +47,7 @@ export function PlansToolbar({
       {/* 1. Status Filter in Drawer */}
       <div className="space-y-2">
         <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-          حالة الباقة
+          {t("حالة الباقة", "Plan Status")}
         </label>
         <DashboardSelect
           value={statusFilter}
@@ -53,16 +55,16 @@ export function PlansToolbar({
             onStatusFilterChange(e.target.value as "all" | "active" | "inactive")
           }
         >
-          <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">كافة حالات الباقات ({counts.all})</option>
-          <option value="active" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الباقات المفعلة فقط ({counts.active})</option>
-          <option value="inactive" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الباقات المعطلة فقط ({counts.inactive})</option>
+          <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("كافة حالات الباقات", "All Plan Statuses")} ({counts.all})</option>
+          <option value="active" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("الباقات المفعلة فقط", "Active Plans Only")} ({counts.active})</option>
+          <option value="inactive" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("الباقات المعطلة فقط", "Inactive Plans Only")} ({counts.inactive})</option>
         </DashboardSelect>
       </div>
 
       {/* 2. Billing Cycle Option */}
       <div className="space-y-2">
         <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-          دورة الفوترة المعتمدة
+          {t("دورة الفوترة المعتمدة", "Billing Cycle")}
         </label>
         <div className="grid grid-cols-2 gap-2">
           <button
@@ -74,7 +76,7 @@ export function PlansToolbar({
                 : "bg-[#f5f3ef] dark:bg-[#281c15] text-[#514537] dark:text-[#cdc5bd] border-transparent dark:border-[#38271c] hover:bg-[#eae8e4] dark:hover:bg-[#38271c]"
             }`}
           >
-            شهري
+            {t("شهري", "Monthly")}
           </button>
           <button
             type="button"
@@ -85,7 +87,7 @@ export function PlansToolbar({
                 : "bg-[#f5f3ef] dark:bg-[#281c15] text-[#514537] dark:text-[#cdc5bd] border-transparent dark:border-[#38271c] hover:bg-[#eae8e4] dark:hover:bg-[#38271c]"
             }`}
           >
-            <span>سنوي</span>
+            <span>{t("سنوي", "Annual")}</span>
             <span className="bg-[#ffddb6] dark:bg-[rgba(226,157,56,0.25)] text-[#7b4e00] dark:text-[#f3c27e] text-[10px] font-bold px-[6px] py-[1px] rounded-full border border-transparent dark:border-[#e29d38]/40">
               -15%
             </span>
@@ -96,7 +98,7 @@ export function PlansToolbar({
       {/* 3. Sort By Option */}
       <div className="space-y-2">
         <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-          ترتيب العرض
+          {t("ترتيب العرض", "Sort Display")}
         </label>
         <DashboardSelect
           value={sortBy}
@@ -106,9 +108,9 @@ export function PlansToolbar({
             )
           }
         >
-          <option value="price_desc" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الأعلى سعراً أولاً</option>
-          <option value="price_asc" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الأقل سعراً أولاً</option>
-          <option value="subscribers" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الأكثر طلباً ومشتركين أولاً</option>
+          <option value="price_desc" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("الأعلى سعراً أولاً", "Highest Price First")}</option>
+          <option value="price_asc" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("الأقل سعراً أولاً", "Lowest Price First")}</option>
+          <option value="subscribers" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("الأكثر طلباً ومشتركين أولاً", "Most Subscribers First")}</option>
         </DashboardSelect>
       </div>
     </div>
@@ -118,19 +120,19 @@ export function PlansToolbar({
     <UnifiedFilterBar
       searchQuery={searchQuery}
       onSearchChange={onSearchChange}
-      searchPlaceholder="ابحث باسم الباقة أو المميزات..."
+      searchPlaceholder={t("ابحث باسم الباقة أو المميزات...", "Search by plan name or features...")}
       primaryFilterValue={statusFilter}
       onPrimaryFilterChange={(v) =>
         onStatusFilterChange(v as "all" | "active" | "inactive")
       }
       primaryFilterOptions={[
-        { label: `كل الحالات (${counts.all})`, value: "all" },
-        { label: `مفعلة (${counts.active})`, value: "active" },
-        { label: `معطلة (${counts.inactive})`, value: "inactive" },
+        { label: `${t("كل الحالات", "All Statuses")} (${counts.all})`, value: "all" },
+        { label: `${t("مفعلة", "Active")} (${counts.active})`, value: "active" },
+        { label: `${t("معطلة", "Inactive")} (${counts.inactive})`, value: "inactive" },
       ]}
       hasActiveFilters={hasActiveFilters}
       onReset={handleReset}
-      drawerTitle="تصفية الباقات والأسعار"
+      drawerTitle={t("تصفية الباقات والأسعار", "Filter Plans & Pricing")}
       drawerContent={drawerContent}
     />
   );

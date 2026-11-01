@@ -6,6 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { createSubscriptionSchema, CreateSubscriptionInput } from "../schemas/subscription.schemas";
 import { X, Building2 } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from "@/lib/i18n";
+import { ModalPortal } from "@/components/shared/ModalPortal";
 
 interface AddSubscriptionModalProps {
   isOpen: boolean;
@@ -18,6 +20,8 @@ export function AddSubscriptionModal({
   onClose,
   onSubmitSuccess,
 }: AddSubscriptionModalProps) {
+  const { t } = useLanguage();
+
   const {
     register,
     handleSubmit,
@@ -38,19 +42,26 @@ export function AddSubscriptionModal({
   const onSubmit: SubmitHandler<CreateSubscriptionInput> = async (values) => {
     try {
       onSubmitSuccess(values);
-      toast.success("تم تسجيل طلب الاشتراك بنجاح");
+      toast.success(t("تم تسجيل طلب الاشتراك بنجاح", "Subscription request registered successfully"));
       reset();
       onClose();
     } catch {
-      toast.error("حدث خطأ أثناء حفظ الاشتراك");
+      toast.error(t("حدث خطأ أثناء حفظ الاشتراك", "Error saving subscription"));
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+    <ModalPortal isOpen={isOpen}>
       <div
-        className="bg-white dark:bg-[#1e1c1a] rounded-[12px] shadow-2xl border border-[#f0eeea] dark:border-[#2f2a24] w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 font-['Cairo']"
+        className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
       >
+        <div
+          className="bg-white dark:bg-[#1e1c1a] rounded-[12px] shadow-2xl border border-[#f0eeea] dark:border-[#2f2a24] w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 font-['Cairo']"
+          onClick={(e) => e.stopPropagation()}
+        >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-[#f0eeea] dark:border-[#2f2a24] bg-[#faf9f7] dark:bg-[#25221e]">
           <div className="flex items-center gap-3">
@@ -59,10 +70,13 @@ export function AddSubscriptionModal({
             </div>
             <div>
               <h2 className="text-[18px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                إضافة اشتراك جديد
+                {t("إضافة اشتراك جديد", "Add New Subscription")}
               </h2>
               <p className="text-[12px] text-[#514537] dark:text-[#a89f91]">
-                تسجيل مكتب محاماة وتعيين باقة الاشتراك ودورة الفوترة
+                {t(
+                  "تسجيل مكتب محاماة وتعيين باقة الاشتراك ودورة الفوترة",
+                  "Register law firm and assign subscription plan & billing cycle"
+                )}
               </p>
             </div>
           </div>
@@ -81,13 +95,13 @@ export function AddSubscriptionModal({
             {/* Firm Name */}
             <div>
               <label className="block text-[12px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] mb-1">
-                اسم مكتب المحاماة *
+                {t("اسم مكتب المحاماة *", "Law Firm Name *")}
               </label>
               <div className="relative">
                 <input
                   type="text"
                   {...register("firmName")}
-                  placeholder="شركة التميمي ومشاركوه للمحاماة"
+                  placeholder={t("شركة التميمي ومشاركوه للمحاماة", "Al-Tamimi & Partners Law Firm")}
                   className="w-full h-10 px-3 bg-[#f5f3ef] dark:bg-[#2c2621] rounded-[6px] text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] border-none focus:ring-1 focus:ring-[#9c6402] focus:outline-none"
                 />
               </div>
@@ -101,7 +115,7 @@ export function AddSubscriptionModal({
             {/* License Number */}
             <div>
               <label className="block text-[12px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] mb-1">
-                رقم ترخيص وزارة العدل *
+                {t("رقم ترخيص وزارة العدل *", "MOJ License Number *")}
               </label>
               <div className="relative">
                 <input
@@ -121,12 +135,12 @@ export function AddSubscriptionModal({
             {/* City */}
             <div>
               <label className="block text-[12px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] mb-1">
-                المدينة *
+                {t("المدينة *", "City *")}
               </label>
               <input
                 type="text"
                 {...register("city")}
-                placeholder="الرياض"
+                placeholder={t("الرياض", "Riyadh")}
                 className="w-full h-10 px-3 bg-[#f5f3ef] dark:bg-[#2c2621] rounded-[6px] text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] border-none focus:ring-1 focus:ring-[#9c6402] focus:outline-none"
               />
               {errors.city && (
@@ -139,12 +153,12 @@ export function AddSubscriptionModal({
             {/* Owner/Director Name */}
             <div>
               <label className="block text-[12px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] mb-1">
-                اسم المدير المسؤول *
+                {t("اسم المدير المسؤول *", "Managing Director Name *")}
               </label>
               <input
                 type="text"
                 {...register("ownerName")}
-                placeholder="د. عبد الرحمن آل ناصر"
+                placeholder={t("د. عبد الرحمن آل ناصر", "Dr. Abdulrahman Al-Nasser")}
                 className="w-full h-10 px-3 bg-[#f5f3ef] dark:bg-[#2c2621] rounded-[6px] text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] border-none focus:ring-1 focus:ring-[#9c6402] focus:outline-none"
               />
               {errors.ownerName && (
@@ -157,7 +171,7 @@ export function AddSubscriptionModal({
             {/* Email */}
             <div>
               <label className="block text-[12px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] mb-1">
-                البريد الإلكتروني المعتمد *
+                {t("البريد الإلكتروني المعتمد *", "Official Email *")}
               </label>
               <input
                 type="email"
@@ -175,7 +189,7 @@ export function AddSubscriptionModal({
             {/* Phone */}
             <div>
               <label className="block text-[12px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] mb-1">
-                رقم الهاتف الموثق *
+                {t("رقم الهاتف الموثق *", "Verified Phone Number *")}
               </label>
               <input
                 type="text"
@@ -193,53 +207,53 @@ export function AddSubscriptionModal({
             {/* Plan Name */}
             <div>
               <label className="block text-[12px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] mb-1">
-                نوع الباقة *
+                {t("نوع الباقة *", "Plan Type *")}
               </label>
               <select
                 {...register("planName")}
                 className="w-full h-10 px-3 bg-[#f5f3ef] dark:bg-[#2c2621] rounded-[6px] text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] border-none focus:ring-1 focus:ring-[#9c6402] focus:outline-none cursor-pointer"
               >
-                <option value="الباقة المخصصة">الباقة المخصصة (Custom - 24,500 ر.س)</option>
-                <option value="الباقة الذهبية">الباقة الذهبية (12,000 ر.س)</option>
-                <option value="الباقة الفضية">الباقة الفضية (9,200 ر.س)</option>
-                <option value="الباقة الأساسية">الباقة الأساسية (5,400 ر.س)</option>
+                <option value="الباقة المخصصة">{t("الباقة المخصصة (Custom - 24,500 ر.س)", "Enterprise Plan (Custom - 24,500 SAR)")}</option>
+                <option value="الباقة الذهبية">{t("الباقة الذهبية (12,000 ر.س)", "Gold Plan (12,000 SAR)")}</option>
+                <option value="الباقة الفضية">{t("الباقة الفضية (9,200 ر.س)", "Silver Plan (9,200 SAR)")}</option>
+                <option value="الباقة الأساسية">{t("الباقة الأساسية (5,400 ر.س)", "Basic Plan (5,400 SAR)")}</option>
               </select>
             </div>
 
             {/* Billing Cycle */}
             <div>
               <label className="block text-[12px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] mb-1">
-                دورة الفوترة *
+                {t("دورة الفوترة *", "Billing Cycle *")}
               </label>
               <select
                 {...register("billingCycle")}
                 className="w-full h-10 px-3 bg-[#f5f3ef] dark:bg-[#2c2621] rounded-[6px] text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] border-none focus:ring-1 focus:ring-[#9c6402] focus:outline-none cursor-pointer"
               >
-                <option value="سنوية">سنوية (توفير 15%)</option>
-                <option value="شهرية">شهرية</option>
+                <option value="سنوية">{t("سنوية (توفير 15%)", "Annual (Save 15%)")}</option>
+                <option value="شهرية">{t("شهرية", "Monthly")}</option>
               </select>
             </div>
 
             {/* Payment Method */}
             <div>
               <label className="block text-[12px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] mb-1">
-                وسيلة الدفع *
+                {t("وسيلة الدفع *", "Payment Method *")}
               </label>
               <select
                 {...register("paymentMethod")}
                 className="w-full h-10 px-3 bg-[#f5f3ef] dark:bg-[#2c2621] rounded-[6px] text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] border-none focus:ring-1 focus:ring-[#9c6402] focus:outline-none cursor-pointer"
               >
-                <option value="mada">بطاقة مدى البنكية</option>
+                <option value="mada">{t("بطاقة مدى البنكية", "Mada Debit Card")}</option>
                 <option value="visa">VISA / Mastercard</option>
-                <option value="sadad">نظام سداد للمدفوعات</option>
-                <option value="transfer">تحويل بنكي مباشر</option>
+                <option value="sadad">{t("نظام سداد للمدفوعات", "Sadad Payment System")}</option>
+                <option value="transfer">{t("تحويل بنكي مباشر", "Direct Bank Transfer")}</option>
               </select>
             </div>
 
             {/* Tax Number */}
             <div>
               <label className="block text-[12px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] mb-1">
-                الرقم الضريبي للمكتب (ZATCA)
+                {t("الرقم الضريبي للمكتب (ZATCA)", "Office Tax Number (ZATCA)")}
               </label>
               <input
                 type="text"
@@ -257,18 +271,19 @@ export function AddSubscriptionModal({
               onClick={onClose}
               className="px-4 py-2 rounded-[6px] text-[13px] font-semibold text-[#514537] dark:text-[#a89f91] hover:bg-[#f0eeea] dark:hover:bg-[#2c2621] transition-colors cursor-pointer"
             >
-              إلغاء
+              {t("إلغاء", "Cancel")}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className="bg-[#9c6402] hover:bg-[#825200] text-white px-5 py-2 rounded-[6px] text-[13px] font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
             >
-              إنشاء وتفعيل الاشتراك
+              {t("إنشاء وتفعيل الاشتراك", "Create & Activate Subscription")}
             </button>
           </div>
         </form>
       </div>
     </div>
+  </ModalPortal>
   );
 }

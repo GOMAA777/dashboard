@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   Plus,
   PenSquare,
@@ -25,8 +25,17 @@ import { toast } from "sonner";
 import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
 import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
 import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
+import { useLanguage } from "@/lib/i18n";
+import {
+  fetchLanguages,
+  createLanguage,
+  deleteLanguage,
+  setDefaultLanguage,
+} from "@/lib/api/settings";
+import { mapLanguagesResponse } from "@/lib/api/mappers";
 
 export function LanguageSettingsView() {
+  const { language: currentLang, direction, isEn, setLanguage } = useLanguage();
   const [languages, setLanguages] = useState<LanguageItem[]>(initialLanguages);
   const [currentView, setCurrentView] = useState<"list" | "add">("list");
   const [activeTab, setActiveTab] = useState<"all" | "active" | "inactive">("all");
@@ -36,6 +45,22 @@ export function LanguageSettingsView() {
   const [pageIndex, setPageIndex] = useState<number>(0);
   const [languageToDelete, setLanguageToDelete] = useState<LanguageItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchLanguages()
+      .then((payload) => {
+        if (cancelled) return;
+        const mapped = mapLanguagesResponse(payload);
+        if (mapped.length > 0) setLanguages(mapped);
+      })
+      .catch(() => {
+        // Keep mock languages if API unavailable.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Filtered languages
   const filteredLanguages = useMemo(() => {
@@ -89,7 +114,7 @@ export function LanguageSettingsView() {
       {/* 1. Status Filter */}
       <div className="space-y-1.5">
         <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-          الحالة التشغيلية
+          {isEn ? "Operational Status" : "الحالة التشغيلية"}
         </label>
         <select
           value={activeTab}
@@ -99,16 +124,16 @@ export function LanguageSettingsView() {
           }}
           className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[12px] border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
         >
-          <option value="all">كل اللغات ({languages.length})</option>
-          <option value="active">اللغات النشطة فقط ({activeCount})</option>
-          <option value="inactive">اللغات المعطلة ({inactiveCount})</option>
+          <option value="all">{isEn ? `All Languages (${languages.length})` : `كل اللغات (${languages.length})`}</option>
+          <option value="active">{isEn ? `Active Only (${activeCount})` : `اللغات النشطة فقط (${activeCount})`}</option>
+          <option value="inactive">{isEn ? `Inactive Only (${inactiveCount})` : `اللغات المعطلة (${inactiveCount})`}</option>
         </select>
       </div>
 
       {/* 2. Direction Filter */}
       <div className="space-y-1.5">
         <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-          اتجاه النص (Direction)
+          {isEn ? "Text Direction" : "اتجاه النص (Direction)"}
         </label>
         <select
           value={directionFilter}
@@ -118,36 +143,56 @@ export function LanguageSettingsView() {
           }}
           className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[12px] border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
         >
-          <option value="all">كافة الاتجاهات (الكل)</option>
-          <option value="rtl">RTL (من اليمين إلى اليسار)</option>
-          <option value="ltr">LTR (من اليسار إلى اليمين)</option>
+          <option value="all">{isEn ? "All Directions" : "كافة الاتجاهات (الكل)"}</option>
+          <option value="rtl">{isEn ? "RTL (Right to Left)" : "RTL (من اليمين إلى اليسار)"}</option>
+          <option value="ltr">{isEn ? "LTR (Left to Right)" : "LTR (من اليسار إلى اليمين)"}</option>
         </select>
       </div>
     </div>
   );
 
-  const handleDeleteConfirm = (language: LanguageItem) => {
+  const handleDeleteConfirm = async (language: LanguageItem) => {
     if (language.isDefault) {
-      toast.error("لا يمكن حذف لغة النظام الافتراضية");
+      toast.error(isEn ? "System default language cannot be deleted" : "لا يمكن حذف لغة النظام الافتراضية");
       setLanguageToDelete(null);
       return;
     }
 
     setIsDeleting(true);
-    setTimeout(() => {
-      setLanguages((prev) => prev.filter((l) => l.id !== language.id));
-      setIsDeleting(false);
-      setLanguageToDelete(null);
-      toast.success(`تم حذف اللغة «${language.name}» بنجاح`);
-    }, 400);
+    try {
+      await deleteLanguage(language.id);
+    } catch {
+      // Keep local delete.
+    }
+    setLanguages((prev) => prev.filter((l) => l.id !== language.id));
+    setIsDeleting(false);
+    setLanguageToDelete(null);
+    toast.success(isEn ? `Language "${language.name}" deleted successfully` : `تم حذف اللغة «${language.name}» بنجاح`);
   };
 
-  const handleSaveNewLanguage = (newLanguage: LanguageItem) => {
+  const handleSaveNewLanguage = async (newLanguage: LanguageItem) => {
+    try {
+      await createLanguage({
+        name: newLanguage.name,
+        code: newLanguage.code,
+        direction: newLanguage.direction,
+        native_name: newLanguage.nativeName,
+        status: newLanguage.status,
+      });
+      if (newLanguage.isDefault) {
+        await setDefaultLanguage(newLanguage.id);
+      }
+    } catch {
+      // Keep local create.
+    }
     setLanguages((prev) => [newLanguage, ...prev]);
   };
 
   return (
-    <div className="flex h-screen h-dvh bg-[#f5f3ef] dark:bg-[#1a120d] text-[#1b1c1a] dark:text-[#fdfbf7] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00]">
+    <div
+      dir={direction}
+      className="flex h-screen h-dvh bg-[#f5f3ef] dark:bg-[#1a120d] text-[#1b1c1a] dark:text-[#fdfbf7] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00]"
+    >
       {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar activeNav="system-settings" activeSubNav="language" />
 
@@ -169,10 +214,12 @@ export function LanguageSettingsView() {
                   {/* Title & Description */}
                   <div className="flex flex-col gap-[4px] text-start">
                     <h1 className="text-[28px] leading-[38px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      إعدادات اللغة
+                      {isEn ? "Language Settings" : "إعدادات اللغة"}
                     </h1>
                     <p className="text-[14px] leading-[22px] font-normal text-[#514537] dark:text-[#a89f91]">
-                      إدارة وتفعيل حزم اللغات المعتمدة لدعم الترجمة المؤسسية وسير العمل القضائي والقانوني.
+                      {isEn
+                        ? "Manage and activate certified language packs for enterprise translation, judicial, and legal workflows."
+                        : "إدارة وتفعيل حزم اللغات المعتمدة لدعم الترجمة المؤسسية وسير العمل القضائي والقانوني."}
                     </p>
                   </div>
 
@@ -183,13 +230,13 @@ export function LanguageSettingsView() {
                     className="bg-[#9c6402] hover:bg-[#835401] active:bg-[#6c4501] text-white px-[20px] py-[10px] rounded-[6px] font-semibold text-[14px] flex items-center gap-[8px] transition-all shadow-sm cursor-pointer shrink-0"
                   >
                     <Plus className="size-[18px]" />
-                    <span>إضافة لغة جديدة</span>
+                    <span>{isEn ? "Add New Language" : "إضافة لغة جديدة"}</span>
                   </button>
                 </div>
 
                 {/* Informational System Default Banner (Figma 1:18083) */}
                 <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  {/* Right Side: Translation Icon & Information */}
+                  {/* Translation Icon & Information */}
                   <div className="flex items-center gap-[16px] text-start">
                     <div className="size-[48px] rounded-[10px] bg-[rgba(255,221,182,0.4)] dark:bg-[rgba(226,157,56,0.18)] text-[#9c6402] dark:text-[#e29d38] flex items-center justify-center shrink-0">
                       <Languages className="size-[24px]" />
@@ -197,20 +244,22 @@ export function LanguageSettingsView() {
                     <div className="flex flex-col gap-[4px]">
                       <div className="flex items-center gap-[8px]">
                         <span className="text-[15px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                          اللغة الافتراضية للنظام: العربية (ar)
+                          {isEn ? "System Default Language: Arabic (ar)" : "اللغة الافتراضية للنظام: العربية (ar)"}
                         </span>
                         <span className="bg-[#ecfdf5] dark:bg-[#132c1c] text-[#065f46] dark:text-[#6ee7b7] border border-emerald-200 dark:border-emerald-500/40 text-[11px] font-bold px-[8px] py-[2px] rounded-[4px] flex items-center gap-[4px]">
                           <span className="size-[5px] rounded-full bg-[#059669] dark:bg-[#10b981]" />
-                          <span>معيار الإسناد الوطني</span>
+                          <span>{isEn ? "National Benchmark" : "معيار الإسناد الوطني"}</span>
                         </span>
                       </div>
                       <p className="text-[12px] text-[#514537] dark:text-[#cdc5bd] leading-[18px]">
-                        البيئة القانونية مهيأة بالكامل للترميز الثنائي RTL و LTR بما يضمن توافق صياغة العقود ومذكرات الترافع الرقمية.
+                        {isEn
+                          ? "The legal environment is fully primed for dual RTL & LTR encoding to ensure compatibility with digital contract formulation and judicial briefs."
+                          : "البيئة القانونية مهيأة بالكامل للترميز الثنائي RTL و LTR بما يضمن توافق صياغة العقود ومذكرات الترافع الرقمية."}
                       </p>
                     </div>
                   </div>
 
-                  {/* Left Side: ISO Benchmark Badge */}
+                  {/* ISO Benchmark Badge */}
                   <div className="bg-[#f5f3ef] dark:bg-[#281c15] border border-[#eae8e4] dark:border-[#38271c] rounded-[6px] px-[12px] py-[6px] flex items-center gap-[6px] text-[#514537] dark:text-[#cdc5bd] shrink-0">
                     <ShieldCheck className="size-[14px] text-[#059669] dark:text-[#34d399]" />
                     <span className="text-[11px] font-mono font-bold">ISO 639-1 / BCP 47</span>
@@ -225,26 +274,26 @@ export function LanguageSettingsView() {
                       setSearchQuery(q);
                       setPageIndex(0);
                     }}
-                    searchPlaceholder="البحث باسم اللغة، الكود، أو الاسم الأصلي..."
+                    searchPlaceholder={isEn ? "Search by language name, code, or native name..." : "البحث باسم اللغة، الكود، أو الاسم الأصلي..."}
                     primaryFilterValue={activeTab}
                     onPrimaryFilterChange={(v) => {
                       setActiveTab(v as "all" | "active" | "inactive");
                       setPageIndex(0);
                     }}
                     primaryFilterOptions={[
-                      { label: `الكل (${languages.length})`, value: "all" },
-                      { label: `نشط (${activeCount})`, value: "active" },
-                      { label: `غير نشط (${inactiveCount})`, value: "inactive" },
+                      { label: isEn ? `All (${languages.length})` : `الكل (${languages.length})`, value: "all" },
+                      { label: isEn ? `Active (${activeCount})` : `نشط (${activeCount})`, value: "active" },
+                      { label: isEn ? `Inactive (${inactiveCount})` : `غير نشط (${inactiveCount})`, value: "inactive" },
                     ]}
                     hasActiveFilters={hasActiveFilters}
                     onReset={handleResetFilters}
-                    drawerTitle="تصفية اللغات المعيارية"
-                    drawerDescription="تخصيص معايير فلترة حزم اللغات واتجاه النصوص"
+                    drawerTitle={isEn ? "Standard Languages Filter" : "تصفية اللغات المعيارية"}
+                    drawerDescription={isEn ? "Customize language pack filter criteria and text directions" : "تخصيص معايير فلترة حزم اللغات واتجاه النصوص"}
                     drawerContent={drawerContent}
                     actionButton={
                       <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
                         <span className="text-[12px] font-semibold text-[#837565] dark:text-[#8e8680] whitespace-nowrap">
-                          الترقيم:
+                          {isEn ? "Page size:" : "الترقيم:"}
                         </span>
                         <PageSizeDropdown
                           value={pageSize}
@@ -271,12 +320,12 @@ export function LanguageSettingsView() {
                         <table className="w-full text-start border-collapse">
                           <thead>
                             <tr className="bg-[#f5f3ef] dark:bg-[#281c15] text-[#514537] dark:text-[#cdc5bd] text-[13px] font-semibold border-b border-[#eae8e4] dark:border-[#38271c]">
-                              <th className="py-[14px] px-[20px] w-[60px]">#</th>
-                              <th className="py-[14px] px-[20px]">اسم اللغة والتصنيف</th>
-                              <th className="py-[14px] px-[20px]">كود اللغة (Locale)</th>
-                              <th className="py-[14px] px-[20px]">اتجاه النص</th>
-                              <th className="py-[14px] px-[20px]">الحالة التشغيلية</th>
-                              <th className="py-[14px] px-[20px] text-center w-[120px]">الإجراءات</th>
+                              <th className="py-[14px] px-[20px] w-[60px] text-start">#</th>
+                              <th className="py-[14px] px-[20px] text-start">{isEn ? "Language Name & Classification" : "اسم اللغة والتصنيف"}</th>
+                              <th className="py-[14px] px-[20px] text-start">{isEn ? "Locale Code" : "كود اللغة (Locale)"}</th>
+                              <th className="py-[14px] px-[20px] text-start">{isEn ? "Text Direction" : "اتجاه النص"}</th>
+                              <th className="py-[14px] px-[20px] text-start">{isEn ? "Operational Status" : "الحالة التشغيلية"}</th>
+                              <th className="py-[14px] px-[20px] text-center w-[120px]">{isEn ? "Actions" : "الإجراءات"}</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-[#eae8e4] dark:divide-[#38271c] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7]">
@@ -286,12 +335,12 @@ export function LanguageSettingsView() {
                                 className="hover:bg-[#faf9f6] dark:hover:bg-[#281c15]/60 transition-colors"
                               >
                                 {/* Order Number */}
-                                <td className="py-[16px] px-[20px] text-[#837565] dark:text-[#a89f91] font-mono text-[13px]">
+                                <td className="py-[16px] px-[20px] text-[#837565] dark:text-[#a89f91] font-mono text-[13px] text-start">
                                   {language.orderNumber}
                                 </td>
 
                                 {/* Name & Classification */}
-                                <td className="py-[16px] px-[20px]">
+                                <td className="py-[16px] px-[20px] text-start">
                                   <div className="flex items-center gap-[8px]">
                                     <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                                       {language.name}
@@ -304,14 +353,14 @@ export function LanguageSettingsView() {
                                     {language.isDefault && (
                                       <span className="inline-flex items-center gap-[4px] bg-[rgba(255,221,182,0.4)] dark:bg-[rgba(226,157,56,0.18)] text-[#9c6402] dark:text-[#e29d38] text-[10px] font-bold px-[8px] py-[2px] rounded-[3px]">
                                         <Lock className="size-[10px]" />
-                                        <span>الافتراضية للنظام</span>
+                                        <span>{isEn ? "System Default" : "الافتراضية للنظام"}</span>
                                       </span>
                                     )}
                                   </div>
                                 </td>
 
                                 {/* Locale Code Badge */}
-                                <td className="py-[16px] px-[20px]">
+                                <td className="py-[16px] px-[20px] text-start">
                                   <div className="flex items-center gap-[6px]">
                                     <span className="bg-[#f0eeea] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] font-mono font-bold text-[11px] px-[8px] py-[3px] rounded-[4px] border border-transparent dark:border-[#38271c]">
                                       {language.code}
@@ -323,28 +372,28 @@ export function LanguageSettingsView() {
                                 </td>
 
                                 {/* Text Direction */}
-                                <td className="py-[16px] px-[20px]">
+                                <td className="py-[16px] px-[20px] text-start">
                                   <div className="flex items-center gap-[6px] text-[13px] text-[#514537] dark:text-[#cdc5bd]">
                                     <span>
                                       {language.direction === "rtl"
-                                        ? "RTL (يمين إلى يسار)"
-                                        : "LTR (يسار إلى يمين)"}
+                                        ? (isEn ? "RTL (Right to Left)" : "RTL (يمين إلى يسار)")
+                                        : (isEn ? "LTR (Left to Right)" : "LTR (يسار إلى يمين)")}
                                     </span>
                                     <Pilcrow className="size-[14px] text-[#837565] dark:text-[#8e8680]" />
                                   </div>
                                 </td>
 
                                 {/* Operational Status */}
-                                <td className="py-[16px] px-[20px]">
+                                <td className="py-[16px] px-[20px] text-start">
                                   {language.status === "active" ? (
                                     <span className="inline-flex items-center gap-[6px] bg-[#ecfdf5] dark:bg-[#132c1c] text-[#065f46] dark:text-[#6ee7b7] border border-emerald-200 dark:border-emerald-500/40 text-[12px] font-semibold px-[10px] py-[3px] rounded-full">
                                       <span className="size-[6px] rounded-full bg-[#059669] dark:bg-[#10b981]" />
-                                      <span>نشطة</span>
+                                      <span>{isEn ? "Active" : "نشطة"}</span>
                                     </span>
                                   ) : (
                                     <span className="inline-flex items-center gap-[6px] bg-[#f0eeea] dark:bg-[#281c15] text-[#514537] dark:text-[#cdc5bd] border border-[#ded5c6] dark:border-[#38271c] text-[12px] font-medium px-[10px] py-[3px] rounded-full">
                                       <span className="size-[6px] rounded-full bg-[#837565] dark:text-[#8e8680]" />
-                                      <span>غير نشطة</span>
+                                      <span>{isEn ? "Inactive" : "غير نشطة"}</span>
                                     </span>
                                   )}
                                 </td>
@@ -354,9 +403,9 @@ export function LanguageSettingsView() {
                                   <div className="flex items-center justify-center gap-[8px]">
                                     <button
                                       type="button"
-                                      onClick={() => toast.info(`تعديل حزمة «${language.name}»`)}
+                                      onClick={() => toast.info(isEn ? `Edit pack "${language.name}"` : `تعديل حزمة «${language.name}»`)}
                                       className="size-[32px] rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] flex items-center justify-center transition-colors cursor-pointer"
-                                      title="تعديل"
+                                      title={isEn ? "Edit" : "تعديل"}
                                     >
                                       <PenSquare className="size-[15px]" />
                                     </button>
@@ -365,7 +414,7 @@ export function LanguageSettingsView() {
                                         type="button"
                                         disabled
                                         className="size-[32px] rounded-[4px] text-[#b9b3ae] dark:text-[#6e5849] flex items-center justify-center opacity-40 cursor-not-allowed"
-                                        title="لا يمكن حذف اللغة الافتراضية"
+                                        title={isEn ? "Cannot delete default language" : "لا يمكن حذف اللغة الافتراضية"}
                                       >
                                         <Trash2 className="size-[15px]" />
                                       </button>
@@ -374,7 +423,7 @@ export function LanguageSettingsView() {
                                         type="button"
                                         onClick={() => setLanguageToDelete(language)}
                                         className="size-[32px] rounded-[4px] hover:bg-[rgba(186,26,26,0.1)] dark:hover:bg-rose-950/40 text-[#ba1a1a] dark:text-[#f87171] flex items-center justify-center transition-colors cursor-pointer"
-                                        title="حذف"
+                                        title={isEn ? "Delete" : "حذف"}
                                       >
                                         <Trash2 className="size-[15px]" />
                                       </button>
@@ -391,11 +440,15 @@ export function LanguageSettingsView() {
                       <div className="p-[16px] px-[20px] border-t border-[#eae8e4] dark:border-[#38271c] bg-[#fcfaf7] dark:bg-[#1a120d] flex flex-col sm:flex-row items-center justify-between gap-[12px]">
                         <div className="flex items-center gap-3">
                           <span className="text-[13px] text-[#514537] dark:text-[#cdc5bd]">
-                            عرض {startItem} إلى {endItem} من أصل {filteredLanguages.length} لغات مسجلة بالنظام
+                            {isEn
+                              ? `Showing ${startItem} to ${endItem} of ${filteredLanguages.length} registered languages`
+                              : `عرض ${startItem} إلى ${endItem} من أصل ${filteredLanguages.length} لغات مسجلة بالنظام`}
                           </span>
 
                           <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
-                            <span className="text-[11px] text-[#837565] dark:text-[#8e8680]">صفوف بالصفحة:</span>
+                            <span className="text-[11px] text-[#837565] dark:text-[#8e8680]">
+                              {isEn ? "Rows per page:" : "صفوف بالصفحة:"}
+                            </span>
                             <PageSizeDropdown
                               value={pageSize}
                               onChange={(newSize) => {
@@ -413,10 +466,10 @@ export function LanguageSettingsView() {
                             type="button"
                             disabled={safePageIndex === 0}
                             onClick={() => setPageIndex(0)}
-                            title="الصفحة الأولى"
+                            title={isEn ? "First page" : "الصفحة الأولى"}
                             className="size-[32px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] bg-white dark:bg-[#221812] text-[#837565] dark:text-[#a89f91] hover:bg-[#eae8e4] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
                           >
-                            <ChevronsRight className="size-[14px]" />
+                            <ChevronsRight className={`size-[14px] ${isEn ? "rotate-180" : ""}`} />
                           </button>
 
                           <button
@@ -425,8 +478,8 @@ export function LanguageSettingsView() {
                             onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
                             className="px-[12px] py-[6px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] bg-[#f5f3ef] dark:bg-[#281c15] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#eae8e4] dark:hover:bg-[#34241b] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-[4px]"
                           >
-                            <ChevronRight className="size-[12px]" />
-                            <span>السابق</span>
+                            <ChevronRight className={`size-[12px] ${isEn ? "rotate-180" : ""}`} />
+                            <span>{isEn ? "Previous" : "السابق"}</span>
                           </button>
 
                           {Array.from({ length: totalPages }, (_, i) => i).map((p) => {
@@ -453,18 +506,18 @@ export function LanguageSettingsView() {
                             onClick={() => setPageIndex((p) => Math.min(totalPages - 1, p + 1))}
                             className="px-[12px] py-[6px] text-[12px] font-medium rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-[4px]"
                           >
-                            <span>التالي</span>
-                            <ChevronLeft className="size-[12px]" />
+                            <span>{isEn ? "Next" : "التالي"}</span>
+                            <ChevronLeft className={`size-[12px] ${isEn ? "rotate-180" : ""}`} />
                           </button>
 
                           <button
                             type="button"
                             disabled={safePageIndex >= totalPages - 1}
                             onClick={() => setPageIndex(totalPages - 1)}
-                            title="الصفحة الأخيرة"
+                            title={isEn ? "Last page" : "الصفحة الأخيرة"}
                             className="size-[32px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] bg-white dark:bg-[#221812] text-[#837565] dark:text-[#a89f91] hover:bg-[#eae8e4] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
                           >
-                            <ChevronsLeft className="size-[14px]" />
+                            <ChevronsLeft className={`size-[14px] ${isEn ? "rotate-180" : ""}`} />
                           </button>
                         </div>
                       </div>

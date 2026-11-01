@@ -19,6 +19,8 @@ import { staffRoles } from "../data/initialStaff";
 import { Employee } from "../types/staff.types";
 import { addEmployeeSchema, AddEmployeeFormData } from "../schemas/staff.schema";
 import { DashboardStickyActionBar } from "@/components/shared/DashboardStickyActionBar";
+import { useLanguage } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 interface AddEmployeeViewProps {
   onBack: () => void;
@@ -26,6 +28,8 @@ interface AddEmployeeViewProps {
 }
 
 export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
+  const { t, isEn, direction } = useLanguage();
+
   const [formData, setFormData] = useState<AddEmployeeFormData>({
     name: "",
     email: "",
@@ -40,20 +44,20 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const getPasswordStrength = (pwd: string) => {
-    if (!pwd) return { percent: 0, text: "أدخل كلمة المرور", color: "bg-[#e6e2dc]" };
-    if (pwd.length < 6) return { percent: 25, text: "ضعيفة جداً", color: "bg-[#ef4444]" };
-    if (pwd.length < 8) return { percent: 50, text: "متوسطة", color: "bg-[#f59e0b]" };
+    if (!pwd) return { percent: 0, text: t("أدخل كلمة المرور", "Enter password"), color: "bg-[#e6e2dc]" };
+    if (pwd.length < 6) return { percent: 25, text: t("ضعيفة جداً", "Very weak"), color: "bg-[#ef4444]" };
+    if (pwd.length < 8) return { percent: 50, text: t("متوسطة", "Medium"), color: "bg-[#f59e0b]" };
     if (pwd.length >= 8 && /[A-Z]/.test(pwd) && /[0-9]/.test(pwd)) {
-      return { percent: 100, text: "الموصى به: قوي جداً", color: "bg-[#10b981]" };
+      return { percent: 100, text: t("الموصى به: قوي جداً", "Recommended: Very strong"), color: "bg-[#10b981]" };
     }
-    return { percent: 75, text: "جيدة", color: "bg-[#9c6402]" };
+    return { percent: 75, text: t("جيدة", "Good"), color: "bg-[#9c6402]" };
   };
 
   const strength = getPasswordStrength(formData.password);
 
   const handleSubmit = (isDraft = false) => {
     if (isDraft) {
-      toast.info("تم حفظ بيانات الموظف كمسودة مؤقتة في المتصفح.");
+      toast.info(t("تم حفظ بيانات الموظف كمسودة مؤقتة في المتصفح.", "Employee data saved as temporary draft in browser."));
       return;
     }
 
@@ -65,7 +69,7 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
         fieldErrors[field] = issue.message;
       });
       setErrors(fieldErrors);
-      toast.error("يرجى مراجعة وتصحيح البيانات المطلوبة.");
+      toast.error(t("يرجى مراجعة وتصحيح البيانات المطلوبة.", "Please review and correct the required fields."));
       return;
     }
 
@@ -76,7 +80,7 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
       id: `emp-${Date.now()}`,
       empCode: `EMP-${Math.floor(130 + Math.random() * 50)}`,
       name: formData.name,
-      initials: formData.name.trim().split(" ").slice(0, 2).map((n) => n[0]).join("") || "م",
+      initials: formData.name.trim().split(" ").slice(0, 2).map((n) => n[0]).join("") || (isEn ? "E" : "م"),
       avatarBg: "bg-[#f5e6d3]",
       avatarText: "text-[#8e5927]",
       jobTitle: matchedRole.name,
@@ -86,29 +90,36 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
       role: matchedRole,
       status: "active",
       lastLogin: {
-        time: "لم يسجل الدخول بعد",
+        time: isEn ? "Never logged in" : "لم يسجل الدخول بعد",
       },
-      createdAt: "اليوم",
-      directSupervisor: "م. عبد العزيز بن فهد",
+      createdAt: isEn ? "Today" : "اليوم",
+      directSupervisor: isEn ? "Eng. Abdulaziz bin Fahd" : "م. عبد العزيز بن فهد",
       twoFactorEnabled: true,
-      twoFactorMethod: "تطبيق Authenticator ورمز SMS",
-      passwordLastChanged: "اليوم",
+      twoFactorMethod: isEn ? "Authenticator App & SMS OTP" : "تطبيق Authenticator ورمز SMS",
+      passwordLastChanged: isEn ? "Today" : "اليوم",
     };
 
     onSave(newEmp);
-    toast.success(`تمت إضافة الموظف "${newEmp.name}" بنجاح وتفعيل حسابه.`);
+    toast.success(
+      isEn
+        ? `Employee "${newEmp.name}" added and activated successfully.`
+        : `تمت إضافة الموظف "${newEmp.name}" بنجاح وتفعيل حسابه.`
+    );
   };
 
   return (
-    <div className="space-y-6 pb-28 sm:pb-32" data-node-id="1:9529">
+    <div dir={direction} className="space-y-6 pb-2 sm:pb-3" data-node-id="1:9529">
       {/* Header Banner */}
       <div className="bg-white rounded-[8px] p-6 border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between">
         <div>
           <h1 className="text-[26px] sm:text-[28px] font-bold text-[#1b1c1a] leading-[36px]">
-            إضافة موظف
+            {t("إضافة موظف", "Add Employee")}
           </h1>
           <p className="text-[14px] text-[#514537] mt-1">
-            إضافة موظف جديد إلى النظام وتحديد الدور المسؤول عن صلاحياته وفق سياسات الحوكمة والأمان المعتمدة.
+            {t(
+              "إضافة موظف جديد إلى النظام وتحديد الدور المسؤول عن صلاحياته وفق سياسات الحوكمة والأمان المعتمدة.",
+              "Add a new employee to the system and define their role according to governance and security policies."
+            )}
           </p>
         </div>
 
@@ -117,8 +128,8 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
           onClick={onBack}
           className="h-[38px] px-4 rounded-[6px] border border-[#d6cfc7] bg-white hover:bg-[#f5f3ef] text-[#514537] text-[13px] font-medium flex items-center gap-2 transition-colors shrink-0 cursor-pointer"
         >
-          <ArrowLeft className="size-[15px] rtl:rotate-180" />
-          <span>العودة</span>
+          <ArrowLeft className={cn("size-[15px]", isEn && "rotate-180")} />
+          <span>{t("العودة", "Back")}</span>
         </button>
       </div>
 
@@ -131,10 +142,13 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
           </div>
           <div>
             <h2 className="text-[16px] font-bold text-[#1b1c1a]">
-              البيانات الأساسية
+              {t("البيانات الأساسية", "Basic Information")}
             </h2>
             <p className="text-[12px] text-[#79716b]">
-              المعلومات الشخصية والاعتماد الإداري المباشر
+              {t(
+                "المعلومات الشخصية والاعتماد الإداري المباشر",
+                "Personal details and direct administrative accreditation"
+              )}
             </p>
           </div>
         </div>
@@ -144,14 +158,14 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
           {/* الاسم الكامل */}
           <div>
             <label className="block text-[13px] font-bold text-[#1b1c1a] mb-2">
-              الاسم الكامل <span className="text-red-500">*</span>
+              {t("الاسم الكامل", "Full Name")} <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="أدخل الاسم الكامل للموظف"
+                placeholder={t("أدخل الاسم الكامل للموظف", "Enter employee's full name")}
                 className={`w-full h-[42px] pe-10 ps-3 text-[13px] bg-[#fdfbf7] border rounded-[6px] text-[#1b1c1a] focus:outline-none focus:ring-1 transition-colors ${
                   errors.name
                     ? "border-red-500 focus:ring-red-500"
@@ -170,7 +184,7 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
           {/* البريد الإلكتروني المهني */}
           <div>
             <label className="block text-[13px] font-bold text-[#1b1c1a] mb-2">
-              البريد الإلكتروني المهني <span className="text-red-500">*</span>
+              {t("البريد الإلكتروني المهني", "Professional Email")} <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <input
@@ -187,7 +201,7 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
               <Mail className="size-[16px] text-[#948b83] absolute top-1/2 -translate-y-1/2 end-3 pointer-events-none" />
             </div>
             <p className="text-[11px] text-[#79716b] mt-1">
-              ⓘ يُستخدم هذا البريد كمعرّف لتسجيل الدخول
+              {t("ⓘ يُستخدم هذا البريد كمعرّف لتسجيل الدخول", "ⓘ This email is used as login identifier")}
             </p>
             {errors.email && (
               <span className="text-[11px] text-red-500 mt-0.5 block">
@@ -199,7 +213,7 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
           {/* رقم الجوال */}
           <div>
             <label className="block text-[13px] font-bold text-[#1b1c1a] mb-2">
-              رقم الجوال <span className="text-red-500">*</span>
+              {t("رقم الجوال", "Mobile Number")} <span className="text-red-500">*</span>
             </label>
             <div className="flex rounded-[6px] border border-[#d6cfc7] bg-[#fdfbf7] overflow-hidden focus-within:border-[#9c6402] focus-within:ring-1 focus-within:ring-[#9c6402]">
               <span className="bg-[#f2efe9] px-3 py-2 text-[12px] font-semibold text-[#514537] border-e border-[#d6cfc7] flex items-center justify-center shrink-0">
@@ -214,7 +228,7 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
               />
             </div>
             <p className="text-[11px] text-[#79716b] mt-1">
-              يُستخدم لتأكيد العمليات الحساسة وإرسال رموز OTP
+              {t("يُستخدم لتأكيد العمليات الحساسة وإرسال رموز OTP", "Used to confirm sensitive operations & send OTPs")}
             </p>
             {errors.phone && (
               <span className="text-[11px] text-red-500 mt-0.5 block">
@@ -226,7 +240,7 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
           {/* الدور الوظيفي */}
           <div>
             <label className="block text-[13px] font-bold text-[#1b1c1a] mb-2">
-              الدور الوظيفي <span className="text-red-500">*</span>
+              {t("الدور الوظيفي", "Role")} <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <select
@@ -238,7 +252,7 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
                     : "border-[#d6cfc7] focus:ring-[#9c6402] focus:border-[#9c6402]"
                 }`}
               >
-                <option value="">اختر دور الموظف</option>
+                <option value="">{t("اختر دور الموظف", "Select employee role")}</option>
                 {staffRoles.map((role) => (
                   <option key={role.id} value={role.id}>
                     {role.name} ({role.category})
@@ -248,7 +262,10 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
               <Shield className="size-[16px] text-[#948b83] absolute top-1/2 -translate-y-1/2 end-3 pointer-events-none" />
             </div>
             <p className="text-[11px] text-[#79716b] mt-1">
-              يحدد الدور الحزم والأقسام والإجراءات التي يمكن للموظف النفاذ إليها داخل المنصة.
+              {t(
+                "يحدد الدور الحزم والأقسام والإجراءات التي يمكن للموظف النفاذ إليها داخل المنصة.",
+                "The role determines packages, modules, and actions accessible inside the platform."
+              )}
             </p>
             {errors.roleId && (
               <span className="text-[11px] text-red-500 mt-0.5 block">
@@ -262,12 +279,18 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
         <div className="mt-6 bg-[#faf8f5] border border-[#e8e2d8] rounded-[8px] p-4 flex items-start gap-3">
           <Lightbulb className="size-[18px] text-[#d97706] shrink-0 mt-0.5" />
           <p className="text-[12px] text-[#514537] leading-[20px]">
-            <span className="font-bold text-[#1b1c1a]">ملاحظة تنظيمية: </span>
-            في حال عدم توفر دور ملائم لطبيعة مهام الموظف، يمكنك{" "}
+            <span className="font-bold text-[#1b1c1a]">{t("ملاحظة تنظيمية: ", "Regulatory note: ")}</span>
+            {t(
+              "في حال عدم توفر دور ملائم لطبيعة مهام الموظف، يمكنك ",
+              "If no suitable role matches employee tasks, you can "
+            )}
             <span className="font-bold text-[#9c6402] underline cursor-pointer">
-              إنشاء دور جديد +
+              {t("إنشاء دور جديد +", "Create New Role +")}
             </span>{" "}
-            عبر قسم الأدوار والصلاحيات المستقل وتطبيقه مباشرة دون فقدان البيانات المدخلة هنا.
+            {t(
+              "عبر قسم الأدوار والصلاحيات المستقل وتطبيقه مباشرة دون فقدان البيانات المدخلة هنا.",
+              "via the independent Roles & Permissions section and apply it directly without losing inputs."
+            )}
           </p>
         </div>
       </div>
@@ -280,10 +303,10 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
           </div>
           <div>
             <h2 className="text-[16px] font-bold text-[#1b1c1a]">
-              كلمة المرور وتأكيد الحساب
+              {t("كلمة المرور وتأكيد الحساب", "Password & Account Confirmation")}
             </h2>
             <p className="text-[12px] text-[#79716b]">
-              تعيين بيانات الاعتماد الأمنية الأولية
+              {t("تعيين بيانات الاعتماد الأمنية الأولية", "Set initial security credentials")}
             </p>
           </div>
         </div>
@@ -292,7 +315,7 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
           {/* كلمة المرور */}
           <div>
             <label className="block text-[13px] font-bold text-[#1b1c1a] mb-2">
-              كلمة المرور <span className="text-red-500">*</span>
+              {t("كلمة المرور", "Password")} <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <input
@@ -317,7 +340,7 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
             </div>
             {/* Password strength bar */}
             <div className="mt-2 flex items-center justify-between text-[11px]">
-              <span className="text-[#79716b]">مستوى قوة كلمة المرور:</span>
+              <span className="text-[#79716b]">{t("مستوى قوة كلمة المرور:", "Password strength:")}</span>
               <span className="font-semibold text-[#1b1c1a]">{strength.text}</span>
             </div>
             <div className="w-full bg-[#f2efe9] h-[4px] rounded-full mt-1 overflow-hidden">
@@ -336,7 +359,7 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
           {/* تأكيد كلمة المرور */}
           <div>
             <label className="block text-[13px] font-bold text-[#1b1c1a] mb-2">
-              تأكيد كلمة المرور <span className="text-red-500">*</span>
+              {t("تأكيد كلمة المرور", "Confirm Password")} <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <input
@@ -372,7 +395,7 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
       <DashboardStickyActionBar>
         <div className="flex items-center gap-2 text-[13px] text-[#514537] dark:text-[#cdc5bd]">
           <ShieldCheck className="size-[18px] text-[#10b981] shrink-0" />
-          <span>يتم تسجيل إضافة الموظف فوراً في سجل تدقيق العمليات القضائي.</span>
+          <span>{t("يتم تسجيل إضافة الموظف فوراً في سجل تدقيق العمليات القضائي.", "Employee registration is logged immediately in the audit log.")}</span>
         </div>
 
         <div className="flex items-center gap-3">
@@ -381,7 +404,7 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
             onClick={onBack}
             className="px-4 py-2 text-[13px] font-semibold text-[#514537] dark:text-[#fdfbf7] bg-[#f5f3ef] dark:bg-[#2c2017] hover:bg-[#eae6e0] dark:hover:bg-[#382a1f] border border-transparent dark:border-[#3d2a1d] rounded-[6px] transition-colors cursor-pointer"
           >
-            إلغاء
+            {t("إلغاء", "Cancel")}
           </button>
 
           <button
@@ -389,7 +412,7 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
             onClick={() => handleSubmit(true)}
             className="px-4 py-2 text-[13px] font-semibold text-[#514537] dark:text-[#fdfbf7] bg-[#f5f3ef] dark:bg-[#2c2017] hover:bg-[#eae6e0] dark:hover:bg-[#382a1f] border border-transparent dark:border-[#3d2a1d] rounded-[6px] transition-colors cursor-pointer"
           >
-            حفظ كمسودة
+            {t("حفظ كمسودة", "Save as Draft")}
           </button>
 
           <button
@@ -398,7 +421,7 @@ export function AddEmployeeView({ onBack, onSave }: AddEmployeeViewProps) {
             className="px-5 py-2 text-[13px] font-bold text-white bg-[#9c6402] hover:bg-[#855402] rounded-[6px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors flex items-center gap-2 cursor-pointer"
           >
             <UserCheck className="size-[16px]" />
-            <span>حفظ الموظف</span>
+            <span>{t("حفظ الموظف", "Save Employee")}</span>
           </button>
         </div>
       </DashboardStickyActionBar>

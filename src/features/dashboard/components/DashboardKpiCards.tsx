@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useSyncExternalStore } from "react";
+import React, { useEffect, useState, useSyncExternalStore } from "react";
 import {
   BadgeCheck,
   Banknote,
@@ -9,8 +9,13 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useUIStore } from "@/stores/use-ui-store";
+import { loadFullDashboardData, type DashboardKpisState } from "@/lib/api/dashboard";
 
-export function DashboardKpiCards() {
+interface DashboardKpiCardsProps {
+  kpis?: DashboardKpisState;
+}
+
+export function DashboardKpiCards({ kpis: initialKpis }: DashboardKpiCardsProps = {}) {
   const isMounted = useSyncExternalStore(
     () => () => {},
     () => true,
@@ -19,6 +24,38 @@ export function DashboardKpiCards() {
 
   const language = useUIStore((state) => state.language);
   const currentLang = isMounted ? language : "ar";
+  const [kpis, setKpis] = useState<DashboardKpisState>(
+    initialKpis || {
+      totalFirms: 0,
+      totalFirmsGrowth: "0%",
+      activeSubscriptions: 0,
+      activeSubscriptionsPercent: "0%",
+      monthlyRevenue: 0,
+      monthlyRevenueFormatted: "0 ر.س",
+      monthlyRevenueGrowth: "0%",
+      openTickets: 0,
+      closedTicketsCount: 0,
+    }
+  );
+
+  useEffect(() => {
+    if (initialKpis) {
+      setKpis(initialKpis);
+      return;
+    }
+    let cancelled = false;
+    loadFullDashboardData()
+      .then((fullData) => {
+        if (cancelled) return;
+        if (fullData.kpis) {
+          setKpis(fullData.kpis);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [initialKpis]);
 
   return (
     <div
@@ -53,7 +90,7 @@ export function DashboardKpiCards() {
               className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[28px] leading-[38px] font-bold font-sans mt-[4px]"
               data-node-id="1:107"
             >
-              128
+              {kpis.totalFirms.toLocaleString(currentLang === "en" ? "en-US" : "ar-SA")}
             </span>
           </div>
         </div>
@@ -71,7 +108,7 @@ export function DashboardKpiCards() {
             >
               <span className="size-[7px] rounded-full bg-[#10b981] shadow-[0_0_8px_#10b981] ring-1 ring-emerald-400/60 shrink-0" />
               <span className="text-[#065f46] dark:text-[#6ee7b7] text-[11px] font-bold">
-                +8.4%
+                {kpis.totalFirmsGrowth}
               </span>
             </div>
 
@@ -113,7 +150,7 @@ export function DashboardKpiCards() {
               className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[28px] leading-[38px] font-bold font-sans mt-[4px]"
               data-node-id="1:88"
             >
-              96
+              {kpis.activeSubscriptions.toLocaleString(currentLang === "en" ? "en-US" : "ar-SA")}
             </span>
           </div>
         </div>
@@ -131,7 +168,7 @@ export function DashboardKpiCards() {
             >
               <span className="size-[7px] rounded-full bg-[#9c6402] dark:bg-[#e29d38] shadow-[0_0_6px_#9c6402] shrink-0" />
               <span className="text-[#514537] dark:text-[#cdc5bd] text-[11px] font-bold">
-                {currentLang === "en" ? "75% of offices" : "75% من المكاتب"}
+                {kpis.activeSubscriptionsPercent}
               </span>
             </div>
 
@@ -177,7 +214,7 @@ export function DashboardKpiCards() {
                 className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[28px] leading-[38px] font-bold font-sans"
                 data-node-id="1:68"
               >
-                48,750
+                {kpis.monthlyRevenue.toLocaleString(currentLang === "en" ? "en-US" : "ar-SA")}
               </span>
             </div>
           </div>
@@ -196,7 +233,7 @@ export function DashboardKpiCards() {
             >
               <TrendingUp className="size-3 block shrink-0 text-[#9c6402] dark:text-[#e29d38]" />
               <span className="text-[#9c6402] dark:text-[#e29d38] text-[11px] font-bold">
-                +12.2%
+                {kpis.monthlyRevenueGrowth}
               </span>
             </div>
 
@@ -238,7 +275,7 @@ export function DashboardKpiCards() {
               className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[28px] leading-[38px] font-bold font-sans mt-[4px]"
               data-node-id="1:46"
             >
-              12
+              {kpis.openTickets.toLocaleString(currentLang === "en" ? "en-US" : "ar-SA")}
             </span>
           </div>
         </div>

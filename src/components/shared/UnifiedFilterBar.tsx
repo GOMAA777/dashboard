@@ -12,6 +12,8 @@ import {
   SheetFooter,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
+import { DashboardSelect } from "./DashboardSelect";
 
 export interface PrimaryFilterOption {
   label: string;
@@ -38,20 +40,25 @@ export interface UnifiedFilterBarProps {
 export function UnifiedFilterBar({
   searchQuery,
   onSearchChange,
-  searchPlaceholder = "البحث في القائمة...",
+  searchPlaceholder,
   primaryFilterValue,
   onPrimaryFilterChange,
   primaryFilterOptions,
   primaryFilterMode = "pills",
   hasActiveFilters = false,
   onReset,
-  drawerTitle = "خيارات التصفية المتقدمة",
-  drawerDescription = "تخصيص نتائج العرض حسب المعايير المحددة",
+  drawerTitle,
+  drawerDescription,
   drawerContent,
   actionButton,
   className,
 }: UnifiedFilterBarProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const { t, direction } = useLanguage();
+
+  const finalPlaceholder = searchPlaceholder || t("البحث في القائمة...", "Search menu...");
+  const finalDrawerTitle = drawerTitle || t("خيارات التصفية المتقدمة", "Advanced Filter Options");
+  const finalDrawerDescription = drawerDescription || t("تخصيص نتائج العرض حسب المعايير المحددة", "Customize view results based on specified criteria");
 
   return (
     <div
@@ -66,7 +73,7 @@ export function UnifiedFilterBar({
           type="text"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder={searchPlaceholder}
+          placeholder={finalPlaceholder}
           className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder-[#837565] dark:placeholder-[#8e8680] text-[13px] rounded-[6px] pe-[36px] ps-[14px] border border-transparent dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] transition-all font-sans"
         />
         <div className="absolute top-1/2 -translate-y-1/2 end-[12px] pointer-events-none text-[#837565] dark:text-[#8e8680]">
@@ -76,21 +83,20 @@ export function UnifiedFilterBar({
 
       {/* 2 & 3 & 4. Filter Controls & Actions Group (End / Left in RTL via ms-auto) */}
       <div className="flex flex-wrap items-center gap-[10px] ms-auto">
-        {/* 2. Primary Tabs / Segmented Pills (Direct switching) OR Select Dropdown */}
+        {/* 2. Primary Tabs / Segmented Pills (Direct switching) OR Custom Luxury Select Dropdown */}
         {primaryFilterMode === "select" ? (
-          <div className="relative shrink-0">
-            <select
+          <div className="shrink-0 min-w-[140px]">
+            <DashboardSelect
               value={primaryFilterValue}
               onChange={(e) => onPrimaryFilterChange(e.target.value)}
-              className="appearance-none bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] border border-[#eae8e4] dark:border-[#38271c] rounded-[8px] h-[40px] px-[14px] pe-[40px] text-[13px] font-bold text-[#514537] dark:text-[#cdc5bd] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer transition-colors"
+              className="h-[40px] text-[13px] font-bold"
             >
               {primaryFilterOptions.map((opt) => (
-                <option key={opt.value} value={opt.value} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+                <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>
               ))}
-            </select>
-            <ChevronDown className="size-[15px] text-[#837565] dark:text-[#8e8680] absolute end-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
+            </DashboardSelect>
           </div>
         ) : (
           <div className="bg-[#f5f3ef] dark:bg-[#1a120d] p-[3px] rounded-[6px] border border-[#eae8e4] dark:border-[#38271c] inline-flex items-center gap-[3px] shrink-0 overflow-x-auto scrollbar-none">
@@ -121,8 +127,8 @@ export function UnifiedFilterBar({
             render={
               <button
                 type="button"
-                title="تصفية متقدمة"
-                aria-label="تصفية متقدمة"
+                title={t("تصفية متقدمة", "Advanced Filter")}
+                aria-label={t("تصفية متقدمة", "Advanced Filter")}
                 className={cn(
                   "h-[40px] px-[12px] rounded-[6px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] flex items-center gap-[6px] shrink-0 cursor-pointer transition-colors border border-transparent dark:border-[#38271c] relative",
                   hasActiveFilters &&
@@ -130,7 +136,7 @@ export function UnifiedFilterBar({
                 )}
               >
                 <SlidersHorizontal className="size-[16px]" />
-                <span className="text-[12px] font-bold">فلتر</span>
+                <span className="text-[12px] font-bold">{t("فلتر", "Filter")}</span>
                 {hasActiveFilters && (
                   <span className="size-[7px] rounded-full bg-[#9c6402] dark:bg-[#e29d38]" />
                 )}
@@ -138,16 +144,16 @@ export function UnifiedFilterBar({
             }
           />
           <SheetContent
-            side="left"
+            side={direction === "rtl" ? "left" : "right"}
             className="w-[350px] sm:w-[440px] p-0 flex flex-col justify-between bg-white dark:bg-[#221812] border-e border-[#eae8e4] dark:border-[#38271c] shadow-2xl font-['Cairo',sans-serif]"
           >
             <SheetHeader className="p-6 border-b border-[#f0eeea] dark:border-[#38271c] text-start">
               <SheetTitle className="text-[17px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-2.5">
                 <SlidersHorizontal className="size-[18px] text-[#9c6402] dark:text-[#e29d38]" />
-                <span>{drawerTitle}</span>
+                <span>{finalDrawerTitle}</span>
               </SheetTitle>
               <SheetDescription className="text-[12px] text-[#837565] dark:text-[#8e8680] mt-1.5 leading-relaxed">
-                {drawerDescription}
+                {finalDrawerDescription}
               </SheetDescription>
             </SheetHeader>
 
@@ -156,7 +162,7 @@ export function UnifiedFilterBar({
                 drawerContent
               ) : (
                 <div className="text-center py-12 text-[#837565] dark:text-[#8e8680] text-xs">
-                  لا توجد خيارات تصفية إضافية لهذه الصفحة
+                  {t("لا توجد خيارات تصفية إضافية لهذه الصفحة", "No additional filter options for this page")}
                 </div>
               )}
             </div>
@@ -171,7 +177,7 @@ export function UnifiedFilterBar({
                 className="flex-1 h-[42px] rounded-[6px] border border-[#ded5c6] dark:border-[#38271c] bg-white dark:bg-[#221812] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] text-[#514537] dark:text-[#cdc5bd] text-[13px] font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-2xs"
               >
                 <RotateCcw className="size-[14px]" />
-                <span>إعادة ضبط الفلتر</span>
+                <span>{t("إعادة ضبط الفلتر", "Reset Filter")}</span>
               </button>
 
               <button
@@ -180,7 +186,7 @@ export function UnifiedFilterBar({
                 className="flex-1 h-[42px] rounded-[6px] bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#7b4e00] dark:hover:bg-[#d08c2a] text-white dark:text-[#1c140f] text-[13px] font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-xs"
               >
                 <Check className="size-[14px]" />
-                <span>تطبيق الفلاتر</span>
+                <span>{t("تطبيق الفلاتر", "Apply Filters")}</span>
               </button>
             </SheetFooter>
           </SheetContent>
@@ -191,11 +197,11 @@ export function UnifiedFilterBar({
           <button
             type="button"
             onClick={onReset}
-            title="إعادة ضبط الفلاتر"
+            title={t("إعادة ضبط الفلاتر", "Reset Filters")}
             className="h-[40px] px-[12px] rounded-[6px] bg-[#fff5ea] dark:bg-[rgba(217,119,6,0.15)] hover:bg-[#fed7aa]/50 dark:hover:bg-[rgba(217,119,6,0.25)] text-[#d97706] dark:text-[#f3c27e] flex items-center gap-[6px] shrink-0 cursor-pointer transition-colors border border-[#fed7aa] dark:border-[#d97706]/40 text-[12px] font-bold"
           >
             <RotateCcw className="size-[13px]" />
-            <span>إعادة ضبط</span>
+            <span>{t("إعادة ضبط", "Reset")}</span>
           </button>
         )}
 

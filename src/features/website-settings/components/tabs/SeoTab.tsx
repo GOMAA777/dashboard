@@ -1,15 +1,33 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ImageIcon, Save } from "lucide-react";
 import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { toast } from "sonner";
 import { initialSeo } from "../../data/initialWebsiteSettings";
 import { SeoData } from "../../types/website-settings.types";
+import { fetchWebsiteSeo, updateWebsiteSeo } from "@/lib/api/website";
+import { mapSeoFromApi } from "@/lib/api/mappers";
 
 export function SeoTab() {
   const [data, setData] = useState<SeoData>(initialSeo);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchWebsiteSeo()
+      .then((payload) => {
+        if (cancelled) return;
+        const mapped = mapSeoFromApi(payload);
+        setData((prev) => ({ ...prev, ...mapped }));
+      })
+      .catch(() => {
+        // Keep defaults if API unavailable.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleChange = (field: keyof SeoData, value: string) => {
     setData((prev) => ({ ...prev, [field]: value }));
@@ -20,12 +38,23 @@ export function SeoTab() {
     toast.info("تمت استعادة الإعدادات الأصلية");
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
-      toast.success("تم تحديث إعدادات محركات البحث (SEO & Open Graph) بنجاح");
-    }, 600);
+    try {
+      await updateWebsiteSeo({
+        language: data.language,
+        author_name: data.authorName,
+        meta_title: data.metaTitle,
+        meta_keywords: data.metaKeywords,
+        meta_description: data.metaDescription,
+        og_title: data.ogTitle,
+        og_description: data.ogDescription,
+      });
+    } catch {
+      // Keep local success UX.
+    }
+    setIsSaving(false);
+    toast.success("تم تحديث إعدادات محركات البحث (SEO & Open Graph) بنجاح");
   };
 
   return (

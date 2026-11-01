@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { X, Trash2, AlertTriangle } from "lucide-react";
 import { TicketDepartment } from "../types/tickets.types";
+import { useLanguage } from "@/lib/i18n";
 
 interface DeleteDepartmentModalProps {
   department: TicketDepartment;
@@ -15,6 +16,7 @@ export function DeleteDepartmentModal({
   onClose,
   onConfirm,
 }: DeleteDepartmentModalProps) {
+  const { direction, isEn } = useLanguage();
   const [isAcknowledged, setIsAcknowledged] = useState(false);
 
   const handleConfirm = () => {
@@ -23,17 +25,27 @@ export function DeleteDepartmentModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs antialiased">
+    <div
+      dir={direction}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs antialiased"
+    >
       <div
         className="bg-white rounded-[8px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] w-full max-w-[480px] overflow-hidden flex flex-col relative text-start animate-in fade-in zoom-in-95 duration-150"
-        data-node-id="1:16818"
-        data-name="حذف القسم"
       >
         {/* Top Decorative Warning Band */}
         <div className="h-[6px] w-full bg-[#ba1a1a]" />
 
         {/* Modal Header */}
         <div className="flex items-center justify-between px-[20px] pt-[16px] pb-[12px] border-b border-[#eae8e4]/60">
+          <div className="flex items-center gap-[10px]">
+            <div className="bg-[#ffdad6] size-[40px] rounded-[10px] flex items-center justify-center shrink-0">
+              <Trash2 className="size-[18px] text-[#ba1a1a]" />
+            </div>
+            <h2 className="text-[#1b1c1a] font-bold text-[20px] leading-[24px]">
+              {isEn ? "Delete Department" : "حذف القسم"}
+            </h2>
+          </div>
+
           <button
             type="button"
             onClick={onClose}
@@ -41,15 +53,6 @@ export function DeleteDepartmentModal({
           >
             <X className="size-[14px]" />
           </button>
-
-          <div className="flex items-center gap-[10px]">
-            <h2 className="text-[#1b1c1a] font-bold text-[20px] leading-[24px]">
-              حذف القسم
-            </h2>
-            <div className="bg-[#ffdad6] size-[40px] rounded-[10px] flex items-center justify-center shrink-0">
-              <Trash2 className="size-[18px] text-[#ba1a1a]" />
-            </div>
-          </div>
         </div>
 
         {/* Modal Content Body */}
@@ -57,10 +60,14 @@ export function DeleteDepartmentModal({
           {/* Core Warning Copy */}
           <div className="flex flex-col gap-[4px] text-start">
             <h3 className="text-[#1b1c1a] font-semibold text-[15px] leading-[24px]">
-              هل أنت متأكد من رغبتك في حذف هذا القسم نهائياً؟
+              {isEn
+                ? "Are you sure you want to permanently delete this department?"
+                : "هل أنت متأكد من رغبتك في حذف هذا القسم نهائياً؟"}
             </h3>
             <p className="text-[#514537] text-[12px] leading-[19px]">
-              لا يمكن التراجع عن هذا الإجراء بعد اعتماده، وسيتم فك ارتباط أي سجلات مؤرشفة تابعة له.
+              {isEn
+                ? "This action cannot be undone, and associated archived records will be unlinked."
+                : "لا يمكن التراجع عن هذا الإجراء بعد اعتماده، وسيتم فك ارتباط أي سجلات مؤرشفة تابعة له."}
             </p>
           </div>
 
@@ -71,7 +78,7 @@ export function DeleteDepartmentModal({
                 {department.code}
               </span>
               <span className="text-[#514537] text-[10px] font-bold">
-                البيانات المحددة للحذف:
+                {isEn ? "Target Item For Deletion:" : "البيانات المحددة للحذف:"}
               </span>
             </div>
 
@@ -83,7 +90,9 @@ export function DeleteDepartmentModal({
             </div>
 
             <p className="text-[#514537] text-[11px] leading-[16px] text-start pt-[4px]">
-              سيتم إزالة القسم فوراً من الهيكل التنظيمي وخيارات إسناد التذاكر والمهام لجميع المستشارين.
+              {isEn
+                ? "The department will be immediately removed from organizational hierarchy and task assignment options."
+                : "سيتم إزالة القسم فوراً من الهيكل التنظيمي وخيارات إسناد التذاكر والمهام لجميع المستشارين."}
             </p>
           </div>
 
@@ -96,7 +105,9 @@ export function DeleteDepartmentModal({
               className="mt-[3px] size-[15px] accent-[#ba1a1a] rounded cursor-pointer shrink-0"
             />
             <span className="text-[12px] text-[#1b1c1a] leading-[18px]">
-              أقرّ بصفتي مشرف نظام بأنني راجعت تبعات حذف هذا القسم ولا توجد تذاكر حية معلقة عليه.
+              {isEn
+                ? "I acknowledge as system administrator that I have reviewed the impact of deleting this department and there are no active pending tickets."
+                : "أقرّ بصفتي مشرف نظام بأنني راجعت تبعات حذف هذا القسم ولا توجد تذاكر حية معلقة عليه."}
             </span>
           </label>
         </div>
@@ -108,7 +119,7 @@ export function DeleteDepartmentModal({
             onClick={onClose}
             className="bg-[#f0eeea] hover:bg-[#eae8e4] text-[#1b1c1a] px-[16px] py-[8px] rounded-[4px] font-semibold text-[12px] transition-colors cursor-pointer"
           >
-            الغاء
+            {isEn ? "Cancel" : "الغاء"}
           </button>
           <button
             type="button"
@@ -121,7 +132,7 @@ export function DeleteDepartmentModal({
             }`}
           >
             <Trash2 className="size-[14px]" />
-            <span>تأكيد حذف القسم</span>
+            <span>{isEn ? "Confirm Delete Department" : "تأكيد حذف القسم"}</span>
           </button>
         </div>
       </div>

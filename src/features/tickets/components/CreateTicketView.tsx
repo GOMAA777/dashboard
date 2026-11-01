@@ -17,6 +17,7 @@ import {
   TicketAssignee,
   TicketClient,
 } from "../types/tickets.types";
+import { useLanguage } from "@/lib/i18n";
 
 interface CreateTicketViewProps {
   departments: TicketDepartment[];
@@ -33,6 +34,7 @@ export function CreateTicketView({
   onBack,
   onSaveTicket,
 }: CreateTicketViewProps) {
+  const { direction, isEn } = useLanguage();
   const [selectedClientId, setSelectedClientId] = useState(clients[0]?.id || "");
   const [selectedDeptId, setSelectedDeptId] = useState(departments[0]?.id || "");
   const [selectedAssigneeId, setSelectedAssigneeId] = useState(assignees[0]?.id || "");
@@ -49,18 +51,31 @@ export function CreateTicketView({
     e.preventDefault();
 
     if (!title.trim()) {
-      toast.error("يرجى إدخال موضوع التذكرة");
+      toast.error(isEn ? "Please enter ticket subject" : "يرجى إدخال موضوع التذكرة");
       return;
     }
 
     if (!description.trim()) {
-      toast.error("يرجى إدخال تفاصيل المشكلة والملاحظات");
+      toast.error(isEn ? "Please enter problem details and notes" : "يرجى إدخال تفاصيل المشكلة والملاحظات");
       return;
     }
 
     const client = clients.find((c) => c.id === selectedClientId) || clients[0];
     const dept = departments.find((d) => d.id === selectedDeptId) || departments[0];
     const assignee = assignees.find((a) => a.id === selectedAssigneeId) || assignees[0];
+
+    const getChannelLabel = (ch: TicketChannel) => {
+      switch (ch) {
+        case "portal":
+          return isEn ? "Client Portal (Najiz)" : "بوابة العملاء (ناجز)";
+        case "email":
+          return isEn ? "Email" : "البريد الإلكتروني";
+        case "phone":
+          return isEn ? "Direct Phone Call" : "الاتصال الهاتفي";
+        case "whatsapp":
+          return isEn ? "Business WhatsApp" : "واتساب الأعمال";
+      }
+    };
 
     const newTicket: Ticket = {
       id: `tck-${Date.now()}`,
@@ -77,24 +92,17 @@ export function CreateTicketView({
       priority,
       status: "open",
       channel,
-      channelLabel:
-        channel === "portal"
-          ? "بوابة العملاء (ناجز)"
-          : channel === "email"
-          ? "البريد الإلكتروني"
-          : channel === "phone"
-          ? "الاتصال الهاتفي"
-          : "واتساب الأعمال",
-      category: "دعم تشغيلي",
-      createdAt: "الآن - اليوم",
-      updatedAt: "منذ دقيقة",
+      channelLabel: getChannelLabel(channel),
+      category: isEn ? "Operational Support" : "دعم تشغيلي",
+      createdAt: isEn ? "Now - Today" : "الآن - اليوم",
+      updatedAt: isEn ? "1 min ago" : "منذ دقيقة",
       attachments: attachedFiles.map((f, idx) => ({
         id: `att-${Date.now()}-${idx}`,
         name: f,
-        size: "450 كيلوبايت",
-        typeLabel: "ملف مرفق",
+        size: isEn ? "450 KB" : "450 كيلوبايت",
+        typeLabel: isEn ? "Attachment" : "ملف مرفق",
         category: f.endsWith(".png") ? "image" : "log",
-        verifiedStatus: "سليم وموثق",
+        verifiedStatus: isEn ? "Verified & Clean" : "سليم وموثق",
       })),
       messages: [
         {
@@ -103,16 +111,16 @@ export function CreateTicketView({
           senderRole: client.firm,
           senderInitials: client.name.slice(0, 2),
           isStaff: false,
-          timestamp: "الآن",
+          timestamp: isEn ? "Just now" : "الآن",
           content: description.trim(),
         },
       ],
       auditEvents: [
         {
           id: `aud-${Date.now()}`,
-          action: "تم إنشاء التذكرة بنجاح",
-          performer: "مشرف النظام",
-          timestamp: "الآن",
+          action: isEn ? "Ticket created successfully" : "تم إنشاء التذكرة بنجاح",
+          performer: isEn ? "System Administrator" : "مشرف النظام",
+          timestamp: isEn ? "Just now" : "الآن",
         },
       ],
     };
@@ -126,21 +134,21 @@ export function CreateTicketView({
 
   return (
     <div
+      dir={direction}
       className="flex flex-col gap-[24px] w-full"
-      data-node-id="1:14981"
-      data-name="إنشاء تذكرة جديدة"
     >
       {/* Main Identity & Command Banner */}
       <div
         className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]"
-        data-node-id="1:14984"
       >
         <div className="flex flex-col gap-[4px] text-start">
           <h1 className="text-[#1b1c1a] font-bold text-[24px] sm:text-[28px] leading-[38px]">
-            إنشاء تذكرة جديدة
+            {isEn ? "Create New Ticket" : "إنشاء تذكرة جديدة"}
           </h1>
           <p className="text-[#514537] text-[13px] sm:text-[14px] leading-[22px]">
-            سجّل المشكلة وحدد الجهة والقسم والموظف المسؤول عن متابعتها لضمان الالتزام بمصفوفة اتفاقية مستوى الخدمة (SLA).
+            {isEn
+              ? "Log the issue and assign department & responsible employee to ensure SLA compliance."
+              : "سجّل المشكلة وحدد الجهة والقسم والموظف المسؤول عن متابعتها لضمان الالتزام بمصفوفة اتفاقية مستوى الخدمة (SLA)."}
           </p>
         </div>
 
@@ -149,10 +157,9 @@ export function CreateTicketView({
           type="button"
           onClick={onBack}
           className="bg-white border border-[#eae8e4] hover:bg-[#f5f3ef] text-[#1b1c1a] flex items-center gap-[8px] px-[16px] py-[8px] rounded-[4px] font-semibold text-[14px] leading-[20px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-colors shrink-0 cursor-pointer"
-          data-node-id="1:14987"
         >
-          <ArrowRight className="size-[14px]" />
-          <span>العودة</span>
+          <ArrowRight className={`size-[14px] ${isEn ? "rotate-180" : ""}`} />
+          <span>{isEn ? "Back" : "العودة"}</span>
         </button>
       </div>
 
@@ -162,7 +169,7 @@ export function CreateTicketView({
         <div className="bg-white rounded-[8px] p-[24px] sm:p-[32px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 flex flex-col gap-[24px]">
           <div className="border-b border-[#eae8e4] pb-[12px] flex items-center justify-between">
             <h2 className="text-[#1b1c1a] font-semibold text-[18px] leading-[26px]">
-              بيانات التذكرة والتوجيه الإداري
+              {isEn ? "Ticket Metadata & Routing" : "بيانات التذكرة والتوجيه الإداري"}
             </h2>
           </div>
 
@@ -172,10 +179,12 @@ export function CreateTicketView({
             <div className="flex flex-col gap-[6px]">
               <div className="flex items-center justify-between">
                 <label className="text-[14px] font-semibold text-[#1b1c1a] flex items-center gap-[4px]">
-                  <span>المكتب / العميل المستفيد</span>
+                  <span>{isEn ? "Law Firm / Client" : "المكتب / العميل المستفيد"}</span>
                   <span className="text-[#ba1a1a]">*</span>
                 </label>
-                <span className="text-[10px] font-bold text-[#625d5d]">بحث فوري</span>
+                <span className="text-[10px] font-bold text-[#625d5d]">
+                  {isEn ? "Instant Search" : "بحث فوري"}
+                </span>
               </div>
               <div className="relative">
                 <select
@@ -195,7 +204,7 @@ export function CreateTicketView({
             {/* Field 2: Department */}
             <div className="flex flex-col gap-[6px]">
               <label className="text-[14px] font-semibold text-[#1b1c1a] flex items-center gap-[4px]">
-                <span>القسم المختص</span>
+                <span>{isEn ? "Responsible Department" : "القسم المختص"}</span>
                 <span className="text-[#ba1a1a]">*</span>
               </label>
               <select
@@ -214,7 +223,7 @@ export function CreateTicketView({
             {/* Field 3: Assignee */}
             <div className="flex flex-col gap-[6px]">
               <label className="text-[14px] font-semibold text-[#1b1c1a] flex items-center gap-[4px]">
-                <span>الموظف المسؤول (المكلف)</span>
+                <span>{isEn ? "Assigned Employee" : "الموظف المسؤول (المكلف)"}</span>
                 <span className="text-[#ba1a1a]">*</span>
               </label>
               <select
@@ -236,7 +245,7 @@ export function CreateTicketView({
             {/* Communication Channel */}
             <div className="flex flex-col gap-[6px]">
               <label className="text-[14px] font-semibold text-[#1b1c1a] flex items-center gap-[4px]">
-                <span>قناة التواصل</span>
+                <span>{isEn ? "Communication Channel" : "قناة التواصل"}</span>
                 <span className="text-[#ba1a1a]">*</span>
               </label>
               <select
@@ -244,17 +253,17 @@ export function CreateTicketView({
                 onChange={(e) => setChannel(e.target.value as TicketChannel)}
                 className="w-full bg-white border border-[#eae8e4] rounded-[4px] h-[44px] px-[12px] text-[13px] text-[#1b1c1a] focus:outline-none focus:border-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] cursor-pointer"
               >
-                <option value="portal">بوابة العملاء (ناجز)</option>
-                <option value="email">البريد الإلكتروني</option>
-                <option value="phone">الاتصال الهاتفي المباشر</option>
-                <option value="whatsapp">واتساب الأعمال</option>
+                <option value="portal">{isEn ? "Client Portal (Najiz)" : "بوابة العملاء (ناجز)"}</option>
+                <option value="email">{isEn ? "Email" : "البريد الإلكتروني"}</option>
+                <option value="phone">{isEn ? "Direct Phone Call" : "الاتصال الهاتفي المباشر"}</option>
+                <option value="whatsapp">{isEn ? "Business WhatsApp" : "واتساب الأعمال"}</option>
               </select>
             </div>
 
             {/* Priority Selection Cards (Spanning 2 columns) */}
             <div className="md:col-span-2 flex flex-col gap-[6px]">
               <label className="text-[14px] font-semibold text-[#1b1c1a] flex items-center gap-[4px]">
-                <span>مستوى الأولوية</span>
+                <span>{isEn ? "Priority Level" : "مستوى الأولوية"}</span>
                 <span className="text-[#ba1a1a]">*</span>
               </label>
               <div className="grid grid-cols-3 gap-[10px]">
@@ -270,9 +279,13 @@ export function CreateTicketView({
                 >
                   <div className="flex items-center gap-[6px]">
                     <div className="size-[8px] rounded-full bg-[#61564f]" />
-                    <span className="text-[13px] font-semibold text-[#1b1c1a]">منخفضة</span>
+                    <span className="text-[13px] font-semibold text-[#1b1c1a]">
+                      {isEn ? "Low" : "منخفضة"}
+                    </span>
                   </div>
-                  <span className="text-[10px] text-[#625d5d]">خلال 48 ساعة</span>
+                  <span className="text-[10px] text-[#625d5d]">
+                    {isEn ? "Within 48h" : "خلال 48 ساعة"}
+                  </span>
                 </button>
 
                 {/* 2. Medium */}
@@ -287,9 +300,13 @@ export function CreateTicketView({
                 >
                   <div className="flex items-center gap-[6px]">
                     <div className="size-[8px] rounded-full bg-[#d97706]" />
-                    <span className="text-[13px] font-semibold text-[#1b1c1a]">متوسطة</span>
+                    <span className="text-[13px] font-semibold text-[#1b1c1a]">
+                      {isEn ? "Medium" : "متوسطة"}
+                    </span>
                   </div>
-                  <span className="text-[10px] text-[#b76e00]">خلال 24 ساعة</span>
+                  <span className="text-[10px] text-[#b76e00]">
+                    {isEn ? "Within 24h" : "خلال 24 ساعة"}
+                  </span>
                 </button>
 
                 {/* 3. Urgent */}
@@ -304,9 +321,13 @@ export function CreateTicketView({
                 >
                   <div className="flex items-center gap-[6px]">
                     <div className="size-[8px] rounded-full bg-[#ba1a1a]" />
-                    <span className="text-[13px] font-bold text-[#ba1a1a]">عاجلة</span>
+                    <span className="text-[13px] font-bold text-[#ba1a1a]">
+                      {isEn ? "Urgent" : "عاجلة"}
+                    </span>
                   </div>
-                  <span className="text-[10px] font-bold text-[#93000a]">استجابة فورية</span>
+                  <span className="text-[10px] font-bold text-[#93000a]">
+                    {isEn ? "Immediate Response" : "استجابة فورية"}
+                  </span>
                 </button>
               </div>
             </div>
@@ -317,21 +338,25 @@ export function CreateTicketView({
         <div className="bg-white rounded-[8px] p-[24px] sm:p-[32px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 flex flex-col gap-[20px]">
           <div className="border-b border-[#eae8e4] pb-[12px]">
             <h2 className="text-[#1b1c1a] font-semibold text-[18px] leading-[26px]">
-              تفاصيل المشكلة والمرفقات
+              {isEn ? "Issue Details & Attachments" : "تفاصيل المشكلة والمرفقات"}
             </h2>
           </div>
 
           {/* Ticket Subject */}
           <div className="flex flex-col gap-[6px]">
             <label className="text-[14px] font-semibold text-[#1b1c1a] flex items-center gap-[4px]">
-              <span>موضوع التذكرة</span>
+              <span>{isEn ? "Ticket Subject" : "موضوع التذكرة"}</span>
               <span className="text-[#ba1a1a]">*</span>
             </label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="مثال: تعطل مزامنة الجلسات القضائية مع بوابة ناجز"
+              placeholder={
+                isEn
+                  ? "e.g., Judicial sessions sync outage with Najiz portal"
+                  : "مثال: تعطل مزامنة الجلسات القضائية مع بوابة ناجز"
+              }
               className="w-full bg-white border border-[#eae8e4] rounded-[4px] h-[44px] px-[14px] text-[13px] text-[#1b1c1a] placeholder:text-[#837565] focus:outline-none focus:border-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] text-start"
             />
           </div>
@@ -339,14 +364,18 @@ export function CreateTicketView({
           {/* Ticket Description */}
           <div className="flex flex-col gap-[6px]">
             <label className="text-[14px] font-semibold text-[#1b1c1a] flex items-center gap-[4px]">
-              <span>التفاصيل والملاحظات الفنية</span>
+              <span>{isEn ? "Technical Details & Notes" : "التفاصيل والملاحظات الفنية"}</span>
               <span className="text-[#ba1a1a]">*</span>
             </label>
             <textarea
               rows={4}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="اكتب وصفاً مفصلاً للمشكلة مع ذكر أرقام القضايا، وقت الحدوث، وأي رسائل خطأ ظاهرة للمستخدم..."
+              placeholder={
+                isEn
+                  ? "Write a detailed description including case numbers, timestamp, and visible error codes..."
+                  : "اكتب وصفاً مفصلاً للمشكلة مع ذكر أرقام القضايا، وقت الحدوث، وأي رسائل خطأ ظاهرة للمستخدم..."
+              }
               className="w-full bg-white border border-[#eae8e4] rounded-[4px] p-[14px] text-[13px] text-[#1b1c1a] placeholder:text-[#837565] focus:outline-none focus:border-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] text-start"
             />
           </div>
@@ -354,16 +383,18 @@ export function CreateTicketView({
           {/* File Upload Dropzone */}
           <div className="flex flex-col gap-[8px]">
             <label className="text-[14px] font-semibold text-[#1b1c1a]">
-              المرفقات والوثائق الداعمة
+              {isEn ? "Attachments & Supporting Documents" : "المرفقات والوثائق الداعمة"}
             </label>
             <div className="border-2 border-dashed border-[#eae8e4] hover:border-[#9c6402]/50 bg-[#faf9f6] rounded-[8px] p-[24px] flex flex-col items-center justify-center text-center gap-[8px] cursor-pointer transition-colors">
               <UploadCloud className="size-[32px] text-[#9c6402]" />
               <div className="flex flex-col items-center">
                 <span className="text-[13px] font-semibold text-[#1b1c1a]">
-                  انقر لرفع ملف أو اسحبه إلى هنا
+                  {isEn ? "Click to upload or drag files here" : "انقر لرفع ملف أو اسحبه إلى هنا"}
                 </span>
                 <span className="text-[11px] text-[#837565]">
-                  يدعم PDF, PNG, JPG, JSON, LOG بحد أقصى 10 ميجابايت للملف
+                  {isEn
+                    ? "Supports PDF, PNG, JPG, JSON, LOG up to 10MB per file"
+                    : "يدعم PDF, PNG, JPG, JSON, LOG بحد أقصى 10 ميجابايت للملف"}
                 </span>
               </div>
             </div>
@@ -399,14 +430,14 @@ export function CreateTicketView({
             onClick={onBack}
             className="bg-[#f0eeea] hover:bg-[#eae8e4] text-[#1b1c1a] px-[20px] py-[10px] rounded-[4px] font-semibold text-[14px] leading-[20px] transition-colors cursor-pointer"
           >
-            إلغاء والعودة
+            {isEn ? "Cancel & Return" : "إلغاء والعودة"}
           </button>
           <button
             type="submit"
             className="bg-[#9c6402] hover:bg-[#855402] text-white flex items-center gap-[8px] px-[28px] py-[10px] rounded-[4px] font-semibold text-[14px] leading-[20px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-all cursor-pointer"
           >
             <Check className="size-[16px]" />
-            <span>إنشاء التذكرة وحفظها</span>
+            <span>{isEn ? "Create & Save Ticket" : "إنشاء التذكرة وحفظها"}</span>
           </button>
         </div>
       </form>

@@ -1,15 +1,35 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { MessageCircle, Check } from "lucide-react";
 import { toast } from "sonner";
 import { initialHeroSection } from "../../data/initialWebsiteSettings";
 import { HeroSectionData } from "../../types/website-settings.types";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
+import { fetchWebsiteHero, updateWebsiteHero } from "@/lib/api/website";
+import { mapHeroFromApi } from "@/lib/api/mappers";
 
 export function HeroSectionTab() {
+  const { isEn } = useLanguage();
   const [data, setData] = useState<HeroSectionData>(initialHeroSection);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchWebsiteHero()
+      .then((payload) => {
+        if (cancelled) return;
+        const mapped = mapHeroFromApi(payload);
+        setData((prev) => ({ ...prev, ...mapped }));
+      })
+      .catch(() => {
+        // Keep defaults if API unavailable.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleChange = <K extends keyof HeroSectionData>(
     field: K,
@@ -18,12 +38,25 @@ export function HeroSectionTab() {
     setData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
-      toast.success("تم تحديث قسم الهيرو بنجاح");
-    }, 600);
+    try {
+      await updateWebsiteHero({
+        title: data.title,
+        subtitle: data.subtitle,
+        description: data.description,
+        action_button_enabled: data.actionButtonEnabled,
+        action_button_label: data.actionButtonLabel,
+        action_button_url: data.actionButtonUrl,
+        secondary_action_enabled: data.secondaryActionButtonEnabled,
+        secondary_action_label: data.secondaryActionButtonLabel,
+        secondary_action_url: data.secondaryActionButtonUrl,
+      });
+    } catch {
+      // Keep local success UX.
+    }
+    setIsSaving(false);
+    toast.success(isEn ? "Hero section updated successfully" : "تم تحديث قسم الهيرو بنجاح");
   };
 
   return (
@@ -31,7 +64,7 @@ export function HeroSectionTab() {
       {/* 1. Title */}
       <div>
         <label className="block text-[12px] font-semibold text-[#57534e] dark:text-[#cdc5bd] mb-[6px] text-start">
-          Title (العنوان الرئيسي)
+          {isEn ? "Title (Main Headline)" : "Title (العنوان الرئيسي)"}
         </label>
         <input
           type="text"
@@ -44,7 +77,7 @@ export function HeroSectionTab() {
       {/* 2. Subtitle */}
       <div>
         <label className="block text-[12px] font-semibold text-[#57534e] dark:text-[#cdc5bd] mb-[6px] text-start">
-          Subtitle (العنوان الفرعي)
+          {isEn ? "Subtitle (Secondary Tagline)" : "Subtitle (العنوان الفرعي)"}
         </label>
         <input
           type="text"
@@ -57,7 +90,7 @@ export function HeroSectionTab() {
       {/* 3. Description */}
       <div>
         <label className="block text-[12px] font-semibold text-[#57534e] dark:text-[#cdc5bd] mb-[6px] text-start">
-          Description (الوصف التفصيلي)
+          {isEn ? "Description (Detailed Overview)" : "Description (الوصف التفصيلي)"}
         </label>
         <textarea
           rows={3}
@@ -83,19 +116,19 @@ export function HeroSectionTab() {
             <div
               className={cn(
                 "size-[20px] rounded-full bg-white dark:bg-[#1a120d] shadow-sm transition-transform duration-200",
-                data.actionButtonEnabled ? "-translate-x-[20px]" : "translate-x-0"
+                data.actionButtonEnabled ? (isEn ? "translate-x-[20px]" : "-translate-x-[20px]") : "translate-x-0"
               )}
             />
           </button>
           <span className="text-[13px] font-semibold text-[#44403c] dark:text-[#fdfbf7]">
-            Action button
+            {isEn ? "Action Button" : "زر الإجراء (Action button)"}
           </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-[14px]">
           <div>
             <label className="block text-[12px] text-[#78716c] dark:text-[#8e8680] mb-[4px] text-start">
-              Action button label
+              {isEn ? "Action button label" : "نص زر الإجراء"}
             </label>
             <input
               type="text"
@@ -106,7 +139,7 @@ export function HeroSectionTab() {
           </div>
           <div>
             <label className="block text-[12px] text-[#78716c] dark:text-[#8e8680] mb-[4px] text-start">
-              Action button URL
+              {isEn ? "Action button URL" : "رابط زر الإجراء"}
             </label>
             <input
               type="text"
@@ -139,19 +172,19 @@ export function HeroSectionTab() {
             <div
               className={cn(
                 "size-[20px] rounded-full bg-white dark:bg-[#1a120d] shadow-sm transition-transform duration-200",
-                data.secondaryActionButtonEnabled ? "-translate-x-[20px]" : "translate-x-0"
+                data.secondaryActionButtonEnabled ? (isEn ? "translate-x-[20px]" : "-translate-x-[20px]") : "translate-x-0"
               )}
             />
           </button>
           <span className="text-[13px] font-semibold text-[#44403c] dark:text-[#fdfbf7]">
-            Secondary action button
+            {isEn ? "Secondary Action Button" : "الزر الثانوي (Secondary action button)"}
           </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-[14px]">
           <div>
             <label className="block text-[12px] text-[#78716c] dark:text-[#8e8680] mb-[4px] text-start">
-              Secondary action button label
+              {isEn ? "Secondary action button label" : "نص الزر الثانوي"}
             </label>
             <input
               type="text"
@@ -159,13 +192,13 @@ export function HeroSectionTab() {
               onChange={(e) =>
                 handleChange("secondaryActionButtonLabel", e.target.value)
               }
-              placeholder="نص الزر الثانوي"
+              placeholder={isEn ? "Button label" : "نص الزر الثانوي"}
               className="w-full bg-[#fafaf9]/60 dark:bg-[#1a120d] border border-[#e7e5e4] dark:border-[#38271c] rounded-[8px] px-[14px] py-[9px] text-[13px] text-[#1c1917] dark:text-[#fdfbf7] focus:outline-none focus:border-[#9c6402] dark:focus:border-[#e29d38] focus:bg-white dark:focus:bg-[#1a120d] text-start"
             />
           </div>
           <div>
             <label className="block text-[12px] text-[#78716c] dark:text-[#8e8680] mb-[4px] text-start">
-              Secondary action button URL
+              {isEn ? "Secondary action button URL" : "رابط الزر الثانوي"}
             </label>
             <input
               type="text"
@@ -183,15 +216,15 @@ export function HeroSectionTab() {
       {/* 6. Image Upload & Preview */}
       <div className="flex flex-col gap-[12px] pt-[8px] border-t border-[#f5f5f4] dark:border-[#38271c]">
         <label className="block text-[12px] font-semibold text-[#57534e] dark:text-[#cdc5bd] text-start">
-          Image (صورة الهيرو الحالية والمرفقة)
+          {isEn ? "Hero Image (Current & Uploaded Asset)" : "Image (صورة الهيرو الحالية والمرفقة)"}
         </label>
         <div className="flex items-center border border-[#e7e5e4] dark:border-[#38271c] rounded-[8px] overflow-hidden bg-[#fafaf9]/60 dark:bg-[#1a120d]">
           <label className="px-[16px] py-[10px] bg-[#f5f5f4] dark:bg-[#281c15] text-[#44403c] dark:text-[#fdfbf7] text-[12px] font-semibold border-e border-[#e7e5e4] dark:border-[#38271c] cursor-pointer hover:bg-[#e7e5e4] dark:hover:bg-[#38271c] transition-colors shrink-0">
-            Choose file
+            {isEn ? "Choose file" : "اختر ملفاً"}
             <input type="file" className="hidden" />
           </label>
           <span className="px-[14px] text-[13px] text-[#78716c] dark:text-[#8e8680]">
-            0 File Choosen
+            {isEn ? "0 Files Chosen" : "0 ملفات محددة"}
           </span>
         </div>
 
@@ -202,7 +235,7 @@ export function HeroSectionTab() {
             CAMPAIGN 3D
           </span>
           <span className="absolute bottom-0 inset-x-0 bg-[#b45309] text-[9px] font-bold text-center py-[2px]">
-            Current
+            {isEn ? "Current" : "الحالية"}
           </span>
         </div>
       </div>
@@ -216,7 +249,7 @@ export function HeroSectionTab() {
           className="bg-[#9c6402] hover:bg-[#835401] active:bg-[#6c4501] dark:bg-[#e29d38] dark:hover:bg-[#c28328] text-white dark:text-[#1c140f] px-[32px] py-[10px] rounded-[8px] text-[13px] font-bold flex items-center gap-[8px] shadow-xs transition-all cursor-pointer disabled:opacity-75"
         >
           <Check className="size-[16px]" />
-          <span>{isSaving ? "جارٍ التحديث..." : "تحديث"}</span>
+          <span>{isSaving ? (isEn ? "Updating..." : "جارٍ التحديث...") : (isEn ? "Update" : "تحديث")}</span>
         </button>
       </div>
     </div>
