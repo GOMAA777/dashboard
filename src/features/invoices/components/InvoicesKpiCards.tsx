@@ -13,9 +13,9 @@ export function InvoicesKpiCards({ metrics }: InvoicesKpiCardsProps) {
   const { isEn } = useLanguage();
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
       {/* 1. Total Collected Revenue */}
-      <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] flex flex-col justify-between gap-3 text-start relative overflow-hidden group">
+      <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] flex flex-col justify-between gap-3 text-start relative overflow-hidden group">
         <div className="flex items-center justify-between">
           <span className="text-[12px] font-bold text-[#837565] dark:text-[#a89f91]">
             {isEn ? "Total Collected Revenue" : "إجمالي الإيرادات المحصلة"}
@@ -46,7 +46,7 @@ export function InvoicesKpiCards({ metrics }: InvoicesKpiCardsProps) {
       </div>
 
       {/* 2. Paid Invoices */}
-      <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] flex flex-col justify-between gap-3 text-start relative overflow-hidden group">
+      <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] flex flex-col justify-between gap-3 text-start relative overflow-hidden group">
         <div className="flex items-center justify-between">
           <span className="text-[12px] font-bold text-[#837565] dark:text-[#a89f91]">
             {isEn ? "Paid Invoices" : "الفواتير المسددة"}
@@ -84,7 +84,7 @@ export function InvoicesKpiCards({ metrics }: InvoicesKpiCardsProps) {
       </div>
 
       {/* 3. Pending Invoices */}
-      <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] flex flex-col justify-between gap-3 text-start relative overflow-hidden group">
+      <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] flex flex-col justify-between gap-3 text-start relative overflow-hidden group">
         <div className="flex items-center justify-between">
           <span className="text-[12px] font-bold text-[#837565] dark:text-[#a89f91]">
             {isEn ? "Pending Collection" : "معلقة بانتظار التحصيل"}
@@ -114,7 +114,7 @@ export function InvoicesKpiCards({ metrics }: InvoicesKpiCardsProps) {
       </div>
 
       {/* 4. Overdue & Refunded */}
-      <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] flex flex-col justify-between gap-3 text-start relative overflow-hidden group">
+      <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] flex flex-col justify-between gap-3 text-start relative overflow-hidden group">
         <div className="flex items-center justify-between">
           <span className="text-[12px] font-bold text-[#837565] dark:text-[#a89f91]">
             {isEn ? "Overdue & Refunded" : "المتأخرة والمستردة"}

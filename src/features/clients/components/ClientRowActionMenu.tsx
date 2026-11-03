@@ -9,8 +9,10 @@ import {
   Ban,
   Trash2,
   DoorOpen,
+  CheckCircle2,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 interface ClientRowActionMenuProps {
   isOpen: boolean;
@@ -21,6 +23,7 @@ interface ClientRowActionMenuProps {
   onManageSubscriptions: () => void;
   onDeactivate: () => void;
   onDelete: () => void;
+  isSuspended?: boolean;
   positionClass?: string;
   triggerRef?: React.RefObject<HTMLElement | null>;
 }
@@ -34,6 +37,7 @@ export function ClientRowActionMenu({
   onManageSubscriptions,
   onDeactivate,
   onDelete,
+  isSuspended,
   triggerRef,
 }: ClientRowActionMenuProps) {
   const { t } = useLanguage();
@@ -121,7 +125,7 @@ export function ClientRowActionMenu({
               ...(coords.bottom !== undefined ? { bottom: `${coords.bottom}px` } : {}),
               zIndex: 9999,
             }}
-            className="w-[210px] bg-white dark:bg-[#1e1c1a] rounded-[8px] p-[6px] shadow-[0px_8px_24px_rgba(0,0,0,0.14)] border border-[#eae8e4] dark:border-[#2f2a24] flex flex-col gap-[2px] text-start font-['Cairo',sans-serif] animate-in fade-in-50 zoom-in-95 select-none"
+            className="w-[210px] bg-white dark:bg-[#221812] rounded-[8px] p-[6px] shadow-[0px_8px_24px_rgba(0,0,0,0.14)] border border-[#eae8e4] dark:border-[#38271c] flex flex-col gap-[2px] text-start font-['Cairo',sans-serif] animate-in fade-in-50 zoom-in-95 select-none"
             data-node-id="1:1399"
           >
             {/* 1. عرض التفاصيل */}
@@ -131,7 +135,7 @@ export function ClientRowActionMenu({
                 onClose();
                 onViewDetails();
               }}
-              className="w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold transition-colors cursor-pointer group"
+              className="w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold transition-colors cursor-pointer group"
             >
               <Eye className="size-[15px] text-[#514537] dark:text-[#a89f91] group-hover:text-[#1b1c1a] dark:group-hover:text-[#fdfbf7] shrink-0" />
               <span className="leading-[18px]">{t("عرض التفاصيل", "View Details")}</span>
@@ -161,7 +165,7 @@ export function ClientRowActionMenu({
                 onClose();
                 onEdit();
               }}
-              className="w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold transition-colors cursor-pointer group"
+              className="w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold transition-colors cursor-pointer group"
             >
               <PenSquare className="size-[15px] text-[#514537] dark:text-[#a89f91] group-hover:text-[#1b1c1a] dark:group-hover:text-[#fdfbf7] shrink-0" />
               <span className="leading-[18px]">{t("تعديل بيانات الحساب", "Edit Account Details")}</span>
@@ -174,26 +178,37 @@ export function ClientRowActionMenu({
                 onClose();
                 onManageSubscriptions();
               }}
-              className="w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold transition-colors cursor-pointer group"
+              className="w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold transition-colors cursor-pointer group"
             >
               <Receipt className="size-[15px] text-[#514537] dark:text-[#a89f91] group-hover:text-[#1b1c1a] dark:group-hover:text-[#fdfbf7] shrink-0" />
               <span className="leading-[18px]">{t("إدارة الاشتراكات والفواتير", "Manage Subscriptions")}</span>
             </button>
 
             {/* Divider */}
-            <div className="h-px bg-[#f0eeea] dark:bg-[#2f2a24] my-[4px]" />
+            <div className="h-px bg-[#f0eeea] dark:bg-[#38271c] my-[4px]" />
 
-            {/* 4. تعطيل الحساب مؤقتاً */}
+            {/* 4. تعطيل / تنشيط الحساب */}
             <button
               type="button"
               onClick={() => {
                 onClose();
                 onDeactivate();
               }}
-              className="w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] hover:bg-[#fffbeb] dark:hover:bg-[#342711] text-[#b45309] dark:text-[#fbbf24] text-[13px] font-semibold transition-colors cursor-pointer group"
+              className={cn(
+                "w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] text-[13px] font-semibold transition-colors cursor-pointer group",
+                isSuspended
+                  ? "hover:bg-[#e8f5e9] dark:hover:bg-[#132c1c] text-[#1b7340] dark:text-[#6ee7b7]"
+                  : "hover:bg-[#fffbeb] dark:hover:bg-[#342711] text-[#b45309] dark:text-[#fbbf24]"
+              )}
             >
-              <Ban className="size-[15px] text-[#b45309] dark:text-[#fbbf24] shrink-0" />
-              <span className="leading-[18px]">{t("تعطيل الحساب مؤقتاً", "Suspend Account")}</span>
+              {isSuspended ? (
+                <CheckCircle2 className="size-[15px] text-[#1b7340] dark:text-[#6ee7b7] shrink-0" />
+              ) : (
+                <Ban className="size-[15px] text-[#b45309] dark:text-[#fbbf24] shrink-0" />
+              )}
+              <span className="leading-[18px]">
+                {isSuspended ? t("تنشيط الحساب", "Activate Account") : t("تعطيل الحساب مؤقتاً", "Suspend Account")}
+              </span>
             </button>
 
             {/* 5. حذف المكتب نهائياً */}

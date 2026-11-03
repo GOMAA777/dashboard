@@ -12,22 +12,22 @@ interface SubscriptionKpiCardsProps {
 }
 
 export function SubscriptionKpiCards({
-  totalCount = 128,
-  activeCount = 86,
-  expiringCount = 12,
-  cancelledCount = 18,
+  totalCount = 0,
+  activeCount = 0,
+  expiringCount = 0,
+  cancelledCount = 0,
 }: SubscriptionKpiCardsProps) {
   const { t } = useLanguage();
 
   return (
     <div
-      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full"
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 w-full"
       data-node-id="1:5256"
       data-name="KPI Metric Cards Grid"
     >
       {/* KPI 1: إجمالي الاشتراكات */}
       <div
-        className="bg-white dark:bg-[#221812] flex flex-col justify-between p-4 rounded-[8px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] relative overflow-hidden"
+        className="bg-white dark:bg-[#221812] flex flex-col justify-between p-5 sm:p-6 rounded-[8px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] relative overflow-hidden"
         data-node-id="1:5318"
       >
         <div className="flex items-start justify-between w-full">
@@ -56,7 +56,7 @@ export function SubscriptionKpiCards({
 
       {/* KPI 2: الاشتراكات النشطة */}
       <div
-        className="bg-white dark:bg-[#221812] flex flex-col justify-between p-4 rounded-[8px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] relative overflow-hidden"
+        className="bg-white dark:bg-[#221812] flex flex-col justify-between p-5 sm:p-6 rounded-[8px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] relative overflow-hidden"
         data-node-id="1:5298"
       >
         <div className="flex items-start justify-between w-full">
@@ -88,7 +88,7 @@ export function SubscriptionKpiCards({
 
       {/* KPI 3: تنتهي خلال 7 أيام */}
       <div
-        className="bg-white dark:bg-[#221812] flex flex-col justify-between p-4 rounded-[8px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] relative overflow-hidden"
+        className="bg-white dark:bg-[#221812] flex flex-col justify-between p-5 sm:p-6 rounded-[8px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] relative overflow-hidden"
         data-node-id="1:5277"
       >
         <div className="flex items-start justify-between w-full">
@@ -120,7 +120,7 @@ export function SubscriptionKpiCards({
 
       {/* KPI 4: الاشتراكات المنتهية والملغاة */}
       <div
-        className="bg-white dark:bg-[#221812] flex flex-col justify-between p-4 rounded-[8px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] relative overflow-hidden"
+        className="bg-white dark:bg-[#221812] flex flex-col justify-between p-5 sm:p-6 rounded-[8px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] relative overflow-hidden"
         data-node-id="1:5257"
       >
         <div className="flex items-start justify-between w-full">
@@ -132,7 +132,7 @@ export function SubscriptionKpiCards({
               {t("الاشتراكات المنتهية والملغاة", "Expired & Cancelled Subscriptions")}
             </span>
             <div className="flex items-center gap-2 pt-1">
-              <span className="bg-[#f0eeea] border border-[#e2ded8] dark:bg-[#2c2621] dark:border-[#4d3627] font-['Cairo'] font-bold text-[10px] text-[#514537] dark:text-[#cdc5bd] px-2.5 py-0.5 rounded-full leading-[14px]">
+              <span className="bg-[#f0eeea] border border-[#e2ded8] dark:bg-[#281c15] dark:border-[#4d3627] font-['Cairo'] font-bold text-[10px] text-[#514537] dark:text-[#cdc5bd] px-2.5 py-0.5 rounded-full leading-[14px]">
                 14%
               </span>
               <span className="font-['Cairo'] font-bold text-[28px] text-[#1b1c1a] dark:text-[#fdfbf7] leading-[38px]">

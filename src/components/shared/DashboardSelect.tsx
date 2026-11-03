@@ -193,7 +193,11 @@ export const DashboardSelect = React.forwardRef<HTMLSelectElement, DashboardSele
     return (
       <div
         ref={containerRef}
-        className={cn("relative w-full select-none font-['Cairo',sans-serif]", containerClassName)}
+        className={cn(
+          "relative w-full select-none font-['Cairo',sans-serif]",
+          isOpen ? "z-30" : "z-auto",
+          containerClassName
+        )}
       >
         {/* Hidden Native Select for Form Integrations & Accessibility */}
         <select
@@ -232,8 +236,8 @@ export const DashboardSelect = React.forwardRef<HTMLSelectElement, DashboardSele
             isOpen
               ? "border-[#9c6402] dark:border-[#c29547] ring-1 ring-[#9c6402] dark:ring-[#c29547] shadow-xs"
               : "hover:border-[#9c6402]/40 dark:hover:border-[#c29547]/50 hover:bg-[#faf9f7] dark:hover:bg-[#221812]",
-            disabled && "opacity-60 cursor-not-allowed hover:border-[#eae8e4] dark:hover:border-[#38271c]",
-            className
+            className,
+            disabled && "opacity-50 cursor-not-allowed pointer-events-none select-none bg-[#eae8e4]/60 dark:bg-[#20150e]/60 text-[#837565] dark:text-[#a89f91] hover:border-[#eae8e4] dark:hover:border-[#38271c]"
           )}
         >
           {/* Label on the START in RTL/LTR */}

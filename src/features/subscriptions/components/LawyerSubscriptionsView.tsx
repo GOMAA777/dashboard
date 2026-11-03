@@ -31,7 +31,7 @@ export function LawyerSubscriptionsView() {
   };
 
   return (
-    <div className="flex h-screen h-dvh overflow-hidden bg-[#fcfbfa] dark:bg-[#121110] text-[#1c1917] dark:text-[#f5f4f0] transition-colors duration-200 relative">
+    <div className="flex h-screen h-dvh overflow-hidden bg-[#fcfbfa] dark:bg-[#150f0b] text-[#1c1917] dark:text-[#fdfbf7] transition-colors duration-200 relative">
       {/* 1. Main Navigation Sidebar (Right side in RTL) */}
       <DashboardSidebar />
 

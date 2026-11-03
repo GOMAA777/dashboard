@@ -10,7 +10,7 @@ import { StaffKpiMetrics } from "./StaffKpiMetrics";
 import { StaffToolbar } from "./StaffToolbar";
 import { StaffTable } from "./StaffTable";
 import { StaffEmptyState } from "./StaffEmptyState";
-import { AddEmployeeView } from "./AddEmployeeView";
+import { AddEmployeeView, type SaveEmployeePayload } from "./AddEmployeeView";
 import { EmployeeDetailsView } from "./EmployeeDetailsView";
 import { LoginAsEmployeeModal } from "./LoginAsEmployeeModal";
 import { PreviewErrorModal } from "./PreviewErrorModal";
@@ -27,13 +27,13 @@ import {
   fetchStaff,
   fetchStaffStats,
   fetchStaffById,
-  updateStaff,
   updateStaffStatus,
   impersonateStaff,
   createStaff,
 } from "@/lib/api/staff";
 import { mapStaffResponse, mapStaffFromApi } from "@/lib/api/mappers";
 import { readStats, unwrapData } from "@/lib/api/helpers";
+import { ApiError } from "@/lib/api/http";
 
 export function StaffManagementView() {
   const { t, isEn, direction } = useLanguage();
@@ -47,6 +47,7 @@ export function StaffManagementView() {
   const [employees, setEmployees] = useState<Employee[]>(initialStaffMembers);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [listError, setListError] = useState<string | null>(null);
 
   const [apiStaffStats, setApiStaffStats] = useState<{
     total?: number;
@@ -54,32 +55,45 @@ export function StaffManagementView() {
     suspended?: number;
   } | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
+  const reloadStaff = async () => {
     setIsLoading(true);
-    Promise.all([fetchStaff(), fetchStaffStats()])
-      .then(([payload, statsPayload]) => {
-        if (cancelled) return;
-        const mapped = mapStaffResponse(payload);
-        if (mapped.length > 0) {
-          setEmployees(mapped);
-          setSelectedEmployee(mapped[0] || null);
-        }
-        setApiStaffStats({
-          total: readStats(statsPayload, ["total", "total_staff", "staff_count"], 0),
-          active: readStats(statsPayload, ["active", "active_staff"], 0),
-          suspended: readStats(statsPayload, ["suspended", "inactive_staff"], 0),
-        });
-      })
-      .catch(() => {
-        // Keep empty staff if API unavailable.
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false);
+    setListError(null);
+    try {
+      const [payload, statsPayload] = await Promise.all([
+        fetchStaff(),
+        fetchStaffStats(),
+      ]);
+      const mapped = mapStaffResponse(payload);
+      setEmployees(mapped);
+      setSelectedEmployee((prev) => {
+        if (!prev) return mapped[0] || null;
+        return mapped.find((e) => e.id === prev.id) || mapped[0] || null;
       });
-    return () => {
-      cancelled = true;
-    };
+      setApiStaffStats({
+        total: readStats(statsPayload, ["total", "total_staff", "staff_count"], 0),
+        active: readStats(statsPayload, ["active", "active_staff"], 0),
+        suspended: readStats(
+          statsPayload,
+          ["suspended", "inactive_staff", "suspended_staff"],
+          0
+        ),
+      });
+      setCurrentView(mapped.length === 0 ? "empty" : "list");
+    } catch (err: unknown) {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : t("تعذر تحميل طاقم العمل.", "Failed to load staff.");
+      setListError(message);
+      setEmployees([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void reloadStaff();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only load
   }, []);
 
   // Filters State
@@ -160,33 +174,32 @@ export function StaffManagementView() {
     toast.info(t("تمت إعادة ضبط فلاتر البحث.", "Search filters have been reset."));
   };
 
-  const handleSaveNewEmployee = async (newEmp: Employee) => {
-    const payload = {
-      name: newEmp.name,
-      email: newEmp.email,
-      phone: newEmp.phone,
-      job_title: newEmp.jobTitle,
-      role_id: newEmp.role.id,
-      department: newEmp.department,
+  const handleSaveNewEmployee = async (payload: SaveEmployeePayload) => {
+    const { employee, password, departmentId, roleId } = payload;
+    const body = {
+      name: employee.name,
+      emp_code: employee.empCode,
+      email: employee.email,
+      phone: employee.phone,
+      password,
+      department_id: departmentId,
+      role_id: roleId,
+      status: "active" as const,
     };
-    try {
-      if (selectedEmployee && currentView === "add" && selectedEmployee.id === newEmp.id) {
-        await updateStaff(newEmp.id, payload);
-      } else if (employees.some((e) => e.id === newEmp.id)) {
-        await updateStaff(newEmp.id, payload);
-      } else {
-        await createStaff(payload);
-      }
-    } catch {
-      // Keep local create/update.
-    }
-    setEmployees((prev) => {
-      const exists = prev.some((e) => e.id === newEmp.id);
-      return exists
-        ? prev.map((e) => (e.id === newEmp.id ? newEmp : e))
-        : [newEmp, ...prev];
-    });
-    setSelectedEmployee(newEmp);
+
+    const response = await createStaff(body);
+    const raw = (unwrapData<Record<string, unknown>>(response) ||
+      response) as Record<string, unknown>;
+    const created =
+      raw?.id || raw?.name ? mapStaffFromApi(raw) : employee;
+
+    toast.success(
+      isEn
+        ? `Employee "${created.name}" added and activated successfully.`
+        : `تمت إضافة الموظف "${created.name}" بنجاح وتفعيل حسابه.`
+    );
+    await reloadStaff();
+    setSelectedEmployee(created);
     setCurrentView("details");
   };
 
@@ -220,84 +233,47 @@ export function StaffManagementView() {
     if (!deactivateModalEmployee) return;
     try {
       await updateStaffStatus(deactivateModalEmployee.id, "suspended");
-    } catch {
-      // Keep local update.
+      toast.success(
+        isEn
+          ? `Employee account "${deactivateModalEmployee.name}" suspended immediately.`
+          : `تم إيقاف حساب الموظف "${deactivateModalEmployee.name}" فورياً.`
+      );
+      setDeactivateModalEmployee(null);
+      await reloadStaff();
+      if (reason.trim()) {
+        toast.info(
+          isEn
+            ? `Suspension reason: ${reason}`
+            : `سبب الإيقاف: ${reason}`
+        );
+      }
+    } catch (err: unknown) {
+      toast.error(
+        err instanceof ApiError
+          ? err.message
+          : t("تعذر إيقاف الموظف.", "Failed to suspend employee.")
+      );
     }
-    setEmployees((prev) =>
-      prev.map((e) =>
-        e.id === deactivateModalEmployee.id
-          ? {
-              ...e,
-              status: "suspended",
-              lastLogin: {
-                time: isEn ? "Today" : "اليوم",
-                note: reason.trim()
-                  ? (isEn ? `Suspension reason: ${reason}` : `سبب الإيقاف: ${reason}`)
-                  : (isEn ? "Session suspended by supervisor" : "تم إيقاف الجلسة بقرار رقابي"),
-              },
-            }
-          : e
-      )
-    );
-    if (selectedEmployee?.id === deactivateModalEmployee.id) {
-      setSelectedEmployee({
-        ...selectedEmployee,
-        status: "suspended",
-        lastLogin: {
-          time: isEn ? "Today" : "اليوم",
-          note: reason.trim()
-            ? (isEn ? `Suspension reason: ${reason}` : `سبب الإيقاف: ${reason}`)
-            : (isEn ? "Session suspended by supervisor" : "تم إيقاف الجلسة بقرار رقابي"),
-        },
-      });
-    }
-    toast.success(
-      isEn
-        ? `Employee account "${deactivateModalEmployee.name}" suspended immediately.`
-        : `تم إيقاف حساب الموظف "${deactivateModalEmployee.name}" فورياً.`
-    );
-    setDeactivateModalEmployee(null);
   };
 
   const handleConfirmActivate = async () => {
     if (!activateModalEmployee) return;
     try {
       await updateStaffStatus(activateModalEmployee.id, "active");
-    } catch {
-      // Keep local update.
+      toast.success(
+        isEn
+          ? `Employee account "${activateModalEmployee.name}" restored and activated.`
+          : `تم استعادة وتفعيل حساب الموظف "${activateModalEmployee.name}".`
+      );
+      setActivateModalEmployee(null);
+      await reloadStaff();
+    } catch (err: unknown) {
+      toast.error(
+        err instanceof ApiError
+          ? err.message
+          : t("تعذر تفعيل الموظف.", "Failed to activate employee.")
+      );
     }
-    setEmployees((prev) =>
-      prev.map((e) =>
-        e.id === activateModalEmployee.id
-          ? {
-              ...e,
-              status: "active",
-              lastLogin: {
-                time: isEn ? "Today" : "اليوم",
-                ip: "178.80.12.44",
-                location: isEn ? "Riyadh" : "الرياض",
-              },
-            }
-          : e
-      )
-    );
-    if (selectedEmployee?.id === activateModalEmployee.id) {
-      setSelectedEmployee({
-        ...selectedEmployee,
-        status: "active",
-        lastLogin: {
-          time: isEn ? "Today" : "اليوم",
-          ip: "178.80.12.44",
-          location: isEn ? "Riyadh" : "الرياض",
-        },
-      });
-    }
-    toast.success(
-      isEn
-        ? `Employee account "${activateModalEmployee.name}" restored and activated.`
-        : `تم استعادة وتفعيل حساب الموظف "${activateModalEmployee.name}".`
-    );
-    setActivateModalEmployee(null);
   };
 
   return (
@@ -314,7 +290,7 @@ export function StaffManagementView() {
           {/* Main Title Banner (For List and Empty Views) */}
           {(currentView === "list" || currentView === "empty") && (
             <div
-              className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+              className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 border border-[#f0eeea] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               data-node-id="1:8702"
             >
               <div>
@@ -335,7 +311,7 @@ export function StaffManagementView() {
               <button
                 type="button"
                 onClick={() => setCurrentView("add")}
-                className="bg-[#9c6402] hover:bg-[#855402] text-white px-5 py-2.5 rounded-[6px] font-semibold text-[14px] flex items-center gap-2 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors shrink-0"
+                className="bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#855402] dark:hover:bg-[#d4922f] text-white dark:text-[#1c140f] px-5 py-2.5 rounded-[6px] font-semibold text-[14px] flex items-center gap-2 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors shrink-0"
                 data-node-id="1:8705"
               >
                 <Plus className="size-[16px]" />
@@ -364,6 +340,19 @@ export function StaffManagementView() {
           {currentView === "list" && (
             isLoading && employees.length === 0 ? (
               <DashboardPageSkeleton />
+            ) : listError ? (
+              <div className="rounded-[8px] border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-[#2c1313] p-6 text-center space-y-3">
+                <p className="text-[14px] font-semibold text-red-700 dark:text-red-300">
+                  {listError}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void reloadStaff()}
+                  className="px-4 py-2 rounded-[6px] bg-[#9c6402] text-white text-[13px] font-bold cursor-pointer"
+                >
+                  {t("إعادة المحاولة", "Retry")}
+                </button>
+              </div>
             ) : (
             <div className="space-y-6">
               {/* 4 KPI Metrics */}

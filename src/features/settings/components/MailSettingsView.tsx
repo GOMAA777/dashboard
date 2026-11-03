@@ -153,7 +153,7 @@ export function MailSettingsView() {
   return (
     <div
       dir={direction}
-      className="flex h-screen h-dvh bg-[#f5f3ef] dark:bg-[#17120e] text-[#1b1c1a] dark:text-[#fdfbf7] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00] transition-colors duration-200"
+      className="flex h-screen h-dvh bg-[#f5f3ef] dark:bg-[#150f0b] text-[#1b1c1a] dark:text-[#fdfbf7] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00] transition-colors duration-200"
     >
       <DashboardSidebar activeNav="mail-settings" />
 
@@ -274,7 +274,7 @@ export function MailSettingsView() {
                           className={cn(
                             "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition-colors cursor-pointer px-0.5",
                             formData.enableSmtpAuth
-                              ? "bg-[#9c6402] border-[#9c6402]"
+                              ? "bg-[#10b981] border-[#10b981] dark:bg-[#10b981] dark:border-[#10b981]"
                               : "bg-[#eae8e4] dark:bg-[#38271c] border-transparent"
                           )}
                         >
@@ -442,7 +442,7 @@ export function MailSettingsView() {
                           className={cn(
                             "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition-colors cursor-pointer px-0.5",
                             formData.enableHtmlEmails
-                              ? "bg-[#9c6402] border-[#9c6402]"
+                              ? "bg-[#10b981] border-[#10b981] dark:bg-[#10b981] dark:border-[#10b981]"
                               : "bg-[#eae8e4] dark:bg-[#38271c] border-transparent"
                           )}
                         >
@@ -531,7 +531,7 @@ export function MailSettingsView() {
                   <button
                     type="button"
                     onClick={handleCancel}
-                    className="bg-[#f0eeea] dark:bg-[#2c2017] hover:bg-[#e4e1dc] dark:hover:bg-[#382a1f] text-[#1b1c1a] dark:text-[#fdfbf7] border border-transparent dark:border-[#3d2a1d] px-[24px] py-[10px] rounded-[6px] font-semibold text-[14px] transition-colors cursor-pointer"
+                    className="bg-[#f0eeea] dark:bg-[#2d1f16] hover:bg-[#e4e1dc] dark:hover:bg-[#382a1f] text-[#1b1c1a] dark:text-[#fdfbf7] border border-transparent dark:border-[#3d2a1d] px-[24px] py-[10px] rounded-[6px] font-semibold text-[14px] transition-colors cursor-pointer"
                   >
                     {isEn ? "Cancel" : "إلغاء"}
                   </button>
@@ -539,7 +539,7 @@ export function MailSettingsView() {
                   <button
                     type="button"
                     onClick={handleSaveDraft}
-                    className="bg-[#f0eeea] dark:bg-[#2c2017] hover:bg-[#e4e1dc] dark:hover:bg-[#382a1f] text-[#1b1c1a] dark:text-[#fdfbf7] border border-transparent dark:border-[#3d2a1d] px-[24px] py-[10px] rounded-[6px] font-semibold text-[14px] transition-colors cursor-pointer"
+                    className="bg-[#f0eeea] dark:bg-[#2d1f16] hover:bg-[#e4e1dc] dark:hover:bg-[#382a1f] text-[#1b1c1a] dark:text-[#fdfbf7] border border-transparent dark:border-[#3d2a1d] px-[24px] py-[10px] rounded-[6px] font-semibold text-[14px] transition-colors cursor-pointer"
                   >
                     {isEn ? "Save as Draft" : "حفظ كمسودة"}
                   </button>

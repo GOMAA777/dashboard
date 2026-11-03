@@ -49,7 +49,7 @@ export function InvoicesEmptyState({
           <button
             type="button"
             onClick={onResetFilters}
-            className="px-4 py-2 text-[13px] font-bold rounded-[6px] bg-[#f5f3ef] dark:bg-[#2c2621] hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#514537] dark:text-[#cdc5bd] border border-[#eae8e4] dark:border-[#38271c] flex items-center gap-2 transition-colors cursor-pointer"
+            className="px-4 py-2 text-[13px] font-bold rounded-[6px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] border border-[#eae8e4] dark:border-[#38271c] flex items-center gap-2 transition-colors cursor-pointer"
           >
             <RotateCcw className="size-3.5" />
             <span>{isEn ? "Reset Filters" : "إعادة ضبط التصفية"}</span>

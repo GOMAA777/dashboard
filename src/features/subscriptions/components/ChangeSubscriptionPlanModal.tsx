@@ -134,7 +134,7 @@ export function ChangeSubscriptionPlanModal({
   };
 
   const fieldClass =
-    "w-full bg-white dark:bg-[#1a1612] text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] rounded-[4px] px-3 py-2 border border-[#e4e2de] dark:border-[#38332c] focus:border-[#9c6402] focus:outline-none";
+    "w-full bg-white dark:bg-[#1a120d] text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] rounded-[4px] px-3 py-2 border border-[#e4e2de] dark:border-[#38271c] focus:border-[#9c6402] focus:outline-none";
 
   return (
     <ModalPortal isOpen={isOpen}>
@@ -145,20 +145,20 @@ export function ChangeSubscriptionPlanModal({
         }}
       >
         <div
-          className="bg-white dark:bg-[#1e1c1a] border border-[#d6c4b1]/40 dark:border-[#38332c] rounded-[8px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 max-h-[92vh] flex flex-col"
+          className="bg-white dark:bg-[#221812] border border-[#d6c4b1]/40 dark:border-[#38271c] rounded-[8px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 max-h-[92vh] flex flex-col"
           data-node-id="1:6978"
           data-name="تغيير باقة الاشتراك"
           onClick={(e) => e.stopPropagation()}
         >
           {/* MODAL HEADER */}
           <div
-            className="flex items-center justify-between px-6 py-4 border-b border-[#f0eeea] dark:border-[#2f2a24] bg-white dark:bg-[#1e1c1a] shrink-0"
+            className="flex items-center justify-between px-6 py-4 border-b border-[#f0eeea] dark:border-[#38271c] bg-white dark:bg-[#221812] shrink-0"
             data-node-id="1:6979"
           >
             <button
               type="button"
               onClick={onClose}
-              className="size-8 rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] text-[#514537] dark:text-[#a89f91] flex items-center justify-center transition-colors cursor-pointer"
+              className="size-8 rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] text-[#514537] dark:text-[#a89f91] flex items-center justify-center transition-colors cursor-pointer"
               aria-label={t("إغلاق النافذة", "Close window")}
             >
               <X className="w-4 h-4" />
@@ -205,7 +205,7 @@ export function ChangeSubscriptionPlanModal({
                     "p-3 rounded-[4px] border transition-all cursor-pointer flex flex-col justify-between text-start",
                     selectedPlanId === "basic"
                       ? "bg-[#fff9ee] dark:bg-[#342711] border-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-                      : "bg-[#f5f3ef]/50 dark:bg-[#2c2621] border-transparent hover:border-[#eae8e4] opacity-85"
+                      : "bg-[#f5f3ef]/50 dark:bg-[#281c15] border-transparent hover:border-[#eae8e4] opacity-85"
                   )}
                 >
                   <div className="flex items-center justify-between pb-1 gap-1">
@@ -235,7 +235,7 @@ export function ChangeSubscriptionPlanModal({
                     "p-3 rounded-[4px] border transition-all cursor-pointer flex flex-col justify-between text-start",
                     selectedPlanId === "silver"
                       ? "bg-[#fff9ee] dark:bg-[#342711] border-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-                      : "bg-[#f5f3ef]/50 dark:bg-[#2c2621] border-transparent hover:border-[#eae8e4] opacity-85"
+                      : "bg-[#f5f3ef]/50 dark:bg-[#281c15] border-transparent hover:border-[#eae8e4] opacity-85"
                   )}
                 >
                   <div className="flex items-center justify-between pb-1 gap-1">
@@ -265,7 +265,7 @@ export function ChangeSubscriptionPlanModal({
                     "p-3 rounded-[4px] border transition-all cursor-pointer flex flex-col justify-between text-start",
                     selectedPlanId === "gold"
                       ? "bg-[#fff9ee] dark:bg-[#342711] border-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-                      : "bg-[#f5f3ef]/50 dark:bg-[#2c2621] border-transparent hover:border-[#eae8e4] opacity-85"
+                      : "bg-[#f5f3ef]/50 dark:bg-[#281c15] border-transparent hover:border-[#eae8e4] opacity-85"
                   )}
                 >
                   <div className="flex items-center justify-between pb-1 gap-1">
@@ -284,7 +284,7 @@ export function ChangeSubscriptionPlanModal({
                     </div>
                   </div>
                   <div className="flex items-baseline justify-end gap-1 my-1">
-                    <span className="text-[10px] text-[#514537] dark:text-[#d1c9bd]">
+                    <span className="text-[10px] text-[#514537] dark:text-[#cdc5bd]">
                       {t("ر.س/سنة", "SAR/yr")}
                     </span>
                     <span className="font-bold text-[13px] text-[#9c6402] dark:text-[#fbbf24]">
@@ -304,7 +304,7 @@ export function ChangeSubscriptionPlanModal({
                     "p-3 rounded-[4px] border transition-all cursor-pointer flex flex-col justify-between text-start",
                     selectedPlanId === "custom"
                       ? "bg-[#fff9ee] dark:bg-[#342711] border-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-                      : "bg-[#f5f3ef]/50 dark:bg-[#2c2621] border-transparent hover:border-[#eae8e4] opacity-85"
+                      : "bg-[#f5f3ef]/50 dark:bg-[#281c15] border-transparent hover:border-[#eae8e4] opacity-85"
                   )}
                 >
                   <div className="flex items-center justify-between pb-1 gap-1">
@@ -321,7 +321,7 @@ export function ChangeSubscriptionPlanModal({
                     </div>
                   </div>
                   <div className="flex items-baseline justify-end gap-1 my-1">
-                    <span className="text-[10px] text-[#514537] dark:text-[#d1c9bd]">
+                    <span className="text-[10px] text-[#514537] dark:text-[#cdc5bd]">
                       {t("ر.س/سنة", "SAR/yr")}
                     </span>
                     <span className="font-bold text-[13px] text-[#1d4ed8] dark:text-[#93c5fd]">
@@ -432,19 +432,19 @@ export function ChangeSubscriptionPlanModal({
 
             {/* Section 2: ملخص الفروقات الأساسية */}
             <div
-              className="bg-[#f5f3ef]/60 dark:bg-[#2c2621] p-3.5 rounded-[4px] space-y-2 border border-[#f0eeea] dark:border-[#38332c]"
+              className="bg-[#f5f3ef]/60 dark:bg-[#281c15] p-3.5 rounded-[4px] space-y-2 border border-[#f0eeea] dark:border-[#38271c]"
               data-node-id="1:7034"
             >
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <span className="bg-[#7b4e00]/10 text-[#7b4e00] dark:text-[#fbbf24] text-[11px] font-bold px-2 py-0.5 rounded-[2px]">
                   {differenceLabel}
                 </span>
-                <span className="font-semibold text-[11px] text-[#514537] dark:text-[#d1c9bd]">
+                <span className="font-semibold text-[11px] text-[#514537] dark:text-[#cdc5bd]">
                   {t("ملخص الفروقات الأساسية:", "Key Differences Summary:")}
                 </span>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 text-center pt-1 border-t border-[#eae8e4] dark:border-[#38332c]">
+              <div className="grid grid-cols-3 gap-2 text-center pt-1 border-t border-[#eae8e4] dark:border-[#38271c]">
                 <div>
                   <span className="text-[10px] text-[#837565] dark:text-[#a89f91] block">
                     {t("التخزين السحابي", "Cloud Storage")}
@@ -453,7 +453,7 @@ export function ChangeSubscriptionPlanModal({
                     {summary.storage}
                   </span>
                 </div>
-                <div className="border-x border-[#eae8e4] dark:border-[#38332c]">
+                <div className="border-x border-[#eae8e4] dark:border-[#38271c]">
                   <span className="text-[10px] text-[#837565] dark:text-[#a89f91] block">
                     {t("القضايا والملفات", "Cases & Files")}
                   </span>
@@ -488,7 +488,7 @@ export function ChangeSubscriptionPlanModal({
                     "p-3 rounded-[4px] border flex items-center justify-between transition-all cursor-pointer",
                     timingOption === "immediate"
                       ? "border-[#9c6402] bg-[#fff9ee]/40 dark:bg-[#342711]"
-                      : "border-[#e4e2de] dark:border-[#38332c] hover:bg-[#faf9f7]"
+                      : "border-[#e4e2de] dark:border-[#38271c] hover:bg-[#faf9f7]"
                   )}
                 >
                   <div className="text-start">
@@ -520,7 +520,7 @@ export function ChangeSubscriptionPlanModal({
                     "p-3 rounded-[4px] border flex items-center justify-between transition-all cursor-pointer",
                     timingOption === "renewal"
                       ? "border-[#9c6402] bg-[#fff9ee]/40 dark:bg-[#342711]"
-                      : "border-[#e4e2de] dark:border-[#38332c] hover:bg-[#faf9f7]"
+                      : "border-[#e4e2de] dark:border-[#38271c] hover:bg-[#faf9f7]"
                   )}
                 >
                   <div className="text-start">
@@ -542,11 +542,11 @@ export function ChangeSubscriptionPlanModal({
           </div>
 
           {/* MODAL FOOTER */}
-          <div className="flex items-center justify-end gap-3 px-6 py-4 bg-[#faf9f7] dark:bg-[#25221e] border-t border-[#f0eeea] dark:border-[#2f2a24] shrink-0">
+          <div className="flex items-center justify-end gap-3 px-6 py-4 bg-[#faf9f7] dark:bg-[#221812] border-t border-[#f0eeea] dark:border-[#38271c] shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-[4px] bg-[#f5f3ef] dark:bg-[#2c2621] hover:bg-[#eae8e4] text-[#514537] dark:text-[#a89f91] text-[12px] font-semibold transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] text-[#514537] dark:text-[#a89f91] text-[12px] font-semibold transition-colors cursor-pointer"
             >
               {t("إلغاء", "Cancel")}
             </button>

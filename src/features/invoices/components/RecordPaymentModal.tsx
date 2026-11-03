@@ -85,7 +85,7 @@ export function RecordPaymentModal({
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4">
           {/* Summary Box */}
-          <div className="bg-[#f5f3ef] dark:bg-[#251b14] p-4 rounded-[10px] border border-[#eae8e4] dark:border-[#38271c] space-y-2">
+          <div className="bg-[#f5f3ef] dark:bg-[#281c15] p-4 rounded-[10px] border border-[#eae8e4] dark:border-[#38271c] space-y-2">
             <div className="flex items-center justify-between text-[13px]">
               <span className="text-[#837565] dark:text-[#a89f91]">
                 {isEn ? "Law Firm:" : "مكتب المحاماة:"}
@@ -133,7 +133,7 @@ export function RecordPaymentModal({
                   className={`p-2 rounded-[6px] text-[12px] font-bold border text-center transition-all cursor-pointer ${
                     paymentMethod === m.id
                       ? "bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] border-[#9c6402] dark:border-[#e29d38] shadow-xs"
-                      : "bg-[#f5f3ef] dark:bg-[#251b14] border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#eae8e4]"
+                      : "bg-[#f5f3ef] dark:bg-[#281c15] border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#eae8e4]"
                   }`}
                 >
                   {m.label}
@@ -153,7 +153,7 @@ export function RecordPaymentModal({
               value={transactionRef}
               onChange={(e) => setTransactionRef(e.target.value)}
               placeholder="e.g. TXN-MADA-8910245"
-              className="w-full bg-[#f5f3ef] dark:bg-[#251b14] border border-[#eae8e4] dark:border-[#38271c] rounded-[8px] px-3.5 py-2 text-[13px] font-mono text-[#1b1c1a] dark:text-[#fdfbf7] focus:outline-none focus:ring-1 focus:ring-[#9c6402]"
+              className="w-full bg-[#f5f3ef] dark:bg-[#281c15] border border-[#eae8e4] dark:border-[#38271c] rounded-[8px] px-3.5 py-2 text-[13px] font-mono text-[#1b1c1a] dark:text-[#fdfbf7] focus:outline-none focus:ring-1 focus:ring-[#9c6402]"
             />
           </div>
 
@@ -173,7 +173,7 @@ export function RecordPaymentModal({
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2 text-[13px] font-bold rounded-[6px] bg-[#f5f3ef] dark:bg-[#2c2621] hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#514537] dark:text-[#cdc5bd] transition-colors cursor-pointer"
+              className="px-4 py-2 text-[13px] font-bold rounded-[6px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] transition-colors cursor-pointer"
             >
               {isEn ? "Cancel" : "إلغاء"}
             </button>

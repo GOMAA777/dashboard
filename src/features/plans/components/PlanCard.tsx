@@ -16,12 +16,12 @@ import {
   Trash2,
   Eye,
 } from "lucide-react";
-import { PricingPlanItem } from "../types/plan.types";
+import { PricingPlanItem, PlanBillingCycle } from "../types/plan.types";
 import { useLanguage } from "@/lib/i18n";
 
 interface PlanCardProps {
   plan: PricingPlanItem;
-  billingCycle: "monthly" | "annual";
+  billingCycle: PlanBillingCycle;
   onEdit: (plan: PricingPlanItem) => void;
   onViewDetails?: (plan: PricingPlanItem) => void;
   onViewSubscribers?: (plan: PricingPlanItem) => void;
@@ -39,11 +39,13 @@ export function PlanCard({
   onDelete,
 }: PlanCardProps) {
   const { t, isEn } = useLanguage();
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-  const displayPrice =
-    billingCycle === "annual" && plan.annualPrice
-      ? Math.round(plan.annualPrice / 12)
-      : plan.monthlyPrice;
+  const isCustom = billingCycle === "custom";
+  const isAnnual = billingCycle === "annual";
+  const rawAnnualPrice =
+    plan.annualPrice && plan.annualPrice > 0
+      ? plan.annualPrice
+      : plan.monthlyPrice * 10;
+  const displayPrice = isAnnual ? rawAnnualPrice : plan.monthlyPrice;
 
   const translatedPlanName = isEn
     ? plan.name
@@ -110,83 +112,31 @@ export function PlanCard({
           </span>
         </div>
 
-        {/* 3-dots Menu Icon & Dropdown */}
-        <div className="relative">
+        {/* Top Action Buttons: Deactivate / Activate & Delete */}
+        <div className="flex items-center gap-1.5 shrink-0">
           <button
             type="button"
-            onClick={() => setIsMenuOpen((prev) => !prev)}
-            className="text-[#837565] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] p-1 rounded-sm cursor-pointer"
-            aria-label={t("خيارات إضافية", "More Options")}
+            onClick={() => onToggleActive && onToggleActive(plan)}
+            className={`px-2 py-1 rounded-[4px] text-[11px] font-bold border transition-colors cursor-pointer flex items-center gap-1 shadow-2xs ${
+              plan.isActive
+                ? "bg-[#fffbeb] dark:bg-[#2c2014] hover:bg-[#fef3c7] dark:hover:bg-[#3d2c1c] text-[#9c6402] dark:text-[#e29d38] border-[#fde68a] dark:border-[#523b24]"
+                : "bg-[#e8f5e9] dark:bg-[#132c1c] hover:bg-[#c8e6c9] dark:hover:bg-[#1b4329] text-[#1b7340] dark:text-[#6ee7b7] border-[#c8e6c9] dark:border-emerald-500/40"
+            }`}
+            title={plan.isActive ? t("تعطيل الباقة", "Deactivate Plan") : t("تفعيل الباقة", "Activate Plan")}
           >
-            <MoreVertical className="size-[15px]" />
+            <Power className="size-[12px] shrink-0" />
+            <span>{plan.isActive ? t("تعطيل", "Deactivate") : t("تفعيل", "Activate")}</span>
           </button>
 
-          {isMenuOpen && (
-            <div className="absolute end-0 top-full mt-1 w-[180px] bg-white dark:bg-[#1e1c1a] rounded-[6px] shadow-lg border border-[#e2ded7] dark:border-[#38271c] py-[6px] z-20 text-start animate-in fade-in duration-100 font-['Cairo',sans-serif]">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  onEdit(plan);
-                }}
-                className="w-full text-start px-[12px] py-[7px] text-[12px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#faf8f5] dark:hover:bg-[#2c2621] flex items-center gap-[8px] cursor-pointer"
-              >
-                <Pencil className="size-[14px] text-[#837565] dark:text-[#cdc5bd]" />
-                <span>{t("تعديل الباقة", "Edit Plan")}</span>
-              </button>
-
-              {onViewDetails && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    onViewDetails(plan);
-                  }}
-                  className="w-full text-start px-[12px] py-[7px] text-[12px] font-semibold text-[#514537] dark:text-[#cdc5bd] hover:bg-[#faf8f5] dark:hover:bg-[#2c2621] flex items-center gap-[8px] cursor-pointer"
-                >
-                  <Eye className="size-[14px] text-[#837565] dark:text-[#cdc5bd]" />
-                  <span>{t("عرض تفاصيل الباقة", "View Details")}</span>
-                </button>
-              )}
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  if (onViewSubscribers) onViewSubscribers(plan);
-                  else if (onViewDetails) onViewDetails(plan);
-                }}
-                className="w-full text-start px-[12px] py-[7px] text-[12px] font-semibold text-[#514537] dark:text-[#cdc5bd] hover:bg-[#faf8f5] dark:hover:bg-[#2c2621] flex items-center gap-[8px] cursor-pointer"
-              >
-                <Users className="size-[14px] text-[#837565] dark:text-[#cdc5bd]" />
-                <span>{t("عرض المشتركين", "Subscribers")} ({plan.subscribedFirmsCount})</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  if (onToggleActive) onToggleActive(plan);
-                }}
-                className="w-full text-start px-[12px] py-[7px] text-[12px] font-semibold text-[#9c6402] dark:text-[#e29d38] hover:bg-[#fbf6ee] dark:hover:bg-[#2d1f16] flex items-center gap-[8px] cursor-pointer"
-              >
-                <Power className="size-[14px] text-[#9c6402] dark:text-[#e29d38]" />
-                <span>{plan.isActive ? t("تعطيل الباقة", "Deactivate Plan") : t("تفعيل الباقة", "Activate Plan")}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  if (onDelete) onDelete(plan);
-                }}
-                className="w-full text-start px-[12px] py-[7px] text-[12px] font-semibold text-[#b91c1c] dark:text-[#f87171] hover:bg-[#fee2e2]/40 dark:hover:bg-[#311616] border-t border-[#f0eeea] dark:border-[#2f2a24] mt-[4px] pt-[7px] flex items-center gap-[8px] cursor-pointer"
-              >
-                <Trash2 className="size-[14px] text-[#b91c1c] dark:text-[#f87171]" />
-                <span>{t("حذف الباقة", "Delete Plan")}</span>
-              </button>
-            </div>
-          )}
+          <button
+            type="button"
+            onClick={() => onDelete && onDelete(plan)}
+            className="px-2 py-1 rounded-[4px] bg-[#fef2f2] dark:bg-[#311616] hover:bg-[#fee2e2] dark:hover:bg-[#451e1e] text-[#b91c1c] dark:text-[#f87171] border border-[#fecaca] dark:border-[#5c2424] text-[11px] font-bold transition-colors cursor-pointer flex items-center gap-1 shadow-2xs"
+            title={t("حذف الباقة", "Delete Plan")}
+          >
+            <Trash2 className="size-[12px] shrink-0" />
+            <span>{t("حذف", "Delete")}</span>
+          </button>
         </div>
       </div>
 
@@ -207,19 +157,40 @@ export function PlanCard({
             <span className="text-[12px] font-bold text-[#514537] dark:text-[#cdc5bd]">{t("يبدأ من", "Starts at")}</span>
           )}
           <span className="text-[32px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7] leading-none">
-            {displayPrice}
+            {displayPrice > 0 ? displayPrice.toLocaleString() : t("مخصص", "Custom")}
           </span>
           <span className="text-[12px] font-semibold text-[#514537] dark:text-[#cdc5bd]">
-            {t("ر.س / شهرياً", "SAR / mo")}
+            {isCustom
+              ? t("ر.س / مخصص", "SAR / Custom")
+              : isAnnual
+              ? t("ر.س / سنوياً", "SAR / yr")
+              : t("ر.س / شهرياً", "SAR / mo")}
           </span>
-          {billingCycle === "annual" && Boolean(plan.yearlyDiscountPercent && plan.yearlyDiscountPercent > 0) && (
+          {isCustom && (
+            <span className="bg-[#fff8e6] border border-[#f5e3c8] dark:bg-[rgba(226,157,56,0.18)] dark:border-[#e29d38]/50 text-[#9c6402] dark:text-[#f3c27e] text-[10px] font-bold px-[6px] py-[1px] rounded-full ms-auto">
+              {t("تسعير تعاقدي", "Contractual Pricing")}
+            </span>
+          )}
+          {isAnnual && (
             <span className="bg-[#ecfdf5] border border-emerald-300 dark:bg-[#132c1c] dark:border-emerald-500/40 text-[#047857] dark:text-[#6ee7b7] text-[10px] font-bold px-[6px] py-[1px] rounded-full ms-auto">
-              {t(`وفر ${plan.yearlyDiscountPercent}%`, `Save ${plan.yearlyDiscountPercent}%`)}
+              {plan.yearlyDiscountPercent && plan.yearlyDiscountPercent > 0
+                ? t(`وفر ${plan.yearlyDiscountPercent}%`, `Save ${plan.yearlyDiscountPercent}%`)
+                : t("خصم شهرين", "Save 2 months")}
             </span>
           )}
         </div>
         <p className="text-[11px] text-[#837565] dark:text-[#8e8680] leading-[16px] mt-[6px]">
-          {plan.annualNote || t("شاملة ضريبة القيمة المضافة ومصاريف السيرفر", "Includes VAT and cloud hosting")}
+          {isCustom
+            ? t(
+                "تسعير تعاقدي مخصص ومميزات استثنائية وفق متطلبات واتفاقية المكتب",
+                "Custom contractual pricing and exclusive features tailored to firm requirements"
+              )
+            : isAnnual
+            ? t(
+                `ما يعادل ${Math.round(displayPrice / 12).toLocaleString()} ر.س / شهرياً - تدفع سنوياً بموجب فاتورة إلكترونية`,
+                `Equivalent to ${Math.round(displayPrice / 12).toLocaleString()} SAR / mo - billed annually via e-invoice`
+              )
+            : (plan.annualNote || t("تدفع سنوياً أو شهرياً بموجب فاتورة إلكترونية", "Billed annually or monthly via e-invoice"))}
         </p>
       </div>
 
@@ -302,57 +273,44 @@ export function PlanCard({
         )}
       </div>
 
-      {/* Card Action Footer */}
-      <div className="pt-[14px] border-t border-[#f0eeea] dark:border-[#38271c] flex items-center justify-between gap-[10px]">
-        {plan.isEnterprise ? (
-          <>
-            <button
-              type="button"
-              onClick={() => onEdit(plan)}
-              className="p-[8px] rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] border border-transparent dark:border-[#38271c] cursor-pointer"
-              title="إعدادات الباقة"
-            >
-              <Settings className="size-[16px]" />
-            </button>
+      {/* Card Action Footer: تفاصيل، تعديل، الأشخاص المشتركين */}
+      <div className="pt-[14px] border-t border-[#f0eeea] dark:border-[#38271c] flex items-center gap-1.5">
+        <button
+          type="button"
+          onClick={() => onViewDetails && onViewDetails(plan)}
+          className="flex-1 py-2 px-2 rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] border border-[#eae8e4] dark:border-[#38271c] text-[11px] font-bold transition-colors cursor-pointer flex items-center justify-center gap-1 shadow-2xs"
+          title={t("عرض تفاصيل الباقة", "View Plan Details")}
+        >
+          <Eye className="size-[13px] shrink-0" />
+          <span className="truncate">{t("تفاصيل", "Details")}</span>
+        </button>
 
-            <button
-              type="button"
-              onClick={() => onToggleActive && onToggleActive(plan)}
-              className="flex-1 bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] border border-transparent dark:border-[#38271c] py-[8px] px-[12px] rounded-[4px] text-[12px] font-bold transition-colors cursor-pointer flex items-center justify-center gap-[6px]"
-            >
-              <span>{plan.isActive ? "تعطيل الباقة" : "تفعيل الباقة"}</span>
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              type="button"
-              onClick={() =>
-                onViewSubscribers
-                  ? onViewSubscribers(plan)
-                  : onViewDetails
-                  ? onViewDetails(plan)
-                  : onEdit(plan)
-              }
-              className="p-[8px] rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] border border-transparent dark:border-[#38271c] cursor-pointer shrink-0"
-              title="عرض المكاتب المشتركة"
-            >
-              <Users className="size-[16px]" />
-            </button>
+        <button
+          type="button"
+          onClick={() => onEdit(plan)}
+          className={`flex-1 py-2 px-2 rounded-[4px] text-[11px] font-bold transition-colors cursor-pointer flex items-center justify-center gap-1 shadow-2xs ${
+            plan.isPopular
+              ? "bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#855402] dark:hover:bg-[#c88528] text-white dark:text-[#1c140f]"
+              : "bg-[#1b1c1a] dark:bg-[#281c15] hover:bg-[#333] dark:hover:bg-[#38271c] text-white dark:text-[#fdfbf7] border border-transparent dark:border-[#38271c]"
+          }`}
+          title={t("تعديل الباقة", "Edit Plan")}
+        >
+          <Pencil className="size-[13px] shrink-0" />
+          <span className="truncate">{t("تعديل", "Edit")}</span>
+        </button>
 
-            <button
-              type="button"
-              onClick={() => onEdit(plan)}
-              className={`flex-1 py-[8px] px-[14px] rounded-[4px] text-[13px] font-bold shadow-2xs transition-colors cursor-pointer text-center ${
-                plan.isPopular
-                  ? "bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#855402] dark:hover:bg-[#c88528] text-white dark:text-[#1c140f]"
-                  : "bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] border border-transparent dark:border-[#38271c]"
-              }`}
-            >
-              {t("تعديل الباقة", "Edit Plan")}
-            </button>
-          </>
-        )}
+        <button
+          type="button"
+          onClick={() => {
+            if (onViewSubscribers) onViewSubscribers(plan);
+            else if (onViewDetails) onViewDetails(plan);
+          }}
+          className="flex-1 py-2 px-2 rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] border border-[#eae8e4] dark:border-[#38271c] text-[11px] font-bold transition-colors cursor-pointer flex items-center justify-center gap-1 shadow-2xs"
+          title={t("عرض المشتركين في هذه الباقة", "View Subscribers")}
+        >
+          <Users className="size-[13px] shrink-0" />
+          <span className="truncate">{t("المشتركين", "Subscribers")} ({plan.subscribedFirmsCount})</span>
+        </button>
       </div>
     </div>
   );

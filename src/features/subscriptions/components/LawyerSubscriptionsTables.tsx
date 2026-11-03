@@ -93,9 +93,9 @@ export function LawyerSubscriptionsTables() {
       className="grid grid-cols-1 lg:grid-cols-2 gap-4 relative z-10"
     >
       {/* 1. Recent Lawyer Subscriptions Card */}
-      <div className="bg-white dark:bg-[#1a1816] rounded-2xl border border-[#ded5c6] dark:border-[#2f2a24] p-5 shadow-[0_4px_16px_-2px_rgba(80,65,45,0.06),0_1px_3px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_20px_-2px_rgba(0,0,0,0.5)]">
-        <div className="border-b border-[#ded5c6]/60 dark:border-[#2f2a24] pb-3 mb-3">
-          <h2 className="text-sm font-bold text-[#1c1917] dark:text-[#f5f4f0] text-start">
+      <div className="bg-white dark:bg-[#1a120d] rounded-2xl border border-[#ded5c6] dark:border-[#38271c] p-5 shadow-[0_4px_16px_-2px_rgba(80,65,45,0.06),0_1px_3px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_20px_-2px_rgba(0,0,0,0.5)]">
+        <div className="border-b border-[#ded5c6]/60 dark:border-[#38271c] pb-3 mb-3">
+          <h2 className="text-sm font-bold text-[#1c1917] dark:text-[#fdfbf7] text-start">
             {ls.recentSubscriptions}
           </h2>
         </div>
@@ -103,7 +103,7 @@ export function LawyerSubscriptionsTables() {
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-start">
             <thead>
-              <tr className="border-b border-[#ded5c6]/40 dark:border-[#2f2a24] text-[#8c8279] dark:text-[#787166]">
+              <tr className="border-b border-[#ded5c6]/40 dark:border-[#38271c] text-[#8c8279] dark:text-[#8e8680]">
                 <th className="pb-2.5 font-semibold text-start">{ls.lawyerOrFirm}</th>
                 <th className="pb-2.5 font-semibold text-start">{ls.price}</th>
                 <th className="pb-2.5 font-semibold text-end">{ls.date}</th>
@@ -113,11 +113,11 @@ export function LawyerSubscriptionsTables() {
               {recentLawyerSubs.map((sub, idx) => (
                 <tr
                   key={idx}
-                  className="hover:bg-[#faf8f4] dark:hover:bg-[#201d1a] transition-colors"
+                  className="hover:bg-[#faf8f4] dark:hover:bg-[#281c15] transition-colors"
                 >
                   <td className="py-3 font-semibold text-[#2c2825] dark:text-[#e4ded5] text-start">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-full bg-[#fbf6ec] dark:bg-[#2b2419] border border-[#eeddbb] dark:border-[#4d3a1f] flex items-center justify-center shrink-0">
+                      <div className="w-7 h-7 rounded-full bg-[#fbf6ec] dark:bg-[#281c15] border border-[#eeddbb] dark:border-[#4d3a1f] flex items-center justify-center shrink-0">
                         {sub.isAlJoudy ? (
                           <Scale className="w-3.5 h-3.5 text-[#9c6402]" />
                         ) : (
@@ -135,7 +135,7 @@ export function LawyerSubscriptionsTables() {
                   <td className="py-3 font-medium text-[#6c645b] dark:text-[#9e968a] text-start align-middle">
                     {sub.price}
                   </td>
-                  <td className="py-3 font-mono text-[11px] text-[#8c8279] dark:text-[#787166] text-end align-middle">
+                  <td className="py-3 font-mono text-[11px] text-[#8c8279] dark:text-[#8e8680] text-end align-middle">
                     {sub.date}
                   </td>
                 </tr>
@@ -146,9 +146,9 @@ export function LawyerSubscriptionsTables() {
       </div>
 
       {/* 2. Top Law Firms Card */}
-      <div className="bg-white dark:bg-[#1a1816] rounded-2xl border border-[#ded5c6] dark:border-[#2f2a24] p-5 shadow-[0_4px_16px_-2px_rgba(80,65,45,0.06),0_1px_3px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_20px_-2px_rgba(0,0,0,0.5)]">
-        <div className="border-b border-[#ded5c6]/60 dark:border-[#2f2a24] pb-3 mb-3">
-          <h2 className="text-sm font-bold text-[#1c1917] dark:text-[#f5f4f0] text-start">
+      <div className="bg-white dark:bg-[#1a120d] rounded-2xl border border-[#ded5c6] dark:border-[#38271c] p-5 shadow-[0_4px_16px_-2px_rgba(80,65,45,0.06),0_1px_3px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_20px_-2px_rgba(0,0,0,0.5)]">
+        <div className="border-b border-[#ded5c6]/60 dark:border-[#38271c] pb-3 mb-3">
+          <h2 className="text-sm font-bold text-[#1c1917] dark:text-[#fdfbf7] text-start">
             {ls.topLawFirms}
           </h2>
         </div>
@@ -156,7 +156,7 @@ export function LawyerSubscriptionsTables() {
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-start">
             <thead>
-              <tr className="border-b border-[#ded5c6]/40 dark:border-[#2f2a24] text-[#8c8279] dark:text-[#787166]">
+              <tr className="border-b border-[#ded5c6]/40 dark:border-[#38271c] text-[#8c8279] dark:text-[#8e8680]">
                 <th className="pb-2.5 font-semibold text-start">{ls.lawyerOrFirm}</th>
                 <th className="pb-2.5 font-semibold text-start">{ls.totalSpend}</th>
                 <th className="pb-2.5 font-semibold text-end">{ls.startedAt}</th>
@@ -166,11 +166,11 @@ export function LawyerSubscriptionsTables() {
               {topLawFirms.map((firm, idx) => (
                 <tr
                   key={idx}
-                  className="hover:bg-[#faf8f4] dark:hover:bg-[#201d1a] transition-colors"
+                  className="hover:bg-[#faf8f4] dark:hover:bg-[#281c15] transition-colors"
                 >
                   <td className="py-3 font-semibold text-[#2c2825] dark:text-[#e4ded5] text-start">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-full bg-[#fbf6ec] dark:bg-[#2b2419] border border-[#eeddbb] dark:border-[#4d3a1f] flex items-center justify-center shrink-0">
+                      <div className="w-7 h-7 rounded-full bg-[#fbf6ec] dark:bg-[#281c15] border border-[#eeddbb] dark:border-[#4d3a1f] flex items-center justify-center shrink-0">
                         {firm.isAlJoudy ? (
                           <Scale className="w-3.5 h-3.5 text-[#9c6402]" />
                         ) : (
@@ -180,10 +180,10 @@ export function LawyerSubscriptionsTables() {
                       <span className="truncate">{firm.name}</span>
                     </div>
                   </td>
-                  <td className="py-3 font-bold text-[#1c1917] dark:text-[#f5f4f0] text-start align-middle">
+                  <td className="py-3 font-bold text-[#1c1917] dark:text-[#fdfbf7] text-start align-middle">
                     {firm.totalSpend}
                   </td>
-                  <td className="py-3 font-medium text-[#8c8279] dark:text-[#787166] text-end align-middle">
+                  <td className="py-3 font-medium text-[#8c8279] dark:text-[#8e8680] text-end align-middle">
                     {firm.startedAt}
                   </td>
                 </tr>

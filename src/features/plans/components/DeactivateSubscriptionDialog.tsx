@@ -68,7 +68,7 @@ export function DeactivateSubscriptionDialog({
         }}
       >
         <div
-          className="relative w-full max-w-[680px] bg-white dark:bg-[#1e1c1a] rounded-[10px] shadow-2xl border border-[#e2ded7] dark:border-[#38271c] overflow-hidden font-['Cairo',sans-serif]"
+          className="relative w-full max-w-[680px] bg-white dark:bg-[#221812] rounded-[10px] shadow-2xl border border-[#e2ded7] dark:border-[#38271c] overflow-hidden font-['Cairo',sans-serif]"
           role="dialog"
           aria-modal="true"
           onClick={(e) => e.stopPropagation()}
@@ -231,7 +231,7 @@ export function DeactivateSubscriptionDialog({
                 onClick={() => setDeactivationMode("immediate")}
                 className={`p-[14px] rounded-[8px] transition-all cursor-pointer border ${
                   deactivationMode === "immediate"
-                    ? "border-[#9c6402] dark:border-[#e29d38] bg-[#fdfbf7] dark:bg-[#2c2017] shadow-2xs"
+                    ? "border-[#9c6402] dark:border-[#e29d38] bg-[#fdfbf7] dark:bg-[#2d1f16] shadow-2xs"
                     : "border-[#e2ded7] dark:border-[#38271c] bg-white dark:bg-[#221812] hover:border-[#cfcac1]"
                 }`}
               >
@@ -241,7 +241,7 @@ export function DeactivateSubscriptionDialog({
                       className={`size-[16px] rounded-full border flex items-center justify-center shrink-0 ${
                         deactivationMode === "immediate"
                           ? "border-[#9c6402] dark:border-[#e29d38] bg-[#9c6402] dark:bg-[#e29d38]"
-                          : "border-[#cfcac1] dark:border-[#4d3627] bg-white dark:bg-[#1e1c1a]"
+                          : "border-[#cfcac1] dark:border-[#4d3627] bg-white dark:bg-[#221812]"
                       }`}
                     >
                       {deactivationMode === "immediate" && (
@@ -271,7 +271,7 @@ export function DeactivateSubscriptionDialog({
                 onClick={() => setDeactivationMode("end_of_cycle")}
                 className={`p-[14px] rounded-[8px] transition-all cursor-pointer border ${
                   deactivationMode === "end_of_cycle"
-                    ? "border-[#9c6402] dark:border-[#e29d38] bg-[#fdfbf7] dark:bg-[#2c2017] shadow-2xs"
+                    ? "border-[#9c6402] dark:border-[#e29d38] bg-[#fdfbf7] dark:bg-[#2d1f16] shadow-2xs"
                     : "border-[#e2ded7] dark:border-[#38271c] bg-white dark:bg-[#221812] hover:border-[#cfcac1]"
                 }`}
               >
@@ -281,7 +281,7 @@ export function DeactivateSubscriptionDialog({
                       className={`size-[16px] rounded-full border flex items-center justify-center shrink-0 ${
                         deactivationMode === "end_of_cycle"
                           ? "border-[#9c6402] dark:border-[#e29d38] bg-[#9c6402] dark:bg-[#e29d38]"
-                          : "border-[#cfcac1] dark:border-[#4d3627] bg-white dark:bg-[#1e1c1a]"
+                          : "border-[#cfcac1] dark:border-[#4d3627] bg-white dark:bg-[#221812]"
                       }`}
                     >
                       {deactivationMode === "end_of_cycle" && (

@@ -56,7 +56,7 @@ describe("fetchImpersonationLogs", () => {
     expect(url.searchParams.get("page")).toBe("2");
   });
 
-  it("surfaces API failures without inventing rows", async () => {
+  it("degrades to empty list when impersonation-logs and audit fallback are both missing", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue(
@@ -67,6 +67,19 @@ describe("fetchImpersonationLogs", () => {
       )
     );
 
-    await expect(fetchImpersonationLogs()).rejects.toThrow();
+    const result = await fetchImpersonationLogs();
+    expect(result.items).toEqual([]);
+    expect(result.total).toBe(0);
+  });
+
+  it("surfaces non-404 API failures without inventing rows", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        jsonResponse({ message: "Server error" }, 500)
+      )
+    );
+
+    await expect(fetchImpersonationLogs()).rejects.toThrow(/Server error|API error/);
   });
 });

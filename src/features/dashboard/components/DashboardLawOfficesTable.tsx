@@ -131,12 +131,12 @@ export function DashboardLawOfficesTable({ offices: externalOffices }: Dashboard
       </div>
 
       {/* Table Container */}
-      <div className="overflow-x-auto scrollbar-thin w-full max-w-full" data-node-id="1:246">
+      <div className="overflow-x-auto overflow-y-hidden scrollbar-thin w-full max-w-full" data-node-id="1:246">
         <table className="w-full text-start border-collapse min-w-[880px]">
           {/* Header Row */}
           <thead>
             <tr
-              className="bg-[#f5f3ef] dark:bg-[#1a120d] text-[#625d5d] dark:text-[#a89f91] text-[12px] leading-[16px] font-bold border-b border-[#f0eeea] dark:border-[#38271c]"
+              className="bg-[#f5f3ef] dark:bg-[#281c15] text-[#625d5d] dark:text-[#cdc5bd] text-[12px] leading-[16px] font-bold border-b border-[#f0eeea] dark:border-[#38271c]"
               data-node-id="1:247"
             >
               <th className="py-[16px] px-[12px] text-center font-bold w-[46px]">#</th>
@@ -201,7 +201,8 @@ export function DashboardLawOfficesTable({ offices: externalOffices }: Dashboard
                     ) : (
                       <div
                         className={cn(
-                          "size-[32px] rounded-[4px] flex items-center justify-center font-bold text-[10px] shrink-0",
+                          "size-[32px] rounded-[4px] flex items-center justify-center font-bold text-[12px] shrink-0",
+                          "bg-[#fff9ee] dark:bg-[#2d1f16] text-[#9c6402] dark:text-[#e29d38] border border-[#eae8e4] dark:border-[#423122]",
                           row.initialBg,
                           row.initialText
                         )}

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Plus, Building2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 
 interface PlansManagementHeaderProps {
@@ -11,7 +11,6 @@ interface PlansManagementHeaderProps {
 
 export function PlansManagementHeader({
   onCreatePlan,
-  onViewSubscribedFirms,
 }: PlansManagementHeaderProps) {
   const { t } = useLanguage();
 
@@ -35,16 +34,6 @@ export function PlansManagementHeader({
 
       {/* Left / End (in RTL): CTA Action Buttons */}
       <div className="flex items-center gap-[10px] self-start md:self-auto shrink-0">
-        {/* زر عرض المكاتب المشتركة */}
-        <button
-          type="button"
-          onClick={onViewSubscribedFirms}
-          className="bg-white dark:bg-[#281c15] hover:bg-[#f5f3ef] dark:hover:bg-[#38271c] border border-[#eae8e4] dark:border-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] px-[16px] py-[9px] rounded-[4px] text-[13px] font-semibold flex items-center gap-[8px] shadow-2xs transition-colors cursor-pointer"
-        >
-          <Building2 className="size-[15px] text-[#514537] dark:text-[#cdc5bd]" />
-          <span>{t("عرض المكاتب المشتركة", "View Subscribed Firms")}</span>
-        </button>
-
         {/* زر إنشاء باقة جديدة */}
         <button
           type="button"

@@ -12,13 +12,14 @@ Lawyer collection `50014550-62b8c9a7-67d7-4f6d-8104-6e46c4e41342` was **not** av
 | Collection base_url | `http://127.0.0.1:8000/api` |
 | Production / .env | `https://law.elmoroj.com/api` |
 | Auth | `Authorization: Bearer <admin_token>` |
-| Login (live-verified, **not in collection**) | `POST /login` body `{ "login", "password", "role" }` — accepted roles include `admin`, `owner`, `lawyer` |
+| Login (live-verified, **not in collection**) | `POST /login` body `{ "login", "password", "role" }` — accepted roles include `admin`, `owner`, `lawyer`, `accountant`. Platform staff created via `POST /admin/staff` are **not** the same as Sanctum login users until backend links them. |
 
 ## Endpoint → screen status
 
 | # | Method | Path | Auth | Request body | Response | Purpose | UI screen / button | Status |
 |---|--------|------|------|--------------|----------|---------|--------------------|--------|
-| 1 | GET | `/admin/dashboard` | Bearer admin_token | — | Laravel envelope `{status,message,data}` | إحصائيات المنصة، الإيرادات، توزيع الباقات، أحدث المكاتب، وملخص الدعم الفني | DashboardHomeView / الرئيسية | wired |
+| 1 | GET | `/admin/dashboardSaas` | Bearer admin_token (optional) | — | Laravel envelope `{status,message,data}` (UID: `50014550-ef8b79ff-ceb5-4885-963d-8f0d0e4b7328`) | إحصائيات المنصة الشاملة SaaS، الاشتراكات، أحدث المكاتب المسجلة، وآخر النشاطات | DashboardHomeView / الرئيسية | wired |
+| 1b | GET | `/admin/dashboard` | Bearer admin_token | `?company_id=X` | Laravel envelope `{status,message,data}` (UID: `50014550-31fd1dd4-edbe-4d98-8a68-258bb70fca83`) | إحصائيات المنشأة الفردية (قديم) | Dashboard fallback | wired |
 | 2 | GET | `/admin/firms/stats` | Bearer admin_token | — | Laravel envelope `{status,message,data}` | 01. إحصائيات المكاتب (KPIs) | ClientKpiMetrics | wired |
 | 3 | GET | `/admin/firms` | Bearer admin_token | — | Laravel envelope `{status,message,data}` | 02. قائمة مكاتب المحاماة (مع الفلترة والبحث) | ClientKpiMetrics | wired |
 | 4 | POST | `/admin/firms` | Bearer admin_token | `JSON` (see bodies section) | Laravel envelope `{status,message,data}` | 03. إضافة مكتب محاماة جديد (Step 1 + Step 2) | ClientKpiMetrics | wired |
@@ -119,7 +120,7 @@ Lawyer collection `50014550-62b8c9a7-67d7-4f6d-8104-6e46c4e41342` was **not** av
 |------|----------------------|----|--------|
 | Dashboard | GET `/admin/dashboard` + stats fan-out | `DashboardHomeView` | wired |
 | Firms | list/stats/CRUD/status/notes/delete | `ClientManagementView` / details / modals | wired |
-| Firm enter | POST `login-as-firm` | دخول → confirm → lawyer tab | wired (live verified) |
+| Firm enter | POST `login-as-firm` | دخول → confirm → same-tab loading bridge → `/lawyer/` | wired (requires real admin Sanctum token; AUTH_BYPASS tokens rejected) |
 | Firm end preview | POST `end-preview` | Lawyer banner / exit (lawyer app) | API live; lawyer UI **blocked** (app not in workspace) |
 | Plans | full set | `PlansView` / create / details | wired (hybrid fallback) |
 | Subscriptions | full set | `SubscriptionManagementView` | wired (hybrid) |
@@ -653,3 +654,48 @@ Lawyer collection `50014550-62b8c9a7-67d7-4f6d-8104-6e46c4e41342` was **not** av
 }
 ```
 
+
+
+---
+
+## 7. Law Firm SaaS - Custom Offers & Supervisory Sessions (3 Screens)
+- **Folder UID**: 50014550-c76a6908-8cc6-4924-ad26-ba87d00a9049
+- **Parent Collection**: 50014550-9c31e88e-4fa7-4646-9e4b-0682ac23b57d
+
+### Screen 1: Custom Plan & Special Offer (تخصيص باقة واشتراك لعميل جديد / قائم)
+- **Folder UID**: c249005a-dcd6-4ce5-b021-48b9d2d34b14
+- **Service Layer**: src/lib/api/subscriptions.ts, src/lib/api/firms.ts
+- **UI Components**: AddClientOfficeView, ClientOfficeDetailsView, SubscriptionManagementView
+
+| Method | Endpoint | Description | UI Connection | Status |
+|---|---|---|---|---|
+| POST | /admin/firms | إنشاء مكتب جديد مع باقة مخصصة وعرض استثنائي | AddClientOfficeView (Custom Plan Tab) | ✅ Wired & Verified |
+| POST | /admin/subscriptions/{id}/custom-offer | تطبيق باقة مخصصة وتعديل حدود اشتراك قائم | ClientOfficeDetailsView / Upgrade Modal | ✅ Wired & Verified |
+| GET | /admin/subscriptions/{id}/limits-breakdown | تفاصيل حدود الباقة والزيادات المخصصة | ClientOfficeDetailsView (Limits Breakdown) | ✅ Wired & Verified |
+| GET | /admin/subscriptions?is_custom_offer=1 | قائمة الاشتراكات التي تتمتع بعروض وباقات مخصصة | SubscriptionManagementView (Custom Filter) | ✅ Wired & Verified |
+| DELETE | /admin/subscriptions/{id}/custom-offer | إلغاء العرض المخصص والعودة لحدود الباقة القياسية | SubscriptionManagementView / Actions | ✅ Wired & Verified |
+| GET | /admin/firms/{id} | عرض ملف المكتب المخصص والحدود الإجمالية | ClientOfficeDetailsView | ✅ Wired & Verified |
+
+### Screen 2: Supervisory Login Sessions (سجل وجلسات الدخول الإشرافي)
+- **Folder UID**: 2229472e-01ba-4e3f-9362-6f30148e5e60
+- **Service Layer**: src/lib/api/impersonation.ts, src/lib/api/enter-office.ts
+- **UI Components**: ImpersonationLogsView, ClientRowActionMenu
+
+| Method | Endpoint | Description | UI Connection | Status |
+|---|---|---|---|---|
+| POST | /admin/utility/login-as-firm/{firm_id} | بدء جلسة دخول إشرافي وتوليد رابط الدخول | ClientRowActionMenu / EnterOfficeConfirmModal | ✅ Wired & Verified |
+| GET | /admin/impersonation-logs?page=1&per_page=10 | استعراض سجلات الدخول الإشرافي والمؤشرات | ImpersonationLogsView (Table & KPIs) | ✅ Wired & Verified |
+| GET | /admin/impersonation-logs?status=active | فلترة سجلات الدخول الإشرافي حسب الحالة | ImpersonationLogsView (Status Pills) | ✅ Wired & Verified |
+| GET | /admin/impersonation-logs?from_date=...&to_date=... | فلترة الجلسات الإشرافية خلال نطاق زمني | ImpersonationLogsView (Date Filter Bar) | ✅ Wired & Verified |
+| GET | /admin/impersonation-logs?search=... | البحث في سجلات الإشراف بالمشرف أو المنشأة | ImpersonationLogsView (Search Bar) | ✅ Wired & Verified |
+
+### Screen 3: Supervisory Login Session Details Modal (تفاصيل جلسة الدخول الإشرافي)
+- **Folder UID**: a327d701-44cd-454a-94f8-c894a3615094
+- **Service Layer**: src/lib/api/impersonation.ts
+- **UI Components**: ImpersonationLogDetailsModal
+
+| Method | Endpoint | Description | UI Connection | Status |
+|---|---|---|---|---|
+| GET | /admin/impersonation-logs/{id} | تفاصيل كاملة لجلسة دخول إشرافي محددة | ImpersonationLogDetailsModal | ✅ Wired & Verified |
+| POST | /admin/impersonation-logs/{id}/end | إنهاء فوري لجلسة إشرافية نشطة وإبطال التوكن | ImpersonationLogDetailsModal (End Session) | ✅ Wired & Verified |
+| GET | /admin/impersonation-logs/{id}/report | استخراج تقرير التدقيق الأمني وملخص النشاط | ImpersonationLogDetailsModal (Copy Report) | ✅ Wired & Verified |

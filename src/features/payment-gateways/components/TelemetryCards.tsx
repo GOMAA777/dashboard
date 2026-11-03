@@ -16,7 +16,7 @@ export function TelemetryCards({
   const { t } = useLanguage();
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 w-full">
       {/* 1. Total Gateways Card */}
       <div className="bg-white dark:bg-[#221812] rounded-[16px] p-5 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] flex items-center justify-between border border-[#eae8e4]/60 dark:border-[#38271c] text-start">
         <div className="flex flex-col items-start text-start">

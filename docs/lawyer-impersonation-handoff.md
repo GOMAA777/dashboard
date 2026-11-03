@@ -1,6 +1,14 @@
 # Lawyer app handoff (source not in Super Admin workspace)
 
-Production: https://law.elmoroj.com/lawyer/login  
+Production: https://law.elmoroj.com/lawyer/login
+
+## Critical: lawyer storage contract (live bundle)
+
+Lawyer auth reads **only** `sessionStorage.doussary_auth_session` (not localStorage).
+
+On every lawyer app boot the bundle runs a cleaner that **deletes almost all localStorage keys** (whitelist is UI prefs only). Do **not** rely on a localStorage bridge after `/lawyer/` loads — write the session into `sessionStorage` on the handoff page **before** redirecting to `/lawyer/`.
+
+Same-origin + same-tab (or handoff tab that wrote sessionStorage itself) is required. Cross-origin handoff cannot work.  
 Lawyer Postman collection `50014550-62b8c9a7-67d7-4f6d-8104-6e46c4e41342` could not be re-fetched (Postman MCP Invalid API Key). Live lawyer login uses `POST /login` with office roles.
 
 ## Current Super Admin bridge (deployed from this repo)

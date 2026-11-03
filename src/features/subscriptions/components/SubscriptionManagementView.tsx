@@ -144,10 +144,10 @@ export function SubscriptionManagementView() {
         s.status === "rejected"
     ).length;
     return {
-      all: Math.max(128, all),
-      active: Math.max(96, active),
-      pending: Math.max(18, pending),
-      cancelled_expired: Math.max(14, cancelled_expired),
+      all,
+      active,
+      pending,
+      cancelled_expired,
     };
   }, [subscriptions]);
 

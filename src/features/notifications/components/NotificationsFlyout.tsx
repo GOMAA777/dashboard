@@ -98,10 +98,10 @@ export function NotificationsFlyout({ isOpen, onClose }: NotificationsFlyoutProp
     <div
       ref={containerRef}
       dir={direction}
-      className="absolute end-0 top-full mt-2 w-[360px] max-w-[calc(100vw-32px)] bg-white dark:bg-[#1c1510] rounded-[10px] shadow-[0px_20px_45px_-10px_rgba(0,0,0,0.22)] border border-[#eae8e4] dark:border-[#2e231b] overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150 select-none text-start"
+      className="absolute end-0 top-full mt-2 w-[360px] max-w-[calc(100vw-32px)] bg-white dark:bg-[#1a120d] rounded-[10px] shadow-[0px_20px_45px_-10px_rgba(0,0,0,0.22)] border border-[#eae8e4] dark:border-[#2e231b] overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150 select-none text-start"
     >
       {/* 1. Header Bar: Title + Unread Count + Mark All as Read */}
-      <div className="bg-white dark:bg-[#1c1510] border-b border-[#f0eeea] dark:border-[#2a2018] px-4 py-3 flex items-center justify-between">
+      <div className="bg-white dark:bg-[#1a120d] border-b border-[#f0eeea] dark:border-[#2a2018] px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="size-7 rounded-md bg-[#faf5eb] dark:bg-[#281f17] flex items-center justify-center text-[#9c6402] dark:text-[#d4a759]">
             <Bell className="size-4" />
@@ -143,8 +143,8 @@ export function NotificationsFlyout({ isOpen, onClose }: NotificationsFlyoutProp
             className={cn(
               "px-4 py-3 flex items-center gap-3 relative transition-colors cursor-pointer group",
               item.isUnread
-                ? "bg-white dark:bg-[#1c1510] hover:bg-[#faf9f7] dark:hover:bg-[#231b14]"
-                : "bg-[#faf9f7]/60 dark:bg-[#18120d]/60 hover:bg-[#faf9f7] dark:hover:bg-[#231b14] opacity-80"
+                ? "bg-white dark:bg-[#1a120d] hover:bg-[#faf9f7] dark:hover:bg-[#281c15]"
+                : "bg-[#faf9f7]/60 dark:bg-[#1a120d]/60 hover:bg-[#faf9f7] dark:hover:bg-[#281c15] opacity-80"
             )}
           >
             {/* Unread Indicator Bar / Dot */}
@@ -159,7 +159,7 @@ export function NotificationsFlyout({ isOpen, onClose }: NotificationsFlyoutProp
                 item.type === "payment" && "bg-[#e8f5e9] dark:bg-[#132c1c] text-[#1b7340] dark:text-[#4ade80]",
                 item.type === "ticket" && "bg-[#ffdad6] dark:bg-[#381a17] text-[#ba1a1a] dark:text-[#f87171]",
                 item.type === "upgrade" && "bg-[#fff8e1] dark:bg-[#332512] text-[#9c6402] dark:text-[#fbbf24]",
-                item.type === "security" && "bg-[#f5f3ef] dark:bg-[#231b14] text-[#514537] dark:text-[#d6cfc7]"
+                item.type === "security" && "bg-[#f5f3ef] dark:bg-[#281c15] text-[#514537] dark:text-[#d6cfc7]"
               )}
             >
               {item.type === "payment" && <CreditCard className="size-4" />}

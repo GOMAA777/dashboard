@@ -44,7 +44,7 @@ export function LuxuryCheckbox({
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c29547] focus-visible:ring-offset-1",
         isChecked
           ? "bg-gradient-to-tr from-[#b8863b] to-[#d4a759] border border-[#a67730] shadow-[0_1px_3px_rgba(194,149,71,0.3)] text-white"
-          : "bg-white dark:bg-[#1a1714] border border-[#d2c7b7] dark:border-[#3d3326] hover:border-[#c29547] dark:hover:border-[#c29547] shadow-2xs",
+          : "bg-white dark:bg-[#221812] border border-[#d2c7b7] dark:border-[#3d3326] hover:border-[#c29547] dark:hover:border-[#c29547] shadow-2xs",
         disabled && "opacity-40 cursor-not-allowed",
         className
       )}

@@ -130,10 +130,14 @@ export function OfficeAdminAccessView({ office, onExit }: OfficeAdminAccessViewP
         <div className="flex items-center gap-3">
           <div
             className={cn(
-              "size-12 rounded-[10px] flex items-center justify-center font-extrabold text-[18px]",
-              office.initialBg,
-              office.initialText
+              "size-12 rounded-[10px] flex items-center justify-center font-extrabold text-[18px] border border-[#eae8e4] dark:border-[#423122]",
+              "bg-[#fff9ee] dark:bg-[#2d1f16] text-[#9c6402] dark:text-[#e29d38]"
             )}
+            style={
+              office.themeColor
+                ? { borderColor: `${office.themeColor}59` }
+                : undefined
+            }
           >
             {office.initial}
           </div>

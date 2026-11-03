@@ -16,16 +16,16 @@ export function SubscriptionsBottomCta() {
         <span className="w-1.5 h-1.5 rounded-full bg-[#c29547]/40" />
       </div>
 
-      <div className="rounded-3xl bg-gradient-to-b from-white to-[#faf7f0] dark:from-[#1a1816] dark:to-[#141210] p-8 sm:p-12 border border-[#ded5c6] dark:border-[#2f2a24] shadow-md relative overflow-hidden">
+      <div className="rounded-3xl bg-gradient-to-b from-white to-[#faf7f0] dark:from-[#1a1816] dark:to-[#141210] p-8 sm:p-12 border border-[#ded5c6] dark:border-[#38271c] shadow-md relative overflow-hidden">
         {/* Ambient subtle glow */}
         <div className="absolute top-0 right-1/2 translate-x-1/2 w-72 h-72 bg-[#c29547]/10 rounded-full blur-[90px] pointer-events-none" />
 
         <div className="relative z-10 max-w-2xl mx-auto">
-          <div className="w-12 h-12 rounded-2xl bg-[#faf5eb] dark:bg-[#251f17] border border-[#eeddbb] dark:border-[#4d3a1f] flex items-center justify-center text-[#c29547] dark:text-[#d4a759] mx-auto mb-5 shadow-xs">
+          <div className="w-12 h-12 rounded-2xl bg-[#faf5eb] dark:bg-[#281c15] border border-[#eeddbb] dark:border-[#4d3a1f] flex items-center justify-center text-[#c29547] dark:text-[#d4a759] mx-auto mb-5 shadow-xs">
             <Sparkles className="w-6 h-6" />
           </div>
 
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#1c1917] dark:text-[#f5f4f0] tracking-tight leading-tight mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#1c1917] dark:text-[#fdfbf7] tracking-tight leading-tight mb-4">
             ابدأ تنظيم وإدارة قضايا مكتبك اليوم بأعلى كفاءة واحترافية
           </h2>
 
@@ -48,7 +48,7 @@ export function SubscriptionsBottomCta() {
 
             <button
               type="button"
-              className="w-full sm:w-auto px-6 py-3 rounded-2xl text-xs font-bold text-[#2d2823] dark:text-[#ded7cc] bg-white dark:bg-[#201d1a] hover:bg-[#faf7f0] dark:hover:bg-[#282420] border border-[#ded5c6] dark:border-[#383126] transition-all shadow-2xs active:scale-95 cursor-pointer"
+              className="w-full sm:w-auto px-6 py-3 rounded-2xl text-xs font-bold text-[#2d2823] dark:text-[#ded7cc] bg-white dark:bg-[#281c15] hover:bg-[#faf7f0] dark:hover:bg-[#282420] border border-[#ded5c6] dark:border-[#383126] transition-all shadow-2xs active:scale-95 cursor-pointer"
             >
               طلب عرض توضيحي للمكتب
             </button>

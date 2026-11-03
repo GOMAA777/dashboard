@@ -13,10 +13,10 @@ export function StaffKpiMetrics({ kpis }: StaffKpiMetricsProps) {
   const { t } = useLanguage();
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 font-['Cairo']">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 font-['Cairo']">
       {/* KPI 1: إجمالي الموظفين */}
       <div
-        className="bg-white dark:bg-[#221812] rounded-[8px] p-4 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col justify-between h-[120px]"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col justify-between min-h-[130px]"
         data-node-id="1:8948"
       >
         <div className="flex items-start justify-between">
@@ -52,7 +52,7 @@ export function StaffKpiMetrics({ kpis }: StaffKpiMetricsProps) {
 
       {/* KPI 2: الموظفون النشطون */}
       <div
-        className="bg-white dark:bg-[#221812] rounded-[8px] p-4 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col justify-between h-[120px]"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col justify-between min-h-[130px]"
         data-node-id="1:8930"
       >
         <div className="flex items-start justify-between">
@@ -83,7 +83,7 @@ export function StaffKpiMetrics({ kpis }: StaffKpiMetricsProps) {
 
       {/* KPI 3: الحسابات الموقوفة */}
       <div
-        className="bg-white dark:bg-[#221812] rounded-[8px] p-4 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col justify-between h-[120px]"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col justify-between min-h-[130px]"
         data-node-id="1:8912"
       >
         <div className="flex items-start justify-between">
@@ -114,7 +114,7 @@ export function StaffKpiMetrics({ kpis }: StaffKpiMetricsProps) {
 
       {/* KPI 4: سجلوا الدخول اليوم */}
       <div
-        className="bg-white dark:bg-[#221812] rounded-[8px] p-4 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col justify-between h-[120px]"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col justify-between min-h-[130px]"
         data-node-id="1:8894"
       >
         <div className="flex items-start justify-between">

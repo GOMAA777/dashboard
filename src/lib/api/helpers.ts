@@ -38,6 +38,18 @@ export function asString(value: unknown, fallback = ""): string {
   return String(value);
 }
 
+export function asBoolean(value: unknown, fallback = false): boolean {
+  if (value === null || value === undefined) return fallback;
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value === 1;
+  if (typeof value === "string") {
+    const s = value.trim().toLowerCase();
+    if (s === "true" || s === "1" || s === "yes" || s === "on") return true;
+    if (s === "false" || s === "0" || s === "no" || s === "off") return false;
+  }
+  return fallback;
+}
+
 /** Read numeric stats from common API envelope shapes. */
 export function readStats(
   payload: unknown,

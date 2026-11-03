@@ -64,7 +64,7 @@ export function EmployeeDetailsView({
       </div>
 
       {/* Hero Header Card */}
-      <div className="bg-white rounded-[8px] p-6 border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+      <div className="bg-white dark:bg-[#221812] rounded-[8px] p-6 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
         {/* Right side: Employee Identity */}
         <div className="flex items-center gap-4">
           {/* Avatar */}
@@ -182,18 +182,18 @@ export function EmployeeDetailsView({
       {/* 2-Column Grid: Left (Permissions) & Right (Main Details) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Right 2 Columns: البيانات الأساسية ومعلومات الدخول */}
-        <div className="lg:col-span-2 bg-white rounded-[8px] p-6 border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+        <div className="lg:col-span-2 bg-white dark:bg-[#221812] rounded-[8px] p-6 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between pb-4 border-b border-[#f2efe9] mb-5">
+            <div className="flex items-center justify-between pb-4 border-b border-[#f2efe9] dark:border-[#38271c] mb-5">
               <div className="flex items-center gap-3">
-                <div className="size-[36px] rounded-[8px] bg-[#f5efe6] flex items-center justify-center shrink-0">
-                  <ShieldCheck className="size-[18px] text-[#9c6402]" />
+                <div className="size-[36px] rounded-[8px] bg-[#f5efe6] dark:bg-[#2d1f16] flex items-center justify-center shrink-0">
+                  <ShieldCheck className="size-[18px] text-[#9c6402] dark:text-[#e29d38]" />
                 </div>
                 <div>
-                  <h2 className="text-[16px] font-bold text-[#1b1c1a]">
+                  <h2 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                     {t("البيانات الأساسية ومعلومات الدخول", "Basic Information & Login Details")}
                   </h2>
-                  <p className="text-[12px] text-[#79716b]">
+                  <p className="text-[12px] text-[#79716b] dark:text-[#a89f91]">
                     {t(
                       "السجلات الشخصية والبيانات المعتمدة للموظف في النظام",
                       "Personal records and approved credentials for employee in the system"
@@ -202,7 +202,7 @@ export function EmployeeDetailsView({
                 </div>
               </div>
 
-              <span className="text-[11px] font-mono text-[#79716b] bg-[#f5f3ef] px-2.5 py-1 rounded-[4px] border border-[#e6e2dc]">
+              <span className="text-[11px] font-mono text-[#79716b] dark:text-[#a89f91] bg-[#f5f3ef] dark:bg-[#281c15] px-2.5 py-1 rounded-[4px] border border-[#e6e2dc] dark:border-[#38271c]">
                 ID: {employee.empCode}
               </span>
             </div>
@@ -210,17 +210,17 @@ export function EmployeeDetailsView({
             {/* 4x2 Grid of Fields */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Field 1 */}
-              <div className="bg-[#fcfaf7] p-3.5 rounded-[6px] border border-[#f0ece5]">
-                <span className="text-[11px] text-[#79716b] block mb-1">
+              <div className="bg-[#fcfaf7] dark:bg-[#160e0a] p-3.5 rounded-[6px] border border-[#f0ece5] dark:border-[#38271c]">
+                <span className="text-[11px] text-[#79716b] dark:text-[#a89f91] block mb-1">
                   {t("الاسم الرباعي المعتمد", "Approved Full Name")}
                 </span>
-                <span className="text-[14px] font-bold text-[#1b1c1a]">
+                <span className="text-[14px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                   {employee.name}
                 </span>
               </div>
 
               {/* Field 2 */}
-              <div className="bg-[#fcfaf7] p-3.5 rounded-[6px] border border-[#f0ece5] flex items-center justify-between">
+              <div className="bg-[#fcfaf7] dark:bg-[#160e0a] p-3.5 rounded-[6px] border border-[#f0ece5] dark:border-[#38271c] flex items-center justify-between">
                 <div>
                   <span className="text-[11px] text-[#79716b] block mb-1">
                     {t("المعرف الوظيفي", "Employee ID")}
@@ -235,7 +235,7 @@ export function EmployeeDetailsView({
               </div>
 
               {/* Field 3 */}
-              <div className="bg-[#fcfaf7] p-3.5 rounded-[6px] border border-[#f0ece5] flex items-center justify-between">
+              <div className="bg-[#fcfaf7] dark:bg-[#160e0a] p-3.5 rounded-[6px] border border-[#f0ece5] dark:border-[#38271c] flex items-center justify-between">
                 <div>
                   <span className="text-[11px] text-[#79716b] block mb-1">
                     {t("البريد الإلكتروني المعتمد للدخول", "Approved Login Email")}
@@ -248,7 +248,7 @@ export function EmployeeDetailsView({
               </div>
 
               {/* Field 4 */}
-              <div className="bg-[#fcfaf7] p-3.5 rounded-[6px] border border-[#f0ece5] flex items-center justify-between">
+              <div className="bg-[#fcfaf7] dark:bg-[#160e0a] p-3.5 rounded-[6px] border border-[#f0ece5] dark:border-[#38271c] flex items-center justify-between">
                 <div>
                   <span className="text-[11px] text-[#79716b] block mb-1">
                     {t("رقم الجوال الموثق للتحقق", "Verified Phone for OTP")}
@@ -263,7 +263,7 @@ export function EmployeeDetailsView({
               </div>
 
               {/* Field 5 */}
-              <div className="bg-[#fcfaf7] p-3.5 rounded-[6px] border border-[#f0ece5]">
+              <div className="bg-[#fcfaf7] dark:bg-[#160e0a] p-3.5 rounded-[6px] border border-[#f0ece5] dark:border-[#38271c]">
                 <span className="text-[11px] text-[#79716b] block mb-1">
                   {t("الدور الوظيفي المعتمد", "Approved Job Role")}
                 </span>
@@ -276,7 +276,7 @@ export function EmployeeDetailsView({
               </div>
 
               {/* Field 6 */}
-              <div className="bg-[#fcfaf7] p-3.5 rounded-[6px] border border-[#f0ece5]">
+              <div className="bg-[#fcfaf7] dark:bg-[#160e0a] p-3.5 rounded-[6px] border border-[#f0ece5] dark:border-[#38271c]">
                 <span className="text-[11px] text-[#79716b] block mb-1">
                   {t("القسم الإداري", "Department")}
                 </span>
@@ -289,7 +289,7 @@ export function EmployeeDetailsView({
               </div>
 
               {/* Field 7 */}
-              <div className="bg-[#fcfaf7] p-3.5 rounded-[6px] border border-[#f0ece5]">
+              <div className="bg-[#fcfaf7] dark:bg-[#160e0a] p-3.5 rounded-[6px] border border-[#f0ece5] dark:border-[#38271c]">
                 <span className="text-[11px] text-[#79716b] block mb-1">
                   {t("تاريخ وتوقيت إنشاء الحساب", "Account Creation Date & Time")}
                 </span>
@@ -302,7 +302,7 @@ export function EmployeeDetailsView({
               </div>
 
               {/* Field 8 */}
-              <div className="bg-[#fcfaf7] p-3.5 rounded-[6px] border border-[#f0ece5]">
+              <div className="bg-[#fcfaf7] dark:bg-[#160e0a] p-3.5 rounded-[6px] border border-[#f0ece5] dark:border-[#38271c]">
                 <span className="text-[11px] text-[#79716b] block mb-1">
                   {t("آخر نشاط ومصادقة ناجحة", "Last Active & Authenticated")}
                 </span>
@@ -317,12 +317,12 @@ export function EmployeeDetailsView({
           </div>
 
           {/* Security & Encryption Compliance Banner */}
-          <div className="mt-6 bg-[#faf8f5] border border-[#e8e2d8] rounded-[8px] p-4">
-            <div className="flex items-center gap-2 mb-2 text-[#1b1c1a] font-bold text-[13px]">
+          <div className="mt-6 bg-[#faf8f5] dark:bg-[#281c15] border border-[#e8e2d8] dark:border-[#38271c] rounded-[8px] p-4">
+            <div className="flex items-center gap-2 mb-2 text-[#1b1c1a] dark:text-[#fdfbf7] font-bold text-[13px]">
               <Shield className="size-[15px] text-[#9c6402]" />
               <span>{t("معايير التشفير والأمان المطبقة", "Applied Encryption & Security Standards")}</span>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[12px] text-[#514537]">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[12px] text-[#514537] dark:text-[#cdc5bd]">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="size-[14px] text-[#10b981] shrink-0" />
                 <span>
@@ -343,24 +343,24 @@ export function EmployeeDetailsView({
         </div>
 
         {/* Left 1 Column: ملخص الصلاحيات */}
-        <div className="bg-white rounded-[8px] p-6 border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+        <div className="bg-white dark:bg-[#221812] rounded-[8px] p-6 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col justify-between">
           <div>
-            <div className="flex items-center gap-3 pb-4 border-b border-[#f2efe9] mb-5">
-              <div className="size-[36px] rounded-[8px] bg-[#f5efe6] flex items-center justify-center shrink-0">
-                <KeyRound className="size-[18px] text-[#9c6402]" />
+            <div className="flex items-center gap-3 pb-4 border-b border-[#f2efe9] dark:border-[#38271c] mb-5">
+              <div className="size-[36px] rounded-[8px] bg-[#f5efe6] dark:bg-[#2d1f16] flex items-center justify-center shrink-0">
+                <KeyRound className="size-[18px] text-[#9c6402] dark:text-[#e29d38]" />
               </div>
               <div>
-                <h2 className="text-[16px] font-bold text-[#1b1c1a]">
+                <h2 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                   {t("ملخص الصلاحيات", "Permissions Summary")}
                 </h2>
-                <p className="text-[12px] text-[#79716b]">
+                <p className="text-[12px] text-[#79716b] dark:text-[#a89f91]">
                   {t("الأدوار والوحدات المرخصة للموظف", "Roles and licensed modules for employee")}
                 </p>
               </div>
             </div>
 
             {/* Role Header Card */}
-            <div className="bg-[#fcfaf7] p-4 rounded-[8px] border border-[#f0ece5] mb-5">
+            <div className="bg-[#fcfaf7] dark:bg-[#160e0a] p-4 rounded-[8px] border border-[#f0ece5] dark:border-[#38271c] mb-5">
               <span className="text-[11px] text-[#79716b] block mb-1">
                 {t("الدور النشط المرتبط", "Active Assigned Role")}
               </span>
@@ -373,7 +373,7 @@ export function EmployeeDetailsView({
                   <span className="text-[#79716b]">{t("تغطية الوحدات الإدارية المصرح بها:", "Authorized module coverage:")}</span>
                   <span className="font-bold text-[#9c6402]">{t("6 من أصل 14 وحدة (42%)", "6 of 14 modules (42%)")}</span>
                 </div>
-                <div className="w-full bg-[#f0ece5] h-[6px] rounded-full overflow-hidden">
+                <div className="w-full bg-[#f0ece5] dark:bg-[#38271c] h-[6px] rounded-full overflow-hidden">
                   <div className="bg-[#9c6402] h-full w-[42%]" />
                 </div>
               </div>
@@ -394,7 +394,7 @@ export function EmployeeDetailsView({
 
               <div className="space-y-3">
                 {/* Module 1 */}
-                <div className="p-3 rounded-[6px] border border-[#f0ece5] bg-[#fcfaf7] flex items-start justify-between gap-3">
+                <div className="p-3 rounded-[6px] border border-[#f0ece5] dark:border-[#38271c] bg-[#fcfaf7] dark:bg-[#160e0a] flex items-start justify-between gap-3">
                   <div className="flex items-start gap-2.5">
                     <Headphones className="size-[16px] text-[#10b981] shrink-0 mt-0.5" />
                     <div>
@@ -412,7 +412,7 @@ export function EmployeeDetailsView({
                 </div>
 
                 {/* Module 2 */}
-                <div className="p-3 rounded-[6px] border border-[#f0ece5] bg-[#fcfaf7] flex items-start justify-between gap-3">
+                <div className="p-3 rounded-[6px] border border-[#f0ece5] dark:border-[#38271c] bg-[#fcfaf7] dark:bg-[#160e0a] flex items-start justify-between gap-3">
                   <div className="flex items-start gap-2.5">
                     <Building className="size-[16px] text-[#d97706] shrink-0 mt-0.5" />
                     <div>
@@ -430,7 +430,7 @@ export function EmployeeDetailsView({
                 </div>
 
                 {/* Module 3 */}
-                <div className="p-3 rounded-[6px] border border-[#f0ece5] bg-[#fcfaf7] flex items-start justify-between gap-3">
+                <div className="p-3 rounded-[6px] border border-[#f0ece5] dark:border-[#38271c] bg-[#fcfaf7] dark:bg-[#160e0a] flex items-start justify-between gap-3">
                   <div className="flex items-start gap-2.5">
                     <Users className="size-[16px] text-[#79716b] shrink-0 mt-0.5" />
                     <div>
@@ -448,7 +448,7 @@ export function EmployeeDetailsView({
                 </div>
 
                 {/* Module 4 */}
-                <div className="p-3 rounded-[6px] border border-[#f0ece5] bg-[#fcfaf7] flex items-start justify-between gap-3">
+                <div className="p-3 rounded-[6px] border border-[#f0ece5] dark:border-[#38271c] bg-[#fcfaf7] dark:bg-[#160e0a] flex items-start justify-between gap-3">
                   <div className="flex items-start gap-2.5">
                     <Bell className="size-[16px] text-[#10b981] shrink-0 mt-0.5" />
                     <div>
@@ -471,18 +471,18 @@ export function EmployeeDetailsView({
       </div>
 
       {/* Bottom Card: سجل العمليات والنشاط الأخير */}
-      <div className="bg-white rounded-[8px] border border-[#e6e2dc] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] overflow-hidden">
+      <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] overflow-hidden">
         {/* Header */}
-        <div className="p-6 border-b border-[#f2efe9]">
+        <div className="p-6 border-b border-[#f2efe9] dark:border-[#38271c]">
           <div className="flex items-center gap-3">
-            <div className="size-[36px] rounded-[8px] bg-[#f5efe6] flex items-center justify-center shrink-0">
-              <Clock className="size-[18px] text-[#9c6402]" />
+            <div className="size-[36px] rounded-[8px] bg-[#f5efe6] dark:bg-[#2d1f16] flex items-center justify-center shrink-0">
+              <Clock className="size-[18px] text-[#9c6402] dark:text-[#e29d38]" />
             </div>
             <div>
-              <h2 className="text-[16px] font-bold text-[#1b1c1a]">
+              <h2 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                 {t("سجل العمليات والنشاط الأخير", "Recent Operations & Activity Log")}
               </h2>
-              <p className="text-[12px] text-[#79716b]">
+              <p className="text-[12px] text-[#79716b] dark:text-[#a89f91]">
                 {t(
                   "توثيق إلكتروني آلي غير قابل للتعديل لكافة حركات تسجيل الدخول، تعديل الصلاحيات، والجلسات الرقابية المعتمدة.",
                   "Immutable electronic record of all logins, permission updates, and supervised sessions."
@@ -496,7 +496,7 @@ export function EmployeeDetailsView({
         <div className="overflow-x-auto">
           <table className="w-full text-start border-collapse text-[13px]">
             <thead>
-              <tr className="bg-[#fcfaf7] border-b border-[#e6e2dc] text-[#514537] font-semibold">
+              <tr className="bg-[#fcfaf7] dark:bg-[#160e0a] border-b border-[#e6e2dc] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] font-semibold">
                 <th className="py-3 px-4 font-bold min-w-[170px] text-start">{t("التاريخ والوقت", "Date & Time")}</th>
                 <th className="py-3 px-4 font-bold min-w-[160px] text-start">{t("نوع الحدث / الإجراء", "Event Type / Action")}</th>
                 <th className="py-3 px-4 font-bold min-w-[170px] text-start">{t("المنفذ المسؤول", "Responsible Actor")}</th>
@@ -504,7 +504,7 @@ export function EmployeeDetailsView({
                 <th className="py-3 px-4 font-bold min-w-[220px] text-start">{t("عنوان IP والجهاز الموثق", "IP Address & Device")}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#f2efe9]">
+            <tbody className="divide-y divide-[#f2efe9] dark:divide-[#38271c]">
               {sampleSaraAuditLogs.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-8 text-center text-xs text-[#837565] dark:text-[#a89f91]">
@@ -513,9 +513,9 @@ export function EmployeeDetailsView({
                 </tr>
               ) : (
                 sampleSaraAuditLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-[#fbf9f5] transition-colors">
+                  <tr key={log.id} className="hover:bg-[#fbf9f5] dark:hover:bg-[#281c15] transition-colors">
                     {/* Date & Time */}
-                    <td className="py-3.5 px-4 font-medium text-[#1b1c1a] text-start">
+                    <td className="py-3.5 px-4 font-medium text-[#1b1c1a] dark:text-[#fdfbf7] text-start">
                       <div className="flex flex-col">
                         <span>{log.time}</span>
                         <span className="text-[11px] text-[#79716b]">{log.date}</span>

@@ -93,12 +93,12 @@ export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps)
 
   return (
     <div
-      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6"
       data-node-id="1:11548"
     >
       {/* Stat Card 1: Total Roles (Figma 1:11600) */}
       <div
-        className="bg-white dark:bg-[#221812] rounded-[8px] p-4 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
         data-node-id="1:11600"
       >
         <div className="bg-[#fbf6ee] dark:bg-[#2d1f16] border border-[#f5e3c8] dark:border-[#4d3627]/60 size-[48px] rounded-[8px] flex items-center justify-center text-[#9c6402] dark:text-[#e29d38] shrink-0">
@@ -127,7 +127,7 @@ export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps)
 
       {/* Stat Card 2: Total Permissions (Figma 1:11583) */}
       <div
-        className="bg-white dark:bg-[#221812] rounded-[8px] p-4 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
         data-node-id="1:11583"
       >
         <div className="bg-[#fbf6ee] dark:bg-[#2d1f16] border border-[#f5e3c8] dark:border-[#4d3627]/60 size-[48px] rounded-[8px] flex items-center justify-center text-[#9c6402] dark:text-[#e29d38] shrink-0">
@@ -156,7 +156,7 @@ export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps)
 
       {/* Stat Card 3: Associated Staff (Figma 1:11566) */}
       <div
-        className="bg-white dark:bg-[#221812] rounded-[8px] p-4 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
         data-node-id="1:11566"
       >
         <div className="bg-[#fbf6ee] dark:bg-[#2d1f16] border border-[#f5e3c8] dark:border-[#4d3627]/60 size-[48px] rounded-[8px] flex items-center justify-center text-[#9c6402] dark:text-[#e29d38] shrink-0">
@@ -185,7 +185,7 @@ export function RolesKpiMetrics({ kpis, isEmpty = false }: RolesKpiMetricsProps)
 
       {/* Stat Card 4: System Protected Roles (Figma 1:11549) */}
       <div
-        className="bg-white dark:bg-[#221812] rounded-[8px] p-4 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between"
         data-node-id="1:11549"
       >
         <div className="bg-[#fbf6ee] dark:bg-[#2d1f16] border border-[#f5e3c8] dark:border-[#4d3627]/60 size-[48px] rounded-[8px] flex items-center justify-center text-[#b76e00] dark:text-[#f3c27e] shrink-0">

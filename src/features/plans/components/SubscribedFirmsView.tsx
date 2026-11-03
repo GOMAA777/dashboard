@@ -240,6 +240,20 @@ export function SubscribedFirmsView({
     );
   };
 
+  // Tab counts dynamically calculated from actual firms
+  const tabCounts = useMemo(() => {
+    const all = firms.length;
+    const active = firms.filter((f) => f.status === "active").length;
+    const trial = firms.filter((f) => f.status === "trial").length;
+    const near_limit = firms.filter(
+      (f) => f.casesCritical || f.lawyersUsed >= f.lawyersLimit
+    ).length;
+    const overdue = firms.filter(
+      (f) => f.status === "pending_payment" || f.isOverdue
+    ).length;
+    return { all, active, trial, near_limit, overdue };
+  }, [firms]);
+
   // Filtered firms
   const filteredFirms = useMemo(() => {
     return firms.filter((firm) => {
@@ -450,11 +464,11 @@ export function SubscribedFirmsView({
           )
         }
         primaryFilterOptions={[
-          { label: t("الكل (128)", "All (128)"), value: "all" },
-          { label: t("النشطة (96)", "Active (96)"), value: "active" },
-          { label: t("تحت التجربة (18)", "Trial (18)"), value: "trial" },
-          { label: t("اقترب من الحد (14)", "Near Limit (14)"), value: "near_limit" },
-          { label: t("متعثر الدفع (14)", "Overdue (14)"), value: "overdue" },
+          { label: `${t("الكل", "All")} (${tabCounts.all})`, value: "all" },
+          { label: `${t("النشطة", "Active")} (${tabCounts.active})`, value: "active" },
+          { label: `${t("تحت التجربة", "Trial")} (${tabCounts.trial})`, value: "trial" },
+          { label: `${t("اقترب من الحد", "Near Limit")} (${tabCounts.near_limit})`, value: "near_limit" },
+          { label: `${t("متعثر الدفع", "Overdue")} (${tabCounts.overdue})`, value: "overdue" },
         ]}
         hasActiveFilters={
           activeTab !== "all" ||
@@ -905,7 +919,7 @@ export function SubscribedFirmsView({
             ...(openMenuFirm.coords.bottom !== undefined ? { bottom: `${openMenuFirm.coords.bottom}px` } : {}),
             zIndex: 9999,
           }}
-          className="w-[190px] bg-white dark:bg-[#1e1c1a] rounded-[6px] shadow-[0px_8px_24px_rgba(0,0,0,0.14)] border border-[#e2ded7] dark:border-[#38271c] p-[4px] text-start animate-in fade-in-50 zoom-in-95 select-none font-['Cairo',sans-serif]"
+          className="w-[190px] bg-white dark:bg-[#221812] rounded-[6px] shadow-[0px_8px_24px_rgba(0,0,0,0.14)] border border-[#e2ded7] dark:border-[#38271c] p-[4px] text-start animate-in fade-in-50 zoom-in-95 select-none font-['Cairo',sans-serif]"
         >
           <button
             type="button"

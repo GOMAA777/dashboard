@@ -49,10 +49,10 @@ export function SubscriptionTableToolbar({
   onPaymentMethodChange,
   onResetFilters,
   counts = {
-    all: 128,
-    active: 96,
-    pending: 18,
-    cancelled_expired: 14,
+    all: 0,
+    active: 0,
+    pending: 0,
+    cancelled_expired: 0,
   },
 }: SubscriptionTableToolbarProps) {
   const { t, direction } = useLanguage();
@@ -71,7 +71,7 @@ export function SubscriptionTableToolbar({
 
   return (
     <div
-      className="bg-white dark:bg-[#1e1c1a] rounded-[8px] p-4 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#2f2a24] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 w-full font-['Cairo',sans-serif]"
+      className="bg-white dark:bg-[#221812] rounded-[8px] p-4 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 w-full font-['Cairo',sans-serif]"
       data-name="Subscription Table Toolbar"
     >
       {/* 1. Right in RTL: Search Input Field */}
@@ -84,7 +84,7 @@ export function SubscriptionTableToolbar({
             "ابحث برقم الاشتراك، اسم المكتب، أو رقم الترخيص...",
             "Search by subscription ID, law firm name, or license..."
           )}
-          className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder-[#837565] text-[13px] rounded-[6px] pe-[38px] ps-3.5 border border-transparent focus:border-[#9c6402]/40 focus:outline-none transition-colors"
+          className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder-[#837565] text-[13px] rounded-[6px] pe-[38px] ps-3.5 border border-transparent focus:border-[#9c6402]/40 focus:outline-none transition-colors"
         />
         <Search className="w-4 h-4 text-[#837565] absolute end-3 top-1/2 -translate-y-1/2 pointer-events-none" />
       </div>
@@ -92,7 +92,7 @@ export function SubscriptionTableToolbar({
       {/* 2. Left in RTL: Small 3-Option Toggle Filter + Large Drawer Filter + Reset */}
       <div className="flex flex-wrap items-center gap-3">
         {/* Small Filter: 3 Segmented Choices to toggle directly */}
-        <div className="bg-[#f5f3ef] dark:bg-[#2c2621] p-1 rounded-[6px] flex items-center gap-1 border border-[#eae8e4] dark:border-[#38332c]">
+        <div className="bg-[#f5f3ef] dark:bg-[#281c15] p-1 rounded-[6px] flex items-center gap-1 border border-[#eae8e4] dark:border-[#38271c]">
           {/* Tab 1: الكل */}
           <button
             type="button"
@@ -100,7 +100,7 @@ export function SubscriptionTableToolbar({
             className={cn(
               "px-3 py-1.5 rounded-[4px] text-[12px] font-semibold transition-all flex items-center gap-1.5 cursor-pointer",
               currentTab === "all"
-                ? "bg-white dark:bg-[#1e1c1a] text-[#9c6402] dark:text-[#f59e0b] font-bold shadow-[0px_1px_2px_rgba(0,0,0,0.06)]"
+                ? "bg-white dark:bg-[#221812] text-[#9c6402] dark:text-[#f59e0b] font-bold shadow-[0px_1px_2px_rgba(0,0,0,0.06)]"
                 : "text-[#514537] dark:text-[#a89f91] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
             )}
           >
@@ -124,7 +124,7 @@ export function SubscriptionTableToolbar({
             className={cn(
               "px-3 py-1.5 rounded-[4px] text-[12px] font-semibold transition-all flex items-center gap-1.5 cursor-pointer",
               currentTab === "active"
-                ? "bg-white dark:bg-[#1e1c1a] text-[#9c6402] dark:text-[#f59e0b] font-bold shadow-[0px_1px_2px_rgba(0,0,0,0.06)]"
+                ? "bg-white dark:bg-[#221812] text-[#9c6402] dark:text-[#f59e0b] font-bold shadow-[0px_1px_2px_rgba(0,0,0,0.06)]"
                 : "text-[#514537] dark:text-[#a89f91] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
             )}
           >
@@ -148,7 +148,7 @@ export function SubscriptionTableToolbar({
             className={cn(
               "px-3 py-1.5 rounded-[4px] text-[12px] font-semibold transition-all flex items-center gap-1.5 cursor-pointer",
               currentTab === "cancelled_expired"
-                ? "bg-white dark:bg-[#1e1c1a] text-[#9c6402] dark:text-[#f59e0b] font-bold shadow-[0px_1px_2px_rgba(0,0,0,0.06)]"
+                ? "bg-white dark:bg-[#221812] text-[#9c6402] dark:text-[#f59e0b] font-bold shadow-[0px_1px_2px_rgba(0,0,0,0.06)]"
                 : "text-[#514537] dark:text-[#a89f91] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
             )}
           >
@@ -175,7 +175,7 @@ export function SubscriptionTableToolbar({
                 title={t("تصفية متقدمة", "Advanced Filter")}
                 aria-label={t("تصفية متقدمة", "Advanced Filter")}
                 className={cn(
-                  "h-[40px] px-3.5 rounded-[6px] bg-[#f5f3ef] dark:bg-[#2c2621] hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#514537] dark:text-[#d1c9bd] flex items-center gap-2 text-[13px] font-bold transition-colors cursor-pointer relative border border-[#eae8e4] dark:border-[#38332c]",
+                  "h-[40px] px-3.5 rounded-[6px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] flex items-center gap-2 text-[13px] font-bold transition-colors cursor-pointer relative border border-[#eae8e4] dark:border-[#38271c]",
                   hasActiveDrawerFilters &&
                     "border-[#9c6402] text-[#9c6402] dark:text-[#f59e0b] bg-[#fff6e8] dark:bg-[#38271c]"
                 )}
@@ -190,9 +190,9 @@ export function SubscriptionTableToolbar({
           />
           <SheetContent
             side={direction === "rtl" ? "left" : "right"}
-            className="w-[340px] sm:w-[420px] p-0 flex flex-col justify-between bg-white dark:bg-[#1e1c1a] border-e border-[#eae8e4] dark:border-[#38271c] shadow-2xl font-['Cairo',sans-serif]"
+            className="w-[340px] sm:w-[420px] p-0 flex flex-col justify-between bg-white dark:bg-[#221812] border-e border-[#eae8e4] dark:border-[#38271c] shadow-2xl font-['Cairo',sans-serif]"
           >
-            <SheetHeader className="p-5 border-b border-[#f0eeea] dark:border-[#2f2a24] text-start">
+            <SheetHeader className="p-5 border-b border-[#f0eeea] dark:border-[#38271c] text-start">
               <SheetTitle className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-2">
                 <SlidersHorizontal className="size-[18px] text-[#9c6402] dark:text-[#f59e0b]" />
                 <span>{t("تصفية اشتراكات المكاتب", "Filter Law Firm Subscriptions")}</span>
@@ -295,14 +295,14 @@ export function SubscriptionTableToolbar({
             </div>
 
             {/* Drawer Footer with Actions */}
-            <SheetFooter className="p-4 border-t border-[#f0eeea] dark:border-[#2f2a24] bg-[#fcfbfa] dark:bg-[#1a1816] flex flex-row items-center justify-between gap-3">
+            <SheetFooter className="p-4 border-t border-[#f0eeea] dark:border-[#38271c] bg-[#fcfbfa] dark:bg-[#1a120d] flex flex-row items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={() => {
                   onResetFilters();
                   setIsDrawerOpen(false);
                 }}
-                className="flex-1 h-[40px] rounded-[6px] border border-[#ded5c6] dark:border-[#38332c] bg-white dark:bg-[#2c2621] hover:bg-[#f5f3ef] text-[#514537] dark:text-[#d1c9bd] text-[13px] font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                className="flex-1 h-[40px] rounded-[6px] border border-[#ded5c6] dark:border-[#38271c] bg-white dark:bg-[#281c15] hover:bg-[#f5f3ef] text-[#514537] dark:text-[#cdc5bd] text-[13px] font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
               >
                 <RotateCcw className="size-[14px]" />
                 <span>{t("إعادة ضبط", "Reset")}</span>
@@ -326,7 +326,7 @@ export function SubscriptionTableToolbar({
             type="button"
             onClick={onResetFilters}
             title={t("إعادة ضبط الفلاتر", "Reset Filters")}
-            className="h-[40px] px-3 rounded-[6px] text-[#837565] dark:text-[#a89f91] hover:text-[#9c6402] dark:hover:text-[#f59e0b] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] flex items-center gap-1.5 text-[12px] font-semibold transition-colors cursor-pointer"
+            className="h-[40px] px-3 rounded-[6px] text-[#837565] dark:text-[#a89f91] hover:text-[#9c6402] dark:hover:text-[#f59e0b] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] flex items-center gap-1.5 text-[12px] font-semibold transition-colors cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>{t("إعادة ضبط", "Reset")}</span>

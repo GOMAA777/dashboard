@@ -53,7 +53,7 @@ export function DeactivatePlanDialog({
         }}
       >
         <div
-          className="relative w-full max-w-[560px] bg-white dark:bg-[#1e1c1a] rounded-[10px] shadow-2xl border border-[#e2ded7] dark:border-[#38271c] overflow-hidden font-['Cairo',sans-serif]"
+          className="relative w-full max-w-[560px] bg-white dark:bg-[#221812] rounded-[10px] shadow-2xl border border-[#e2ded7] dark:border-[#38271c] overflow-hidden font-['Cairo',sans-serif]"
           role="dialog"
           aria-modal="true"
           onClick={(e) => e.stopPropagation()}

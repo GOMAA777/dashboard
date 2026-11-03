@@ -57,7 +57,7 @@ export function UpgradeSubscriptionDialog({
         }}
       >
         <div
-          className="relative w-full max-w-[672px] bg-white dark:bg-[#1e1c1a] rounded-[10px] shadow-2xl border border-[#e2ded7] dark:border-[#38271c] overflow-hidden font-['Cairo',sans-serif]"
+          className="relative w-full max-w-[672px] bg-white dark:bg-[#221812] rounded-[10px] shadow-2xl border border-[#e2ded7] dark:border-[#38271c] overflow-hidden font-['Cairo',sans-serif]"
           role="dialog"
           aria-modal="true"
           onClick={(e) => e.stopPropagation()}
@@ -104,7 +104,7 @@ export function UpgradeSubscriptionDialog({
                 onClick={() => setSelectedTargetPlan("gold")}
                 className={`relative rounded-[8px] p-[16px] transition-all cursor-pointer flex flex-col justify-between ${
                   selectedTargetPlan === "gold"
-                    ? "border-2 border-[#9c6402] dark:border-[#e29d38] bg-[#fdfbf7] dark:bg-[#2c2017] shadow-xs"
+                    ? "border-2 border-[#9c6402] dark:border-[#e29d38] bg-[#fdfbf7] dark:bg-[#2d1f16] shadow-xs"
                     : "border border-[#e2ded7] dark:border-[#38271c] bg-white dark:bg-[#281c15] hover:border-[#cfcac1]"
                 }`}
               >
@@ -120,7 +120,7 @@ export function UpgradeSubscriptionDialog({
                         className={`size-[18px] rounded-full border flex items-center justify-center shrink-0 ${
                           selectedTargetPlan === "gold"
                             ? "border-[#9c6402] dark:border-[#e29d38] bg-[#9c6402] dark:bg-[#e29d38]"
-                            : "border-[#cfcac1] dark:border-[#4d3627] bg-white dark:bg-[#1e1c1a]"
+                            : "border-[#cfcac1] dark:border-[#4d3627] bg-white dark:bg-[#221812]"
                         }`}
                       >
                         {selectedTargetPlan === "gold" && (
@@ -151,13 +151,13 @@ export function UpgradeSubscriptionDialog({
 
                 {/* Pill Badges */}
                 <div className="flex flex-wrap items-center gap-[6px] pt-[10px] border-t border-[#f0eeea] dark:border-[#38271c]">
-                  <span className="text-[10px] font-bold bg-[#f5f3ef] dark:bg-[#1e1c1a] border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] px-[6px] py-[2px] rounded-full">
+                  <span className="text-[10px] font-bold bg-[#f5f3ef] dark:bg-[#221812] border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] px-[6px] py-[2px] rounded-full">
                     {t("10 محامين (+6)", "10 Lawyers (+6)")}
                   </span>
-                  <span className="text-[10px] font-bold bg-[#f5f3ef] dark:bg-[#1e1c1a] border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] px-[6px] py-[2px] rounded-full">
+                  <span className="text-[10px] font-bold bg-[#f5f3ef] dark:bg-[#221812] border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] px-[6px] py-[2px] rounded-full">
                     {t("500 قضية (+300)", "500 Cases (+300)")}
                   </span>
-                  <span className="text-[10px] font-bold bg-[#f5f3ef] dark:bg-[#1e1c1a] border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] px-[6px] py-[2px] rounded-full">
+                  <span className="text-[10px] font-bold bg-[#f5f3ef] dark:bg-[#221812] border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] px-[6px] py-[2px] rounded-full">
                     {t("15 وكيلاً", "15 Agents")}
                   </span>
                 </div>
@@ -168,7 +168,7 @@ export function UpgradeSubscriptionDialog({
                 onClick={() => setSelectedTargetPlan("enterprise")}
                 className={`relative rounded-[8px] p-[16px] transition-all cursor-pointer flex flex-col justify-between ${
                   selectedTargetPlan === "enterprise"
-                    ? "border-2 border-[#9c6402] dark:border-[#e29d38] bg-[#fdfbf7] dark:bg-[#2c2017] shadow-xs"
+                    ? "border-2 border-[#9c6402] dark:border-[#e29d38] bg-[#fdfbf7] dark:bg-[#2d1f16] shadow-xs"
                     : "border border-[#e2ded7] dark:border-[#38271c] bg-white dark:bg-[#281c15] hover:border-[#cfcac1]"
                 }`}
               >
@@ -179,7 +179,7 @@ export function UpgradeSubscriptionDialog({
                         className={`size-[18px] rounded-full border flex items-center justify-center shrink-0 ${
                           selectedTargetPlan === "enterprise"
                             ? "border-[#9c6402] dark:border-[#e29d38] bg-[#9c6402] dark:bg-[#e29d38]"
-                            : "border-[#cfcac1] dark:border-[#4d3627] bg-white dark:bg-[#1e1c1a]"
+                            : "border-[#cfcac1] dark:border-[#4d3627] bg-white dark:bg-[#221812]"
                         }`}
                       >
                         {selectedTargetPlan === "enterprise" && (
@@ -202,13 +202,13 @@ export function UpgradeSubscriptionDialog({
 
                 {/* Pill Badges */}
                 <div className="flex flex-wrap items-center gap-[6px] pt-[10px] border-t border-[#f0eeea] dark:border-[#38271c]">
-                  <span className="text-[10px] font-bold bg-[#f5f3ef] dark:bg-[#1e1c1a] border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] px-[6px] py-[2px] rounded-full">
+                  <span className="text-[10px] font-bold bg-[#f5f3ef] dark:bg-[#221812] border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] px-[6px] py-[2px] rounded-full">
                     {t("قضايا مفتوحة", "Unlimited Cases")}
                   </span>
-                  <span className="text-[10px] font-bold bg-[#f5f3ef] dark:bg-[#1e1c1a] border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] px-[6px] py-[2px] rounded-full">
+                  <span className="text-[10px] font-bold bg-[#f5f3ef] dark:bg-[#221812] border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] px-[6px] py-[2px] rounded-full">
                     {t("دعم VIP", "VIP Support")}
                   </span>
-                  <span className="text-[10px] font-bold bg-[#f5f3ef] dark:bg-[#1e1c1a] border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] px-[6px] py-[2px] rounded-full">
+                  <span className="text-[10px] font-bold bg-[#f5f3ef] dark:bg-[#221812] border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] px-[6px] py-[2px] rounded-full">
                     {t("محامين غير محدود", "Unlimited Lawyers")}
                   </span>
                 </div>
@@ -228,7 +228,7 @@ export function UpgradeSubscriptionDialog({
                 onClick={() => setEffectiveDateOption("immediate")}
                 className={`p-[14px] rounded-[8px] transition-all cursor-pointer flex items-start gap-[12px] ${
                   effectiveDateOption === "immediate"
-                    ? "bg-[#faf7f0] dark:bg-[#2c2017] border border-[#f5e3c8] dark:border-[#e29d38]/50"
+                    ? "bg-[#faf7f0] dark:bg-[#2d1f16] border border-[#f5e3c8] dark:border-[#e29d38]/50"
                     : "bg-white dark:bg-[#281c15] border border-[#e2ded7] dark:border-[#38271c] hover:bg-[#faf8f5]"
                 }`}
               >
@@ -236,7 +236,7 @@ export function UpgradeSubscriptionDialog({
                   className={`size-[18px] rounded-full border flex items-center justify-center shrink-0 mt-[2px] ${
                     effectiveDateOption === "immediate"
                       ? "border-[#9c6402] dark:border-[#e29d38] bg-[#9c6402] dark:bg-[#e29d38]"
-                      : "border-[#cfcac1] dark:border-[#4d3627] bg-white dark:bg-[#1e1c1a]"
+                      : "border-[#cfcac1] dark:border-[#4d3627] bg-white dark:bg-[#221812]"
                   }`}
                 >
                   {effectiveDateOption === "immediate" && (
@@ -267,7 +267,7 @@ export function UpgradeSubscriptionDialog({
                 onClick={() => setEffectiveDateOption("next_cycle")}
                 className={`p-[14px] rounded-[8px] transition-all cursor-pointer flex items-start gap-[12px] ${
                   effectiveDateOption === "next_cycle"
-                    ? "bg-[#faf7f0] dark:bg-[#2c2017] border border-[#f5e3c8] dark:border-[#e29d38]/50"
+                    ? "bg-[#faf7f0] dark:bg-[#2d1f16] border border-[#f5e3c8] dark:border-[#e29d38]/50"
                     : "bg-white dark:bg-[#281c15] border border-[#e2ded7] dark:border-[#38271c] hover:bg-[#faf8f5]"
                 }`}
               >
@@ -275,7 +275,7 @@ export function UpgradeSubscriptionDialog({
                   className={`size-[18px] rounded-full border flex items-center justify-center shrink-0 mt-[2px] ${
                     effectiveDateOption === "next_cycle"
                       ? "border-[#9c6402] dark:border-[#e29d38] bg-[#9c6402] dark:bg-[#e29d38]"
-                      : "border-[#cfcac1] dark:border-[#4d3627] bg-white dark:bg-[#1e1c1a]"
+                      : "border-[#cfcac1] dark:border-[#4d3627] bg-white dark:bg-[#221812]"
                   }`}
                 >
                   {effectiveDateOption === "next_cycle" && (

@@ -16,11 +16,11 @@ export function SubscriptionsBenefitsGrid() {
       {/* Row 1: 3 Columns */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         {/* Card 1 */}
-        <div className="rounded-3xl bg-white dark:bg-[#1a1816] p-6 border border-[#ded5c6] dark:border-[#2f2a24] shadow-xs text-start hover:border-[#c29547]/50 transition-colors">
-          <div className="w-10 h-10 rounded-xl bg-[#faf5eb] dark:bg-[#251f17] border border-[#eeddbb] dark:border-[#4d3a1f] flex items-center justify-center text-[#c29547] dark:text-[#d4a759] mb-4">
+        <div className="rounded-3xl bg-white dark:bg-[#1a120d] p-6 border border-[#ded5c6] dark:border-[#38271c] shadow-xs text-start hover:border-[#c29547]/50 transition-colors">
+          <div className="w-10 h-10 rounded-xl bg-[#faf5eb] dark:bg-[#281c15] border border-[#eeddbb] dark:border-[#4d3a1f] flex items-center justify-center text-[#c29547] dark:text-[#d4a759] mb-4">
             <TrendingUp className="w-5 h-5" />
           </div>
-          <h3 className="text-sm font-extrabold text-[#1c1917] dark:text-[#f5f4f0] mb-2">
+          <h3 className="text-sm font-extrabold text-[#1c1917] dark:text-[#fdfbf7] mb-2">
             مرونة كاملة في الترقية مع نمو أعمالك
           </h3>
           <p className="text-xs text-[#70675c] dark:text-[#9e968a] leading-relaxed">
@@ -29,11 +29,11 @@ export function SubscriptionsBenefitsGrid() {
         </div>
 
         {/* Card 2 */}
-        <div className="rounded-3xl bg-white dark:bg-[#1a1816] p-6 border border-[#ded5c6] dark:border-[#2f2a24] shadow-xs text-start hover:border-[#c29547]/50 transition-colors">
-          <div className="w-10 h-10 rounded-xl bg-[#faf5eb] dark:bg-[#251f17] border border-[#eeddbb] dark:border-[#4d3a1f] flex items-center justify-center text-[#c29547] dark:text-[#d4a759] mb-4">
+        <div className="rounded-3xl bg-white dark:bg-[#1a120d] p-6 border border-[#ded5c6] dark:border-[#38271c] shadow-xs text-start hover:border-[#c29547]/50 transition-colors">
+          <div className="w-10 h-10 rounded-xl bg-[#faf5eb] dark:bg-[#281c15] border border-[#eeddbb] dark:border-[#4d3a1f] flex items-center justify-center text-[#c29547] dark:text-[#d4a759] mb-4">
             <Unlock className="w-5 h-5" />
           </div>
-          <h3 className="text-sm font-extrabold text-[#1c1917] dark:text-[#f5f4f0] mb-2">
+          <h3 className="text-sm font-extrabold text-[#1c1917] dark:text-[#fdfbf7] mb-2">
             بدون عقود ملزمة أو رسوم خفية
           </h3>
           <p className="text-xs text-[#70675c] dark:text-[#9e968a] leading-relaxed">
@@ -42,11 +42,11 @@ export function SubscriptionsBenefitsGrid() {
         </div>
 
         {/* Card 3 */}
-        <div className="rounded-3xl bg-white dark:bg-[#1a1816] p-6 border border-[#ded5c6] dark:border-[#2f2a24] shadow-xs text-start hover:border-[#c29547]/50 transition-colors">
-          <div className="w-10 h-10 rounded-xl bg-[#faf5eb] dark:bg-[#251f17] border border-[#eeddbb] dark:border-[#4d3a1f] flex items-center justify-center text-[#c29547] dark:text-[#d4a759] mb-4">
+        <div className="rounded-3xl bg-white dark:bg-[#1a120d] p-6 border border-[#ded5c6] dark:border-[#38271c] shadow-xs text-start hover:border-[#c29547]/50 transition-colors">
+          <div className="w-10 h-10 rounded-xl bg-[#faf5eb] dark:bg-[#281c15] border border-[#eeddbb] dark:border-[#4d3a1f] flex items-center justify-center text-[#c29547] dark:text-[#d4a759] mb-4">
             <ShieldCheck className="w-5 h-5" />
           </div>
-          <h3 className="text-sm font-extrabold text-[#1c1917] dark:text-[#f5f4f0] mb-2">
+          <h3 className="text-sm font-extrabold text-[#1c1917] dark:text-[#fdfbf7] mb-2">
             سرية وتشفير مصرفي لملفات القضايا
           </h3>
           <p className="text-xs text-[#70675c] dark:text-[#9e968a] leading-relaxed">
@@ -58,11 +58,11 @@ export function SubscriptionsBenefitsGrid() {
       {/* Row 2: 2 Wider Columns */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Card 4 */}
-        <div className="rounded-3xl bg-white dark:bg-[#1a1816] p-6 border border-[#ded5c6] dark:border-[#2f2a24] shadow-xs text-start hover:border-[#c29547]/50 transition-colors">
-          <div className="w-10 h-10 rounded-xl bg-[#faf5eb] dark:bg-[#251f17] border border-[#eeddbb] dark:border-[#4d3a1f] flex items-center justify-center text-[#c29547] dark:text-[#d4a759] mb-4">
+        <div className="rounded-3xl bg-white dark:bg-[#1a120d] p-6 border border-[#ded5c6] dark:border-[#38271c] shadow-xs text-start hover:border-[#c29547]/50 transition-colors">
+          <div className="w-10 h-10 rounded-xl bg-[#faf5eb] dark:bg-[#281c15] border border-[#eeddbb] dark:border-[#4d3a1f] flex items-center justify-center text-[#c29547] dark:text-[#d4a759] mb-4">
             <AlertCircle className="w-5 h-5" />
           </div>
-          <h3 className="text-sm font-extrabold text-[#1c1917] dark:text-[#f5f4f0] mb-2">
+          <h3 className="text-sm font-extrabold text-[#1c1917] dark:text-[#fdfbf7] mb-2">
             ماذا يحدث عند الاقتراب من حد الاستخدام؟
           </h3>
           <p className="text-xs text-[#70675c] dark:text-[#9e968a] leading-relaxed">
@@ -71,11 +71,11 @@ export function SubscriptionsBenefitsGrid() {
         </div>
 
         {/* Card 5 */}
-        <div className="rounded-3xl bg-white dark:bg-[#1a1816] p-6 border border-[#ded5c6] dark:border-[#2f2a24] shadow-xs text-start hover:border-[#c29547]/50 transition-colors">
-          <div className="w-10 h-10 rounded-xl bg-[#faf5eb] dark:bg-[#251f17] border border-[#eeddbb] dark:border-[#4d3a1f] flex items-center justify-center text-[#c29547] dark:text-[#d4a759] mb-4">
+        <div className="rounded-3xl bg-white dark:bg-[#1a120d] p-6 border border-[#ded5c6] dark:border-[#38271c] shadow-xs text-start hover:border-[#c29547]/50 transition-colors">
+          <div className="w-10 h-10 rounded-xl bg-[#faf5eb] dark:bg-[#281c15] border border-[#eeddbb] dark:border-[#4d3a1f] flex items-center justify-center text-[#c29547] dark:text-[#d4a759] mb-4">
             <FileText className="w-5 h-5" />
           </div>
-          <h3 className="text-sm font-extrabold text-[#1c1917] dark:text-[#f5f4f0] mb-2">
+          <h3 className="text-sm font-extrabold text-[#1c1917] dark:text-[#fdfbf7] mb-2">
             فواتير ضريبية إلكترونية معتمدة
           </h3>
           <p className="text-xs text-[#70675c] dark:text-[#9e968a] leading-relaxed">

@@ -64,7 +64,7 @@ export function AddCurrencyView({ onBack, onSave }: AddCurrencyViewProps) {
   };
 
   return (
-    <div dir={direction} className="flex-1 flex flex-col min-w-0 overflow-y-auto scrollbar-thin bg-[#f5f3ef] dark:bg-[#17120e] text-[#1b1c1a] dark:text-[#fdfbf7] transition-colors duration-200">
+    <div dir={direction} className="flex-1 flex flex-col min-w-0 overflow-y-auto scrollbar-thin bg-[#f5f3ef] dark:bg-[#150f0b] text-[#1b1c1a] dark:text-[#fdfbf7] transition-colors duration-200">
       <main className="flex-1 overflow-x-hidden px-4 sm:px-6 lg:px-8 pt-6 pb-2 sm:pb-3 max-w-[1360px] w-full mx-auto">
         {/* Top Banner (Figma 1:17618) */}
         <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[24px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] relative mb-[24px] flex items-center justify-between">
@@ -331,7 +331,7 @@ export function AddCurrencyView({ onBack, onSave }: AddCurrencyViewProps) {
             <button
               type="button"
               onClick={onBack}
-              className="bg-[#f0eeea] dark:bg-[#2c2017] hover:bg-[#e4e1dc] dark:hover:bg-[#382a1f] text-[#1b1c1a] dark:text-[#fdfbf7] border border-transparent dark:border-[#3d2a1d] px-[24px] py-[10px] rounded-[6px] font-semibold text-[14px] transition-colors cursor-pointer"
+              className="bg-[#f0eeea] dark:bg-[#2d1f16] hover:bg-[#e4e1dc] dark:hover:bg-[#382a1f] text-[#1b1c1a] dark:text-[#fdfbf7] border border-transparent dark:border-[#3d2a1d] px-[24px] py-[10px] rounded-[6px] font-semibold text-[14px] transition-colors cursor-pointer"
             >
               {isEn ? "Cancel" : "إلغاء"}
             </button>

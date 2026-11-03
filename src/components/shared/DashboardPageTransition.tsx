@@ -3,30 +3,43 @@
 import React, { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useUIStore } from "@/stores/use-ui-store";
-import { DashboardPageSkeleton } from "./DashboardPageSkeleton";
+import { cn } from "@/lib/utils";
 
 interface DashboardPageTransitionProps {
   children: React.ReactNode;
+  className?: string;
 }
 
-export function DashboardPageTransition({ children }: DashboardPageTransitionProps) {
+export function DashboardPageTransition({ children, className }: DashboardPageTransitionProps) {
   const pathname = usePathname();
   const isPageNavigating = useUIStore((state) => state.isPageNavigating);
   const setPageNavigating = useUIStore((state) => state.setPageNavigating);
 
-  // When navigating, smoothly clear the skeleton loading state after transition
+  // Turn off route navigation indicator immediately when pathname changes
+  useEffect(() => {
+    if (isPageNavigating) {
+      setPageNavigating(false);
+    }
+  }, [pathname, isPageNavigating, setPageNavigating]);
+
+  // Safety fallback: if navigation takes longer than 2.5s, auto-clear
   useEffect(() => {
     if (isPageNavigating) {
       const timer = setTimeout(() => {
         setPageNavigating(false);
-      }, 280);
+      }, 2500);
       return () => clearTimeout(timer);
     }
-  }, [pathname, isPageNavigating, setPageNavigating]);
+  }, [isPageNavigating, setPageNavigating]);
 
-  if (isPageNavigating) {
-    return <DashboardPageSkeleton />;
-  }
-
-  return <>{children}</>;
+  return (
+    <div
+      className={cn(
+        "w-full flex-1 flex flex-col gap-6 min-w-0 transition-opacity duration-150 animate-in fade-in",
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
 }

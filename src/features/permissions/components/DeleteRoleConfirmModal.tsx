@@ -34,13 +34,13 @@ export function DeleteRoleConfirmModal({
         }}
       >
         <div
-          className="bg-white dark:bg-[#1e1c1a] rounded-[12px] shadow-[0px_20px_25px_-5px_rgba(0,0,0,0.1),0px_10px_10px_-5px_rgba(0,0,0,0.04)] border border-[#e6e2dc] dark:border-[#38271c] w-full max-w-[560px] overflow-hidden"
+          className="bg-white dark:bg-[#221812] rounded-[12px] shadow-[0px_20px_25px_-5px_rgba(0,0,0,0.1),0px_10px_10px_-5px_rgba(0,0,0,0.04)] border border-[#e6e2dc] dark:border-[#38271c] w-full max-w-[560px] overflow-hidden"
           role="dialog"
           aria-modal="true"
           onClick={(e) => e.stopPropagation()}
         >
         {/* Header */}
-        <div className="p-6 border-b border-[#f0eeea] dark:border-[#2f2a24] flex items-center justify-between">
+        <div className="p-6 border-b border-[#f0eeea] dark:border-[#38271c] flex items-center justify-between">
           <div className="flex items-center gap-3 order-1 rtl:order-2">
             <div className="bg-[#fee2e2] dark:bg-[#311616] size-[40px] rounded-[10px] flex items-center justify-center text-[#ef4444] shrink-0">
               <Trash2 className="size-[20px]" />
@@ -53,7 +53,7 @@ export function DeleteRoleConfirmModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-[#837565] dark:text-[#a89f91] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] rounded-[6px] transition-colors cursor-pointer order-2 rtl:order-1"
+            className="p-1.5 text-[#837565] dark:text-[#a89f91] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] rounded-[6px] transition-colors cursor-pointer order-2 rtl:order-1"
           >
             <X className="size-[18px]" />
           </button>
@@ -62,7 +62,7 @@ export function DeleteRoleConfirmModal({
         {/* Body */}
         <div className="p-6 space-y-5 text-start">
           {/* Role Summary Card */}
-          <div className="bg-[#f5f3ef] dark:bg-[#2c2621] rounded-[8px] p-4 border border-[#e6e2dc] dark:border-[#38271c] space-y-3">
+          <div className="bg-[#f5f3ef] dark:bg-[#281c15] rounded-[8px] p-4 border border-[#e6e2dc] dark:border-[#38271c] space-y-3">
             <div className="flex items-start justify-between">
               <div className="flex flex-col text-start">
                 <span className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
@@ -80,7 +80,7 @@ export function DeleteRoleConfirmModal({
             </div>
 
             {/* Inner two-stats box */}
-            <div className="bg-white dark:bg-[#1e1c1a] rounded-[6px] p-3 border border-[#e6e2dc]/60 dark:border-[#38271c] grid grid-cols-2 divide-x rtl:divide-x-reverse divide-[#f0eeea] dark:divide-[#2f2a24]">
+            <div className="bg-white dark:bg-[#221812] rounded-[6px] p-3 border border-[#e6e2dc]/60 dark:border-[#38271c] grid grid-cols-2 divide-x rtl:divide-x-reverse divide-[#f0eeea] dark:divide-[#38271c]">
               {/* Permissions count */}
               <div className="px-3 flex items-center justify-between">
                 <div className="text-[#9c6402] dark:text-[#f59e0b] shrink-0">
@@ -128,11 +128,11 @@ export function DeleteRoleConfirmModal({
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-[#fbf9f6] dark:bg-[#25221e] border-t border-[#f0eeea] dark:border-[#2f2a24] flex items-center justify-between gap-3">
+        <div className="p-4 bg-[#fbf9f6] dark:bg-[#221812] border-t border-[#f0eeea] dark:border-[#38271c] flex items-center justify-between gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2.5 bg-[#f0eeea] dark:bg-[#2c2621] hover:bg-[#e6e2dc] text-[#514537] dark:text-[#a89f91] rounded-[6px] text-[13px] font-semibold transition-colors cursor-pointer"
+            className="px-5 py-2.5 bg-[#f0eeea] dark:bg-[#281c15] hover:bg-[#e6e2dc] text-[#514537] dark:text-[#a89f91] rounded-[6px] text-[13px] font-semibold transition-colors cursor-pointer"
           >
             {t("إلغاء", "Cancel")}
           </button>

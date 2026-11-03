@@ -33,6 +33,7 @@ export interface UnifiedFilterBarProps {
   drawerTitle?: string;
   drawerDescription?: string;
   drawerContent?: React.ReactNode;
+  secondaryPills?: React.ReactNode;
   actionButton?: React.ReactNode;
   className?: string;
 }
@@ -45,6 +46,7 @@ export function UnifiedFilterBar({
   onPrimaryFilterChange,
   primaryFilterOptions,
   primaryFilterMode = "pills",
+  secondaryPills,
   hasActiveFilters = false,
   onReset,
   drawerTitle,
@@ -120,6 +122,9 @@ export function UnifiedFilterBar({
             })}
           </div>
         )}
+
+        {/* Secondary Pills / Segmented Controls (e.g. Monthly / Yearly billing cycle toggle) */}
+        {secondaryPills && <div className="shrink-0">{secondaryPills}</div>}
 
         {/* 3. Filter Drawer Button (Opens Sheet Drawer) */}
         <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>

@@ -12,6 +12,7 @@ export const addEmployeeSchema = z
       .min(9, "رقم الجوال مطلوب ويجب أن يحتوي على 9 أرقام على الأقل")
       .regex(/^[0-9\s+]+$/, "رقم الجوال يجب أن يحتوي على أرقام فقط"),
     roleId: z.string().min(1, "يرجى اختيار الدور الوظيفي للموظف"),
+    departmentId: z.string().min(1, "يرجى اختيار القسم"),
     password: z.string().min(8, "كلمة المرور يجب أن تحتوي على 8 خانات على الأقل"),
     confirmPassword: z.string().min(8, "يرجى تأكيد كلمة المرور"),
   })

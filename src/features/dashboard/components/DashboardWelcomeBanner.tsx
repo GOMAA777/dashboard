@@ -26,7 +26,7 @@ export function DashboardWelcomeBanner({
         <div>
           <div className="flex items-center gap-2">
             <BarChart3 className="w-5 h-5 text-[#c29547] dark:text-[#d4a759] shrink-0" />
-            <h2 className="text-xl md:text-2xl font-bold text-[#1c1917] dark:text-[#f5f4f0] tracking-tight">
+            <h2 className="text-xl md:text-2xl font-bold text-[#1c1917] dark:text-[#fdfbf7] tracking-tight">
               {t.welcome}
             </h2>
           </div>
@@ -42,7 +42,7 @@ export function DashboardWelcomeBanner({
         <button
           type="button"
           onClick={onRefresh}
-          className="p-2 rounded-xl border border-[#ded5c6] dark:border-[#2f2a24] bg-white dark:bg-[#1a1816] text-[#7d7467] dark:text-[#a8a195] hover:text-[#c29547] dark:hover:text-[#d4a759] hover:border-[#c29547] hover:bg-[#faf7f0] dark:hover:bg-[#201d1a] shadow-xs hover:shadow-sm transition-all"
+          className="p-2 rounded-xl border border-[#ded5c6] dark:border-[#38271c] bg-white dark:bg-[#1a120d] text-[#7d7467] dark:text-[#a8a195] hover:text-[#c29547] dark:hover:text-[#d4a759] hover:border-[#c29547] hover:bg-[#faf7f0] dark:hover:bg-[#281c15] shadow-xs hover:shadow-sm transition-all"
           title={t.refresh}
         >
           <RefreshCw
@@ -57,8 +57,8 @@ export function DashboardWelcomeBanner({
           className={cn(
             "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border shadow-xs",
             selectedRange === "7d"
-              ? "bg-[#faf5eb] dark:bg-[#2b2419] text-[#b8863b] dark:text-[#d4a759] border-[#d8c29d] dark:border-[#5a4321] shadow-sm"
-              : "bg-white dark:bg-[#1a1816] text-[#6b6359] dark:text-[#a8a195] border-[#ded5c6] dark:border-[#2f2a24] hover:bg-[#faf7f0] dark:hover:bg-[#201d1a] hover:border-[#c29547]"
+              ? "bg-[#faf5eb] dark:bg-[#281c15] text-[#b8863b] dark:text-[#d4a759] border-[#d8c29d] dark:border-[#5a4321] shadow-sm"
+              : "bg-white dark:bg-[#1a120d] text-[#6b6359] dark:text-[#a8a195] border-[#ded5c6] dark:border-[#38271c] hover:bg-[#faf7f0] dark:hover:bg-[#281c15] hover:border-[#c29547]"
           )}
         >
           <Calendar className="w-3.5 h-3.5 text-[#b8863b] dark:text-[#d4a759]" />
@@ -72,11 +72,11 @@ export function DashboardWelcomeBanner({
           className={cn(
             "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border shadow-xs",
             selectedRange === "30d"
-              ? "bg-[#faf5eb] dark:bg-[#2b2419] text-[#b8863b] dark:text-[#d4a759] border-[#d8c29d] dark:border-[#5a4321] shadow-sm"
-              : "bg-white dark:bg-[#1a1816] text-[#6b6359] dark:text-[#a8a195] border-[#ded5c6] dark:border-[#2f2a24] hover:bg-[#faf7f0] dark:hover:bg-[#201d1a] hover:border-[#c29547]"
+              ? "bg-[#faf5eb] dark:bg-[#281c15] text-[#b8863b] dark:text-[#d4a759] border-[#d8c29d] dark:border-[#5a4321] shadow-sm"
+              : "bg-white dark:bg-[#1a120d] text-[#6b6359] dark:text-[#a8a195] border-[#ded5c6] dark:border-[#38271c] hover:bg-[#faf7f0] dark:hover:bg-[#281c15] hover:border-[#c29547]"
           )}
         >
-          <Calendar className="w-3.5 h-3.5 text-[#a89e90] dark:text-[#787166]" />
+          <Calendar className="w-3.5 h-3.5 text-[#a89e90] dark:text-[#8e8680]" />
           <span>{t.days30}</span>
         </button>
       </div>

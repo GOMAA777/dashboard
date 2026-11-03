@@ -50,13 +50,13 @@ export function ReassignEmployeesModal({
         }}
       >
         <div
-          className="bg-white dark:bg-[#1e1c1a] rounded-[12px] shadow-[0px_20px_25px_-5px_rgba(0,0,0,0.1),0px_10px_10px_-5px_rgba(0,0,0,0.04)] border border-[#e6e2dc] dark:border-[#38271c] w-full max-w-[540px] overflow-hidden"
+          className="bg-white dark:bg-[#221812] rounded-[12px] shadow-[0px_20px_25px_-5px_rgba(0,0,0,0.1),0px_10px_10px_-5px_rgba(0,0,0,0.04)] border border-[#e6e2dc] dark:border-[#38271c] w-full max-w-[540px] overflow-hidden"
           role="dialog"
           aria-modal="true"
           onClick={(e) => e.stopPropagation()}
         >
         {/* Header */}
-        <div className="p-6 border-b border-[#f0eeea] dark:border-[#2f2a24] flex items-center justify-between">
+        <div className="p-6 border-b border-[#f0eeea] dark:border-[#38271c] flex items-center justify-between">
           <div className="flex items-center gap-3 order-1 rtl:order-2">
             <div className="bg-[#fff8e1] dark:bg-[#342711] size-[40px] rounded-[10px] flex items-center justify-center text-[#9c6402] shrink-0">
               <ArrowLeftRight className="size-[20px]" />
@@ -74,7 +74,7 @@ export function ReassignEmployeesModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-[#837565] dark:text-[#a89f91] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] rounded-[6px] transition-colors cursor-pointer order-2 rtl:order-1"
+            className="p-1.5 text-[#837565] dark:text-[#a89f91] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] rounded-[6px] transition-colors cursor-pointer order-2 rtl:order-1"
           >
             <X className="size-[18px]" />
           </button>
@@ -83,13 +83,13 @@ export function ReassignEmployeesModal({
         {/* Body */}
         <div className="p-6 space-y-5 text-start">
           {/* Current Source Role Banner */}
-          <div className="bg-[#f5f3ef] dark:bg-[#2c2621] rounded-[8px] p-3.5 border border-[#e6e2dc] dark:border-[#38271c] flex items-center justify-between">
-            <div className="text-[13px] text-[#514537] dark:text-[#d1c9bd]">
+          <div className="bg-[#f5f3ef] dark:bg-[#281c15] rounded-[8px] p-3.5 border border-[#e6e2dc] dark:border-[#38271c] flex items-center justify-between">
+            <div className="text-[13px] text-[#514537] dark:text-[#cdc5bd]">
               <span>{t("من الدور: ", "From Role: ")}</span>
               <strong className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{sourceRole.name}</strong>
             </div>
 
-            <span className="bg-[#e6e2dc] dark:bg-[#38271c] text-[#514537] dark:text-[#d1c9bd] text-[12px] font-bold px-2.5 py-1 rounded-[4px] flex items-center gap-1.5">
+            <span className="bg-[#e6e2dc] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[12px] font-bold px-2.5 py-1 rounded-[4px] flex items-center gap-1.5">
               <span>{sourceRole.assignedEmployeesCount} {t("موظفاً", "staff")}</span>
             </span>
           </div>
@@ -104,7 +104,7 @@ export function ReassignEmployeesModal({
               <select
                 value={selectedTargetId}
                 onChange={(e) => setSelectedTargetId(e.target.value)}
-                className="w-full h-[42px] px-3 pe-9 text-[13px] bg-[#fdfbf7] dark:bg-[#2c2621] border border-[#d6cfc7] dark:border-[#38271c] rounded-[6px] text-[#1b1c1a] dark:text-[#fdfbf7] appearance-none focus:outline-none focus:ring-1 focus:ring-[#9c6402] focus:border-[#9c6402] cursor-pointer text-start font-medium"
+                className="w-full h-[42px] px-3 pe-9 text-[13px] bg-[#fdfbf7] dark:bg-[#281c15] border border-[#d6cfc7] dark:border-[#38271c] rounded-[6px] text-[#1b1c1a] dark:text-[#fdfbf7] appearance-none focus:outline-none focus:ring-1 focus:ring-[#9c6402] focus:border-[#9c6402] cursor-pointer text-start font-medium"
               >
                 {eligibleTargetRoles.map((role) => (
                   <option key={role.id} value={role.id}>
@@ -135,11 +135,11 @@ export function ReassignEmployeesModal({
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-[#fbf9f6] dark:bg-[#25221e] border-t border-[#f0eeea] dark:border-[#2f2a24] flex items-center justify-between gap-3">
+        <div className="p-4 bg-[#fbf9f6] dark:bg-[#221812] border-t border-[#f0eeea] dark:border-[#38271c] flex items-center justify-between gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2.5 bg-[#f0eeea] dark:bg-[#2c2621] hover:bg-[#e6e2dc] text-[#514537] dark:text-[#a89f91] rounded-[6px] text-[13px] font-semibold transition-colors cursor-pointer"
+            className="px-5 py-2.5 bg-[#f0eeea] dark:bg-[#281c15] hover:bg-[#e6e2dc] text-[#514537] dark:text-[#a89f91] rounded-[6px] text-[13px] font-semibold transition-colors cursor-pointer"
           >
             {t("إلغاء", "Cancel")}
           </button>

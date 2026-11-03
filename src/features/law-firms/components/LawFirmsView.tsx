@@ -509,7 +509,7 @@ export function LawFirmsView() {
   const handleCreateFirm = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newFirmName.trim() || !newOwnerName.trim() || !newEmail.trim() || !newPhone.trim()) {
-      toast.error(isAr ? "يرجى تعبئة كافة الحقول الإلزامية" : "Please fill all required fields");
+      toast.error(isAr ? "يرجى إكمال البيانات لمواصلة التسجيل" : "Please complete the data to continue registration");
       return;
     }
 
@@ -707,8 +707,8 @@ export function LawFirmsView() {
             </div>
 
             {/* Top KPI Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-4 sm:p-5 rounded-2xl border border-[#ded5c6]/70 dark:border-[#38271c] bg-white dark:bg-[#221812] shadow-xs">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
+              <div className="p-5 sm:p-6 rounded-2xl border border-[#ded5c6]/70 dark:border-[#38271c] bg-white dark:bg-[#221812] shadow-xs">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-semibold text-[#7c7366] dark:text-[#cdc5bd]">
                     {isAr ? "إجمالي المكاتب" : "Total Law Firms"}

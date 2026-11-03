@@ -18,6 +18,7 @@ import {
 import { SubscriptionRecord } from "../types/subscription.types";
 import { toast } from "sonner";
 import { DashboardStickyActionBar } from "@/components/shared/DashboardStickyActionBar";
+import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -86,7 +87,7 @@ export function RenewSubscriptionView({
     >
       {/* Main Identity & Command Banner */}
       <div
-        className="bg-white dark:bg-[#1e1c1a] flex flex-col md:flex-row items-start md:items-center justify-between p-6 rounded-[8px] border border-[#f0eeea] dark:border-[#2f2a24] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] w-full gap-4"
+        className="bg-white dark:bg-[#221812] flex flex-col md:flex-row items-start md:items-center justify-between p-6 rounded-[8px] border border-[#f0eeea] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] w-full gap-4"
         data-node-id="1:6547"
       >
         <div className="flex flex-col items-start text-start">
@@ -104,7 +105,7 @@ export function RenewSubscriptionView({
         <button
           type="button"
           onClick={onBack}
-          className="bg-white dark:bg-[#2c2621] hover:bg-[#faf9f7] text-[#1b1c1a] dark:text-[#fdfbf7] border border-[#e4e2de] dark:border-[#38332c] px-4 py-2 rounded-[4px] font-semibold text-[14px] flex items-center gap-2 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-colors cursor-pointer"
+          className="bg-white dark:bg-[#281c15] hover:bg-[#faf9f7] text-[#1b1c1a] dark:text-[#fdfbf7] border border-[#e4e2de] dark:border-[#38271c] px-4 py-2 rounded-[4px] font-semibold text-[14px] flex items-center gap-2 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-colors cursor-pointer"
           data-node-id="1:6550"
         >
           <ArrowLeft className={cn("w-4 h-4", !isEn && "rotate-180")} />
@@ -117,8 +118,8 @@ export function RenewSubscriptionView({
         {/* SECTION A: بيانات المكتب والباقة القانونية (7 Cols on Desktop) */}
         <div className="lg:col-span-7 flex flex-col gap-6" data-node-id="1:6564">
           {/* Card 1: الخطوة 1 من 3 */}
-          <div className="bg-white dark:bg-[#1e1c1a] p-6 rounded-[8px] border border-[#f0eeea] dark:border-[#2f2a24] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-[#f0eeea] dark:border-[#2f2a24]">
+          <div className="bg-white dark:bg-[#221812] p-6 rounded-[8px] border border-[#f0eeea] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-[#f0eeea] dark:border-[#38271c]">
               <span className="bg-[#7b4e00]/10 text-[#7b4e00] dark:text-[#f59e0b] font-bold text-[10px] px-2 py-0.5 rounded-[2px]">
                 {t("الخطوة 1 من 3", "Step 1 of 3")}
               </span>
@@ -134,10 +135,10 @@ export function RenewSubscriptionView({
                 <span>{t("المكتب المعتمد", "Authorized Office")}</span>
               </label>
               <div className="relative">
-                <select
+                <DashboardSelect
                   value={selectedOffice}
                   onChange={(e) => setSelectedOffice(e.target.value)}
-                  className="w-full h-11 px-3 pe-10 bg-white dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] rounded-[4px] border border-[#d6c4b1]/60 dark:border-[#38332c] text-[13px] shadow-2xs focus:outline-none focus:ring-1 focus:ring-[#9c6402] cursor-pointer"
+                  className="bg-white dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] rounded-[4px] border-[#d6c4b1]/60 dark:border-[#38271c] h-11 text-[13px]"
                 >
                   <option value="مكتب د. خالد بن عبد العزيز العجلان للمحاماة والاستشارات (ترخيص: 38/412)">
                     {t(
@@ -157,8 +158,7 @@ export function RenewSubscriptionView({
                       "Dr. Rashid Al-Sharif Law Office (Lic: 218/41)"
                     )}
                   </option>
-                </select>
-                <Building2 className={cn("absolute top-1/2 -translate-y-1/2 w-4 h-4 text-[#9c6402] pointer-events-none", isEn ? "right-3" : "left-3")} />
+                </DashboardSelect>
               </div>
 
               {/* Notice Box */}
@@ -206,7 +206,7 @@ export function RenewSubscriptionView({
                     onClick={() => setResolutionOption("override")}
                     className="flex items-center justify-between cursor-pointer"
                   >
-                    <span className="text-[#514537] dark:text-[#d1c9bd]">
+                    <span className="text-[#514537] dark:text-[#cdc5bd]">
                       {t(
                         "تجاوز واستبدال فوري وإلغاء الأيام المتبقية من الباقة الحالية",
                         "Immediate override and replace, forfeiting remaining days of current plan"
@@ -228,10 +228,10 @@ export function RenewSubscriptionView({
                 <span className="text-[#ba1a1a]">*</span>
                 <span>{t("باقة الاشتراك المراد تخصيصها", "Subscription Plan to Allocate")}</span>
               </label>
-              <select
+              <DashboardSelect
                 value={selectedPlan}
                 onChange={(e) => setSelectedPlan(e.target.value)}
-                className="w-full h-11 px-3 bg-white dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] rounded-[4px] border border-[#d6c4b1]/60 dark:border-[#38332c] text-[13px] shadow-2xs focus:outline-none focus:ring-1 focus:ring-[#9c6402] cursor-pointer"
+                className="bg-white dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] rounded-[4px] border-[#d6c4b1]/60 dark:border-[#38271c] h-11 text-[13px]"
               >
                 <option value="الباقة الذهبية - 12,000 ر.س / سنوياً (الأكثر طلباً)">
                   {t("الباقة الذهبية - 12,000 ر.س / سنوياً (الأكثر طلباً)", "Gold Plan - 12,000 SAR / yr (Most Popular)")}
@@ -245,7 +245,7 @@ export function RenewSubscriptionView({
                 <option value="الباقة الأساسية - 5,400 ر.س / سنوياً">
                   {t("الباقة الأساسية - 5,400 ر.س / سنوياً", "Basic Plan - 5,400 SAR / yr")}
                 </option>
-              </select>
+              </DashboardSelect>
             </div>
 
             {/* Field 3: Billing Cycle */}
@@ -261,7 +261,7 @@ export function RenewSubscriptionView({
                   className={`p-3.5 rounded-[4px] border flex items-center justify-between cursor-pointer transition-all ${
                     billingCycle === "annual"
                       ? "border-[#9c6402] bg-[#fff9ee]/40 dark:bg-[#342711]"
-                      : "border-[#e4e2de] dark:border-[#38332c] hover:bg-[#faf9f7]"
+                      : "border-[#e4e2de] dark:border-[#38271c] hover:bg-[#faf9f7]"
                   }`}
                 >
                   <div className="text-start">
@@ -290,7 +290,7 @@ export function RenewSubscriptionView({
                   className={`p-3.5 rounded-[4px] border flex items-center justify-between cursor-pointer transition-all ${
                     billingCycle === "monthly"
                       ? "border-[#9c6402] bg-[#fff9ee]/40 dark:bg-[#342711]"
-                      : "border-[#e4e2de] dark:border-[#38332c] hover:bg-[#faf9f7]"
+                      : "border-[#e4e2de] dark:border-[#38271c] hover:bg-[#faf9f7]"
                   }`}
                 >
                   <div className="text-start">
@@ -311,7 +311,7 @@ export function RenewSubscriptionView({
             </div>
 
             {/* Dates Row */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-[#f0eeea] dark:border-[#2f2a24]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-[#f0eeea] dark:border-[#38271c]">
               {/* Field 4: Start Date */}
               <div className="space-y-1.5">
                 <label className="flex items-center gap-1 text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
@@ -323,7 +323,7 @@ export function RenewSubscriptionView({
                     type="text"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full h-10 px-3 bg-white dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] rounded-[4px] border border-[#d6c4b1]/60 dark:border-[#38332c] text-[13px] shadow-2xs focus:outline-none focus:ring-1 focus:ring-[#9c6402]"
+                    className="w-full h-10 px-3 bg-white dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] rounded-[4px] border border-[#d6c4b1]/60 dark:border-[#38271c] text-[13px] shadow-2xs focus:outline-none focus:ring-1 focus:ring-[#9c6402]"
                   />
                   <Calendar className={cn("absolute top-1/2 -translate-y-1/2 w-4 h-4 text-[#837565] pointer-events-none", isEn ? "right-3" : "left-3")} />
                 </div>
@@ -347,7 +347,7 @@ export function RenewSubscriptionView({
                     type="text"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full h-10 px-3 bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] rounded-[4px] border border-[#d6c4b1]/60 dark:border-[#38332c] text-[13px] shadow-2xs"
+                    className="w-full h-10 px-3 bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] rounded-[4px] border border-[#d6c4b1]/60 dark:border-[#38271c] text-[13px] shadow-2xs"
                   />
                   <Calendar className={cn("absolute top-1/2 -translate-y-1/2 w-4 h-4 text-[#837565] pointer-events-none", isEn ? "right-3" : "left-3")} />
                 </div>
@@ -362,8 +362,8 @@ export function RenewSubscriptionView({
           </div>
 
           {/* Card 2: الخطوة 3 من 3 */}
-          <div className="bg-white dark:bg-[#1e1c1a] p-6 rounded-[8px] border border-[#f0eeea] dark:border-[#2f2a24] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-[#f0eeea] dark:border-[#2f2a24]">
+          <div className="bg-white dark:bg-[#221812] p-6 rounded-[8px] border border-[#f0eeea] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#f0eeea] dark:border-[#38271c]">
               <span className="bg-[#7b4e00]/10 text-[#7b4e00] dark:text-[#f59e0b] font-bold text-[10px] px-2 py-0.5 rounded-[2px]">
                 {t("الخطوة 3 من 3", "Step 3 of 3")}
               </span>
@@ -378,7 +378,7 @@ export function RenewSubscriptionView({
               className={`p-3.5 rounded-[4px] border cursor-pointer transition-all flex items-start gap-3 ${
                 activationState === "pending"
                   ? "border-[#9c6402] bg-[#fff9ee]/30 dark:bg-[#342711]/40"
-                  : "border-[#e4e2de] dark:border-[#38332c] hover:bg-[#faf9f7]"
+                  : "border-[#e4e2de] dark:border-[#38271c] hover:bg-[#faf9f7]"
               }`}
             >
               <div className="pt-0.5">
@@ -415,7 +415,7 @@ export function RenewSubscriptionView({
               className={`p-3.5 rounded-[4px] border cursor-pointer transition-all flex items-start gap-3 ${
                 activationState === "active"
                   ? "border-[#9c6402] bg-[#fff9ee]/30 dark:bg-[#342711]/40"
-                  : "border-[#e4e2de] dark:border-[#38332c] hover:bg-[#faf9f7]"
+                  : "border-[#e4e2de] dark:border-[#38271c] hover:bg-[#faf9f7]"
               }`}
             >
               <div className="pt-0.5">
@@ -444,7 +444,7 @@ export function RenewSubscriptionView({
             </div>
 
             {/* Checkboxes */}
-            <div className="bg-[#f5f3ef] dark:bg-[#2c2621] p-3.5 rounded-[4px] space-y-2.5">
+            <div className="bg-[#f5f3ef] dark:bg-[#281c15] p-3.5 rounded-[4px] space-y-2.5">
               <label className="flex items-center gap-2.5 cursor-pointer">
                 <input
                   type="checkbox"
@@ -479,8 +479,8 @@ export function RenewSubscriptionView({
         </div>
 
         {/* SECTION B: البيانات والعمليات المالية (5 Cols on Desktop) */}
-        <div className="lg:col-span-5 bg-white dark:bg-[#1e1c1a] p-6 rounded-[8px] border border-[#f0eeea] dark:border-[#2f2a24] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-[#f0eeea] dark:border-[#2f2a24]">
+        <div className="lg:col-span-5 bg-white dark:bg-[#221812] p-6 rounded-[8px] border border-[#f0eeea] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-[#f0eeea] dark:border-[#38271c]">
             <span className="bg-[#7b4e00]/10 text-[#7b4e00] dark:text-[#f59e0b] font-bold text-[10px] px-2 py-0.5 rounded-[2px]">
               {t("الخطوة 2 من 3", "Step 2 of 3")}
             </span>
@@ -500,13 +500,13 @@ export function RenewSubscriptionView({
                 type="text"
                 readOnly
                 value="12,000"
-                className="w-full h-11 px-3 ps-20 font-bold text-[18px] text-[#1b1c1a] dark:text-[#fdfbf7] bg-[#faf9f7] dark:bg-[#25221e] rounded-[4px] border border-[#e4e2de] dark:border-[#38332c]"
+                className="w-full h-11 px-3 ps-20 font-bold text-[18px] text-[#1b1c1a] dark:text-[#fdfbf7] bg-[#faf9f7] dark:bg-[#221812] rounded-[4px] border border-[#e4e2de] dark:border-[#38271c]"
               />
-              <span className={cn("absolute top-1/2 -translate-y-1/2 text-[12px] text-[#837565] font-semibold bg-[#f0eeea] dark:bg-[#38332c] px-2 py-0.5 rounded-[2px]", isEn ? "right-3" : "left-3")}>
+              <span className={cn("absolute top-1/2 -translate-y-1/2 text-[12px] text-[#837565] font-semibold bg-[#f0eeea] dark:bg-[#38271c] px-2 py-0.5 rounded-[2px]", isEn ? "right-3" : "left-3")}>
                 {t("ريال (SAR)", "SAR")}
               </span>
             </div>
-            <div className="text-[11px] text-[#837565] bg-[#f5f3ef] dark:bg-[#2c2621] p-1.5 rounded-[2px] text-center">
+            <div className="text-[11px] text-[#837565] bg-[#f5f3ef] dark:bg-[#281c15] p-1.5 rounded-[2px] text-center">
               {t(
                 "الأساس: 10,434.78 ر.س + ضريبة القيمة المضافة (15%): 1,565.22 ر.س",
                 "Base: 10,434.78 SAR + VAT (15%): 1,565.22 SAR"
@@ -526,7 +526,7 @@ export function RenewSubscriptionView({
                 className={`p-2.5 rounded-[4px] border flex items-center justify-between cursor-pointer transition-all ${
                   paymentMethod === "transfer"
                     ? "border-[#9c6402] bg-[#fff9ee]/40 dark:bg-[#342711]"
-                    : "border-[#e4e2de] dark:border-[#38332c]"
+                    : "border-[#e4e2de] dark:border-[#38271c]"
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -547,7 +547,7 @@ export function RenewSubscriptionView({
                 className={`p-2.5 rounded-[4px] border flex items-center justify-between cursor-pointer transition-all ${
                   paymentMethod === "manual"
                     ? "border-[#9c6402] bg-[#fff9ee]/40 dark:bg-[#342711]"
-                    : "border-[#e4e2de] dark:border-[#38332c]"
+                    : "border-[#e4e2de] dark:border-[#38271c]"
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -568,7 +568,7 @@ export function RenewSubscriptionView({
                 className={`p-2.5 rounded-[4px] border flex items-center justify-between cursor-pointer transition-all ${
                   paymentMethod === "gateway"
                     ? "border-[#9c6402] bg-[#fff9ee]/40 dark:bg-[#342711]"
-                    : "border-[#e4e2de] dark:border-[#38332c]"
+                    : "border-[#e4e2de] dark:border-[#38271c]"
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -596,7 +596,7 @@ export function RenewSubscriptionView({
               type="text"
               value={referenceNumber}
               onChange={(e) => setReferenceNumber(e.target.value)}
-              className="w-full h-10 px-3 font-mono text-[13px] bg-white dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] rounded-[4px] border border-[#d6c4b1]/60 dark:border-[#38332c] shadow-2xs focus:outline-none focus:ring-1 focus:ring-[#9c6402]"
+              className="w-full h-10 px-3 font-mono text-[13px] bg-white dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] rounded-[4px] border border-[#d6c4b1]/60 dark:border-[#38271c] shadow-2xs focus:outline-none focus:ring-1 focus:ring-[#9c6402]"
             />
           </div>
 
@@ -606,10 +606,10 @@ export function RenewSubscriptionView({
               <span className="text-[#ba1a1a]">*</span>
               <span>{t("الحساب المحول إليه / بنك المنصة", "Platform Account / Bank")}</span>
             </label>
-            <select
+            <DashboardSelect
               value={bankAccount}
               onChange={(e) => setBankAccount(e.target.value)}
-              className="w-full h-10 px-3 bg-white dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] rounded-[4px] border border-[#d6c4b1]/60 dark:border-[#38332c] text-[12px] shadow-2xs focus:outline-none focus:ring-1 focus:ring-[#9c6402] cursor-pointer"
+              className="bg-white dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] rounded-[4px] border-[#d6c4b1]/60 dark:border-[#38271c] h-10 text-[12px]"
             >
               <option value="مصرف الراجحي - الحساب الرئيسي لمنصة الجودي">
                 {t("مصرف الراجحي - الحساب الرئيسي لمنصة الجودي", "Al Rajhi Bank - Platform Primary Account")}
@@ -617,7 +617,7 @@ export function RenewSubscriptionView({
               <option value="البنك الأهلي السعودي - حساب الاشتراكات">
                 {t("البنك الأهلي السعودي - حساب الاشتراكات", "SNB - Subscriptions Account")}
               </option>
-            </select>
+            </DashboardSelect>
           </div>
 
           {/* Deposit Date */}
@@ -631,7 +631,7 @@ export function RenewSubscriptionView({
                 type="text"
                 value={depositDate}
                 onChange={(e) => setDepositDate(e.target.value)}
-                className="w-full h-10 px-3 bg-white dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] rounded-[4px] border border-[#d6c4b1]/60 dark:border-[#38332c] text-[13px] shadow-2xs focus:outline-none focus:ring-1 focus:ring-[#9c6402]"
+                className="w-full h-10 px-3 bg-white dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] rounded-[4px] border border-[#d6c4b1]/60 dark:border-[#38271c] text-[13px] shadow-2xs focus:outline-none focus:ring-1 focus:ring-[#9c6402]"
               />
               <Calendar className={cn("absolute top-1/2 -translate-y-1/2 w-4 h-4 text-[#837565] pointer-events-none", isEn ? "right-3" : "left-3")} />
             </div>
@@ -643,7 +643,7 @@ export function RenewSubscriptionView({
               <span className="text-[#ba1a1a]">*</span>
               <span>{t("إشعار التحويل البنكي / سند القبض", "Bank Wire Receipt / Voucher")}</span>
             </label>
-            <div className="p-3 bg-[#f5f3ef] dark:bg-[#2c2621] rounded-[4px] border border-[#e4e2de] dark:border-[#38332c] flex items-center justify-between">
+            <div className="p-3 bg-[#f5f3ef] dark:bg-[#281c15] rounded-[4px] border border-[#e4e2de] dark:border-[#38271c] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
@@ -687,7 +687,7 @@ export function RenewSubscriptionView({
               rows={3}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full p-2.5 bg-white dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] rounded-[4px] border border-[#d6c4b1]/60 dark:border-[#38332c] text-[12px] leading-relaxed shadow-2xs focus:outline-none focus:ring-1 focus:ring-[#9c6402] resize-none"
+              className="w-full p-2.5 bg-white dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] rounded-[4px] border border-[#d6c4b1]/60 dark:border-[#38271c] text-[12px] leading-relaxed shadow-2xs focus:outline-none focus:ring-1 focus:ring-[#9c6402] resize-none"
             />
             <span className="text-[10px] text-[#837565] block">
               {t(
@@ -715,14 +715,14 @@ export function RenewSubscriptionView({
           <button
             type="button"
             onClick={onBack}
-            className="px-4 py-2 rounded-[6px] bg-[#f5f3ef] dark:bg-[#2c2621] hover:bg-[#eae8e4] text-[#514537] dark:text-[#a89f91] text-[12px] font-semibold transition-colors cursor-pointer"
+            className="px-4 py-2 rounded-[6px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] text-[#514537] dark:text-[#a89f91] text-[12px] font-semibold transition-colors cursor-pointer"
           >
             {t("إلغاء", "Cancel")}
           </button>
           <button
             type="button"
             onClick={handleSave}
-            className="px-4 py-2 rounded-[6px] bg-[#f5f3ef] dark:bg-[#2c2621] hover:bg-[#eae8e4] text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] font-semibold transition-colors cursor-pointer"
+            className="px-4 py-2 rounded-[6px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] font-semibold transition-colors cursor-pointer"
           >
             {t("حفظ كمسودة", "Save as Draft")}
           </button>

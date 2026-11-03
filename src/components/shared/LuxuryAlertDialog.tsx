@@ -75,7 +75,7 @@ export function LuxuryAlertDialog({
         <div
           onClick={(e) => e.stopPropagation()}
         className={cn(
-          "relative w-full max-w-md rounded-3xl bg-white dark:bg-[#1a1714] border border-[#ded5c6] dark:border-[#2f2a24] shadow-[0_24px_70px_rgba(0,0,0,0.35)] dark:shadow-[0_24px_70px_rgba(0,0,0,0.7)] p-6 text-start overflow-hidden animate-in zoom-in-95 duration-150"
+          "relative w-full max-w-md rounded-3xl bg-white dark:bg-[#221812] border border-[#ded5c6] dark:border-[#38271c] shadow-[0_24px_70px_rgba(0,0,0,0.35)] dark:shadow-[0_24px_70px_rgba(0,0,0,0.7)] p-6 text-start overflow-hidden animate-in zoom-in-95 duration-150"
         )}
       >
         {/* Close Button (X) */}
@@ -105,16 +105,16 @@ export function LuxuryAlertDialog({
             </div>
           )}
           {variant === "info" && (
-            <div className="w-11 h-11 rounded-2xl bg-[#faf5eb] dark:bg-[#282218] border border-[#eeddbb] dark:border-[#4d3a1f] flex items-center justify-center text-[#c29547] shrink-0 shadow-2xs">
+            <div className="w-11 h-11 rounded-2xl bg-[#faf5eb] dark:bg-[#281c15] border border-[#eeddbb] dark:border-[#4d3a1f] flex items-center justify-center text-[#c29547] shrink-0 shadow-2xs">
               <AlertTriangle className="w-5 h-5" />
             </div>
           )}
 
           <div className="flex-1 min-w-0 pe-6">
-            <h3 className="text-base font-extrabold text-[#2c2825] dark:text-[#f5f4f0] leading-snug">
+            <h3 className="text-base font-extrabold text-[#2c2825] dark:text-[#fdfbf7] leading-snug">
               {title}
             </h3>
-            <p className="text-xs leading-relaxed text-[#7c7366] dark:text-[#a8a196] mt-1.5">
+            <p className="text-xs leading-relaxed text-[#7c7366] dark:text-[#a89f91] mt-1.5">
               {description}
             </p>
           </div>
@@ -122,9 +122,9 @@ export function LuxuryAlertDialog({
 
         {/* Optional Item Details Pill */}
         {itemDetails && (itemDetails.name || itemDetails.count) && (
-          <div className="mt-4 p-3 rounded-2xl bg-[#faf8f4] dark:bg-[#201d1a] border border-[#ded5c6]/70 dark:border-[#2f2a24] text-xs">
+          <div className="mt-4 p-3 rounded-2xl bg-[#faf8f4] dark:bg-[#281c15] border border-[#ded5c6]/70 dark:border-[#38271c] text-xs">
             {itemDetails.name && (
-              <div className="flex items-center justify-between text-[#2c2825] dark:text-[#f5f4f0] font-bold">
+              <div className="flex items-center justify-between text-[#2c2825] dark:text-[#fdfbf7] font-bold">
                 <span>المشرف المستهدف:</span>
                 <span className="text-[#c29547]">{itemDetails.name}</span>
               </div>
@@ -136,7 +136,7 @@ export function LuxuryAlertDialog({
               </div>
             )}
             {itemDetails.count !== undefined && itemDetails.count > 0 && (
-              <div className="flex items-center justify-between text-[#2c2825] dark:text-[#f5f4f0] font-bold">
+              <div className="flex items-center justify-between text-[#2c2825] dark:text-[#fdfbf7] font-bold">
                 <span>عدد الحسابات المحددة:</span>
                 <span className="text-[#c29547] font-mono">{itemDetails.count} حسابات</span>
               </div>
@@ -149,7 +149,7 @@ export function LuxuryAlertDialog({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2.5 rounded-xl border border-[#ded5c6] dark:border-[#2f2a24] text-xs font-bold text-[#524b43] dark:text-[#c4bcb1] hover:bg-[#faf8f4] dark:hover:bg-[#201d1a] transition-colors cursor-pointer"
+            className="px-4 py-2.5 rounded-xl border border-[#ded5c6] dark:border-[#38271c] text-xs font-bold text-[#524b43] dark:text-[#cdc5bd] hover:bg-[#faf8f4] dark:hover:bg-[#281c15] transition-colors cursor-pointer"
           >
             {finalCancelLabel}
           </button>

@@ -18,6 +18,7 @@ import {
   TicketClient,
 } from "../types/tickets.types";
 import { useLanguage } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 interface CreateTicketViewProps {
   departments: TicketDepartment[];
@@ -26,6 +27,9 @@ interface CreateTicketViewProps {
   onBack: () => void;
   onSaveTicket: (ticket: Ticket) => void;
 }
+
+const fieldClass =
+  "w-full bg-[#f5f3ef] dark:bg-[#160e0a] border border-[#eae8e4] dark:border-[#38271c] rounded-[4px] h-[44px] px-[12px] text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#8e8680] focus:outline-none focus:border-[#9c6402] dark:focus:border-[#e29d38] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] cursor-pointer";
 
 export function CreateTicketView({
   departments,
@@ -133,84 +137,72 @@ export function CreateTicketView({
   };
 
   return (
-    <div
-      dir={direction}
-      className="flex flex-col gap-[24px] w-full"
-    >
+    <div dir={direction} className="flex flex-col gap-[24px] w-full">
       {/* Main Identity & Command Banner */}
-      <div
-        className="bg-white rounded-[8px] p-[24px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]"
-      >
+      <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[24px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 dark:border-[#38271c] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]">
         <div className="flex flex-col gap-[4px] text-start">
-          <h1 className="text-[#1b1c1a] font-bold text-[24px] sm:text-[28px] leading-[38px]">
+          <h1 className="text-[#1b1c1a] dark:text-[#fdfbf7] font-bold text-[24px] sm:text-[28px] leading-[38px]">
             {isEn ? "Create New Ticket" : "إنشاء تذكرة جديدة"}
           </h1>
-          <p className="text-[#514537] text-[13px] sm:text-[14px] leading-[22px]">
+          <p className="text-[#514537] dark:text-[#cdc5bd] text-[13px] sm:text-[14px] leading-[22px]">
             {isEn
               ? "Log the issue and assign department & responsible employee to ensure SLA compliance."
               : "سجّل المشكلة وحدد الجهة والقسم والموظف المسؤول عن متابعتها لضمان الالتزام بمصفوفة اتفاقية مستوى الخدمة (SLA)."}
           </p>
         </div>
 
-        {/* Back Button */}
         <button
           type="button"
           onClick={onBack}
-          className="bg-white border border-[#eae8e4] hover:bg-[#f5f3ef] text-[#1b1c1a] flex items-center gap-[8px] px-[16px] py-[8px] rounded-[4px] font-semibold text-[14px] leading-[20px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-colors shrink-0 cursor-pointer"
+          className="bg-white dark:bg-[#2d1f16] border border-[#eae8e4] dark:border-[#4d3627] hover:bg-[#f5f3ef] dark:hover:bg-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-[8px] px-[16px] py-[8px] rounded-[4px] font-semibold text-[14px] leading-[20px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-colors shrink-0 cursor-pointer"
         >
           <ArrowRight className={`size-[14px] ${isEn ? "rotate-180" : ""}`} />
           <span>{isEn ? "Back" : "العودة"}</span>
         </button>
       </div>
 
-      {/* Main Form Body */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-[24px]">
         {/* Card 1: Ticket Metadata & Routing */}
-        <div className="bg-white rounded-[8px] p-[24px] sm:p-[32px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 flex flex-col gap-[24px]">
-          <div className="border-b border-[#eae8e4] pb-[12px] flex items-center justify-between">
-            <h2 className="text-[#1b1c1a] font-semibold text-[18px] leading-[26px]">
+        <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[24px] sm:p-[32px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 dark:border-[#38271c] flex flex-col gap-[24px]">
+          <div className="border-b border-[#eae8e4] dark:border-[#38271c] pb-[12px] flex items-center justify-between">
+            <h2 className="text-[#1b1c1a] dark:text-[#fdfbf7] font-semibold text-[18px] leading-[26px]">
               {isEn ? "Ticket Metadata & Routing" : "بيانات التذكرة والتوجيه الإداري"}
             </h2>
           </div>
 
-          {/* 3-Column Inputs */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-[20px]">
-            {/* Field 1: Client / Law Firm */}
             <div className="flex flex-col gap-[6px]">
               <div className="flex items-center justify-between">
-                <label className="text-[14px] font-semibold text-[#1b1c1a] flex items-center gap-[4px]">
+                <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-[4px]">
                   <span>{isEn ? "Law Firm / Client" : "المكتب / العميل المستفيد"}</span>
-                  <span className="text-[#ba1a1a]">*</span>
+                  <span className="text-[#ba1a1a] dark:text-[#f87171]">*</span>
                 </label>
-                <span className="text-[10px] font-bold text-[#625d5d]">
+                <span className="text-[10px] font-bold text-[#625d5d] dark:text-[#a89f91]">
                   {isEn ? "Instant Search" : "بحث فوري"}
                 </span>
               </div>
-              <div className="relative">
-                <select
-                  value={selectedClientId}
-                  onChange={(e) => setSelectedClientId(e.target.value)}
-                  className="w-full bg-white border border-[#eae8e4] rounded-[4px] h-[44px] px-[12px] text-[13px] text-[#1b1c1a] focus:outline-none focus:border-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] cursor-pointer"
-                >
-                  {clients.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.firm} ({c.name})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <select
+                value={selectedClientId}
+                onChange={(e) => setSelectedClientId(e.target.value)}
+                className={fieldClass}
+              >
+                {clients.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.firm} ({c.name})
+                  </option>
+                ))}
+              </select>
             </div>
 
-            {/* Field 2: Department */}
             <div className="flex flex-col gap-[6px]">
-              <label className="text-[14px] font-semibold text-[#1b1c1a] flex items-center gap-[4px]">
+              <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-[4px]">
                 <span>{isEn ? "Responsible Department" : "القسم المختص"}</span>
-                <span className="text-[#ba1a1a]">*</span>
+                <span className="text-[#ba1a1a] dark:text-[#f87171]">*</span>
               </label>
               <select
                 value={selectedDeptId}
                 onChange={(e) => setSelectedDeptId(e.target.value)}
-                className="w-full bg-white border border-[#eae8e4] rounded-[4px] h-[44px] px-[12px] text-[13px] text-[#1b1c1a] focus:outline-none focus:border-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] cursor-pointer"
+                className={fieldClass}
               >
                 {departments.map((d) => (
                   <option key={d.id} value={d.id}>
@@ -220,16 +212,15 @@ export function CreateTicketView({
               </select>
             </div>
 
-            {/* Field 3: Assignee */}
             <div className="flex flex-col gap-[6px]">
-              <label className="text-[14px] font-semibold text-[#1b1c1a] flex items-center gap-[4px]">
+              <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-[4px]">
                 <span>{isEn ? "Assigned Employee" : "الموظف المسؤول (المكلف)"}</span>
-                <span className="text-[#ba1a1a]">*</span>
+                <span className="text-[#ba1a1a] dark:text-[#f87171]">*</span>
               </label>
               <select
                 value={selectedAssigneeId}
                 onChange={(e) => setSelectedAssigneeId(e.target.value)}
-                className="w-full bg-white border border-[#eae8e4] rounded-[4px] h-[44px] px-[12px] text-[13px] text-[#1b1c1a] focus:outline-none focus:border-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] cursor-pointer"
+                className={fieldClass}
               >
                 {assignees.map((a) => (
                   <option key={a.id} value={a.id}>
@@ -240,18 +231,16 @@ export function CreateTicketView({
             </div>
           </div>
 
-          {/* Row 2: Channel and Priority Selection */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-[20px] pt-[8px]">
-            {/* Communication Channel */}
             <div className="flex flex-col gap-[6px]">
-              <label className="text-[14px] font-semibold text-[#1b1c1a] flex items-center gap-[4px]">
+              <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-[4px]">
                 <span>{isEn ? "Communication Channel" : "قناة التواصل"}</span>
-                <span className="text-[#ba1a1a]">*</span>
+                <span className="text-[#ba1a1a] dark:text-[#f87171]">*</span>
               </label>
               <select
                 value={channel}
                 onChange={(e) => setChannel(e.target.value as TicketChannel)}
-                className="w-full bg-white border border-[#eae8e4] rounded-[4px] h-[44px] px-[12px] text-[13px] text-[#1b1c1a] focus:outline-none focus:border-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] cursor-pointer"
+                className={fieldClass}
               >
                 <option value="portal">{isEn ? "Client Portal (Najiz)" : "بوابة العملاء (ناجز)"}</option>
                 <option value="email">{isEn ? "Email" : "البريد الإلكتروني"}</option>
@@ -260,72 +249,71 @@ export function CreateTicketView({
               </select>
             </div>
 
-            {/* Priority Selection Cards (Spanning 2 columns) */}
             <div className="md:col-span-2 flex flex-col gap-[6px]">
-              <label className="text-[14px] font-semibold text-[#1b1c1a] flex items-center gap-[4px]">
+              <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-[4px]">
                 <span>{isEn ? "Priority Level" : "مستوى الأولوية"}</span>
-                <span className="text-[#ba1a1a]">*</span>
+                <span className="text-[#ba1a1a] dark:text-[#f87171]">*</span>
               </label>
               <div className="grid grid-cols-3 gap-[10px]">
-                {/* 1. Low */}
                 <button
                   type="button"
                   onClick={() => setPriority("low")}
-                  className={`flex items-center justify-between p-[10px] rounded-[6px] border transition-all cursor-pointer ${
+                  className={cn(
+                    "flex items-center justify-between p-[10px] rounded-[6px] border transition-all cursor-pointer",
                     priority === "low"
-                      ? "border-[#61564f] bg-[#f5f3ef]"
-                      : "border-[#eae8e4] bg-white hover:bg-[#faf9f6]"
-                  }`}
+                      ? "border-[#61564f] dark:border-[#a89f91] bg-[#f5f3ef] dark:bg-[#281c15]"
+                      : "border-[#eae8e4] dark:border-[#38271c] bg-white dark:bg-[#1a120d] hover:bg-[#faf9f6] dark:hover:bg-[#281c15]"
+                  )}
                 >
                   <div className="flex items-center gap-[6px]">
-                    <div className="size-[8px] rounded-full bg-[#61564f]" />
-                    <span className="text-[13px] font-semibold text-[#1b1c1a]">
+                    <div className="size-[8px] rounded-full bg-[#61564f] dark:bg-[#a89f91]" />
+                    <span className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
                       {isEn ? "Low" : "منخفضة"}
                     </span>
                   </div>
-                  <span className="text-[10px] text-[#625d5d]">
+                  <span className="text-[10px] text-[#625d5d] dark:text-[#a89f91]">
                     {isEn ? "Within 48h" : "خلال 48 ساعة"}
                   </span>
                 </button>
 
-                {/* 2. Medium */}
                 <button
                   type="button"
                   onClick={() => setPriority("medium")}
-                  className={`flex items-center justify-between p-[10px] rounded-[6px] border transition-all cursor-pointer ${
+                  className={cn(
+                    "flex items-center justify-between p-[10px] rounded-[6px] border transition-all cursor-pointer",
                     priority === "medium"
-                      ? "border-[#d97706] bg-[#fff8e1]"
-                      : "border-[#eae8e4] bg-white hover:bg-[#faf9f6]"
-                  }`}
+                      ? "border-[#d97706] dark:border-[#e29d38] bg-[#fff8e1] dark:bg-[#2b1f0c]"
+                      : "border-[#eae8e4] dark:border-[#38271c] bg-white dark:bg-[#1a120d] hover:bg-[#faf9f6] dark:hover:bg-[#281c15]"
+                  )}
                 >
                   <div className="flex items-center gap-[6px]">
-                    <div className="size-[8px] rounded-full bg-[#d97706]" />
-                    <span className="text-[13px] font-semibold text-[#1b1c1a]">
+                    <div className="size-[8px] rounded-full bg-[#d97706] dark:bg-[#e29d38]" />
+                    <span className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
                       {isEn ? "Medium" : "متوسطة"}
                     </span>
                   </div>
-                  <span className="text-[10px] text-[#b76e00]">
+                  <span className="text-[10px] text-[#b76e00] dark:text-[#e29d38]">
                     {isEn ? "Within 24h" : "خلال 24 ساعة"}
                   </span>
                 </button>
 
-                {/* 3. Urgent */}
                 <button
                   type="button"
                   onClick={() => setPriority("urgent")}
-                  className={`flex items-center justify-between p-[10px] rounded-[6px] border transition-all cursor-pointer ${
+                  className={cn(
+                    "flex items-center justify-between p-[10px] rounded-[6px] border transition-all cursor-pointer",
                     priority === "urgent"
-                      ? "border-[#ba1a1a] bg-[#ffdad6]/50"
-                      : "border-[#eae8e4] bg-white hover:bg-[#faf9f6]"
-                  }`}
+                      ? "border-[#ba1a1a] dark:border-[#f87171] bg-[#ffdad6]/50 dark:bg-[#381616]"
+                      : "border-[#eae8e4] dark:border-[#38271c] bg-white dark:bg-[#1a120d] hover:bg-[#faf9f6] dark:hover:bg-[#281c15]"
+                  )}
                 >
                   <div className="flex items-center gap-[6px]">
-                    <div className="size-[8px] rounded-full bg-[#ba1a1a]" />
-                    <span className="text-[13px] font-bold text-[#ba1a1a]">
+                    <div className="size-[8px] rounded-full bg-[#ba1a1a] dark:bg-[#f87171]" />
+                    <span className="text-[13px] font-bold text-[#ba1a1a] dark:text-[#fca5a5]">
                       {isEn ? "Urgent" : "عاجلة"}
                     </span>
                   </div>
-                  <span className="text-[10px] font-bold text-[#93000a]">
+                  <span className="text-[10px] font-bold text-[#93000a] dark:text-[#f87171]">
                     {isEn ? "Immediate Response" : "استجابة فورية"}
                   </span>
                 </button>
@@ -335,18 +323,17 @@ export function CreateTicketView({
         </div>
 
         {/* Card 2: Subject, Description & File Upload */}
-        <div className="bg-white rounded-[8px] p-[24px] sm:p-[32px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 flex flex-col gap-[20px]">
-          <div className="border-b border-[#eae8e4] pb-[12px]">
-            <h2 className="text-[#1b1c1a] font-semibold text-[18px] leading-[26px]">
+        <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[24px] sm:p-[32px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 dark:border-[#38271c] flex flex-col gap-[20px]">
+          <div className="border-b border-[#eae8e4] dark:border-[#38271c] pb-[12px]">
+            <h2 className="text-[#1b1c1a] dark:text-[#fdfbf7] font-semibold text-[18px] leading-[26px]">
               {isEn ? "Issue Details & Attachments" : "تفاصيل المشكلة والمرفقات"}
             </h2>
           </div>
 
-          {/* Ticket Subject */}
           <div className="flex flex-col gap-[6px]">
-            <label className="text-[14px] font-semibold text-[#1b1c1a] flex items-center gap-[4px]">
+            <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-[4px]">
               <span>{isEn ? "Ticket Subject" : "موضوع التذكرة"}</span>
-              <span className="text-[#ba1a1a]">*</span>
+              <span className="text-[#ba1a1a] dark:text-[#f87171]">*</span>
             </label>
             <input
               type="text"
@@ -357,15 +344,14 @@ export function CreateTicketView({
                   ? "e.g., Judicial sessions sync outage with Najiz portal"
                   : "مثال: تعطل مزامنة الجلسات القضائية مع بوابة ناجز"
               }
-              className="w-full bg-white border border-[#eae8e4] rounded-[4px] h-[44px] px-[14px] text-[13px] text-[#1b1c1a] placeholder:text-[#837565] focus:outline-none focus:border-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] text-start"
+              className={cn(fieldClass, "px-[14px] cursor-text text-start")}
             />
           </div>
 
-          {/* Ticket Description */}
           <div className="flex flex-col gap-[6px]">
-            <label className="text-[14px] font-semibold text-[#1b1c1a] flex items-center gap-[4px]">
+            <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-[4px]">
               <span>{isEn ? "Technical Details & Notes" : "التفاصيل والملاحظات الفنية"}</span>
-              <span className="text-[#ba1a1a]">*</span>
+              <span className="text-[#ba1a1a] dark:text-[#f87171]">*</span>
             </label>
             <textarea
               rows={4}
@@ -376,22 +362,21 @@ export function CreateTicketView({
                   ? "Write a detailed description including case numbers, timestamp, and visible error codes..."
                   : "اكتب وصفاً مفصلاً للمشكلة مع ذكر أرقام القضايا، وقت الحدوث، وأي رسائل خطأ ظاهرة للمستخدم..."
               }
-              className="w-full bg-white border border-[#eae8e4] rounded-[4px] p-[14px] text-[13px] text-[#1b1c1a] placeholder:text-[#837565] focus:outline-none focus:border-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] text-start"
+              className="w-full bg-[#f5f3ef] dark:bg-[#160e0a] border border-[#eae8e4] dark:border-[#38271c] rounded-[4px] p-[14px] text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#8e8680] focus:outline-none focus:border-[#9c6402] dark:focus:border-[#e29d38] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] text-start"
             />
           </div>
 
-          {/* File Upload Dropzone */}
           <div className="flex flex-col gap-[8px]">
-            <label className="text-[14px] font-semibold text-[#1b1c1a]">
+            <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
               {isEn ? "Attachments & Supporting Documents" : "المرفقات والوثائق الداعمة"}
             </label>
-            <div className="border-2 border-dashed border-[#eae8e4] hover:border-[#9c6402]/50 bg-[#faf9f6] rounded-[8px] p-[24px] flex flex-col items-center justify-center text-center gap-[8px] cursor-pointer transition-colors">
-              <UploadCloud className="size-[32px] text-[#9c6402]" />
+            <div className="border-2 border-dashed border-[#eae8e4] dark:border-[#4d3627] hover:border-[#9c6402]/50 dark:hover:border-[#e29d38]/60 bg-[#faf9f6] dark:bg-[#160e0a] rounded-[8px] p-[24px] flex flex-col items-center justify-center text-center gap-[8px] cursor-pointer transition-colors">
+              <UploadCloud className="size-[32px] text-[#9c6402] dark:text-[#e29d38]" />
               <div className="flex flex-col items-center">
-                <span className="text-[13px] font-semibold text-[#1b1c1a]">
+                <span className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
                   {isEn ? "Click to upload or drag files here" : "انقر لرفع ملف أو اسحبه إلى هنا"}
                 </span>
-                <span className="text-[11px] text-[#837565]">
+                <span className="text-[11px] text-[#837565] dark:text-[#a89f91]">
                   {isEn
                     ? "Supports PDF, PNG, JPG, JSON, LOG up to 10MB per file"
                     : "يدعم PDF, PNG, JPG, JSON, LOG بحد أقصى 10 ميجابايت للملف"}
@@ -399,20 +384,19 @@ export function CreateTicketView({
               </div>
             </div>
 
-            {/* Uploaded Files Preview Chips */}
             {attachedFiles.length > 0 && (
               <div className="flex flex-wrap gap-[8px] pt-[6px]">
                 {attachedFiles.map((f) => (
                   <div
                     key={f}
-                    className="bg-[#f0eeea] border border-[#eae8e4] rounded-[4px] px-[10px] py-[4px] flex items-center gap-[6px] text-[12px] text-[#1b1c1a]"
+                    className="bg-[#f0eeea] dark:bg-[#281c15] border border-[#eae8e4] dark:border-[#38271c] rounded-[4px] px-[10px] py-[4px] flex items-center gap-[6px] text-[12px] text-[#1b1c1a] dark:text-[#fdfbf7]"
                   >
-                    <FileText className="size-[13px] text-[#9c6402]" />
+                    <FileText className="size-[13px] text-[#9c6402] dark:text-[#e29d38]" />
                     <span>{f}</span>
                     <button
                       type="button"
                       onClick={() => removeFile(f)}
-                      className="text-[#837565] hover:text-[#ba1a1a] transition-colors cursor-pointer"
+                      className="text-[#837565] dark:text-[#a89f91] hover:text-[#ba1a1a] dark:hover:text-[#f87171] transition-colors cursor-pointer"
                     >
                       <X className="size-[12px]" />
                     </button>
@@ -423,18 +407,17 @@ export function CreateTicketView({
           </div>
         </div>
 
-        {/* Action Buttons Area */}
         <div className="flex items-center gap-[12px] justify-end">
           <button
             type="button"
             onClick={onBack}
-            className="bg-[#f0eeea] hover:bg-[#eae8e4] text-[#1b1c1a] px-[20px] py-[10px] rounded-[4px] font-semibold text-[14px] leading-[20px] transition-colors cursor-pointer"
+            className="bg-[#f0eeea] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] border border-transparent dark:border-[#38271c] px-[20px] py-[10px] rounded-[4px] font-semibold text-[14px] leading-[20px] transition-colors cursor-pointer"
           >
             {isEn ? "Cancel & Return" : "إلغاء والعودة"}
           </button>
           <button
             type="submit"
-            className="bg-[#9c6402] hover:bg-[#855402] text-white flex items-center gap-[8px] px-[28px] py-[10px] rounded-[4px] font-semibold text-[14px] leading-[20px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-all cursor-pointer"
+            className="bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#855402] dark:hover:bg-[#f3c27e] text-white dark:text-[#1c140f] flex items-center gap-[8px] px-[28px] py-[10px] rounded-[4px] font-semibold text-[14px] leading-[20px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-all cursor-pointer"
           >
             <Check className="size-[16px]" />
             <span>{isEn ? "Create & Save Ticket" : "إنشاء التذكرة وحفظها"}</span>

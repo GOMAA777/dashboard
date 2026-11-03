@@ -87,7 +87,7 @@ export function SubscriptionsFaqSection() {
         <span className="text-[11px] font-extrabold text-[#c29547] dark:text-[#d4a759] tracking-wider uppercase block mb-1">
           F . A . Q
         </span>
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1c1917] dark:text-[#f5f4f0] mb-2 tracking-tight">
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1c1917] dark:text-[#fdfbf7] mb-2 tracking-tight">
           الأسئلة الشائعة حول الاشتراكات
         </h2>
         <p className="text-xs sm:text-sm text-[#7d7367] dark:text-[#9e968a]">
@@ -106,8 +106,8 @@ export function SubscriptionsFaqSection() {
               className={cn(
                 "rounded-2xl border transition-all overflow-hidden",
                 isOpen
-                  ? "bg-white dark:bg-[#1a1816] border-[#c29547]/50 dark:border-[#d4a759]/50 shadow-xs"
-                  : "bg-white/80 dark:bg-[#1a1816]/80 border-[#ded5c6]/70 dark:border-[#2f2a24] hover:border-[#c29547]/40"
+                  ? "bg-white dark:bg-[#1a120d] border-[#c29547]/50 dark:border-[#d4a759]/50 shadow-xs"
+                  : "bg-white/80 dark:bg-[#1a120d]/80 border-[#ded5c6]/70 dark:border-[#38271c] hover:border-[#c29547]/40"
               )}
             >
               <button
@@ -116,15 +116,15 @@ export function SubscriptionsFaqSection() {
                 className="w-full py-4 px-5 sm:px-6 flex items-center justify-between gap-4 text-start cursor-pointer group"
                 aria-expanded={isOpen}
               >
-                <span className="text-xs sm:text-sm font-bold text-[#1c1917] dark:text-[#f5f4f0] group-hover:text-[#c29547] dark:group-hover:text-[#d4a759] transition-colors leading-relaxed">
+                <span className="text-xs sm:text-sm font-bold text-[#1c1917] dark:text-[#fdfbf7] group-hover:text-[#c29547] dark:group-hover:text-[#d4a759] transition-colors leading-relaxed">
                   {faq.question}
                 </span>
                 <span
                   className={cn(
                     "w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-transform duration-200 border",
                     isOpen
-                      ? "bg-[#faf5eb] dark:bg-[#251f17] border-[#eeddbb] dark:border-[#4d3a1f] text-[#c29547] dark:text-[#d4a759] rotate-180"
-                      : "bg-[#faf8f4] dark:bg-[#201d1a] border-[#e2d8c9] dark:border-[#332b21] text-[#8c8279] dark:text-[#9e968a]"
+                      ? "bg-[#faf5eb] dark:bg-[#281c15] border-[#eeddbb] dark:border-[#4d3a1f] text-[#c29547] dark:text-[#d4a759] rotate-180"
+                      : "bg-[#faf8f4] dark:bg-[#281c15] border-[#e2d8c9] dark:border-[#332b21] text-[#8c8279] dark:text-[#9e968a]"
                   )}
                 >
                   {isOpen ? (
@@ -136,7 +136,7 @@ export function SubscriptionsFaqSection() {
               </button>
 
               {isOpen && (
-                <div className="px-5 sm:px-6 pb-4 pt-1 border-t border-[#f2ede4] dark:border-[#251f18] text-start">
+                <div className="px-5 sm:px-6 pb-4 pt-1 border-t border-[#f2ede4] dark:border-[#38271c] text-start">
                   <p className="text-xs text-[#696155] dark:text-[#a8a195] leading-relaxed">
                     {faq.answer}
                   </p>

@@ -158,7 +158,7 @@ export function LogoutConfirmModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2.5 rounded-[8px] border border-[#d6cfc5] dark:border-[#3d2a1d] hover:bg-[#ede8e1] dark:hover:bg-[#251b14] text-[#514537] dark:text-[#cdc5bd] text-[13px] font-semibold transition-colors cursor-pointer"
+            className="px-5 py-2.5 rounded-[8px] border border-[#d6cfc5] dark:border-[#3d2a1d] hover:bg-[#ede8e1] dark:hover:bg-[#281c15] text-[#514537] dark:text-[#cdc5bd] text-[13px] font-semibold transition-colors cursor-pointer"
           >
             {currentLang === "en" ? "Cancel" : "إلغاء"}
           </button>

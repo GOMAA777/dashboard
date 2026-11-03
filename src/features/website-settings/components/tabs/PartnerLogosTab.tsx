@@ -17,19 +17,50 @@ import { toast } from "sonner";
 import { initialPartnerLogos } from "../../data/initialWebsiteSettings";
 import { PartnerLogoItem } from "../../types/website-settings.types";
 import { cn } from "@/lib/utils";
+import { useUIStore } from "@/stores/use-ui-store";
 
-const partnerIconsMap: Record<string, React.ReactNode> = {
-  globe: <Globe className="size-[18px] text-white" />,
-  zap: <Zap className="size-[18px] text-emerald-300" />,
-  landmark: <Landmark className="size-[18px] text-[#92400e]" />,
-  crown: <Crown className="size-[18px] text-[#b45309]" />,
-  download: <Download className="size-[18px] text-white" />,
-  gavel: <Gavel className="size-[18px] text-white" />,
-  scale: <Scale className="size-[18px] text-[#92400e]" />,
-  shield: <Shield className="size-[18px] text-blue-300" />,
+/** Light cream / pastel partner colors → warm clients dark surfaces */
+const DARK_BG_MAP: Record<string, string> = {
+  "#fef3c7": "#2d1f16",
+  "#fffbeb": "#2d1f16",
+  "#fefce8": "#2d1f16",
+  "#2e1065": "#2a1d3a",
+  "#064e3b": "#132c1c",
+  "#18181b": "#1a120d",
+  "#78350f": "#342711",
+  "#0f172a": "#1a120d",
 };
 
+function resolveBgColor(bgColor: string, isDark: boolean): string {
+  if (!isDark) return bgColor;
+  const key = bgColor.toLowerCase();
+  return DARK_BG_MAP[key] ?? "#2d1f16";
+}
+
+function PartnerIcon({ name, isDark }: { name: string; isDark: boolean }) {
+  const gold = isDark ? "text-[#e29d38]" : "text-[#92400e]";
+  const soft = isDark ? "text-[#cdc5bd]" : "text-white";
+  const emerald = isDark ? "text-[#6ee7b7]" : "text-emerald-300";
+  const blue = isDark ? "text-[#93c5fd]" : "text-blue-300";
+  const white = isDark ? "text-[#fdfbf7]" : "text-white";
+
+  const icons: Record<string, React.ReactNode> = {
+    globe: <Globe className={cn("size-[18px]", white)} />,
+    zap: <Zap className={cn("size-[18px]", emerald)} />,
+    landmark: <Landmark className={cn("size-[18px]", gold)} />,
+    crown: <Crown className={cn("size-[18px]", isDark ? "text-[#e29d38]" : "text-[#b45309]")} />,
+    download: <Download className={cn("size-[18px]", soft)} />,
+    gavel: <Gavel className={cn("size-[18px]", white)} />,
+    scale: <Scale className={cn("size-[18px]", gold)} />,
+    shield: <Shield className={cn("size-[18px]", blue)} />,
+  };
+
+  return <>{icons[name] || <Globe className={cn("size-[18px]", white)} />}</>;
+}
+
 export function PartnerLogosTab() {
+  const theme = useUIStore((state) => state.theme);
+  const isDark = theme === "dark";
   const [items, setItems] = useState<PartnerLogoItem[]>(initialPartnerLogos);
 
   const handleToggleStatus = (id: string) => {
@@ -51,7 +82,7 @@ export function PartnerLogosTab() {
       <div className="overflow-x-auto rounded-[8px] border border-[#f5f5f4] dark:border-[#38271c]">
         <table className="w-full text-start border-collapse">
           <thead>
-            <tr className="bg-[#fefce8]/60 dark:bg-[#1a120d]/80 text-[#78350f] dark:text-[#e29d38] text-[13px] font-bold border-b border-[#f3efe6] dark:border-[#38271c]">
+            <tr className="bg-[#fefce8]/60 dark:bg-[#1a120d] text-[#78350f] dark:text-[#e29d38] text-[13px] font-bold border-b border-[#f3efe6] dark:border-[#38271c]">
               <th className="py-[12px] px-[16px] w-[50px] text-center">#</th>
               <th className="py-[12px] px-[16px]">Name (الاسم)</th>
               <th className="py-[12px] px-[16px] text-center">Image (الشعار)</th>
@@ -70,10 +101,10 @@ export function PartnerLogosTab() {
                 </td>
                 <td className="py-[14px] px-[16px] text-center">
                   <div
-                    className="size-[38px] rounded-[8px] mx-auto flex items-center justify-center shadow-2xs"
-                    style={{ backgroundColor: item.bgColor }}
+                    className="size-[38px] rounded-[8px] mx-auto flex items-center justify-center shadow-2xs border border-transparent dark:border-[#4d3627]/50"
+                    style={{ backgroundColor: resolveBgColor(item.bgColor, isDark) }}
                   >
-                    {partnerIconsMap[item.iconName] || <Globe className="size-[18px] text-white" />}
+                    <PartnerIcon name={item.iconName} isDark={isDark} />
                   </div>
                 </td>
                 <td className="py-[14px] px-[16px] text-center">

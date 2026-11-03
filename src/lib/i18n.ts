@@ -214,6 +214,9 @@ export const translations = {
       leftSubheading: "منصة متكاملة لإدارة ملفات القضايا، الجلسات، الموكلين، والعقود بكل سهولة وسرية تامة.",
       loginSuccess: "تم تسجيل الدخول بنجاح!",
       signingIn: "جاري تسجيل الدخول...",
+      loginFailedTitle: "بيانات الدخول غير صحيحة",
+      loginFailedHint: "تحقق من البريد أو اسم المستخدم وكلمة المرور ثم حاول مرة أخرى.",
+      loginRequired: "يرجى إدخال بيانات الدخول وكلمة المرور",
     },
   },
   en: {
@@ -390,6 +393,9 @@ export const translations = {
       leftSubheading: "All-in-one platform for managing cases, court hearings, clients, and contracts with total confidentiality.",
       loginSuccess: "Signed in successfully!",
       signingIn: "Signing in...",
+      loginFailedTitle: "Incorrect login details",
+      loginFailedHint: "Check your email or username and password, then try again.",
+      loginRequired: "Please enter your username and password",
     },
   },
 } as const;

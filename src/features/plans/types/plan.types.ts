@@ -1,3 +1,6 @@
+export type PlanBillingCycle = "monthly" | "annual" | "custom";
+export type PlanStatusFilter = "all" | "active" | "inactive" | "custom";
+
 export interface PlanLimitsData {
   lawyers: string;
   cases: string;

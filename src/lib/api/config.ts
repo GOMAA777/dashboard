@@ -20,3 +20,10 @@ export const SUPER_ADMIN_APP_URL = (
   process.env.NEXT_PUBLIC_APP_URL ||
   "https://law.elmoroj.com/dashboard"
 ).replace(/\/$/, "");
+
+/**
+ * Temporary unlock: any non-empty login works with a local session.
+ * Set NEXT_PUBLIC_AUTH_BYPASS=false when real API auth should be enforced.
+ */
+export const AUTH_BYPASS =
+  (process.env.NEXT_PUBLIC_AUTH_BYPASS ?? "true").toLowerCase() !== "false";

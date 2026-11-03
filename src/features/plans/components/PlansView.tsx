@@ -15,7 +15,7 @@ import { SubscribedFirmsView } from "./SubscribedFirmsView";
 import { DeactivatePlanDialog } from "./DeactivatePlanDialog";
 import { CannotDeletePlanDialog } from "./CannotDeletePlanDialog";
 import { DeletePlanDialog } from "./DeletePlanDialog";
-import { PricingPlanItem, PlanViewMode, DetailedSubscribedFirm } from "../types/plan.types";
+import { PricingPlanItem, PlanViewMode, DetailedSubscribedFirm, PlanStatusFilter, PlanBillingCycle } from "../types/plan.types";
 import { initialPricingPlans, detailedSilverSubscribedFirms } from "../data/initialPlans";
 import { ClientOfficeDetailsView } from "@/features/clients/components/ClientOfficeDetailsView";
 import { initialOffices } from "@/features/clients/data/initialOffices";
@@ -23,8 +23,8 @@ import { ClientOffice } from "@/features/clients/types/client.types";
 import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 import { DashboardPageSkeleton } from "@/components/shared/DashboardPageSkeleton";
 import { useLanguage } from "@/lib/i18n";
-import { fetchPlans, deletePlan, updatePlanStatus } from "@/lib/api/plans";
-import { mapPlansResponse } from "@/lib/api/mappers";
+import { fetchPlans, deletePlan, updatePlanStatus, getLocalCustomPlans, saveLocalCustomPlan, removeLocalCustomPlan } from "@/lib/api/plans";
+import { mapPlansResponse, getLocalCustomThemeColor } from "@/lib/api/mappers";
 
 function firmToClientOffice(
   firm: DetailedSubscribedFirm | null,
@@ -71,6 +71,10 @@ function firmToClientOffice(
     initial: firm.initial || firm.name[0] || "م",
     initialBg: "bg-[#ffddb6] dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60",
     initialText: "text-[#7b4e00] dark:text-[#f3c27e]",
+    themeColor:
+      (firm as unknown as { themeColor?: string })?.themeColor ||
+      getLocalCustomThemeColor(firm.id) ||
+      "#9c6402",
     name: firm.name,
     licenseNumber: firm.licenseNumber.startsWith("ترخيص")
       ? firm.licenseNumber
@@ -119,14 +123,54 @@ export function PlansView() {
   useEffect(() => {
     let cancelled = false;
     setIsLoading(true);
+    const localPlans = getLocalCustomPlans();
     fetchPlans()
       .then((payload) => {
         if (cancelled) return;
         const mapped = mapPlansResponse(payload);
-        if (mapped.length > 0) setPlans(mapped);
+        const basePlans = mapped.length > 0 ? mapped : initialPricingPlans;
+        const merged = [...basePlans];
+        localPlans.forEach((lp) => {
+          const idx = merged.findIndex(
+            (m) => String(m.id) === String(lp.id) || m.name === lp.name
+          );
+          if (idx !== -1) {
+            // API is source of truth for type/prices/status; keep only UI-only local fields.
+            merged[idx] = {
+              ...lp,
+              ...merged[idx],
+              colorTheme: lp.colorTheme || merged[idx].colorTheme,
+            };
+          } else if (mapped.length === 0) {
+            // Only inject purely-local plans when API returned nothing.
+            merged.push(lp);
+          }
+        });
+        setPlans(merged);
+        if (planIdParam) {
+          const found = merged.find((p) => String(p.id) === String(planIdParam));
+          if (found) setSelectedPlan(found);
+        }
       })
       .catch(() => {
-        // Keep empty if API unavailable.
+        if (!cancelled) {
+          const fallback = [...initialPricingPlans];
+          localPlans.forEach((lp) => {
+            const idx = fallback.findIndex(
+              (p) => String(p.id) === String(lp.id) || p.name === lp.name
+            );
+            if (idx !== -1) {
+              fallback[idx] = { ...fallback[idx], ...lp };
+            } else {
+              fallback.push(lp);
+            }
+          });
+          setPlans(fallback);
+          if (planIdParam) {
+            const found = fallback.find((p) => String(p.id) === String(planIdParam));
+            if (found) setSelectedPlan(found);
+          }
+        }
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false);
@@ -134,7 +178,7 @@ export function PlansView() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [planIdParam]);
 
   const initialPlan = useMemo(() => {
     if (planIdParam) {
@@ -170,7 +214,7 @@ export function PlansView() {
     setViewMode(mappedMode);
 
     if (planIdParam) {
-      const p = plans.find((item) => item.id === planIdParam);
+      const p = plans.find((item) => String(item.id) === String(planIdParam));
       if (p) setSelectedPlan(p);
     }
     if (firmIdParam) {
@@ -204,9 +248,19 @@ export function PlansView() {
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
+  const [statusFilter, setStatusFilter] = useState<PlanStatusFilter>("all");
+  const [billingCycle, setBillingCycle] = useState<PlanBillingCycle>("monthly");
   const [sortBy, setSortBy] = useState<"price_desc" | "price_asc" | "subscribers">("price_desc");
+
+  // Helper: Detect whether a plan is custom/enterprise
+  const isCustomPlan = (plan: PricingPlanItem): boolean => {
+    if (plan.isEnterprise) return true;
+    if (plan.type === "custom" || plan.type === "enterprise") return true;
+    if (plan.badge && plan.badge.includes("مخصص")) return true;
+    if (plan.name && (plan.name.includes("مخصص") || plan.name.includes("المخصصة"))) return true;
+    if (plan.description && plan.description.includes("مخصص")) return true;
+    return false;
+  };
 
   // Filtered & Sorted Plans
   const filteredPlans = useMemo(() => {
@@ -215,6 +269,13 @@ export function PlansView() {
         // Status filter
         if (statusFilter === "active" && !plan.isActive) return false;
         if (statusFilter === "inactive" && plan.isActive) return false;
+        if (statusFilter === "custom" && !isCustomPlan(plan)) return false;
+
+        // Custom cycle filter:
+        if (billingCycle === "custom") {
+          const hasAnyCustom = plans.some(isCustomPlan);
+          if (hasAnyCustom && !isCustomPlan(plan)) return false;
+        }
 
         // Search filter
         if (searchQuery.trim()) {
@@ -222,10 +283,11 @@ export function PlansView() {
           const matchName = plan.name.toLowerCase().includes(q);
           const matchCode = plan.code.toLowerCase().includes(q);
           const matchDesc = plan.description.toLowerCase().includes(q);
+          const matchBadge = Boolean(plan.badge?.toLowerCase().includes(q));
           const matchLimits = Object.values(plan.limits).some((val) =>
             val.toLowerCase().includes(q)
           );
-          if (!matchName && !matchCode && !matchDesc && !matchLimits) {
+          if (!matchName && !matchCode && !matchDesc && !matchBadge && !matchLimits) {
             return false;
           }
         }
@@ -233,18 +295,31 @@ export function PlansView() {
         return true;
       })
       .sort((a, b) => {
+        const priceA =
+          billingCycle === "annual"
+            ? a.annualPrice && a.annualPrice > 0
+              ? a.annualPrice
+              : a.monthlyPrice * 10
+            : a.monthlyPrice;
+        const priceB =
+          billingCycle === "annual"
+            ? b.annualPrice && b.annualPrice > 0
+              ? b.annualPrice
+              : b.monthlyPrice * 10
+            : b.monthlyPrice;
+
         if (sortBy === "price_desc") {
-          return b.monthlyPrice - a.monthlyPrice;
+          return priceB - priceA;
         }
         if (sortBy === "price_asc") {
-          return a.monthlyPrice - b.monthlyPrice;
+          return priceA - priceB;
         }
         if (sortBy === "subscribers") {
           return b.subscribedFirmsCount - a.subscribedFirmsCount;
         }
         return 0;
       });
-  }, [plans, statusFilter, searchQuery, sortBy]);
+  }, [plans, statusFilter, searchQuery, sortBy, billingCycle]);
 
   // Counts for tabs
   const counts = useMemo(() => {
@@ -252,18 +327,60 @@ export function PlansView() {
       all: plans.length,
       active: plans.filter((p) => p.isActive).length,
       inactive: plans.filter((p) => !p.isActive).length,
+      custom: plans.filter(isCustomPlan).length,
     };
   }, [plans]);
 
   const handleSavePlanSuccess = (savedPlan: PricingPlanItem) => {
+    saveLocalCustomPlan(savedPlan, selectedPlan?.id, selectedPlan?.name);
     setPlans((prev) => {
-      const exists = prev.some((p) => p.id === savedPlan.id);
-      if (exists) {
-        return prev.map((p) => (p.id === savedPlan.id ? savedPlan : p));
+      const targetId = String(savedPlan.id);
+      const oldSelectedId = selectedPlan ? String(selectedPlan.id) : undefined;
+      const existsIndex = prev.findIndex(
+        (p) =>
+          String(p.id) === targetId ||
+          (oldSelectedId !== undefined && String(p.id) === oldSelectedId) ||
+          p.name === savedPlan.name ||
+          (selectedPlan && p.name === selectedPlan.name)
+      );
+      if (existsIndex !== -1) {
+        const next = [...prev];
+        next[existsIndex] = savedPlan;
+        return next;
       }
       return [savedPlan, ...prev];
     });
     setSelectedPlan(savedPlan);
+    // Refresh from API so paid→trial (and prices) match the server after edit.
+    void fetchPlans()
+      .then((payload) => {
+        const mapped = mapPlansResponse(payload);
+        if (mapped.length === 0) return;
+        setPlans((prev) => {
+          const byId = new Map(mapped.map((p) => [String(p.id), p]));
+          const next = prev.map((p) => {
+            const fresh = byId.get(String(p.id));
+            return fresh ? { ...p, ...fresh, colorTheme: p.colorTheme } : p;
+          });
+          for (const p of mapped) {
+            if (!next.some((x) => String(x.id) === String(p.id))) next.push(p);
+          }
+          return next;
+        });
+        const freshSelected = mapped.find(
+          (p) => String(p.id) === String(savedPlan.id)
+        );
+        if (freshSelected) {
+          setSelectedPlan((prev) => ({
+            ...prev,
+            ...freshSelected,
+            colorTheme: prev.colorTheme,
+          }));
+        }
+      })
+      .catch(() => {
+        // Keep optimistic saved plan if refresh fails.
+      });
     navigateToView("list");
   };
 
@@ -311,7 +428,8 @@ export function PlansView() {
     } catch {
       // Keep local UX even if API fails.
     }
-    setPlans((prev) => prev.filter((p) => p.id !== planId));
+    removeLocalCustomPlan(planId);
+    setPlans((prev) => prev.filter((p) => String(p.id) !== String(planId)));
     toast.success("تم حذف الباقة نهائياً من النظام.");
   };
 

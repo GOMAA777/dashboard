@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "zip:out": "powershell -Command \"$items = (Get-ChildItem -Path 'out' -Force).FullName; Compress-Archive -Path $items -DestinationPath '../out.zip' -Force; Copy-Item '../out.zip' '../dashboard-build.zip' -Force; Copy-Item '../out.zip' 'out.zip' -Force\"",
-    "build:zip": "next build && npm run zip:out",
+    "build": "next build && node scripts/copy-impersonate-handoff.js",
+    "zip:out": "node scripts/zip-out.mjs",
+    "build:zip": "npm run build && npm run zip:out",
     "serve:out": "node serve-static.mjs",
     "start": "next start",
     "lint": "eslint",

@@ -868,7 +868,7 @@ export function AccountsView() {
   };
 
   return (
-    <div className="flex h-screen h-dvh overflow-hidden bg-[#fcfbfa] dark:bg-[#121110] text-[#1c1917] dark:text-[#f5f4f0] transition-colors duration-200 relative">
+    <div className="flex h-screen h-dvh overflow-hidden bg-[#fcfbfa] dark:bg-[#150f0b] text-[#1c1917] dark:text-[#fdfbf7] transition-colors duration-200 relative">
       {/* 1. Main Navigation Sidebar */}
       <DashboardSidebar />
 
@@ -895,7 +895,7 @@ export function AccountsView() {
 
           <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
             {/* Header Hero Banner */}
-            <div className="relative overflow-hidden rounded-2xl border border-[#eeddbb]/70 dark:border-[#383126] bg-gradient-to-br from-[#ffffff] via-[#fbf8f2] to-[#f4ece0] dark:from-[#1e1b18] dark:via-[#191715] dark:to-[#141210] p-6 sm:p-8 shadow-sm">
+            <div className="relative overflow-hidden rounded-2xl border border-[#eeddbb]/70 dark:border-[#383126] bg-gradient-to-br from-[#ffffff] via-[#fbf8f2] to-[#f4ece0] dark:from-[#1e1b18] dark:via-[#191715] dark:to-[#150f0b] p-6 sm:p-8 shadow-sm">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
                 <div className="space-y-2">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#c29547]/10 dark:bg-[#c29547]/20 text-[#966e2e] dark:text-[#eeddbb] border border-[#c29547]/30">
@@ -907,11 +907,11 @@ export function AccountsView() {
                     </span>
                   </div>
 
-                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1c1917] dark:text-[#f5f4f0]">
+                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1c1917] dark:text-[#fdfbf7]">
                     {isAr ? "إدارة حسابات المشرفين (Accounts)" : "Administrator Accounts"}
                   </h1>
 
-                  <p className="text-sm sm:text-base text-[#6b6357] dark:text-[#a8a196] max-w-2xl leading-relaxed">
+                  <p className="text-sm sm:text-base text-[#6b6357] dark:text-[#a89f91] max-w-2xl leading-relaxed">
                     {isAr
                       ? "التحكم الكامل في حسابات مدراء المنظومة، وتعيين الأدوار الوظيفية، ومتابعة آخر تسجيل دخول، وتفعيل أو تعليق الحسابات."
                       : "Manage system administrators, assign roles, inspect activity logs, and activate or suspend accounts securely."}
@@ -928,7 +928,7 @@ export function AccountsView() {
                           : "Exported admin accounts report as CSV"
                       );
                     }}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-[#1c1917] dark:text-[#f5f4f0] bg-white dark:bg-[#25221d] border border-[#e2d5c0] dark:border-[#3d372e] shadow-sm hover:border-[#c29547] hover:text-[#c29547] transition-all cursor-pointer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-[#1c1917] dark:text-[#fdfbf7] bg-white dark:bg-[#221812] border border-[#e2d5c0] dark:border-[#3d372e] shadow-sm hover:border-[#c29547] hover:text-[#c29547] transition-all cursor-pointer"
                   >
                     <Download className="w-4 h-4 text-[#c29547]" />
                     <span>{isAr ? "تصدير التقرير" : "Export"}</span>
@@ -947,8 +947,8 @@ export function AccountsView() {
             </div>
 
             {/* KPI Cards Row */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-4 sm:p-5 rounded-2xl border border-[#ded5c6]/70 dark:border-[#38271c] bg-white dark:bg-[#221812] shadow-xs">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
+              <div className="p-5 sm:p-6 rounded-2xl border border-[#ded5c6]/70 dark:border-[#38271c] bg-white dark:bg-[#221812] shadow-xs">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-semibold text-[#7c7366] dark:text-[#cdc5bd]">
                     {isAr ? "إجمالي الحسابات" : "Total Accounts"}
@@ -1018,7 +1018,7 @@ export function AccountsView() {
             </div>
 
             {/* Filter & Search Bar */}
-            <div className="p-4 rounded-2xl border border-[#ded5c6] dark:border-[#2f2a24] bg-white dark:bg-[#1a1714] shadow-xs flex flex-col md:flex-row items-stretch md:items-center gap-3">
+            <div className="p-4 rounded-2xl border border-[#ded5c6] dark:border-[#38271c] bg-white dark:bg-[#221812] shadow-xs flex flex-col md:flex-row items-stretch md:items-center gap-3">
               <div className="relative flex-1 min-w-[220px]">
                 <Search className="w-4 h-4 absolute start-3.5 top-1/2 -translate-y-1/2 text-[#8c8279]" />
                 <input
@@ -1033,7 +1033,7 @@ export function AccountsView() {
                       ? "ابحث بالاسم، البريد، أو الدور..."
                       : "Search by name, email, or role..."
                   }
-                  className="w-full h-10.5 ps-10 pe-9 rounded-xl bg-[#faf8f4] dark:bg-[#201d1a] border border-[#ded5c6] dark:border-[#2f2a24] text-xs font-medium text-[#1c1917] dark:text-[#f5f4f0] focus:outline-none focus:border-[#c29547]"
+                  className="w-full h-10.5 ps-10 pe-9 rounded-xl bg-[#faf8f4] dark:bg-[#281c15] border border-[#ded5c6] dark:border-[#38271c] text-xs font-medium text-[#1c1917] dark:text-[#fdfbf7] focus:outline-none focus:border-[#c29547]"
                 />
                 {search && (
                   <button
@@ -1077,8 +1077,8 @@ export function AccountsView() {
                   title={isAr ? "إعادة ضبط وتفريغ كل الفلاتر" : "Reset all filters"}
                   className={`h-10.5 px-3.5 rounded-xl border text-xs font-semibold inline-flex items-center gap-1.5 transition-all cursor-pointer ${
                     hasActiveFilters
-                      ? "bg-[#faf5eb] dark:bg-[#282218] border-[#eeddbb] dark:border-[#4d3a1f] text-[#966e2e] dark:text-[#eeddbb] hover:border-[#c29547] shadow-2xs"
-                      : "bg-[#faf8f4] dark:bg-[#201d1a] border-[#ded5c6] dark:border-[#2f2a24] text-[#7c7366] dark:text-[#a8a196] hover:border-[#c29547] hover:text-[#c29547]"
+                      ? "bg-[#faf5eb] dark:bg-[#281c15] border-[#eeddbb] dark:border-[#4d3a1f] text-[#966e2e] dark:text-[#eeddbb] hover:border-[#c29547] shadow-2xs"
+                      : "bg-[#faf8f4] dark:bg-[#281c15] border-[#ded5c6] dark:border-[#38271c] text-[#7c7366] dark:text-[#a89f91] hover:border-[#c29547] hover:text-[#c29547]"
                   }`}
                 >
                   <RotateCcw className={`w-3.5 h-3.5 ${hasActiveFilters ? "text-[#c29547]" : "text-[#8c8279]"}`} />
@@ -1089,7 +1089,7 @@ export function AccountsView() {
 
             {/* Bulk Actions Notification Bar */}
             {selectedAccountIds.length > 0 && (
-              <div className="p-3.5 px-4 rounded-2xl border border-[#c29547]/40 bg-[#faf5eb] dark:bg-[#201c17] flex flex-wrap items-center justify-between gap-3 shadow-xs animate-in fade-in duration-200">
+              <div className="p-3.5 px-4 rounded-2xl border border-[#c29547]/40 bg-[#faf5eb] dark:bg-[#281c15] flex flex-wrap items-center justify-between gap-3 shadow-xs animate-in fade-in duration-200">
                 <div className="flex flex-wrap items-center gap-2.5 text-xs font-bold text-[#966e2e] dark:text-[#eeddbb]">
                   <span className="w-6 h-6 rounded-lg bg-[#c29547] text-white flex items-center justify-center text-xs shadow-2xs font-mono">
                     {selectedAccountIds.length}
@@ -1157,7 +1157,7 @@ export function AccountsView() {
                   <button
                     type="button"
                     onClick={() => setSelectedAccountIds([])}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#ded5c6] dark:border-[#2f2a24] text-xs font-bold text-[#7c7366] dark:text-[#a8a196] hover:bg-white dark:hover:bg-[#282218] transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#ded5c6] dark:border-[#38271c] text-xs font-bold text-[#7c7366] dark:text-[#a89f91] hover:bg-white dark:hover:bg-[#282218] transition-colors cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
                     <span>{isAr ? "إلغاء" : "Deselect"}</span>
@@ -1167,11 +1167,11 @@ export function AccountsView() {
             )}
 
             {/* Accounts Data Table */}
-            <div className="rounded-2xl border border-[#ded5c6] dark:border-[#2f2a24] bg-white dark:bg-[#1a1714] shadow-xs overflow-hidden">
+            <div className="rounded-2xl border border-[#ded5c6] dark:border-[#38271c] bg-white dark:bg-[#221812] shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-start text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-[#ded5c6] dark:border-[#2f2a24] bg-[#faf8f4] dark:bg-[#201d1a] text-[#7c7366] dark:text-[#a8a196]">
+                    <tr className="border-b border-[#ded5c6] dark:border-[#38271c] bg-[#faf8f4] dark:bg-[#281c15] text-[#7c7366] dark:text-[#a89f91]">
                       <th className="py-3.5 px-4 w-11 text-center">
                         <div className="flex items-center justify-center">
                           <LuxuryCheckbox
@@ -1206,7 +1206,7 @@ export function AccountsView() {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#ded5c6]/60 dark:divide-[#2f2a24]/60">
+                  <tbody className="divide-y divide-[#ded5c6]/60 dark:divide-[#38271c]/60">
                     {paginatedAccounts.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="py-12 text-center text-[#8c8279]">
@@ -1231,10 +1231,10 @@ export function AccountsView() {
                             key={acc.id}
                             className={`transition-colors ${
                               isCurrent
-                                ? "bg-[#faf5eb]/50 dark:bg-[#201c16]/50 border-s-2 border-s-[#c29547]"
+                                ? "bg-[#faf5eb]/50 dark:bg-[#221812]/50 border-s-2 border-s-[#c29547]"
                                 : selectedAccountIds.includes(acc.id)
-                                ? "bg-[#faf5eb]/90 dark:bg-[#282218]/50"
-                                : "hover:bg-[#faf5eb]/40 dark:hover:bg-[#201d1a]/40"
+                                ? "bg-[#faf5eb]/90 dark:bg-[#281c15]/50"
+                                : "hover:bg-[#faf5eb]/40 dark:hover:bg-[#281c15]/40"
                             }`}
                           >
                             {/* Checkbox */}
@@ -1277,13 +1277,13 @@ export function AccountsView() {
                                   {isCurrent && (
                                     <span
                                       title={isAr ? "متصل الآن (جلستك الحالية)" : "Online now (Your session)"}
-                                      className="absolute -bottom-0.5 -end-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white dark:border-[#1a1714]"
+                                      className="absolute -bottom-0.5 -end-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white dark:border-[#221812]"
                                     />
                                   )}
                                 </div>
                                 <div>
                                   <div className="flex items-center gap-2">
-                                    <span className="font-bold text-[#1c1917] dark:text-[#f5f4f0]">
+                                    <span className="font-bold text-[#1c1917] dark:text-[#fdfbf7]">
                                       {isAr ? acc.name : acc.nameEn}
                                     </span>
                                     {isCurrent && (
@@ -1317,7 +1317,7 @@ export function AccountsView() {
                             </td>
 
                             {/* Scope */}
-                            <td className="py-4 px-4 text-[#524b43] dark:text-[#c4bcb1]">
+                            <td className="py-4 px-4 text-[#524b43] dark:text-[#cdc5bd]">
                               <div className="flex items-center gap-1.5">
                                 <Building2 className="w-3.5 h-3.5 text-[#8c8279] shrink-0" />
                                 <span>{isAr ? acc.scope : acc.scopeEn}</span>
@@ -1363,7 +1363,7 @@ export function AccountsView() {
                             </td>
 
                             {/* Last Login */}
-                            <td className="py-4 px-4 font-mono text-[11px] text-[#7c7366] dark:text-[#a8a196]">
+                            <td className="py-4 px-4 font-mono text-[11px] text-[#7c7366] dark:text-[#a89f91]">
                               {acc.lastLogin}
                             </td>
 
@@ -1374,7 +1374,7 @@ export function AccountsView() {
                                   type="button"
                                   onClick={() => openPasswordModal(acc)}
                                   title={isAr ? "تغيير الرقم السري" : "Change Password"}
-                                  className="p-1.5 rounded-lg text-[#8c8279] hover:text-[#c29547] hover:bg-[#faf5eb] dark:hover:bg-[#201d1a] transition-colors cursor-pointer"
+                                  className="p-1.5 rounded-lg text-[#8c8279] hover:text-[#c29547] hover:bg-[#faf5eb] dark:hover:bg-[#281c15] transition-colors cursor-pointer"
                                 >
                                   <KeyRound className="w-4 h-4" />
                                 </button>
@@ -1385,7 +1385,7 @@ export function AccountsView() {
                                   title={isAr ? "خيارات الحساب" : "Account options"}
                                   className={`action-menu-trigger p-1.5 rounded-lg transition-colors cursor-pointer ${
                                     activeMenuAccount?.id === acc.id
-                                      ? "bg-[#faf5eb] dark:bg-[#282218] text-[#c29547]"
+                                      ? "bg-[#faf5eb] dark:bg-[#281c15] text-[#c29547]"
                                       : "text-[#8c8279] hover:text-[#1c1917] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5"
                                   }`}
                                 >
@@ -1402,9 +1402,9 @@ export function AccountsView() {
               </div>
 
               {/* Pagination Bar */}
-              <div className="p-4 border-t border-[#ded5c6] dark:border-[#2f2a24] bg-[#faf8f4]/60 dark:bg-[#1a1714] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+              <div className="p-4 border-t border-[#ded5c6] dark:border-[#38271c] bg-[#faf8f4]/60 dark:bg-[#221812] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
                 {/* Left: Rows per page & range summary */}
-                <div className="flex flex-wrap items-center gap-4 text-[#7c7366] dark:text-[#a8a196]">
+                <div className="flex flex-wrap items-center gap-4 text-[#7c7366] dark:text-[#a89f91]">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{isAr ? "صفوف لكل صفحة:" : "Rows per page:"}</span>
                     <LuxurySelect<number>
@@ -1420,7 +1420,7 @@ export function AccountsView() {
                       className="w-18"
                     />
                   </div>
-                  <span className="text-[#ded5c6] dark:text-[#2f2a24] hidden sm:inline">|</span>
+                  <span className="text-[#ded5c6] dark:text-[#38271c] hidden sm:inline">|</span>
                   <span className="font-medium">
                     {isAr
                       ? `عرض ${fromIndex} إلى ${toIndex} من أصل ${totalFiltered} حساب`
@@ -1435,7 +1435,7 @@ export function AccountsView() {
                     onClick={() => setCurrentPage(1)}
                     disabled={activePage === 1}
                     title={isAr ? "الصفحة الأولى" : "First page"}
-                    className="w-8 h-8 rounded-lg border border-[#ded5c6] dark:border-[#2f2a24] bg-white dark:bg-[#201d1a] text-[#524b43] dark:text-[#c4bcb1] hover:border-[#c29547] hover:text-[#c29547] disabled:opacity-35 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
+                    className="w-8 h-8 rounded-lg border border-[#ded5c6] dark:border-[#38271c] bg-white dark:bg-[#281c15] text-[#524b43] dark:text-[#cdc5bd] hover:border-[#c29547] hover:text-[#c29547] disabled:opacity-35 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
                   >
                     {isAr ? <ChevronsRight className="w-4 h-4" /> : <ChevronsLeft className="w-4 h-4" />}
                   </button>
@@ -1444,7 +1444,7 @@ export function AccountsView() {
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={activePage === 1}
                     title={isAr ? "الصفحة السابقة" : "Previous page"}
-                    className="w-8 h-8 rounded-lg border border-[#ded5c6] dark:border-[#2f2a24] bg-white dark:bg-[#201d1a] text-[#524b43] dark:text-[#c4bcb1] hover:border-[#c29547] hover:text-[#c29547] disabled:opacity-35 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
+                    className="w-8 h-8 rounded-lg border border-[#ded5c6] dark:border-[#38271c] bg-white dark:bg-[#281c15] text-[#524b43] dark:text-[#cdc5bd] hover:border-[#c29547] hover:text-[#c29547] disabled:opacity-35 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
                   >
                     {isAr ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
                   </button>
@@ -1459,7 +1459,7 @@ export function AccountsView() {
                         className={`min-w-8 h-8 px-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                           pageNum === activePage
                             ? "bg-gradient-to-r from-[#d4a759] to-[#b38032] text-white shadow-2xs"
-                            : "border border-[#ded5c6] dark:border-[#2f2a24] bg-white dark:bg-[#201d1a] text-[#524b43] dark:text-[#c4bcb1] hover:border-[#c29547] hover:text-[#c29547]"
+                            : "border border-[#ded5c6] dark:border-[#38271c] bg-white dark:bg-[#281c15] text-[#524b43] dark:text-[#cdc5bd] hover:border-[#c29547] hover:text-[#c29547]"
                         }`}
                       >
                         {pageNum}
@@ -1472,7 +1472,7 @@ export function AccountsView() {
                     onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                     disabled={activePage === totalPages}
                     title={isAr ? "الصفحة التالية" : "Next page"}
-                    className="w-8 h-8 rounded-lg border border-[#ded5c6] dark:border-[#2f2a24] bg-white dark:bg-[#201d1a] text-[#524b43] dark:text-[#c4bcb1] hover:border-[#c29547] hover:text-[#c29547] disabled:opacity-35 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
+                    className="w-8 h-8 rounded-lg border border-[#ded5c6] dark:border-[#38271c] bg-white dark:bg-[#281c15] text-[#524b43] dark:text-[#cdc5bd] hover:border-[#c29547] hover:text-[#c29547] disabled:opacity-35 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
                   >
                     {isAr ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                   </button>
@@ -1481,7 +1481,7 @@ export function AccountsView() {
                     onClick={() => setCurrentPage(totalPages)}
                     disabled={activePage === totalPages}
                     title={isAr ? "الصفحة الأخيرة" : "Last page"}
-                    className="w-8 h-8 rounded-lg border border-[#ded5c6] dark:border-[#2f2a24] bg-white dark:bg-[#201d1a] text-[#524b43] dark:text-[#c4bcb1] hover:border-[#c29547] hover:text-[#c29547] disabled:opacity-35 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
+                    className="w-8 h-8 rounded-lg border border-[#ded5c6] dark:border-[#38271c] bg-white dark:bg-[#281c15] text-[#524b43] dark:text-[#cdc5bd] hover:border-[#c29547] hover:text-[#c29547] disabled:opacity-35 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
                   >
                     {isAr ? <ChevronsLeft className="w-4 h-4" /> : <ChevronsRight className="w-4 h-4" />}
                   </button>
@@ -1496,14 +1496,14 @@ export function AccountsView() {
       {/* Add New Admin Account Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="relative w-full max-w-lg max-h-[92vh] overflow-y-auto scrollbar-thin rounded-3xl bg-white dark:bg-[#1a1714] border border-[#ded5c6] dark:border-[#2f2a24] shadow-[0_20px_60px_rgba(0,0,0,0.35)] text-start">
-            <div className="sticky top-0 z-20 flex items-center justify-between p-5 border-b border-[#ded5c6]/60 dark:border-[#2f2a24] bg-[#faf5eb] dark:bg-[#201c17] backdrop-blur-md">
+          <div className="relative w-full max-w-lg max-h-[92vh] overflow-y-auto scrollbar-thin rounded-3xl bg-white dark:bg-[#221812] border border-[#ded5c6] dark:border-[#38271c] shadow-[0_20px_60px_rgba(0,0,0,0.35)] text-start">
+            <div className="sticky top-0 z-20 flex items-center justify-between p-5 border-b border-[#ded5c6]/60 dark:border-[#38271c] bg-[#faf5eb] dark:bg-[#281c15] backdrop-blur-md">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-[#fff7e6] dark:bg-[#2b2014] border border-[#eeddbb] dark:border-[#604218] flex items-center justify-center text-[#c29547] dark:text-[#d4a759]">
                   <UserPlus className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-extrabold text-[#2c2825] dark:text-[#f5f4f0]">
+                  <h2 className="text-base font-extrabold text-[#2c2825] dark:text-[#fdfbf7]">
                     {isAr ? "إضافة حساب مشرف جديد" : "Create New Admin Account"}
                   </h2>
                   <p className="text-xs text-[#8c8279] dark:text-[#9e968a]">
@@ -1532,11 +1532,11 @@ export function AccountsView() {
                   placeholder=" "
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  className="peer w-full h-12 rounded-2xl ps-4 pe-4 text-xs font-bold bg-white dark:bg-[#201d1a] text-[#2c2825] dark:text-[#f5f4f0] border border-[#ded5c6] dark:border-[#2f2a24] focus:outline-none focus:border-[#c29547] dark:focus:border-[#d4a759] focus:ring-3 focus:ring-[#c29547]/15 transition-all shadow-2xs"
+                  className="peer w-full h-12 rounded-2xl ps-4 pe-4 text-xs font-bold bg-white dark:bg-[#281c15] text-[#2c2825] dark:text-[#fdfbf7] border border-[#ded5c6] dark:border-[#38271c] focus:outline-none focus:border-[#c29547] dark:focus:border-[#d4a759] focus:ring-3 focus:ring-[#c29547]/15 transition-all shadow-2xs"
                 />
                 <label
                   htmlFor="modal-admin-name"
-                  className="pointer-events-none absolute start-4 top-0 -translate-y-1/2 bg-white dark:bg-[#1a1714] px-1.5 text-xs font-bold text-[#c29547] dark:text-[#d4a759] transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-xs peer-placeholder-shown:font-normal peer-placeholder-shown:text-[#8c8279] dark:peer-placeholder-shown:text-[#787166] peer-placeholder-shown:bg-transparent peer-focus:top-0 peer-focus:text-xs peer-focus:font-bold peer-focus:text-[#c29547] dark:peer-focus:text-[#d4a759] peer-focus:bg-white dark:peer-focus:bg-[#1a1816]"
+                  className="pointer-events-none absolute start-4 top-0 -translate-y-1/2 bg-white dark:bg-[#221812] px-1.5 text-xs font-bold text-[#c29547] dark:text-[#d4a759] transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-xs peer-placeholder-shown:font-normal peer-placeholder-shown:text-[#8c8279] dark:peer-placeholder-shown:text-[#8e8680] peer-placeholder-shown:bg-transparent peer-focus:top-0 peer-focus:text-xs peer-focus:font-bold peer-focus:text-[#c29547] dark:peer-focus:text-[#d4a759] peer-focus:bg-white dark:peer-focus:bg-[#1a120d]"
                 >
                   {isAr ? "اسم المشرف بالكامل" : "Full Name"}
                 </label>
@@ -1551,11 +1551,11 @@ export function AccountsView() {
                   placeholder=" "
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
-                  className="peer w-full h-12 rounded-2xl ps-4 pe-4 text-xs font-mono font-medium bg-white dark:bg-[#201d1a] text-[#2c2825] dark:text-[#f5f4f0] border border-[#ded5c6] dark:border-[#2f2a24] focus:outline-none focus:border-[#c29547] dark:focus:border-[#d4a759] focus:ring-3 focus:ring-[#c29547]/15 transition-all shadow-2xs"
+                  className="peer w-full h-12 rounded-2xl ps-4 pe-4 text-xs font-mono font-medium bg-white dark:bg-[#281c15] text-[#2c2825] dark:text-[#fdfbf7] border border-[#ded5c6] dark:border-[#38271c] focus:outline-none focus:border-[#c29547] dark:focus:border-[#d4a759] focus:ring-3 focus:ring-[#c29547]/15 transition-all shadow-2xs"
                 />
                 <label
                   htmlFor="modal-admin-email"
-                  className="pointer-events-none absolute start-4 top-0 -translate-y-1/2 bg-white dark:bg-[#1a1714] px-1.5 text-xs font-bold text-[#c29547] dark:text-[#d4a759] transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-xs peer-placeholder-shown:font-normal peer-placeholder-shown:text-[#8c8279] dark:peer-placeholder-shown:text-[#787166] peer-placeholder-shown:bg-transparent peer-focus:top-0 peer-focus:text-xs peer-focus:font-bold peer-focus:text-[#c29547] dark:peer-focus:text-[#d4a759] peer-focus:bg-white dark:peer-focus:bg-[#1a1816]"
+                  className="pointer-events-none absolute start-4 top-0 -translate-y-1/2 bg-white dark:bg-[#221812] px-1.5 text-xs font-bold text-[#c29547] dark:text-[#d4a759] transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-xs peer-placeholder-shown:font-normal peer-placeholder-shown:text-[#8c8279] dark:peer-placeholder-shown:text-[#8e8680] peer-placeholder-shown:bg-transparent peer-focus:top-0 peer-focus:text-xs peer-focus:font-bold peer-focus:text-[#c29547] dark:peer-focus:text-[#d4a759] peer-focus:bg-white dark:peer-focus:bg-[#1a120d]"
                 >
                   {isAr ? "البريد الإلكتروني الرسمي" : "Official Email"}
                 </label>
@@ -1570,11 +1570,11 @@ export function AccountsView() {
                   placeholder=" "
                   value={newAdminPassword}
                   onChange={(e) => setNewAdminPassword(e.target.value)}
-                  className="peer w-full h-12 rounded-2xl ps-4 pe-11 text-xs font-mono font-medium bg-white dark:bg-[#201d1a] text-[#2c2825] dark:text-[#f5f4f0] border border-[#ded5c6] dark:border-[#2f2a24] focus:outline-none focus:border-[#c29547] dark:focus:border-[#d4a759] focus:ring-3 focus:ring-[#c29547]/15 transition-all shadow-2xs"
+                  className="peer w-full h-12 rounded-2xl ps-4 pe-11 text-xs font-mono font-medium bg-white dark:bg-[#281c15] text-[#2c2825] dark:text-[#fdfbf7] border border-[#ded5c6] dark:border-[#38271c] focus:outline-none focus:border-[#c29547] dark:focus:border-[#d4a759] focus:ring-3 focus:ring-[#c29547]/15 transition-all shadow-2xs"
                 />
                 <label
                   htmlFor="modal-admin-password"
-                  className="pointer-events-none absolute start-4 top-0 -translate-y-1/2 bg-white dark:bg-[#1a1714] px-1.5 text-xs font-bold text-[#c29547] dark:text-[#d4a759] transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-xs peer-placeholder-shown:font-normal peer-placeholder-shown:text-[#8c8279] dark:peer-placeholder-shown:text-[#787166] peer-placeholder-shown:bg-transparent peer-focus:top-0 peer-focus:text-xs peer-focus:font-bold peer-focus:text-[#c29547] dark:peer-focus:text-[#d4a759] peer-focus:bg-white dark:peer-focus:bg-[#1a1816]"
+                  className="pointer-events-none absolute start-4 top-0 -translate-y-1/2 bg-white dark:bg-[#221812] px-1.5 text-xs font-bold text-[#c29547] dark:text-[#d4a759] transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-xs peer-placeholder-shown:font-normal peer-placeholder-shown:text-[#8c8279] dark:peer-placeholder-shown:text-[#8e8680] peer-placeholder-shown:bg-transparent peer-focus:top-0 peer-focus:text-xs peer-focus:font-bold peer-focus:text-[#c29547] dark:peer-focus:text-[#d4a759] peer-focus:bg-white dark:peer-focus:bg-[#1a120d]"
                 >
                   {isAr ? "كلمة المرور (Password)" : "Password"}
                 </label>
@@ -1601,11 +1601,11 @@ export function AccountsView() {
                   placeholder=" "
                   value={newAdminConfirmPassword}
                   onChange={(e) => setNewAdminConfirmPassword(e.target.value)}
-                  className="peer w-full h-12 rounded-2xl ps-4 pe-11 text-xs font-mono font-medium bg-white dark:bg-[#201d1a] text-[#2c2825] dark:text-[#f5f4f0] border border-[#ded5c6] dark:border-[#2f2a24] focus:outline-none focus:border-[#c29547] dark:focus:border-[#d4a759] focus:ring-3 focus:ring-[#c29547]/15 transition-all shadow-2xs"
+                  className="peer w-full h-12 rounded-2xl ps-4 pe-11 text-xs font-mono font-medium bg-white dark:bg-[#281c15] text-[#2c2825] dark:text-[#fdfbf7] border border-[#ded5c6] dark:border-[#38271c] focus:outline-none focus:border-[#c29547] dark:focus:border-[#d4a759] focus:ring-3 focus:ring-[#c29547]/15 transition-all shadow-2xs"
                 />
                 <label
                   htmlFor="modal-admin-confirm-password"
-                  className="pointer-events-none absolute start-4 top-0 -translate-y-1/2 bg-white dark:bg-[#1a1714] px-1.5 text-xs font-bold text-[#c29547] dark:text-[#d4a759] transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-xs peer-placeholder-shown:font-normal peer-placeholder-shown:text-[#8c8279] dark:peer-placeholder-shown:text-[#787166] peer-placeholder-shown:bg-transparent peer-focus:top-0 peer-focus:text-xs peer-focus:font-bold peer-focus:text-[#c29547] dark:peer-focus:text-[#d4a759] peer-focus:bg-white dark:peer-focus:bg-[#1a1816]"
+                  className="pointer-events-none absolute start-4 top-0 -translate-y-1/2 bg-white dark:bg-[#221812] px-1.5 text-xs font-bold text-[#c29547] dark:text-[#d4a759] transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-xs peer-placeholder-shown:font-normal peer-placeholder-shown:text-[#8c8279] dark:peer-placeholder-shown:text-[#8e8680] peer-placeholder-shown:bg-transparent peer-focus:top-0 peer-focus:text-xs peer-focus:font-bold peer-focus:text-[#c29547] dark:peer-focus:text-[#d4a759] peer-focus:bg-white dark:peer-focus:bg-[#1a120d]"
                 >
                   {isAr ? "تأكيد كلمة المرور (Re-password)" : "Confirm Password"}
                 </label>
@@ -1632,7 +1632,7 @@ export function AccountsView() {
                   className="w-full"
                   minWidth="w-full"
                 />
-                <label className="pointer-events-none absolute start-4 top-0 -translate-y-1/2 bg-white dark:bg-[#1a1714] px-1.5 text-xs font-bold text-[#c29547] dark:text-[#d4a759] z-10 transition-colors">
+                <label className="pointer-events-none absolute start-4 top-0 -translate-y-1/2 bg-white dark:bg-[#221812] px-1.5 text-xs font-bold text-[#c29547] dark:text-[#d4a759] z-10 transition-colors">
                   {isAr ? "الدور / الرتبة الإدارية (Role)" : "Administrative Role"}
                 </label>
               </div>
@@ -1646,16 +1646,16 @@ export function AccountsView() {
                   className="w-full"
                   minWidth="w-full"
                 />
-                <label className="pointer-events-none absolute start-4 top-0 -translate-y-1/2 bg-white dark:bg-[#1a1714] px-1.5 text-xs font-bold text-[#c29547] dark:text-[#d4a759] z-10 transition-colors">
+                <label className="pointer-events-none absolute start-4 top-0 -translate-y-1/2 bg-white dark:bg-[#221812] px-1.5 text-xs font-bold text-[#c29547] dark:text-[#d4a759] z-10 transition-colors">
                   {isAr ? "الحالة (Status)" : "Account Status"}
                 </label>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#ded5c6]/40 dark:border-[#2f2a24]">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#ded5c6]/40 dark:border-[#38271c]">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2.5 rounded-full text-xs font-bold text-[#524b43] dark:text-[#c4bcb1] hover:bg-stone-100 dark:hover:bg-[#25201b] transition-colors cursor-pointer"
+                  className="px-4 py-2.5 rounded-full text-xs font-bold text-[#524b43] dark:text-[#cdc5bd] hover:bg-stone-100 dark:hover:bg-[#281c15] transition-colors cursor-pointer"
                 >
                   {isAr ? "إلغاء" : "Cancel"}
                 </button>
@@ -1675,14 +1675,14 @@ export function AccountsView() {
       {/* Edit Admin Account Modal */}
       {isEditModalOpen && editingAccount && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-[#1a1714] border border-[#ded5c6] dark:border-[#2f2a24] shadow-[0_20px_60px_rgba(0,0,0,0.35)] overflow-hidden text-start">
-            <div className="flex items-center justify-between p-5 border-b border-[#ded5c6]/60 dark:border-[#2f2a24] bg-[#faf5eb] dark:bg-[#201c17]">
+          <div className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-[#221812] border border-[#ded5c6] dark:border-[#38271c] shadow-[0_20px_60px_rgba(0,0,0,0.35)] overflow-hidden text-start">
+            <div className="flex items-center justify-between p-5 border-b border-[#ded5c6]/60 dark:border-[#38271c] bg-[#faf5eb] dark:bg-[#281c15]">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-[#fff7e6] dark:bg-[#2b2014] border border-[#eeddbb] dark:border-[#604218] flex items-center justify-center text-[#c29547] dark:text-[#d4a759]">
                   <Edit3 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-extrabold text-[#2c2825] dark:text-[#f5f4f0]">
+                  <h2 className="text-base font-extrabold text-[#2c2825] dark:text-[#fdfbf7]">
                     {isAr ? "تعديل بيانات المشرف" : "Edit Admin Profile"}
                   </h2>
                   <p className="text-xs text-[#8c8279] dark:text-[#9e968a]">
@@ -1712,11 +1712,11 @@ export function AccountsView() {
                   placeholder=" "
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="peer w-full h-12 rounded-2xl ps-4 pe-4 text-xs font-bold bg-white dark:bg-[#201d1a] text-[#2c2825] dark:text-[#f5f4f0] border border-[#ded5c6] dark:border-[#2f2a24] focus:outline-none focus:border-[#c29547] dark:focus:border-[#d4a759] focus:ring-3 focus:ring-[#c29547]/15 transition-all shadow-2xs"
+                  className="peer w-full h-12 rounded-2xl ps-4 pe-4 text-xs font-bold bg-white dark:bg-[#281c15] text-[#2c2825] dark:text-[#fdfbf7] border border-[#ded5c6] dark:border-[#38271c] focus:outline-none focus:border-[#c29547] dark:focus:border-[#d4a759] focus:ring-3 focus:ring-[#c29547]/15 transition-all shadow-2xs"
                 />
                 <label
                   htmlFor="modal-edit-admin-name"
-                  className="pointer-events-none absolute start-4 top-0 -translate-y-1/2 bg-white dark:bg-[#1a1714] px-1.5 text-xs font-bold text-[#c29547] dark:text-[#d4a759] transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-xs peer-placeholder-shown:font-normal peer-placeholder-shown:text-[#8c8279] dark:peer-placeholder-shown:text-[#787166] peer-placeholder-shown:bg-transparent peer-focus:top-0 peer-focus:text-xs peer-focus:font-bold peer-focus:text-[#c29547] dark:peer-focus:text-[#d4a759] peer-focus:bg-white dark:peer-focus:bg-[#1a1816]"
+                  className="pointer-events-none absolute start-4 top-0 -translate-y-1/2 bg-white dark:bg-[#221812] px-1.5 text-xs font-bold text-[#c29547] dark:text-[#d4a759] transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-xs peer-placeholder-shown:font-normal peer-placeholder-shown:text-[#8c8279] dark:peer-placeholder-shown:text-[#8e8680] peer-placeholder-shown:bg-transparent peer-focus:top-0 peer-focus:text-xs peer-focus:font-bold peer-focus:text-[#c29547] dark:peer-focus:text-[#d4a759] peer-focus:bg-white dark:peer-focus:bg-[#1a120d]"
                 >
                   {isAr ? "اسم المشرف بالكامل" : "Full Name"}
                 </label>
@@ -1731,11 +1731,11 @@ export function AccountsView() {
                   placeholder=" "
                   value={editEmail}
                   onChange={(e) => setEditEmail(e.target.value)}
-                  className="peer w-full h-12 rounded-2xl ps-4 pe-4 text-xs font-mono font-medium bg-white dark:bg-[#201d1a] text-[#2c2825] dark:text-[#f5f4f0] border border-[#ded5c6] dark:border-[#2f2a24] focus:outline-none focus:border-[#c29547] dark:focus:border-[#d4a759] focus:ring-3 focus:ring-[#c29547]/15 transition-all shadow-2xs"
+                  className="peer w-full h-12 rounded-2xl ps-4 pe-4 text-xs font-mono font-medium bg-white dark:bg-[#281c15] text-[#2c2825] dark:text-[#fdfbf7] border border-[#ded5c6] dark:border-[#38271c] focus:outline-none focus:border-[#c29547] dark:focus:border-[#d4a759] focus:ring-3 focus:ring-[#c29547]/15 transition-all shadow-2xs"
                 />
                 <label
                   htmlFor="modal-edit-admin-email"
-                  className="pointer-events-none absolute start-4 top-0 -translate-y-1/2 bg-white dark:bg-[#1a1714] px-1.5 text-xs font-bold text-[#c29547] dark:text-[#d4a759] transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-xs peer-placeholder-shown:font-normal peer-placeholder-shown:text-[#8c8279] dark:peer-placeholder-shown:text-[#787166] peer-placeholder-shown:bg-transparent peer-focus:top-0 peer-focus:text-xs peer-focus:font-bold peer-focus:text-[#c29547] dark:peer-focus:text-[#d4a759] peer-focus:bg-white dark:peer-focus:bg-[#1a1816]"
+                  className="pointer-events-none absolute start-4 top-0 -translate-y-1/2 bg-white dark:bg-[#221812] px-1.5 text-xs font-bold text-[#c29547] dark:text-[#d4a759] transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-xs peer-placeholder-shown:font-normal peer-placeholder-shown:text-[#8c8279] dark:peer-placeholder-shown:text-[#8e8680] peer-placeholder-shown:bg-transparent peer-focus:top-0 peer-focus:text-xs peer-focus:font-bold peer-focus:text-[#c29547] dark:peer-focus:text-[#d4a759] peer-focus:bg-white dark:peer-focus:bg-[#1a120d]"
                 >
                   {isAr ? "البريد الإلكتروني الرسمي" : "Official Email"}
                 </label>
@@ -1750,7 +1750,7 @@ export function AccountsView() {
                   className="w-full"
                   minWidth="w-full"
                 />
-                <label className="pointer-events-none absolute start-4 top-0 -translate-y-1/2 bg-white dark:bg-[#1a1714] px-1.5 text-xs font-bold text-[#c29547] dark:text-[#d4a759] z-10 transition-colors">
+                <label className="pointer-events-none absolute start-4 top-0 -translate-y-1/2 bg-white dark:bg-[#221812] px-1.5 text-xs font-bold text-[#c29547] dark:text-[#d4a759] z-10 transition-colors">
                   {isAr ? "الرتبة الإدارية (Role)" : "Administrative Role"}
                 </label>
               </div>
@@ -1765,19 +1765,19 @@ export function AccountsView() {
                   minWidth="w-full"
                   disabled={isCurrentUser(editingAccount.id)}
                 />
-                <label className="pointer-events-none absolute start-4 top-0 -translate-y-1/2 bg-white dark:bg-[#1a1714] px-1.5 text-xs font-bold text-[#c29547] dark:text-[#d4a759] z-10 transition-colors">
+                <label className="pointer-events-none absolute start-4 top-0 -translate-y-1/2 bg-white dark:bg-[#221812] px-1.5 text-xs font-bold text-[#c29547] dark:text-[#d4a759] z-10 transition-colors">
                   {isAr ? "الحالة (Status)" : "Account Status"}
                 </label>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#ded5c6]/40 dark:border-[#2f2a24]">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#ded5c6]/40 dark:border-[#38271c]">
                 <button
                   type="button"
                   onClick={() => {
                     setIsEditModalOpen(false);
                     setEditingAccount(null);
                   }}
-                  className="px-4 py-2.5 rounded-full text-xs font-bold text-[#524b43] dark:text-[#c4bcb1] hover:bg-stone-100 dark:hover:bg-[#25201b] transition-colors cursor-pointer"
+                  className="px-4 py-2.5 rounded-full text-xs font-bold text-[#524b43] dark:text-[#cdc5bd] hover:bg-stone-100 dark:hover:bg-[#281c15] transition-colors cursor-pointer"
                 >
                   {isAr ? "إلغاء" : "Cancel"}
                 </button>
@@ -1797,14 +1797,14 @@ export function AccountsView() {
       {/* Change Password Modal */}
       {isPasswordModalOpen && passwordTargetAccount && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="relative w-full max-w-md rounded-3xl bg-white dark:bg-[#1a1714] border border-[#ded5c6] dark:border-[#2f2a24] shadow-[0_20px_60px_rgba(0,0,0,0.35)] overflow-hidden text-start">
-            <div className="flex items-center justify-between p-5 border-b border-[#ded5c6]/60 dark:border-[#2f2a24] bg-[#faf5eb] dark:bg-[#201c17]">
+          <div className="relative w-full max-w-md rounded-3xl bg-white dark:bg-[#221812] border border-[#ded5c6] dark:border-[#38271c] shadow-[0_20px_60px_rgba(0,0,0,0.35)] overflow-hidden text-start">
+            <div className="flex items-center justify-between p-5 border-b border-[#ded5c6]/60 dark:border-[#38271c] bg-[#faf5eb] dark:bg-[#281c15]">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-[#fff7e6] dark:bg-[#2b2014] border border-[#eeddbb] dark:border-[#604218] flex items-center justify-center text-[#c29547] dark:text-[#d4a759]">
                   <KeyRound className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-extrabold text-[#2c2825] dark:text-[#f5f4f0]">
+                  <h2 className="text-base font-extrabold text-[#2c2825] dark:text-[#fdfbf7]">
                     {isAr ? "تغيير الرقم السري" : "Change Password"}
                   </h2>
                   <p className="text-xs text-[#8c8279] dark:text-[#9e968a]">
@@ -1834,11 +1834,11 @@ export function AccountsView() {
                   placeholder=" "
                   value={newPasswordVal}
                   onChange={(e) => setNewPasswordVal(e.target.value)}
-                  className="peer w-full h-12 rounded-2xl ps-4 pe-11 text-xs font-mono font-medium bg-white dark:bg-[#201d1a] text-[#2c2825] dark:text-[#f5f4f0] border border-[#ded5c6] dark:border-[#2f2a24] focus:outline-none focus:border-[#c29547] dark:focus:border-[#d4a759] focus:ring-3 focus:ring-[#c29547]/15 transition-all shadow-2xs"
+                  className="peer w-full h-12 rounded-2xl ps-4 pe-11 text-xs font-mono font-medium bg-white dark:bg-[#281c15] text-[#2c2825] dark:text-[#fdfbf7] border border-[#ded5c6] dark:border-[#38271c] focus:outline-none focus:border-[#c29547] dark:focus:border-[#d4a759] focus:ring-3 focus:ring-[#c29547]/15 transition-all shadow-2xs"
                 />
                 <label
                   htmlFor="modal-new-password"
-                  className="pointer-events-none absolute start-4 top-0 -translate-y-1/2 bg-white dark:bg-[#1a1714] px-1.5 text-xs font-bold text-[#c29547] dark:text-[#d4a759] transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-xs peer-placeholder-shown:font-normal peer-placeholder-shown:text-[#8c8279] dark:peer-placeholder-shown:text-[#787166] peer-placeholder-shown:bg-transparent peer-focus:top-0 peer-focus:text-xs peer-focus:font-bold peer-focus:text-[#c29547] dark:peer-focus:text-[#d4a759] peer-focus:bg-white dark:peer-focus:bg-[#1a1816]"
+                  className="pointer-events-none absolute start-4 top-0 -translate-y-1/2 bg-white dark:bg-[#221812] px-1.5 text-xs font-bold text-[#c29547] dark:text-[#d4a759] transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-xs peer-placeholder-shown:font-normal peer-placeholder-shown:text-[#8c8279] dark:peer-placeholder-shown:text-[#8e8680] peer-placeholder-shown:bg-transparent peer-focus:top-0 peer-focus:text-xs peer-focus:font-bold peer-focus:text-[#c29547] dark:peer-focus:text-[#d4a759] peer-focus:bg-white dark:peer-focus:bg-[#1a120d]"
                 >
                   {isAr ? "كلمة المرور الجديدة" : "New Password"}
                 </label>
@@ -1865,11 +1865,11 @@ export function AccountsView() {
                   placeholder=" "
                   value={confirmPasswordVal}
                   onChange={(e) => setConfirmPasswordVal(e.target.value)}
-                  className="peer w-full h-12 rounded-2xl ps-4 pe-11 text-xs font-mono font-medium bg-white dark:bg-[#201d1a] text-[#2c2825] dark:text-[#f5f4f0] border border-[#ded5c6] dark:border-[#2f2a24] focus:outline-none focus:border-[#c29547] dark:focus:border-[#d4a759] focus:ring-3 focus:ring-[#c29547]/15 transition-all shadow-2xs"
+                  className="peer w-full h-12 rounded-2xl ps-4 pe-11 text-xs font-mono font-medium bg-white dark:bg-[#281c15] text-[#2c2825] dark:text-[#fdfbf7] border border-[#ded5c6] dark:border-[#38271c] focus:outline-none focus:border-[#c29547] dark:focus:border-[#d4a759] focus:ring-3 focus:ring-[#c29547]/15 transition-all shadow-2xs"
                 />
                 <label
                   htmlFor="modal-confirm-password"
-                  className="pointer-events-none absolute start-4 top-0 -translate-y-1/2 bg-white dark:bg-[#1a1714] px-1.5 text-xs font-bold text-[#c29547] dark:text-[#d4a759] transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-xs peer-placeholder-shown:font-normal peer-placeholder-shown:text-[#8c8279] dark:peer-placeholder-shown:text-[#787166] peer-placeholder-shown:bg-transparent peer-focus:top-0 peer-focus:text-xs peer-focus:font-bold peer-focus:text-[#c29547] dark:peer-focus:text-[#d4a759] peer-focus:bg-white dark:peer-focus:bg-[#1a1816]"
+                  className="pointer-events-none absolute start-4 top-0 -translate-y-1/2 bg-white dark:bg-[#221812] px-1.5 text-xs font-bold text-[#c29547] dark:text-[#d4a759] transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-xs peer-placeholder-shown:font-normal peer-placeholder-shown:text-[#8c8279] dark:peer-placeholder-shown:text-[#8e8680] peer-placeholder-shown:bg-transparent peer-focus:top-0 peer-focus:text-xs peer-focus:font-bold peer-focus:text-[#c29547] dark:peer-focus:text-[#d4a759] peer-focus:bg-white dark:peer-focus:bg-[#1a120d]"
                 >
                   {isAr ? "تأكيد كلمة المرور" : "Confirm Password"}
                 </label>
@@ -1887,7 +1887,7 @@ export function AccountsView() {
                 </button>
               </div>
 
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-[#faf5eb] dark:bg-[#221e1a] border border-[#eeddbb]/80 dark:border-[#4d3a1f] text-xs text-[#8c8279] dark:text-[#aba295]">
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-[#faf5eb] dark:bg-[#221812] border border-[#eeddbb]/80 dark:border-[#4d3a1f] text-xs text-[#8c8279] dark:text-[#aba295]">
                 <Lock className="w-4 h-4 text-[#c29547] shrink-0" />
                 <span>
                   {isAr
@@ -1896,14 +1896,14 @@ export function AccountsView() {
                 </span>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#ded5c6]/40 dark:border-[#2f2a24]">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#ded5c6]/40 dark:border-[#38271c]">
                 <button
                   type="button"
                   onClick={() => {
                     setIsPasswordModalOpen(false);
                     setPasswordTargetAccount(null);
                   }}
-                  className="px-4 py-2.5 rounded-full text-xs font-bold text-[#524b43] dark:text-[#c4bcb1] hover:bg-stone-100 dark:hover:bg-[#25201b] transition-colors cursor-pointer"
+                  className="px-4 py-2.5 rounded-full text-xs font-bold text-[#524b43] dark:text-[#cdc5bd] hover:bg-stone-100 dark:hover:bg-[#281c15] transition-colors cursor-pointer"
                 >
                   {isAr ? "إلغاء" : "Cancel"}
                 </button>
@@ -1929,7 +1929,7 @@ export function AccountsView() {
             ...(menuPosition.bottom !== undefined ? { bottom: `${menuPosition.bottom}px` } : {}),
           }}
           className={cn(
-            "action-menu-popover z-50 w-56 rounded-2xl border border-[#eeddbb] dark:border-[#382b18] bg-white dark:bg-[#1a1714] p-1.5 shadow-[0_16px_48px_rgba(0,0,0,0.22)] dark:shadow-[0_16px_48px_rgba(0,0,0,0.7)] backdrop-blur-md animate-in fade-in-0 zoom-in-95 duration-150 text-start select-none",
+            "action-menu-popover z-50 w-56 rounded-2xl border border-[#eeddbb] dark:border-[#382b18] bg-white dark:bg-[#221812] p-1.5 shadow-[0_16px_48px_rgba(0,0,0,0.22)] dark:shadow-[0_16px_48px_rgba(0,0,0,0.7)] backdrop-blur-md animate-in fade-in-0 zoom-in-95 duration-150 text-start select-none",
             menuPosition.placement === "up" ? "origin-bottom-left" : "origin-top-left"
           )}
         >
@@ -1941,7 +1941,7 @@ export function AccountsView() {
               setMenuPosition(null);
               openEditModal(target);
             }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#2c2825] dark:text-[#f5f4f0] hover:bg-[#faf5eb] dark:hover:bg-[#282218] hover:text-[#c29547] transition-colors cursor-pointer"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#2c2825] dark:text-[#fdfbf7] hover:bg-[#faf5eb] dark:hover:bg-[#282218] hover:text-[#c29547] transition-colors cursor-pointer"
           >
             <Edit3 className="w-3.5 h-3.5 text-[#c29547]" />
             <span>{isAr ? "تعديل البيانات" : "Edit Profile"}</span>
@@ -1955,7 +1955,7 @@ export function AccountsView() {
               setMenuPosition(null);
               openPasswordModal(target);
             }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#2c2825] dark:text-[#f5f4f0] hover:bg-[#faf5eb] dark:hover:bg-[#282218] hover:text-[#c29547] transition-colors cursor-pointer"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#2c2825] dark:text-[#fdfbf7] hover:bg-[#faf5eb] dark:hover:bg-[#282218] hover:text-[#c29547] transition-colors cursor-pointer"
           >
             <KeyRound className="w-3.5 h-3.5 text-[#c29547]" />
             <span>{isAr ? "تغيير الرقم السري" : "Change Password"}</span>
@@ -1963,7 +1963,7 @@ export function AccountsView() {
 
           {!isCurrentUser(activeMenuAccount.id) && (
             <>
-              <div className="my-1 border-t border-[#ded5c6]/60 dark:border-[#2f2a24]" />
+              <div className="my-1 border-t border-[#ded5c6]/60 dark:border-[#38271c]" />
 
               <button
                 type="button"

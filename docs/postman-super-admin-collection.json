@@ -57,6 +57,45 @@
             "createdAt": "2026-10-31T13:16:33.000Z",
             "updatedAt": "2026-10-31T13:25:59.000Z",
             "uid": "50014550-31fd1dd4-edbe-4d98-8a68-258bb70fca83"
+          },
+          {
+            "name": "saas نظرة عامة على لوحة التحكم",
+            "id": "ef8b79ff-ceb5-4885-963d-8f0d0e4b7328",
+            "protocolProfileBehavior": {
+              "disableBodyPruning": true
+            },
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/admin/dashboardSaas",
+                "host": [
+                  "{{base_url}}"
+                ],
+                "path": [
+                  "admin",
+                  "dashboardSaas"
+                ]
+              },
+              "description": "إحصائيات المنصة SaaS الشاملة، الاشتراكات النشطة، أحدث المكاتب المسجلة، وآخر النشاطات"
+            },
+            "response": [],
+            "createdAt": "2026-11-02T13:25:28.000Z",
+            "updatedAt": "2026-11-02T13:25:28.000Z",
+            "uid": "50014550-ef8b79ff-ceb5-4885-963d-8f0d0e4b7328"
           }
         ],
         "id": "677a088a-aba3-4ea9-a50c-28f5c2a65c87",

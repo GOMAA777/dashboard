@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import {
@@ -315,7 +315,7 @@ export function NotificationsTemplatesView() {
   return (
     <div
       dir={direction}
-      className="flex h-screen h-dvh overflow-hidden bg-[#fcfbfa] dark:bg-[#121110] text-[#1c1917] dark:text-[#f5f4f0] transition-colors duration-200 relative"
+      className="flex h-screen h-dvh overflow-hidden bg-[#fcfbfa] dark:bg-[#150f0b] text-[#1c1917] dark:text-[#fdfbf7] transition-colors duration-200 relative"
     >
       <DashboardSidebar activeNav="notifications" />
 
@@ -343,7 +343,7 @@ export function NotificationsTemplatesView() {
               {/* Header */}
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#2c2825] dark:text-[#f5f4f0] flex items-center gap-2.5">
+                  <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#2c2825] dark:text-[#fdfbf7] flex items-center gap-2.5">
                     <Mail className="w-7 h-7 text-[#c29547] dark:text-[#d4a759]" />
                     <span>
                       {isEn
@@ -351,7 +351,7 @@ export function NotificationsTemplatesView() {
                         : "قوالب الإيميلات الآلية وإشعارات المكاتب"}
                     </span>
                   </h1>
-                  <p className="text-xs sm:text-sm text-[#736b63] dark:text-[#a8a196] mt-1 max-w-3xl">
+                  <p className="text-xs sm:text-sm text-[#736b63] dark:text-[#a89f91] mt-1 max-w-3xl">
                     {isEn
                       ? "Customize automated email content (welcome, trial expiration, invoices, payment confirmations, account suspension), and insert dynamic variables."
                       : "تخصيص محتوى ونصوص الإيميلات التلقائية (الترحيب، تذكير انتهاء التجربة، الفواتير، تأكيد الدفع، والتعليق)، وإدراج المتغيرات الذكية."}
@@ -363,7 +363,7 @@ export function NotificationsTemplatesView() {
                   <button
                     type="button"
                     onClick={() => setIsTestEmailOpen(true)}
-                    className="px-4 py-2.5 rounded-2xl bg-white dark:bg-[#1a1714] border border-[#ded5c6] dark:border-[#2f2a24] text-xs font-bold text-[#2c2825] dark:text-[#f5f4f0] hover:border-[#c29547] hover:text-[#c29547] transition-all cursor-pointer flex items-center gap-2 shadow-2xs"
+                    className="px-4 py-2.5 rounded-2xl bg-white dark:bg-[#221812] border border-[#ded5c6] dark:border-[#38271c] text-xs font-bold text-[#2c2825] dark:text-[#fdfbf7] hover:border-[#c29547] hover:text-[#c29547] transition-all cursor-pointer flex items-center gap-2 shadow-2xs"
                   >
                     <Send className="w-4 h-4 text-[#c29547]" />
                     <span>{isEn ? "Send Test Email" : "إرسال إيميل تجريبي"}</span>
@@ -372,9 +372,9 @@ export function NotificationsTemplatesView() {
               </div>
 
               {/* Top 4 KPI Metrics */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
                 {/* Total Templates */}
-                <div className="p-4 rounded-3xl bg-white dark:bg-[#221812] border border-[#ded5c6] dark:border-[#38271c] shadow-xs flex items-center justify-between">
+                <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-[#221812] border border-[#ded5c6] dark:border-[#38271c] shadow-xs flex items-center justify-between">
                   <div>
                     <p className="text-xs font-semibold text-[#8c8279] dark:text-[#cdc5bd]">
                       {isEn ? "Total Defined Templates" : "إجمالي القوالب المعرفة"}
@@ -450,7 +450,7 @@ export function NotificationsTemplatesView() {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 {/* List Column */}
                 <div className="lg:col-span-4 space-y-3">
-                  <div className="p-4 rounded-3xl bg-white dark:bg-[#1a1714] border border-[#ded5c6] dark:border-[#2f2a24] shadow-xs">
+                  <div className="p-4 rounded-3xl bg-white dark:bg-[#221812] border border-[#ded5c6] dark:border-[#38271c] shadow-xs">
                     <h3 className="text-xs font-bold text-[#c29547] uppercase tracking-wider mb-3">
                       {isEn ? "Automated Email Workflows" : "قائمة مسارات الإيميلات الآلية"}
                     </h3>
@@ -465,13 +465,13 @@ export function NotificationsTemplatesView() {
                             onClick={() => handleSelectTemplate(tmpl)}
                             className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
                               isSelected
-                                ? "bg-[#faf5eb] dark:bg-[#201c17] border-[#c29547] ring-1 ring-[#c29547]/30 shadow-xs"
-                                : "bg-white dark:bg-[#1e1b18] border-[#ded5c6]/60 dark:border-[#2f2a24] hover:border-[#c29547]/50"
+                                ? "bg-[#faf5eb] dark:bg-[#281c15] border-[#c29547] ring-1 ring-[#c29547]/30 shadow-xs"
+                                : "bg-white dark:bg-[#1a120d] border-[#ded5c6]/60 dark:border-[#38271c] hover:border-[#c29547]/50"
                             }`}
                           >
                             <div className="flex items-start justify-between gap-2">
                               <div>
-                                <h4 className="text-xs font-bold text-[#2c2825] dark:text-[#f5f4f0]">
+                                <h4 className="text-xs font-bold text-[#2c2825] dark:text-[#fdfbf7]">
                                   {isEn ? tmpl.nameEn : tmpl.name}
                                 </h4>
                                 <p className="text-[10px] text-[#8c8279] mt-0.5 line-clamp-1">
@@ -497,7 +497,7 @@ export function NotificationsTemplatesView() {
                               />
                             </div>
 
-                            <div className="mt-2.5 pt-2 border-t border-[#ded5c6]/40 dark:border-[#2f2a24] flex items-center justify-between text-[10px] text-[#8c8279]">
+                            <div className="mt-2.5 pt-2 border-t border-[#ded5c6]/40 dark:border-[#38271c] flex items-center justify-between text-[10px] text-[#8c8279]">
                               <span>
                                 {tmpl.sentCountThisMonth}{" "}
                                 {isEn ? "emails this month" : "إيميل هذا الشهر"}
@@ -524,12 +524,12 @@ export function NotificationsTemplatesView() {
                   {/* Editor Box */}
                   <form
                     onSubmit={handleSaveTemplate}
-                    className="p-6 rounded-3xl bg-white dark:bg-[#1a1714] border border-[#ded5c6] dark:border-[#2f2a24] shadow-xs space-y-5"
+                    className="p-6 rounded-3xl bg-white dark:bg-[#221812] border border-[#ded5c6] dark:border-[#38271c] shadow-xs space-y-5"
                   >
                     {/* Top Bar inside Editor */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#ded5c6]/60 dark:border-[#2f2a24]">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#ded5c6]/60 dark:border-[#38271c]">
                       <div>
-                        <h2 className="text-base font-extrabold text-[#2c2825] dark:text-[#f5f4f0]">
+                        <h2 className="text-base font-extrabold text-[#2c2825] dark:text-[#fdfbf7]">
                           {isEn ? selectedTemplate.nameEn : selectedTemplate.name}
                         </h2>
                         <p className="text-xs text-[#8c8279] mt-0.5">
@@ -541,7 +541,7 @@ export function NotificationsTemplatesView() {
 
                       {/* Enable Toggle Switch */}
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-[#2c2825] dark:text-[#f5f4f0]">
+                        <span className="text-xs font-bold text-[#2c2825] dark:text-[#fdfbf7]">
                           {editIsEnabled
                             ? isEn
                               ? "Auto-dispatch Enabled"
@@ -557,7 +557,7 @@ export function NotificationsTemplatesView() {
                           }
                           className={`w-11 h-6 rounded-full transition-colors p-0.5 cursor-pointer relative ${
                             editIsEnabled
-                              ? "bg-[#c29547]"
+                              ? "bg-[#10b981] dark:bg-[#10b981]"
                               : "bg-stone-300 dark:bg-stone-700"
                           }`}
                         >
@@ -576,7 +576,7 @@ export function NotificationsTemplatesView() {
 
                     {/* Email Subject Input */}
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-[#2c2825] dark:text-[#f5f4f0]">
+                      <label className="text-xs font-bold text-[#2c2825] dark:text-[#fdfbf7]">
                         {isEn
                           ? "Subject Line *"
                           : "عنوان الإيميل (Subject Line) *"}
@@ -586,12 +586,12 @@ export function NotificationsTemplatesView() {
                         required
                         value={editSubject}
                         onChange={(e) => setEditSubject(e.target.value)}
-                        className="w-full h-11 px-4 rounded-xl text-xs bg-[#fbf9f5] dark:bg-[#201d1a] border border-[#ded5c6] dark:border-[#2f2a24] focus:outline-none focus:border-[#c29547] text-[#1c1917] dark:text-[#f5f4f0]"
+                        className="w-full h-11 px-4 rounded-xl text-xs bg-[#fbf9f5] dark:bg-[#281c15] border border-[#ded5c6] dark:border-[#38271c] focus:outline-none focus:border-[#c29547] text-[#1c1917] dark:text-[#fdfbf7]"
                       />
                     </div>
 
                     {/* Variable Chips Bar */}
-                    <div className="space-y-2 p-3.5 rounded-2xl bg-[#faf5eb]/60 dark:bg-[#201c17]/60 border border-[#ded5c6]/60 dark:border-[#2f2a24]">
+                    <div className="space-y-2 p-3.5 rounded-2xl bg-[#faf5eb]/60 dark:bg-[#281c15]/60 border border-[#ded5c6]/60 dark:border-[#38271c]">
                       <div className="flex items-center justify-between text-[11px] font-bold text-[#8c8279]">
                         <span className="flex items-center gap-1.5">
                           <Code className="w-3.5 h-3.5 text-[#c29547]" />
@@ -609,7 +609,7 @@ export function NotificationsTemplatesView() {
                             key={v}
                             type="button"
                             onClick={() => handleInsertVariable(v)}
-                            className="px-2.5 py-1 rounded-xl text-[11px] font-mono font-bold bg-white dark:bg-[#1a1714] border border-[#ded5c6] dark:border-[#2f2a24] text-[#c29547] hover:border-[#c29547] hover:bg-[#fff7e6] transition-all cursor-pointer shadow-2xs"
+                            className="px-2.5 py-1 rounded-xl text-[11px] font-mono font-bold bg-white dark:bg-[#221812] border border-[#ded5c6] dark:border-[#38271c] text-[#c29547] hover:border-[#c29547] hover:bg-[#fff7e6] transition-all cursor-pointer shadow-2xs"
                           >
                             + {v}
                           </button>
@@ -619,7 +619,7 @@ export function NotificationsTemplatesView() {
 
                     {/* Email Body Textarea */}
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-[#2c2825] dark:text-[#f5f4f0]">
+                      <label className="text-xs font-bold text-[#2c2825] dark:text-[#fdfbf7]">
                         {isEn ? "Email Body *" : "محتوى الإيميل (Email Body) *"}
                       </label>
                       <textarea
@@ -627,7 +627,7 @@ export function NotificationsTemplatesView() {
                         required
                         value={editBody}
                         onChange={(e) => setEditBody(e.target.value)}
-                        className="w-full p-4 rounded-2xl text-xs font-sans leading-relaxed bg-[#fbf9f5] dark:bg-[#201d1a] border border-[#ded5c6] dark:border-[#2f2a24] focus:outline-none focus:border-[#c29547] text-[#1c1917] dark:text-[#f5f4f0] resize-y"
+                        className="w-full p-4 rounded-2xl text-xs font-sans leading-relaxed bg-[#fbf9f5] dark:bg-[#281c15] border border-[#ded5c6] dark:border-[#38271c] focus:outline-none focus:border-[#c29547] text-[#1c1917] dark:text-[#fdfbf7] resize-y"
                       />
                     </div>
 
@@ -649,7 +649,7 @@ export function NotificationsTemplatesView() {
                             );
                           }
                         }}
-                        className="px-4 py-2 rounded-xl border border-[#ded5c6] dark:border-[#2f2a24] text-xs font-bold text-[#8c8279] hover:text-[#2c2825] transition-colors cursor-pointer flex items-center gap-1.5"
+                        className="px-4 py-2 rounded-xl border border-[#ded5c6] dark:border-[#38271c] text-xs font-bold text-[#8c8279] hover:text-[#2c2825] transition-colors cursor-pointer flex items-center gap-1.5"
                       >
                         <RotateCcw className="w-3.5 h-3.5" />
                         <span>{isEn ? "Restore Default Text" : "استعادة النص الأصلي"}</span>
@@ -666,8 +666,8 @@ export function NotificationsTemplatesView() {
                   </form>
 
                   {/* Simulated Real Email Preview */}
-                  <div className="p-6 rounded-3xl bg-white dark:bg-[#1a1714] border border-[#ded5c6] dark:border-[#2f2a24] shadow-xs space-y-4">
-                    <div className="flex items-center justify-between pb-3 border-b border-[#ded5c6]/60 dark:border-[#2f2a24]">
+                  <div className="p-6 rounded-3xl bg-white dark:bg-[#221812] border border-[#ded5c6] dark:border-[#38271c] shadow-xs space-y-4">
+                    <div className="flex items-center justify-between pb-3 border-b border-[#ded5c6]/60 dark:border-[#38271c]">
                       <div className="flex items-center gap-2 text-xs font-bold text-[#c29547]">
                         <Eye className="w-4 h-4" />
                         <span>
@@ -677,19 +677,19 @@ export function NotificationsTemplatesView() {
                         </span>
                       </div>
 
-                      <span className="text-[10px] text-[#8c8279] bg-[#faf5eb] dark:bg-[#201c17] px-2 py-0.5 rounded-md border border-[#ded5c6]/60 dark:border-[#2f2a24]">
+                      <span className="text-[10px] text-[#8c8279] bg-[#faf5eb] dark:bg-[#281c15] px-2 py-0.5 rounded-md border border-[#ded5c6]/60 dark:border-[#38271c]">
                         {isEn ? "Realistic Mock Data" : "قيم تجريبية واقعية"}
                       </span>
                     </div>
 
                     {/* Simulated Mail Client Window */}
-                    <div className="rounded-2xl border border-[#ded5c6]/80 dark:border-[#2f2a24] overflow-hidden bg-[#faf8f5] dark:bg-[#161412] text-xs">
+                    <div className="rounded-2xl border border-[#ded5c6]/80 dark:border-[#38271c] overflow-hidden bg-[#faf8f5] dark:bg-[#150f0b] text-xs">
                       {/* Fake Mail Client Header */}
-                      <div className="p-4 bg-white dark:bg-[#1e1b18] border-b border-[#ded5c6]/60 dark:border-[#2f2a24] space-y-1.5">
+                      <div className="p-4 bg-white dark:bg-[#1a120d] border-b border-[#ded5c6]/60 dark:border-[#38271c] space-y-1.5">
                         <div className="flex items-center justify-between text-[#8c8279]">
                           <span>
                             {isEn ? "From: " : "من: "}
-                            <strong className="text-[#2c2825] dark:text-[#f5f4f0]">
+                            <strong className="text-[#2c2825] dark:text-[#fdfbf7]">
                               {isEn ? "Aljoody Platform" : "منصة الجودي"} &lt;notifications@aljoody-law.sa&gt;
                             </strong>
                           </span>
@@ -699,7 +699,7 @@ export function NotificationsTemplatesView() {
                         </div>
                         <div className="text-[#8c8279]">
                           {isEn ? "To: " : "إلى: "}
-                          <strong className="text-[#2c2825] dark:text-[#f5f4f0]">
+                          <strong className="text-[#2c2825] dark:text-[#fdfbf7]">
                             {isEn ? "Dr. Abdulaziz Al-Othman" : "د. عبد العزيز العثمان"} &lt;contact@alothman-law.com&gt;
                           </strong>
                         </div>
@@ -712,9 +712,9 @@ export function NotificationsTemplatesView() {
                       </div>
 
                       {/* Email Body Card */}
-                      <div className="p-6 max-w-xl mx-auto my-4 rounded-2xl bg-white dark:bg-[#1f1c19] border border-[#eeddbb]/80 dark:border-[#403423] shadow-xs space-y-4">
+                      <div className="p-6 max-w-xl mx-auto my-4 rounded-2xl bg-white dark:bg-[#221812] border border-[#eeddbb]/80 dark:border-[#403423] shadow-xs space-y-4">
                         {/* Brand Logo in Email */}
-                        <div className="flex items-center justify-between pb-3 border-b border-[#ded5c6]/40 dark:border-[#2f2a24]">
+                        <div className="flex items-center justify-between pb-3 border-b border-[#ded5c6]/40 dark:border-[#38271c]">
                           <div className="flex items-center gap-2">
                             <div className="w-7 h-7 rounded-lg bg-[#fff7e6] dark:bg-[#2b2014] text-[#c29547] flex items-center justify-center font-bold">
                               ⚖️
@@ -731,12 +731,12 @@ export function NotificationsTemplatesView() {
                         </div>
 
                         {/* Content */}
-                        <div className="text-[#2c2825] dark:text-[#f5f4f0] leading-relaxed whitespace-pre-line text-xs font-sans">
+                        <div className="text-[#2c2825] dark:text-[#fdfbf7] leading-relaxed whitespace-pre-line text-xs font-sans">
                           {getRenderedBodyPreview(editBody)}
                         </div>
 
                         {/* Email Footer */}
-                        <div className="pt-4 border-t border-[#ded5c6]/40 dark:border-[#2f2a24] text-[10px] text-center text-[#8c8279] space-y-1">
+                        <div className="pt-4 border-t border-[#ded5c6]/40 dark:border-[#38271c] text-[10px] text-center text-[#8c8279] space-y-1">
                           <p>
                             {isEn
                               ? "© 2026 Aljoody Legal Solutions & IT. All rights reserved."
@@ -761,14 +761,14 @@ export function NotificationsTemplatesView() {
       {/* Send Test Email Modal */}
       {isTestEmailOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="relative w-full max-w-md rounded-3xl bg-white dark:bg-[#1a1714] border border-[#ded5c6] dark:border-[#2f2a24] p-6 shadow-2xl text-start space-y-4 text-xs">
-            <div className="flex items-center justify-between pb-3 border-b border-[#ded5c6]/60 dark:border-[#2f2a24]">
+          <div className="relative w-full max-w-md rounded-3xl bg-white dark:bg-[#221812] border border-[#ded5c6] dark:border-[#38271c] p-6 shadow-2xl text-start space-y-4 text-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-[#ded5c6]/60 dark:border-[#38271c]">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-[#fff7e6] dark:bg-[#2b2014] text-[#c29547] flex items-center justify-center">
                   <Send className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-[#2c2825] dark:text-[#f5f4f0]">
+                  <h3 className="text-sm font-bold text-[#2c2825] dark:text-[#fdfbf7]">
                     {isEn
                       ? "Send Test Email (Test Dispatch)"
                       : "إرسال إيميل تجريبي (Test Dispatch)"}
@@ -791,7 +791,7 @@ export function NotificationsTemplatesView() {
 
             <form onSubmit={handleSendTestEmail} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="font-bold text-[#2c2825] dark:text-[#f5f4f0]">
+                <label className="font-bold text-[#2c2825] dark:text-[#fdfbf7]">
                   {isEn ? "Recipient Email Address *" : "البريد الإلكتروني المستلم *"}
                 </label>
                 <input
@@ -800,15 +800,15 @@ export function NotificationsTemplatesView() {
                   value={testEmailRecipient}
                   onChange={(e) => setTestEmailRecipient(e.target.value)}
                   placeholder="name@company.com"
-                  className="w-full h-11 px-4 rounded-xl text-xs font-mono bg-[#fbf9f5] dark:bg-[#201d1a] border border-[#ded5c6] dark:border-[#2f2a24] focus:outline-none focus:border-[#c29547] text-[#1c1917] dark:text-[#f5f4f0]"
+                  className="w-full h-11 px-4 rounded-xl text-xs font-mono bg-[#fbf9f5] dark:bg-[#281c15] border border-[#ded5c6] dark:border-[#38271c] focus:outline-none focus:border-[#c29547] text-[#1c1917] dark:text-[#fdfbf7]"
                 />
               </div>
 
-              <div className="p-3 rounded-2xl bg-[#faf5eb] dark:bg-[#201c17] border border-[#ded5c6]/60 dark:border-[#2f2a24] space-y-1">
+              <div className="p-3 rounded-2xl bg-[#faf5eb] dark:bg-[#281c15] border border-[#ded5c6]/60 dark:border-[#38271c] space-y-1">
                 <p className="font-bold text-[#c29547]">
                   {isEn ? "Template to be dispatched:" : "القالب الذي سيتم إرساله:"}
                 </p>
-                <p className="text-[#2c2825] dark:text-[#f5f4f0] font-semibold">
+                <p className="text-[#2c2825] dark:text-[#fdfbf7] font-semibold">
                   {isEn ? selectedTemplate.nameEn : selectedTemplate.name}
                 </p>
                 <p className="text-[#8c8279] text-[11px] truncate">
@@ -821,7 +821,7 @@ export function NotificationsTemplatesView() {
                 <button
                   type="button"
                   onClick={() => setIsTestEmailOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-[#ded5c6] dark:border-[#2f2a24] font-bold text-[#736b63] cursor-pointer"
+                  className="px-4 py-2 rounded-xl border border-[#ded5c6] dark:border-[#38271c] font-bold text-[#736b63] cursor-pointer"
                 >
                   {isEn ? "Cancel" : "إلغاء"}
                 </button>

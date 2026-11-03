@@ -150,7 +150,7 @@ export function NotificationsListView({
     <div dir={direction} className="space-y-6">
       {/* Main Identity & Command Banner */}
       <div
-        className="bg-white dark:bg-[#1c1510] rounded-[8px] p-5 sm:p-6 border border-[#e6e2dc] dark:border-[#2e231b] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        className="bg-white dark:bg-[#1a120d] rounded-[8px] p-5 sm:p-6 border border-[#e6e2dc] dark:border-[#2e231b] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col sm:flex-row sm:items-center justify-between gap-4"
       >
         <div>
           <h1 className="text-[26px] sm:text-[28px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[38px]">
@@ -175,7 +175,7 @@ export function NotificationsListView({
 
       {/* Search & Filter Header */}
       <div
-        className="bg-white dark:bg-[#1c1510] rounded-[8px] p-4 sm:p-5 border border-[#e6e2dc] dark:border-[#2e231b] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-wrap lg:flex-nowrap items-center justify-between gap-4"
+        className="bg-white dark:bg-[#1a120d] rounded-[8px] p-4 sm:p-5 border border-[#e6e2dc] dark:border-[#2e231b] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-wrap lg:flex-nowrap items-center justify-between gap-4"
       >
         {/* Search Input */}
         <div className="relative w-full sm:w-[320px] md:w-[360px] shrink-0">
@@ -323,14 +323,14 @@ export function NotificationsListView({
 
       {/* Main Content Table */}
       <div
-        className="bg-white dark:bg-[#1c1510] rounded-[8px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#e6e2dc] dark:border-[#2e231b] overflow-hidden"
+        className="bg-white dark:bg-[#1a120d] rounded-[8px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#e6e2dc] dark:border-[#2e231b] overflow-hidden"
       >
         <div className="overflow-x-auto">
           <table className="w-full text-start border-collapse">
             {/* Table Header Row */}
             <thead>
               <tr
-                className="bg-[#f0eeea] dark:bg-[#251b14] h-[60px] text-[#514537] dark:text-[#cdc5bd] font-bold text-[12px] border-b border-[#eae8e4] dark:border-[#2e231b]"
+                className="bg-[#f0eeea] dark:bg-[#281c15] h-[60px] text-[#514537] dark:text-[#cdc5bd] font-bold text-[12px] border-b border-[#eae8e4] dark:border-[#2e231b]"
               >
                 <th className="px-4 py-3 text-start font-bold w-[540px]">
                   {isEn ? "Notification Title" : "عنوان الإشعار"}
@@ -364,7 +364,7 @@ export function NotificationsListView({
                 paginatedNotifications.map((item) => (
                   <tr
                     key={item.id}
-                    className="hover:bg-[#faf9f7] dark:hover:bg-[#231b14] transition-colors"
+                    className="hover:bg-[#faf9f7] dark:hover:bg-[#281c15] transition-colors"
                   >
                     {/* Column 1: Notification Title & Meta */}
                     <td className="px-4 py-4 align-top">
@@ -494,7 +494,7 @@ export function NotificationsListView({
         </div>
 
         {/* Table Footer: Pagination */}
-        <div className="border-t border-[#eae8e4] dark:border-[#2e231b] px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#faf9f7] dark:bg-[#18120d]">
+        <div className="border-t border-[#eae8e4] dark:border-[#2e231b] px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#faf9f7] dark:bg-[#1a120d]">
           <div className="flex items-center gap-3">
             <p className="text-[12px] text-[#514537] dark:text-[#a89f91]">
               {isEn

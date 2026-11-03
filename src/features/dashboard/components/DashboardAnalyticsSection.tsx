@@ -52,9 +52,17 @@ export function DashboardAnalyticsSection({
   const highestRevenuePoint = revenueData.find((p) => p.isHighest);
   const totalPlanOffices = planData.reduce((acc, curr) => acc + curr.value, 0);
 
+  const maxRevenueVal = revenueData.length > 0 ? Math.max(...revenueData.map((d) => d.value), 1000) : 1000;
+  const domainMax = Math.max(Math.ceil((maxRevenueVal * 1.25) / 100) * 100, 1000);
+  const yTicks = [
+    Math.round(domainMax * 0.33),
+    Math.round(domainMax * 0.66),
+    domainMax,
+  ];
+
   return (
     <div
-      className="grid grid-cols-1 lg:grid-cols-12 gap-[16px] w-full"
+      className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full"
       data-node-id="1:117"
       data-name="Section 3: Visual Analytics Section (Revenue Area Chart & Plan Donut)"
     >
@@ -179,9 +187,15 @@ export function DashboardAnalyticsSection({
               />
               <YAxis
                 orientation="right"
-                domain={[25000, 52000]}
-                ticks={[30000, 40000, 50000]}
-                tickFormatter={(val) => currentLang === "en" ? `${val / 1000}k SAR` : `${val / 1000}k ر.س`}
+                domain={[0, domainMax]}
+                ticks={yTicks}
+                tickFormatter={(val) => {
+                  if (val >= 1000) {
+                    const k = (val / 1000).toFixed(val % 1000 === 0 ? 0 : 1);
+                    return currentLang === "en" ? `${k}k SAR` : `${k}k ر.س`;
+                  }
+                  return currentLang === "en" ? `${val} SAR` : `${val} ر.س`;
+                }}
                 stroke={isDark ? "#8e8680" : "#837565"}
                 fontSize={10.5}
                 tickLine={false}

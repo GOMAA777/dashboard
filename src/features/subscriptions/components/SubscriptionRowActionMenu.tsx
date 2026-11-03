@@ -114,8 +114,8 @@ export function SubscriptionRowActionMenu({
         onClick={handleToggle}
         className={`p-1.5 rounded-[4px] transition-colors cursor-pointer ${
           isOpen
-            ? "bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7]"
-            : "hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] text-[#514537] dark:text-[#a89f91]"
+            ? "bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7]"
+            : "hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] text-[#514537] dark:text-[#a89f91]"
         }`}
         aria-label={t("خيارات الاشتراك", "Subscription options")}
       >
@@ -133,7 +133,7 @@ export function SubscriptionRowActionMenu({
               ...(coords.bottom !== undefined ? { bottom: `${coords.bottom}px` } : {}),
               zIndex: 9999,
             }}
-            className="w-44 bg-white dark:bg-[#1e1c1a] rounded-[6px] shadow-[0px_8px_24px_rgba(0,0,0,0.14)] border border-[#f0eeea] dark:border-[#2f2a24] py-1 text-[12px] font-['Cairo'] animate-in fade-in-50 zoom-in-95 select-none"
+            className="w-44 bg-white dark:bg-[#221812] rounded-[6px] shadow-[0px_8px_24px_rgba(0,0,0,0.14)] border border-[#f0eeea] dark:border-[#38271c] py-1 text-[12px] font-['Cairo'] animate-in fade-in-50 zoom-in-95 select-none"
           >
             <button
               type="button"
@@ -141,7 +141,7 @@ export function SubscriptionRowActionMenu({
                 setIsOpen(false);
                 onViewDetails(subscription);
               }}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] transition-colors cursor-pointer"
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] transition-colors cursor-pointer"
             >
               <Eye className="w-3.5 h-3.5 text-[#9c6402] shrink-0" />
               <span>{t("عرض التفاصيل", "View Details")}</span>
@@ -153,7 +153,7 @@ export function SubscriptionRowActionMenu({
                 setIsOpen(false);
                 onEdit?.(subscription);
               }}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] transition-colors cursor-pointer"
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] transition-colors cursor-pointer"
             >
               <Edit3 className="w-3.5 h-3.5 text-[#514537] dark:text-[#a89f91] shrink-0" />
               <span>{t("تعديل الباقة", "Change Plan")}</span>
@@ -165,13 +165,13 @@ export function SubscriptionRowActionMenu({
                 setIsOpen(false);
                 onRenew?.(subscription);
               }}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] transition-colors cursor-pointer"
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] transition-colors cursor-pointer"
             >
               <RefreshCw className="w-3.5 h-3.5 text-[#059669] shrink-0" />
               <span>{t("تجديد فوري", "Renew Now")}</span>
             </button>
 
-            <div className="h-px bg-[#f0eeea] dark:bg-[#2f2a24] my-1" />
+            <div className="h-px bg-[#f0eeea] dark:bg-[#38271c] my-1" />
 
             <button
               type="button"

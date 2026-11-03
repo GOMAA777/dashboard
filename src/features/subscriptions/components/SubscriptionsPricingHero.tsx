@@ -16,13 +16,13 @@ export function SubscriptionsPricingHero({
   return (
     <section className="text-center max-w-3xl mx-auto pt-6 pb-8 px-4 relative z-10">
       {/* Top Pill Tag */}
-      <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#faf5eb] dark:bg-[#251f17] border border-[#eeddbb] dark:border-[#4d3a1f] text-[#c29547] dark:text-[#d4a759] text-xs font-bold shadow-2xs mb-5">
+      <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#faf5eb] dark:bg-[#281c15] border border-[#eeddbb] dark:border-[#4d3a1f] text-[#c29547] dark:text-[#d4a759] text-xs font-bold shadow-2xs mb-5">
         <Sparkles className="w-3.5 h-3.5 text-[#c29547] dark:text-[#d4a759]" />
         <span>باقات واشتراكات المحامين ومكاتب المحاماة</span>
       </div>
 
       {/* Main Heading */}
-      <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#1c1917] dark:text-[#f5f4f0] tracking-tight leading-tight mb-4">
+      <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#1c1917] dark:text-[#fdfbf7] tracking-tight leading-tight mb-4">
         ابدأ مجاناً، وبدون أي تكاليف خفية
       </h1>
 
@@ -32,14 +32,14 @@ export function SubscriptionsPricingHero({
       </p>
 
       {/* Segmented Monthly / Annual Billing Switch Pill */}
-      <div className="inline-flex items-center p-1.5 rounded-2xl bg-[#f2ede4] dark:bg-[#201c18] border border-[#ded5c6] dark:border-[#383126] shadow-inner gap-1">
+      <div className="inline-flex items-center p-1.5 rounded-2xl bg-[#f2ede4] dark:bg-[#221812] border border-[#ded5c6] dark:border-[#383126] shadow-inner gap-1">
         <button
           type="button"
           onClick={() => onBillingCycleChange("monthly")}
           className={cn(
             "px-5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
             billingCycle === "monthly"
-              ? "bg-white dark:bg-[#2c241a] text-[#1c1917] dark:text-[#f5f4f0] shadow-sm border border-[#ded5c6]/60 dark:border-[#4d3a1f]"
+              ? "bg-white dark:bg-[#281c15] text-[#1c1917] dark:text-[#fdfbf7] shadow-sm border border-[#ded5c6]/60 dark:border-[#4d3a1f]"
               : "text-[#7a7164] dark:text-[#9e968a] hover:text-[#1c1917] dark:hover:text-[#f5f4f0]"
           )}
         >
@@ -61,8 +61,8 @@ export function SubscriptionsPricingHero({
             className={cn(
               "px-2 py-0.5 rounded-full text-[10px] font-extrabold tracking-wide",
               billingCycle === "annual"
-                ? "bg-[#c29547] text-white dark:bg-[#1c1917] dark:text-[#f5f4f0]"
-                : "bg-[#e5dbc9] dark:bg-[#342b20] text-[#7a5a22] dark:text-[#d4a759]"
+                ? "bg-[#c29547] text-white dark:bg-[#1a120d] dark:text-[#fdfbf7]"
+                : "bg-[#e5dbc9] dark:bg-[#38271c] text-[#7a5a22] dark:text-[#d4a759]"
             )}
           >
             خصم 20%

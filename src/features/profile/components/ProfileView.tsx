@@ -176,7 +176,7 @@ export function ProfileView() {
   return (
     <div
       dir={direction}
-      className="flex h-screen h-dvh overflow-hidden w-full bg-[#f5f3ef] dark:bg-[#121110] text-[#1b1c1a] dark:text-[#fdfbf7] transition-colors duration-200 font-['Cairo',sans-serif]"
+      className="flex h-screen h-dvh overflow-hidden w-full bg-[#f5f3ef] dark:bg-[#150f0b] text-[#1b1c1a] dark:text-[#fdfbf7] transition-colors duration-200 font-['Cairo',sans-serif]"
     >
       {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar activeNav="profile" />
@@ -190,7 +190,7 @@ export function ProfileView() {
         <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 max-w-[1360px] w-full mx-auto space-y-6 scrollbar-thin">
           <DashboardPageTransition>
             {/* Header Banner */}
-            <div className="bg-white dark:bg-[#1e1c1a] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#2f2a24] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="bg-white dark:bg-[#221812] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex flex-col text-start">
                 <h1 className="text-[24px] sm:text-[28px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                   {isEn ? "Profile & Account Settings" : "الملف الشخصي وإعدادات الحساب"}
@@ -212,7 +212,7 @@ export function ProfileView() {
             </div>
 
             {/* Profile Overview Card (Hero) */}
-            <div className="bg-white dark:bg-[#1e1c1a] rounded-[8px] p-6 sm:p-7 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#2f2a24] relative overflow-hidden">
+            <div className="bg-white dark:bg-[#221812] rounded-[8px] p-6 sm:p-7 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] relative overflow-hidden">
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
                 {/* Avatar with Camera badge */}
                 <div className="relative size-24 sm:size-28 rounded-full overflow-hidden border-3 border-[#9c6402] dark:border-[#f59e0b] shadow-md shrink-0 group">
@@ -248,7 +248,7 @@ export function ProfileView() {
                     </div>
 
                     <div className="flex items-center justify-center sm:justify-start gap-2 self-center sm:self-auto">
-                      <span className="bg-[#f5f3ef] dark:bg-[#2c2621] border border-[#eae8e4] dark:border-[#38332c] text-[#9c6402] dark:text-[#f59e0b] text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
+                      <span className="bg-[#f5f3ef] dark:bg-[#281c15] border border-[#eae8e4] dark:border-[#38271c] text-[#9c6402] dark:text-[#f59e0b] text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
                         <KeyRound className="size-3.5" />
                         <span>{isEn ? "Global Super Admin" : formData.roleBadge}</span>
                       </span>
@@ -257,21 +257,21 @@ export function ProfileView() {
 
                   {/* Highlights Bar */}
                   <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 pt-1 text-[12px] text-[#514537] dark:text-[#cdc5bd]">
-                    <div className="flex items-center gap-1.5 bg-[#f5f3ef] dark:bg-[#2c2621] px-3 py-1 rounded-full border border-[#eae8e4] dark:border-[#38332c]">
+                    <div className="flex items-center gap-1.5 bg-[#f5f3ef] dark:bg-[#281c15] px-3 py-1 rounded-full border border-[#eae8e4] dark:border-[#38271c]">
                       <Mail className="size-3.5 text-[#9c6402] dark:text-[#f59e0b]" />
                       <span className="font-mono text-[11px]" dir="ltr">
                         {formData.email}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-1.5 bg-[#f5f3ef] dark:bg-[#2c2621] px-3 py-1 rounded-full border border-[#eae8e4] dark:border-[#38332c]">
+                    <div className="flex items-center gap-1.5 bg-[#f5f3ef] dark:bg-[#281c15] px-3 py-1 rounded-full border border-[#eae8e4] dark:border-[#38271c]">
                       <Phone className="size-3.5 text-[#059669]" />
                       <span className="font-mono text-[11px]" dir="ltr">
                         {formData.phone}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-1.5 bg-[#f5f3ef] dark:bg-[#2c2621] px-3 py-1 rounded-full border border-[#eae8e4] dark:border-[#38332c]">
+                    <div className="flex items-center gap-1.5 bg-[#f5f3ef] dark:bg-[#281c15] px-3 py-1 rounded-full border border-[#eae8e4] dark:border-[#38271c]">
                       <Calendar className="size-3.5 text-[#837565] dark:text-[#a89f91]" />
                       <span>{isEn ? `Joined: ${formData.joinDate}` : `تاريخ الانضمام: ${formData.joinDate}`}</span>
                     </div>
@@ -286,14 +286,14 @@ export function ProfileView() {
             </div>
 
             {/* Segmented Pill Navigation Tabs */}
-            <div className="bg-[#f5f3ef] dark:bg-[#2c2621] p-1 rounded-[8px] flex flex-wrap items-center gap-1.5 border border-[#eae8e4] dark:border-[#38332c] w-full">
+            <div className="bg-[#f5f3ef] dark:bg-[#281c15] p-1 rounded-[8px] flex flex-wrap items-center gap-1.5 border border-[#eae8e4] dark:border-[#38271c] w-full">
               <button
                 type="button"
                 onClick={() => setActiveTab("personal")}
                 className={cn(
                   "flex-1 sm:flex-initial px-4 py-2 rounded-[6px] text-[13px] font-bold transition-all flex items-center justify-center gap-2 cursor-pointer",
                   activeTab === "personal"
-                    ? "bg-white dark:bg-[#1e1c1a] text-[#9c6402] dark:text-[#f59e0b] shadow-[0px_1px_2px_rgba(0,0,0,0.06)]"
+                    ? "bg-white dark:bg-[#221812] text-[#9c6402] dark:text-[#f59e0b] shadow-[0px_1px_2px_rgba(0,0,0,0.06)]"
                     : "text-[#514537] dark:text-[#a89f91] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
                 )}
               >
@@ -307,7 +307,7 @@ export function ProfileView() {
                 className={cn(
                   "flex-1 sm:flex-initial px-4 py-2 rounded-[6px] text-[13px] font-bold transition-all flex items-center justify-center gap-2 cursor-pointer",
                   activeTab === "email"
-                    ? "bg-white dark:bg-[#1e1c1a] text-[#9c6402] dark:text-[#f59e0b] shadow-[0px_1px_2px_rgba(0,0,0,0.06)]"
+                    ? "bg-white dark:bg-[#221812] text-[#9c6402] dark:text-[#f59e0b] shadow-[0px_1px_2px_rgba(0,0,0,0.06)]"
                     : "text-[#514537] dark:text-[#a89f91] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
                 )}
               >
@@ -322,7 +322,7 @@ export function ProfileView() {
                 className={cn(
                   "flex-1 sm:flex-initial px-4 py-2 rounded-[6px] text-[13px] font-bold transition-all flex items-center justify-center gap-2 cursor-pointer",
                   activeTab === "security"
-                    ? "bg-white dark:bg-[#1e1c1a] text-[#9c6402] dark:text-[#f59e0b] shadow-[0px_1px_2px_rgba(0,0,0,0.06)]"
+                    ? "bg-white dark:bg-[#221812] text-[#9c6402] dark:text-[#f59e0b] shadow-[0px_1px_2px_rgba(0,0,0,0.06)]"
                     : "text-[#514537] dark:text-[#a89f91] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
                 )}
               >
@@ -336,7 +336,7 @@ export function ProfileView() {
                 className={cn(
                   "flex-1 sm:flex-initial px-4 py-2 rounded-[6px] text-[13px] font-bold transition-all flex items-center justify-center gap-2 cursor-pointer",
                   activeTab === "sessions"
-                    ? "bg-white dark:bg-[#1e1c1a] text-[#9c6402] dark:text-[#f59e0b] shadow-[0px_1px_2px_rgba(0,0,0,0.06)]"
+                    ? "bg-white dark:bg-[#221812] text-[#9c6402] dark:text-[#f59e0b] shadow-[0px_1px_2px_rgba(0,0,0,0.06)]"
                     : "text-[#514537] dark:text-[#a89f91] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
                 )}
               >
@@ -350,8 +350,8 @@ export function ProfileView() {
 
             {/* TAB 1: Personal Information */}
             {activeTab === "personal" && (
-              <div className="bg-white dark:bg-[#1e1c1a] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#2f2a24] space-y-6">
-                <div className="border-b border-[#eae8e4] dark:border-[#2f2a24] pb-4 text-start">
+              <div className="bg-white dark:bg-[#221812] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] space-y-6">
+                <div className="border-b border-[#eae8e4] dark:border-[#38271c] pb-4 text-start">
                   <h3 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                     {isEn ? "Personal Information & Details" : "المعلومات والبيانات الشخصية"}
                   </h3>
@@ -379,7 +379,7 @@ export function ProfileView() {
                           fullName: `${e.target.value} ${formData.lastName}`,
                         })
                       }
-                      className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-3.5 border border-[#eae8e4] dark:border-[#38332c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
+                      className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-3.5 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
                     />
                   </div>
 
@@ -399,7 +399,7 @@ export function ProfileView() {
                           fullName: `${formData.firstName} ${e.target.value}`,
                         })
                       }
-                      className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-3.5 border border-[#eae8e4] dark:border-[#38332c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
+                      className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-3.5 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
                     />
                   </div>
 
@@ -413,7 +413,7 @@ export function ProfileView() {
                         type="text"
                         value={formData.jobTitle}
                         onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
-                        className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38332c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
+                        className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
                       />
                       <Building2 className="size-4 text-[#837565] dark:text-[#a89f91] absolute end-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     </div>
@@ -428,7 +428,7 @@ export function ProfileView() {
                       type="text"
                       value={formData.department}
                       onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                      className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-3.5 border border-[#eae8e4] dark:border-[#38332c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
+                      className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-3.5 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
                     />
                   </div>
 
@@ -442,7 +442,7 @@ export function ProfileView() {
                       dir="ltr"
                       value={formData.nationalId}
                       onChange={(e) => setFormData({ ...formData, nationalId: e.target.value })}
-                      className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-3.5 border border-[#eae8e4] dark:border-[#38332c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
+                      className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-3.5 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
                     />
                   </div>
 
@@ -458,7 +458,7 @@ export function ProfileView() {
                         dir="ltr"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38332c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
+                        className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
                       />
                       <Phone className="size-4 text-[#837565] dark:text-[#a89f91] absolute end-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     </div>
@@ -474,7 +474,7 @@ export function ProfileView() {
                         type="text"
                         value={`${formData.city}، ${formData.country}`}
                         onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                        className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38332c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
+                        className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
                       />
                       <MapPin className="size-4 text-[#837565] dark:text-[#a89f91] absolute end-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     </div>
@@ -490,7 +490,7 @@ export function ProfileView() {
                         type="text"
                         value={formData.timezone}
                         readOnly
-                        className="w-full h-[42px] bg-[#f5f3ef]/80 dark:bg-[#2c2621]/80 text-[#837565] dark:text-[#a89f91] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38332c] cursor-not-allowed"
+                        className="w-full h-[42px] bg-[#f5f3ef]/80 dark:bg-[#281c15]/80 text-[#837565] dark:text-[#a89f91] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38271c] cursor-not-allowed"
                       />
                       <Clock className="size-4 text-[#837565] dark:text-[#a89f91] absolute end-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     </div>
@@ -505,7 +505,7 @@ export function ProfileView() {
                       rows={3}
                       value={formData.bio}
                       onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                      className="w-full bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] p-3 border border-[#eae8e4] dark:border-[#38332c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors resize-none"
+                      className="w-full bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] p-3 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors resize-none"
                     />
                   </div>
                 </div>
@@ -516,8 +516,8 @@ export function ProfileView() {
             {activeTab === "email" && (
               <div className="space-y-6">
                 {/* 1. Current Verified Email Card */}
-                <div className="bg-white dark:bg-[#1e1c1a] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#2f2a24] text-start space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#eae8e4] dark:border-[#2f2a24] pb-4">
+                <div className="bg-white dark:bg-[#221812] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] text-start space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#eae8e4] dark:border-[#38271c] pb-4">
                     <div>
                       <h3 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-2">
                         <Mail className="size-5 text-[#9c6402] dark:text-[#f59e0b]" />
@@ -537,7 +537,7 @@ export function ProfileView() {
                     </div>
                   </div>
 
-                  <div className="bg-[#faf9f7] dark:bg-[#251e18] p-4 rounded-[6px] border border-[#ede8e1] dark:border-[#38271c] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="bg-[#faf9f7] dark:bg-[#281c15] p-4 rounded-[6px] border border-[#ede8e1] dark:border-[#38271c] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="space-y-1">
                       <span className="text-[11px] font-bold text-[#837565] dark:text-[#a89f91] block">
                         {isEn ? "Primary Address" : "العنوان الأساسي"}
@@ -554,7 +554,7 @@ export function ProfileView() {
                           navigator.clipboard.writeText(formData.email);
                           toast.success(isEn ? "Email copied to clipboard" : "تم نسخ البريد الإلكتروني إلى الحافظة");
                         }}
-                        className="h-[34px] px-3 rounded-[6px] border border-[#ded5c6] dark:border-[#38271c] bg-white dark:bg-[#1e1c1a] hover:bg-[#f5f3ef] text-[#514537] dark:text-[#cdc5bd] text-[12px] font-semibold flex items-center gap-1.5 cursor-pointer transition-colors"
+                        className="h-[34px] px-3 rounded-[6px] border border-[#ded5c6] dark:border-[#38271c] bg-white dark:bg-[#221812] hover:bg-[#f5f3ef] text-[#514537] dark:text-[#cdc5bd] text-[12px] font-semibold flex items-center gap-1.5 cursor-pointer transition-colors"
                       >
                         <Copy className="size-3.5" />
                         <span>{isEn ? "Copy Address" : "نسخ العنوان"}</span>
@@ -563,15 +563,15 @@ export function ProfileView() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-[12px]">
-                    <div className="p-3 rounded-[6px] bg-[#f5f3ef] dark:bg-[#2c2621] border border-[#eae8e4] dark:border-[#38271c] space-y-1">
+                    <div className="p-3 rounded-[6px] bg-[#f5f3ef] dark:bg-[#281c15] border border-[#eae8e4] dark:border-[#38271c] space-y-1">
                       <span className="text-[10px] font-bold text-[#837565] dark:text-[#a89f91] block">{isEn ? "Verification Date" : "تاريخ التحقق"}</span>
                       <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">{formData.emailVerifiedDate}</span>
                     </div>
-                    <div className="p-3 rounded-[6px] bg-[#f5f3ef] dark:bg-[#2c2621] border border-[#eae8e4] dark:border-[#38271c] space-y-1">
+                    <div className="p-3 rounded-[6px] bg-[#f5f3ef] dark:bg-[#281c15] border border-[#eae8e4] dark:border-[#38271c] space-y-1">
                       <span className="text-[10px] font-bold text-[#837565] dark:text-[#a89f91] block">{isEn ? "Security Protocol" : "بروتوكول الأمان"}</span>
                       <span className="font-semibold text-[#10b981]">{isEn ? "TLS 1.3 Fully Encrypted" : "TLS 1.3 مشفر بالكامل"}</span>
                     </div>
-                    <div className="p-3 rounded-[6px] bg-[#f5f3ef] dark:bg-[#2c2621] border border-[#eae8e4] dark:border-[#38271c] space-y-1">
+                    <div className="p-3 rounded-[6px] bg-[#f5f3ef] dark:bg-[#281c15] border border-[#eae8e4] dark:border-[#38271c] space-y-1">
                       <span className="text-[10px] font-bold text-[#837565] dark:text-[#a89f91] block">{isEn ? "2FA Linkage" : "الربط بالمصادقة 2FA"}</span>
                       <span className="font-semibold text-[#059669]">{isEn ? "Enabled & Protected" : "مُفعّل ومحمي"}</span>
                     </div>
@@ -579,8 +579,8 @@ export function ProfileView() {
                 </div>
 
                 {/* 2. Change Email Address Form */}
-                <div className="bg-white dark:bg-[#1e1c1a] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#2f2a24] text-start space-y-4">
-                  <div className="border-b border-[#eae8e4] dark:border-[#2f2a24] pb-4">
+                <div className="bg-white dark:bg-[#221812] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] text-start space-y-4">
+                  <div className="border-b border-[#eae8e4] dark:border-[#38271c] pb-4">
                     <h3 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                       {isEn ? "Update & Change Email Address" : "تحديث وتغيير البريد الإلكتروني"}
                     </h3>
@@ -603,7 +603,7 @@ export function ProfileView() {
                           placeholder="example@aljoody-law.sa"
                           value={newEmail}
                           onChange={(e) => setNewEmail(e.target.value)}
-                          className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder-[#837565] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38332c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
+                          className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder-[#837565] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
                         />
                         <Mail className="size-4 text-[#837565] dark:text-[#a89f91] absolute end-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       </div>
@@ -637,7 +637,7 @@ export function ProfileView() {
                           placeholder="123456"
                           value={emailVerificationCode}
                           onChange={(e) => setEmailVerificationCode(e.target.value)}
-                          className="w-full sm:w-[160px] h-[40px] tracking-widest text-center bg-white dark:bg-[#1e1c1a] text-[#1b1c1a] dark:text-[#fdfbf7] text-[16px] font-mono font-bold rounded-[6px] border border-[#d97706] focus:outline-none focus:ring-2 focus:ring-[#9c6402]"
+                          className="w-full sm:w-[160px] h-[40px] tracking-widest text-center bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7] text-[16px] font-mono font-bold rounded-[6px] border border-[#d97706] focus:outline-none focus:ring-2 focus:ring-[#9c6402]"
                         />
 
                         <button
@@ -654,8 +654,8 @@ export function ProfileView() {
                 </div>
 
                 {/* 3. Recovery Email Card */}
-                <div className="bg-white dark:bg-[#1e1c1a] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#2f2a24] text-start space-y-4">
-                  <div className="border-b border-[#eae8e4] dark:border-[#2f2a24] pb-4">
+                <div className="bg-white dark:bg-[#221812] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] text-start space-y-4">
+                  <div className="border-b border-[#eae8e4] dark:border-[#38271c] pb-4">
                     <h3 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                       {isEn ? "Emergency Recovery Email" : "البريد الإلكتروني الاحتياطي للاسترداد"}
                     </h3>
@@ -676,7 +676,7 @@ export function ProfileView() {
                         dir="ltr"
                         value={formData.recoveryEmail}
                         onChange={(e) => setFormData({ ...formData, recoveryEmail: e.target.value })}
-                        className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38332c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
+                        className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
                       />
                       <Mail className="size-4 text-[#837565] dark:text-[#a89f91] absolute end-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     </div>
@@ -684,8 +684,8 @@ export function ProfileView() {
                 </div>
 
                 {/* 4. Email Notification Preferences Matrix */}
-                <div className="bg-white dark:bg-[#1e1c1a] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#2f2a24] text-start space-y-4">
-                  <div className="border-b border-[#eae8e4] dark:border-[#2f2a24] pb-4">
+                <div className="bg-white dark:bg-[#221812] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] text-start space-y-4">
+                  <div className="border-b border-[#eae8e4] dark:border-[#38271c] pb-4">
                     <h3 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-2">
                       <Bell className="size-5 text-[#9c6402] dark:text-[#f59e0b]" />
                       <span>{isEn ? "Email Notification Preferences" : "تفضيلات إشعارات البريد الإلكتروني"}</span>
@@ -697,7 +697,7 @@ export function ProfileView() {
                     </p>
                   </div>
 
-                  <div className="divide-y divide-[#eae8e4] dark:divide-[#2f2a24]">
+                  <div className="divide-y divide-[#eae8e4] dark:divide-[#38271c]">
                     {/* Item 1: Subscriptions */}
                     <div className="py-3.5 flex items-center justify-between gap-4">
                       <div>
@@ -807,8 +807,8 @@ export function ProfileView() {
             {activeTab === "security" && (
               <div className="space-y-6">
                 {/* 1. Change Password Card */}
-                <div className="bg-white dark:bg-[#1e1c1a] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#2f2a24] text-start space-y-4">
-                  <div className="border-b border-[#eae8e4] dark:border-[#2f2a24] pb-4">
+                <div className="bg-white dark:bg-[#221812] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] text-start space-y-4">
+                  <div className="border-b border-[#eae8e4] dark:border-[#38271c] pb-4">
                     <h3 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-2">
                       <Lock className="size-5 text-[#9c6402] dark:text-[#f59e0b]" />
                       <span>{isEn ? "Update Password" : "تحديث كلمة المرور"}</span>
@@ -831,7 +831,7 @@ export function ProfileView() {
                           type={showCurrentPassword ? "text" : "password"}
                           value={currentPassword}
                           onChange={(e) => setCurrentPassword(e.target.value)}
-                          className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38332c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
+                          className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
                         />
                         <button
                           type="button"
@@ -853,7 +853,7 @@ export function ProfileView() {
                           type={showNewPassword ? "text" : "password"}
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
-                          className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38332c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
+                          className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
                         />
                         <button
                           type="button"
@@ -873,7 +873,7 @@ export function ProfileView() {
                               {pwdStrength.label}
                             </span>
                           </div>
-                          <div className="w-full h-1.5 bg-[#eae8e4] dark:bg-[#38332c] rounded-full overflow-hidden">
+                          <div className="w-full h-1.5 bg-[#eae8e4] dark:bg-[#38271c] rounded-full overflow-hidden">
                             <div
                               className={cn("h-full transition-all duration-300", pwdStrength.color)}
                               style={{ width: `${pwdStrength.score}%` }}
@@ -893,7 +893,7 @@ export function ProfileView() {
                           type={showConfirmPassword ? "text" : "password"}
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
-                          className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38332c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
+                          className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
                         />
                         <button
                           type="button"
@@ -908,8 +908,8 @@ export function ProfileView() {
                 </div>
 
                 {/* 2. Two-Factor Authentication (2FA) */}
-                <div className="bg-white dark:bg-[#1e1c1a] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#2f2a24] text-start space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#eae8e4] dark:border-[#2f2a24] pb-4">
+                <div className="bg-white dark:bg-[#221812] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] text-start space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#eae8e4] dark:border-[#38271c] pb-4">
                     <div>
                       <h3 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-2">
                         <ShieldCheck className="size-5 text-[#059669]" />
@@ -928,7 +928,7 @@ export function ProfileView() {
                     </div>
                   </div>
 
-                  <div className="p-4 rounded-[6px] bg-[#faf9f7] dark:bg-[#251e18] border border-[#ede8e1] dark:border-[#38271c] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="p-4 rounded-[6px] bg-[#faf9f7] dark:bg-[#281c15] border border-[#ede8e1] dark:border-[#38271c] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="space-y-1">
                       <span className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                         {isEn ? "Authenticator App" : "تطبيق المصادقة (Authenticator App)"}
@@ -941,7 +941,7 @@ export function ProfileView() {
                     <button
                       type="button"
                       onClick={() => toast.info(isEn ? "Backup recovery keys are securely stored" : "مفاتيح الاسترداد الاحتياطية محفوظة بأمان")}
-                      className="h-[36px] px-4 rounded-[6px] border border-[#ded5c6] dark:border-[#38271c] bg-white dark:bg-[#1e1c1a] hover:bg-[#f5f3ef] text-[#514537] dark:text-[#cdc5bd] text-[12px] font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+                      className="h-[36px] px-4 rounded-[6px] border border-[#ded5c6] dark:border-[#38271c] bg-white dark:bg-[#221812] hover:bg-[#f5f3ef] text-[#514537] dark:text-[#cdc5bd] text-[12px] font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
                     >
                       <KeyRound className="size-3.5" />
                       <span>{isEn ? "View Recovery Keys" : "عرض مفاتيح الاسترداد"}</span>
@@ -953,8 +953,8 @@ export function ProfileView() {
 
             {/* TAB 4: Active Devices & Sessions */}
             {activeTab === "sessions" && (
-              <div className="bg-white dark:bg-[#1e1c1a] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#2f2a24] text-start space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#eae8e4] dark:border-[#2f2a24] pb-4">
+              <div className="bg-white dark:bg-[#221812] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] text-start space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#eae8e4] dark:border-[#38271c] pb-4">
                   <div>
                     <h3 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-2">
                       <Laptop className="size-5 text-[#9c6402] dark:text-[#f59e0b]" />
@@ -979,7 +979,7 @@ export function ProfileView() {
                   )}
                 </div>
 
-                <div className="divide-y divide-[#eae8e4] dark:divide-[#2f2a24]">
+                <div className="divide-y divide-[#eae8e4] dark:divide-[#38271c]">
                   {sessions.length === 0 ? (
                     <div className="py-8 text-center text-xs text-[#837565] dark:text-[#a89f91]">
                       {isEn ? "No active sessions" : "لا توجد جلسات نشطة"}
@@ -994,7 +994,7 @@ export function ProfileView() {
                         className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                       >
                         <div className="flex items-center gap-3.5">
-                          <div className="size-11 rounded-[8px] bg-[#f5f3ef] dark:bg-[#2c2621] border border-[#eae8e4] dark:border-[#38332c] flex items-center justify-center text-[#9c6402] dark:text-[#f59e0b] shrink-0">
+                          <div className="size-11 rounded-[8px] bg-[#f5f3ef] dark:bg-[#281c15] border border-[#eae8e4] dark:border-[#38271c] flex items-center justify-center text-[#9c6402] dark:text-[#f59e0b] shrink-0">
                             {isPhone ? (
                               <Smartphone className="size-5" />
                             ) : isMac ? (
@@ -1066,7 +1066,7 @@ export function ProfileView() {
                   type="button"
                   onClick={handleReset}
                   disabled={isSaving}
-                  className="flex-1 sm:flex-initial h-[40px] px-4 rounded-[6px] border border-[#ded5c6] dark:border-[#38271c] bg-white dark:bg-[#1e1c1a] hover:bg-[#f5f3ef] text-[#514537] dark:text-[#cdc5bd] text-[13px] font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                  className="flex-1 sm:flex-initial h-[40px] px-4 rounded-[6px] border border-[#ded5c6] dark:border-[#38271c] bg-white dark:bg-[#221812] hover:bg-[#f5f3ef] text-[#514537] dark:text-[#cdc5bd] text-[13px] font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
                 >
                   <RotateCcw className="size-4" />
                   <span>{isEn ? "Discard Changes" : "إلغاء التراجع"}</span>

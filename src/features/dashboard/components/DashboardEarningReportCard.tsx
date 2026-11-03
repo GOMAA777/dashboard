@@ -34,10 +34,10 @@ export function DashboardEarningReportCard() {
   const t = translations[language].overview;
 
   return (
-    <div className="bg-white dark:bg-[#1a1816] rounded-2xl border border-[#ded5c6] dark:border-[#2f2a24] p-5 shadow-[0_4px_16px_-2px_rgba(80,65,45,0.06),0_1px_3px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_20px_-2px_rgba(0,0,0,0.5)] h-full flex flex-col justify-between">
+    <div className="bg-white dark:bg-[#1a120d] rounded-2xl border border-[#ded5c6] dark:border-[#38271c] p-5 shadow-[0_4px_16px_-2px_rgba(80,65,45,0.06),0_1px_3px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_20px_-2px_rgba(0,0,0,0.5)] h-full flex flex-col justify-between">
       {/* Header with Title */}
-      <div className="border-b border-[#ded5c6]/60 dark:border-[#2f2a24] pb-4 mb-4 shrink-0">
-        <h2 className="text-base font-bold text-[#1c1917] dark:text-[#f5f4f0] text-start">
+      <div className="border-b border-[#ded5c6]/60 dark:border-[#38271c] pb-4 mb-4 shrink-0">
+        <h2 className="text-base font-bold text-[#1c1917] dark:text-[#fdfbf7] text-start">
           {t.earningReport}
         </h2>
       </div>
@@ -45,45 +45,45 @@ export function DashboardEarningReportCard() {
       {/* 3 Top Sub-Metrics Pills */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
         {/* Metric 1: New Clients */}
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-[#faf8f4] dark:bg-[#201d1a] border border-[#ded5c6]/70 dark:border-[#2f2a24]">
-          <div className="w-10 h-10 rounded-full bg-[#faf5eb] dark:bg-[#201c17] border border-[#eeddbb] dark:border-[#382b18] flex items-center justify-center text-[#c29547] dark:text-[#d4a759] shrink-0">
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-[#faf8f4] dark:bg-[#281c15] border border-[#ded5c6]/70 dark:border-[#38271c]">
+          <div className="w-10 h-10 rounded-full bg-[#faf5eb] dark:bg-[#281c15] border border-[#eeddbb] dark:border-[#382b18] flex items-center justify-center text-[#c29547] dark:text-[#d4a759] shrink-0">
             <Users className="w-5 h-5" />
           </div>
           <div className="text-start">
             <span className="text-[11px] font-medium text-[#7c7366] dark:text-[#9e968a] block">
               {t.newClients}
             </span>
-            <span className="text-lg font-extrabold text-[#1c1917] dark:text-[#f5f4f0]">
+            <span className="text-lg font-extrabold text-[#1c1917] dark:text-[#fdfbf7]">
               9
             </span>
           </div>
         </div>
 
         {/* Metric 2: Total Subscription */}
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-[#faf8f4] dark:bg-[#201d1a] border border-[#ded5c6]/70 dark:border-[#2f2a24]">
-          <div className="w-10 h-10 rounded-full bg-[#fdf7ed] dark:bg-[#251e16] border border-[#f5dfbc] dark:border-[#44331e] flex items-center justify-center text-[#b87928] dark:text-[#e59a3c] shrink-0">
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-[#faf8f4] dark:bg-[#281c15] border border-[#ded5c6]/70 dark:border-[#38271c]">
+          <div className="w-10 h-10 rounded-full bg-[#fdf7ed] dark:bg-[#281c15] border border-[#f5dfbc] dark:border-[#44331e] flex items-center justify-center text-[#b87928] dark:text-[#e59a3c] shrink-0">
             <Tag className="w-5 h-5" />
           </div>
           <div className="text-start">
             <span className="text-[11px] font-medium text-[#7c7366] dark:text-[#9e968a] block">
               {t.totalSubscription}
             </span>
-            <span className="text-lg font-extrabold text-[#1c1917] dark:text-[#f5f4f0]">
+            <span className="text-lg font-extrabold text-[#1c1917] dark:text-[#fdfbf7]">
               39
             </span>
           </div>
         </div>
 
         {/* Metric 3: Total Sale */}
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-[#faf8f4] dark:bg-[#201d1a] border border-[#ded5c6]/70 dark:border-[#2f2a24]">
-          <div className="w-10 h-10 rounded-full bg-[#faf5eb] dark:bg-[#201c17] border border-[#eeddbb] dark:border-[#382b18] flex items-center justify-center text-[#c29547] dark:text-[#d4a759] shrink-0">
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-[#faf8f4] dark:bg-[#281c15] border border-[#ded5c6]/70 dark:border-[#38271c]">
+          <div className="w-10 h-10 rounded-full bg-[#faf5eb] dark:bg-[#281c15] border border-[#eeddbb] dark:border-[#382b18] flex items-center justify-center text-[#c29547] dark:text-[#d4a759] shrink-0">
             <Coins className="w-5 h-5" />
           </div>
           <div className="text-start">
             <span className="text-[11px] font-medium text-[#7c7366] dark:text-[#9e968a] block">
               {t.totalSale}
             </span>
-            <span className="text-lg font-extrabold text-[#1c1917] dark:text-[#f5f4f0]">
+            <span className="text-lg font-extrabold text-[#1c1917] dark:text-[#fdfbf7]">
               $10,976.00
             </span>
           </div>

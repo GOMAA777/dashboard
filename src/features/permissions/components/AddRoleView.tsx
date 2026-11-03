@@ -230,7 +230,7 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
       typeBadge: {
         label: isDraft ? t("مسودة دور", "Draft Role") : t("دور مخصص", "Custom Role"),
         badgeClass: isDraft
-          ? "bg-[#f5f3ef] dark:bg-[#2c2621] text-[#837565] dark:text-[#a89f91]"
+          ? "bg-[#f5f3ef] dark:bg-[#281c15] text-[#837565] dark:text-[#a89f91]"
           : "bg-[#e8f5e9] dark:bg-[#132c21] text-[#1b7340] dark:text-[#34d399]",
         dotClass: isDraft ? "bg-[#837565]" : "bg-[#1b7340]",
       },
@@ -292,7 +292,7 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
 
       {/* Main Identity & Command Banner */}
       <div
-        className="bg-white dark:bg-[#1e1c1a] rounded-[8px] p-6 border border-[#e6e2dc] dark:border-[#2f2a24] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-6 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
         data-node-id="1:12204"
       >
         <div className="text-start">
@@ -317,12 +317,12 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
 
         {/* Dynamic Indicators widget */}
         <div
-          className="bg-[#fdfbf7] dark:bg-[#2c2621] border border-[#e6e2dc] dark:border-[#38332c] rounded-[8px] p-2 flex items-center gap-3 shrink-0"
+          className="bg-[#fdfbf7] dark:bg-[#281c15] border border-[#e6e2dc] dark:border-[#38271c] rounded-[8px] p-2 flex items-center gap-3 shrink-0"
           data-node-id="1:12207"
         >
           {/* Selected permissions indicator */}
           <div
-            className="bg-white dark:bg-[#1e1c1a] border border-[#e6e2dc] dark:border-[#38332c] rounded-[6px] px-3 py-1.5 flex items-center gap-2 shadow-2xs"
+            className="bg-white dark:bg-[#221812] border border-[#e6e2dc] dark:border-[#38271c] rounded-[6px] px-3 py-1.5 flex items-center gap-2 shadow-2xs"
             data-node-id="1:12214"
           >
             <div className="text-start flex flex-col items-end">
@@ -370,10 +370,10 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
 
       {/* SECTION 1: البيانات الأساسية للدور */}
       <div
-        className="bg-white dark:bg-[#1e1c1a] rounded-[8px] p-6 border border-[#e6e2dc] dark:border-[#2f2a24] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] space-y-4"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-6 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] space-y-4"
         data-node-id="1:12230"
       >
-        <div className="flex items-center gap-2 pb-2 border-b border-[#f0eeea] dark:border-[#2f2a24]">
+        <div className="flex items-center gap-2 pb-2 border-b border-[#f0eeea] dark:border-[#38271c]">
           <div className="bg-[#fff8e1] dark:bg-[#342711] size-[32px] rounded-[6px] flex items-center justify-center text-[#9c6402]">
             <UserCheck className="size-[16px]" />
           </div>
@@ -394,7 +394,7 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
                 value={roleName}
                 onChange={(e) => setRoleName(e.target.value)}
                 placeholder={t("مثال: مسؤول العملاء، أخصائي مراجعة...", "e.g. Account Manager, Audit Specialist...")}
-                className="w-full h-[42px] px-3 pe-9 text-[13px] bg-[#fdfbf7] dark:bg-[#2c2621] border border-[#d6cfc7] dark:border-[#38332c] rounded-[6px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#948b83] focus:outline-none focus:ring-1 focus:ring-[#9c6402] focus:border-[#9c6402] transition-colors text-start"
+                className="w-full h-[42px] px-3 pe-9 text-[13px] bg-[#fdfbf7] dark:bg-[#281c15] border border-[#d6cfc7] dark:border-[#38271c] rounded-[6px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#948b83] focus:outline-none focus:ring-1 focus:ring-[#9c6402] focus:border-[#9c6402] transition-colors text-start"
               />
               <UserCheck className={cn("size-[15px] text-[#948b83] absolute top-1/2 -translate-y-1/2 pointer-events-none", isEn ? "right-3" : "left-3")} />
             </div>
@@ -417,7 +417,7 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
                 value={roleSlug}
                 onChange={(e) => setRoleSlug(e.target.value)}
                 placeholder="e.g. compliance_audit_specialist"
-                className="w-full h-[42px] px-3 pe-9 text-[13px] font-mono bg-[#fdfbf7] dark:bg-[#2c2621] border border-[#d6cfc7] dark:border-[#38332c] rounded-[6px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#948b83] focus:outline-none focus:ring-1 focus:ring-[#9c6402] focus:border-[#9c6402] transition-colors text-start"
+                className="w-full h-[42px] px-3 pe-9 text-[13px] font-mono bg-[#fdfbf7] dark:bg-[#281c15] border border-[#d6cfc7] dark:border-[#38271c] rounded-[6px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#948b83] focus:outline-none focus:ring-1 focus:ring-[#9c6402] focus:border-[#9c6402] transition-colors text-start"
               />
               <Code className={cn("size-[15px] text-[#948b83] absolute top-1/2 -translate-y-1/2 pointer-events-none", isEn ? "right-3" : "left-3")} />
             </div>
@@ -433,11 +433,11 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
 
       {/* SECTION 2: مصفوفة صلاحيات النظام */}
       <div
-        className="bg-white dark:bg-[#1e1c1a] rounded-[8px] border border-[#e6e2dc] dark:border-[#2f2a24] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] overflow-hidden"
+        className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] overflow-hidden"
         data-node-id="1:12263"
       >
         {/* Matrix Header & Filter */}
-        <div className="p-6 border-b border-[#f0eeea] dark:border-[#2f2a24] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+        <div className="p-6 border-b border-[#f0eeea] dark:border-[#38271c] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
           <div className="text-start">
             <div className="flex items-center gap-2">
               <div className="bg-[#fff8e1] dark:bg-[#342711] size-[32px] rounded-[6px] flex items-center justify-center text-[#9c6402]">
@@ -465,7 +465,7 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
               value={searchFilter}
               onChange={(e) => setSearchFilter(e.target.value)}
               placeholder={t("تصفية الأقسام أو الصلاحيات...", "Filter modules or permissions...")}
-              className="w-full h-[36px] px-3 pe-9 text-[12px] bg-[#f5f3ef] dark:bg-[#2c2621] border border-[#d6cfc7]/60 dark:border-[#38332c] rounded-[4px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] focus:outline-none focus:ring-1 focus:ring-[#9c6402] focus:border-[#9c6402] transition-colors text-start"
+              className="w-full h-[36px] px-3 pe-9 text-[12px] bg-[#f5f3ef] dark:bg-[#281c15] border border-[#d6cfc7]/60 dark:border-[#38271c] rounded-[4px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] focus:outline-none focus:ring-1 focus:ring-[#9c6402] focus:border-[#9c6402] transition-colors text-start"
             />
             <Search className={cn("size-[14px] text-[#837565] absolute top-1/2 -translate-y-1/2 pointer-events-none", isEn ? "right-3" : "left-3")} />
           </div>
@@ -475,7 +475,7 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
         <div className="overflow-x-auto">
           <table className="w-full text-start border-collapse">
             <thead>
-              <tr className="bg-[#f0eeea] dark:bg-[#2c2621] border-b border-[#e6e2dc] dark:border-[#38332c] text-[#514537] dark:text-[#cdc5bd] text-[12px] font-bold">
+              <tr className="bg-[#f0eeea] dark:bg-[#281c15] border-b border-[#e6e2dc] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[12px] font-bold">
                 <th className="py-3 px-6 text-start w-[340px]" data-node-id="1:12285">
                   {t("الوحدة / الموديول المؤسسي", "Module / System Unit")}
                 </th>
@@ -485,7 +485,7 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-[#f0eeea] dark:divide-[#2f2a24]">
+            <tbody className="divide-y divide-[#f0eeea] dark:divide-[#38271c]">
               {filteredModules.map((module) => {
                 const allSelected = module.permissions.every((p) =>
                   selectedPermissions.has(p.id)
@@ -494,13 +494,13 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
                 return (
                   <tr
                     key={module.id}
-                    className="hover:bg-[#fbf9f6] dark:hover:bg-[#25221e] transition-colors align-top"
+                    className="hover:bg-[#fbf9f6] dark:hover:bg-[#2a1d15] transition-colors align-top"
                   >
                     {/* Module Info */}
                     <td className="py-5 px-6 text-start">
                       <div className="space-y-2">
                         <div className="flex items-center gap-2.5">
-                          <div className="size-[30px] rounded-[6px] bg-[#f0eeea] dark:bg-[#2c2621] flex items-center justify-center text-[#514537] dark:text-[#cdc5bd] shrink-0">
+                          <div className="size-[30px] rounded-[6px] bg-[#f0eeea] dark:bg-[#281c15] flex items-center justify-center text-[#514537] dark:text-[#cdc5bd] shrink-0">
                             {getModuleIcon(module.iconType)}
                           </div>
                           <span className="text-[14px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
@@ -543,8 +543,8 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
                                     ? "bg-[#fff7ed] dark:bg-[#341e13] border-[#ea580c] text-[#9a3412] dark:text-[#fb923c] shadow-2xs"
                                     : "bg-[#fff8e1]/60 dark:bg-[#342711] border-[#9c6402] text-[#1b1c1a] dark:text-[#fdfbf7] shadow-2xs"
                                   : perm.isSensitive
-                                  ? "bg-white dark:bg-[#1e1c1a] border-[#fecaca] dark:border-[#5a1b26] text-[#b91c1c] dark:text-[#f87171] hover:border-[#f87171]"
-                                  : "bg-white dark:bg-[#1e1c1a] border-[#e6e2dc] dark:border-[#38332c] text-[#514537] dark:text-[#a89f91] hover:border-[#c5bcaf]"
+                                  ? "bg-white dark:bg-[#221812] border-[#fecaca] dark:border-[#5a1b26] text-[#b91c1c] dark:text-[#f87171] hover:border-[#f87171]"
+                                  : "bg-white dark:bg-[#221812] border-[#e6e2dc] dark:border-[#38271c] text-[#514537] dark:text-[#a89f91] hover:border-[#c5bcaf]"
                               }`}
                             >
                               <div
@@ -553,7 +553,7 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
                                     ? perm.isSensitive
                                       ? "bg-[#ea580c] border-[#ea580c] text-white"
                                       : "bg-[#9c6402] border-[#9c6402] text-white"
-                                    : "border-[#d6cfc7] dark:border-[#4d3627] bg-white dark:bg-[#2c2621]"
+                                    : "border-[#d6cfc7] dark:border-[#4d3627] bg-white dark:bg-[#281c15]"
                                 }`}
                               >
                                 {isChecked && <Check className="size-[11px] stroke-[3]" />}
@@ -590,13 +590,13 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
       {/* FLOATING STICKY ACTION BAR */}
       <DashboardStickyActionBar>
         <div className="flex items-center gap-2.5 text-start">
-          <div className="size-[28px] rounded-full bg-[#f0eeea] dark:bg-[#2c2017] flex items-center justify-center text-[#9c6402] shrink-0">
+          <div className="size-[28px] rounded-full bg-[#f0eeea] dark:bg-[#2d1f16] flex items-center justify-center text-[#9c6402] shrink-0">
             <ShieldCheck className="size-[16px]" />
           </div>
           <div className="text-[11px] text-[#514537] dark:text-[#cdc5bd]">
             <div className="flex items-center gap-1.5 font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
               <span>{t("ضمان الامتثال والرقابة الأمنية", "Compliance & Security Guarantee")}</span>
-              <span className="bg-[#f0eeea] dark:bg-[#2c2017] text-[#625d5d] dark:text-[#bdafa4] text-[10px] font-mono px-1.5 py-0.2 rounded-[2px]">
+              <span className="bg-[#f0eeea] dark:bg-[#2d1f16] text-[#625d5d] dark:text-[#bdafa4] text-[10px] font-mono px-1.5 py-0.2 rounded-[2px]">
                 SEC-ROLE-AUDIT-v2
               </span>
             </div>
@@ -613,7 +613,7 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
           <button
             type="button"
             onClick={onBack}
-            className="px-4 py-2 bg-[#f0eeea] hover:bg-[#e6e2dc] dark:bg-[#2c2017] dark:hover:bg-[#382a1f] text-[#514537] dark:text-[#fdfbf7] border border-transparent dark:border-[#3d2a1d] rounded-[6px] text-[13px] font-semibold transition-colors cursor-pointer"
+            className="px-4 py-2 bg-[#f0eeea] hover:bg-[#e6e2dc] dark:bg-[#2d1f16] dark:hover:bg-[#382a1f] text-[#514537] dark:text-[#fdfbf7] border border-transparent dark:border-[#3d2a1d] rounded-[6px] text-[13px] font-semibold transition-colors cursor-pointer"
           >
             {t("إلغاء", "Cancel")}
           </button>
@@ -621,7 +621,7 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
           <button
             type="button"
             onClick={() => handleSave(true)}
-            className="px-4 py-2 bg-white hover:bg-[#f5f3ef] dark:bg-[#231a14] dark:hover:bg-[#2c2017] text-[#514537] dark:text-[#fdfbf7] border border-[#d6cfc7] dark:border-[#3d2a1d] rounded-[6px] text-[13px] font-semibold transition-colors cursor-pointer"
+            className="px-4 py-2 bg-white hover:bg-[#f5f3ef] dark:bg-[#281c15] dark:hover:bg-[#2c2017] text-[#514537] dark:text-[#fdfbf7] border border-[#d6cfc7] dark:border-[#3d2a1d] rounded-[6px] text-[13px] font-semibold transition-colors cursor-pointer"
           >
             {t("حفظ كمسودة", "Save as Draft")}
           </button>

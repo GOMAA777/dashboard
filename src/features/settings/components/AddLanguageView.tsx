@@ -217,7 +217,7 @@ export function AddLanguageView({ onBack, onSave }: AddLanguageViewProps) {
             <button
               type="button"
               onClick={onBack}
-              className="bg-[#f0eeea] dark:bg-[#2c2017] hover:bg-[#e4e1dc] dark:hover:bg-[#382a1f] text-[#1b1c1a] dark:text-[#fdfbf7] border border-transparent dark:border-[#3d2a1d] px-[24px] py-[10px] rounded-[6px] font-semibold text-[14px] transition-colors cursor-pointer"
+              className="bg-[#f0eeea] dark:bg-[#2d1f16] hover:bg-[#e4e1dc] dark:hover:bg-[#382a1f] text-[#1b1c1a] dark:text-[#fdfbf7] border border-transparent dark:border-[#3d2a1d] px-[24px] py-[10px] rounded-[6px] font-semibold text-[14px] transition-colors cursor-pointer"
             >
               {isEn ? "Cancel" : "إلغاء"}
             </button>

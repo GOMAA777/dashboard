@@ -69,7 +69,7 @@ export function SubscriptionManagementTable({
         );
       case "cancelled":
         return (
-          <div className="bg-[#f0eeea] border border-[#e2ded8] dark:bg-[#2c2621] dark:border-[#4d3627] flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit">
+          <div className="bg-[#f0eeea] border border-[#e2ded8] dark:bg-[#281c15] dark:border-[#4d3627] flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit">
             <span className="font-['Cairo'] font-bold text-[11px] text-[#514537] dark:text-[#cdc5bd]">
               {t(label, "Cancelled")}
             </span>
@@ -115,7 +115,7 @@ export function SubscriptionManagementTable({
       {
         accessorKey: "id",
         header: () => (
-          <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
+          <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#cdc5bd]">
             {t("رقم الاشتراك", "Subscription ID")}
           </div>
         ),
@@ -139,7 +139,7 @@ export function SubscriptionManagementTable({
       {
         accessorKey: "firm.name",
         header: () => (
-          <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
+          <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#cdc5bd]">
             {t("اسم المكتب والترخيص", "Law Firm & License")}
           </div>
         ),
@@ -162,7 +162,7 @@ export function SubscriptionManagementTable({
       {
         accessorKey: "planName",
         header: () => (
-          <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
+          <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#cdc5bd]">
             {t("الباقة والدورة", "Plan & Cycle")}
           </div>
         ),
@@ -183,12 +183,12 @@ export function SubscriptionManagementTable({
       {
         accessorKey: "startDate",
         header: () => (
-          <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
+          <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#cdc5bd]">
             {t("تاريخ البداية", "Start Date")}
           </div>
         ),
         cell: ({ row }) => (
-          <span className="font-['Cairo'] text-[13px] text-[#514537] dark:text-[#d1c9bd]">
+          <span className="font-['Cairo'] text-[13px] text-[#514537] dark:text-[#cdc5bd]">
             {row.original.startDate}
           </span>
         ),
@@ -196,7 +196,7 @@ export function SubscriptionManagementTable({
       {
         accessorKey: "renewalDate",
         header: () => (
-          <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd] leading-[16px]">
+          <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#cdc5bd] leading-[16px]">
             {t("موعد التجديد القادم", "Next Renewal Date")}
           </div>
         ),
@@ -205,7 +205,7 @@ export function SubscriptionManagementTable({
           const isUrgent = sub.daysUrgency === "urgent";
           return (
             <div className="flex flex-col items-start text-start">
-              <span className="font-['Cairo'] text-[13px] text-[#514537] dark:text-[#d1c9bd]">
+              <span className="font-['Cairo'] text-[13px] text-[#514537] dark:text-[#cdc5bd]">
                 {sub.renewalDate}
               </span>
               <span
@@ -226,7 +226,7 @@ export function SubscriptionManagementTable({
       {
         accessorKey: "paymentMethod",
         header: () => (
-          <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
+          <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#cdc5bd]">
             {t("طريقة الدفع", "Payment Method")}
           </div>
         ),
@@ -234,7 +234,7 @@ export function SubscriptionManagementTable({
           const pm = row.original.paymentMethod;
           return (
             <div className="flex items-center gap-2">
-              <div className="bg-[#f0eeea] dark:bg-[#2c2621] px-1.5 py-0.5 rounded-[2px] text-[#514537] dark:text-[#a89f91] font-['Cairo'] font-bold text-[9px] shrink-0">
+              <div className="bg-[#f0eeea] dark:bg-[#281c15] px-1.5 py-0.5 rounded-[2px] text-[#514537] dark:text-[#a89f91] font-['Cairo'] font-bold text-[9px] shrink-0">
                 {pm.badgeLabel}
               </div>
               <div className="flex flex-col items-start text-start">
@@ -252,7 +252,7 @@ export function SubscriptionManagementTable({
       {
         accessorKey: "status",
         header: () => (
-          <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
+          <div className="text-start font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#cdc5bd]">
             {t("الحالة", "Status")}
           </div>
         ),
@@ -263,7 +263,7 @@ export function SubscriptionManagementTable({
       {
         id: "actions",
         header: () => (
-          <div className="text-center font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#d1c9bd]">
+          <div className="text-center font-['Cairo'] font-bold text-[12px] text-[#514537] dark:text-[#cdc5bd]">
             {t("الإجراءات", "Actions")}
           </div>
         ),
@@ -309,7 +309,7 @@ export function SubscriptionManagementTable({
 
   return (
     <div
-      className="bg-white dark:bg-[#1e1c1a] flex flex-col rounded-[8px] border border-[#f0eeea] dark:border-[#2f2a24] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] w-full font-['Cairo',sans-serif]"
+      className="bg-white dark:bg-[#221812] flex flex-col rounded-[8px] border border-[#f0eeea] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] w-full font-['Cairo',sans-serif]"
       data-node-id="1:5392"
       data-name="Main Table Container"
     >
@@ -320,7 +320,7 @@ export function SubscriptionManagementTable({
             {table.getHeaderGroups().map((headerGroup) => (
               <tr
                 key={headerGroup.id}
-                className="bg-[#f0eeea] dark:bg-[#2c2621] border-b border-[#e5e2dc] dark:border-[#38332c] h-[52px]"
+                className="bg-[#f0eeea] dark:bg-[#281c15] border-b border-[#e5e2dc] dark:border-[#38271c] h-[52px]"
               >
                 {headerGroup.headers.map((header) => (
                   <th key={header.id} className="py-2.5 px-3 font-normal">
@@ -333,7 +333,7 @@ export function SubscriptionManagementTable({
               </tr>
             ))}
           </thead>
-          <tbody className="divide-y divide-[#f0eeea] dark:divide-[#2f2a24]">
+          <tbody className="divide-y divide-[#f0eeea] dark:divide-[#38271c]">
             {table.getRowModel().rows.length === 0 ? (
               <tr>
                 <td
@@ -354,7 +354,7 @@ export function SubscriptionManagementTable({
                 return (
                   <tr
                     key={row.id}
-                    className={`hover:bg-[#faf9f7] dark:hover:bg-[#25221e] transition-colors ${
+                    className={`hover:bg-[#faf9f7] dark:hover:bg-[#2a1d15] transition-colors ${
                       isInactive ? "opacity-75" : ""
                     }`}
                   >
@@ -376,7 +376,7 @@ export function SubscriptionManagementTable({
 
       {/* Pagination Footer */}
       <div
-        className="bg-white dark:bg-[#1e1c1a] flex flex-col sm:flex-row items-center justify-between p-4 border-t border-[#f0eeea] dark:border-[#2f2a24] gap-4"
+        className="bg-white dark:bg-[#221812] flex flex-col sm:flex-row items-center justify-between p-4 border-t border-[#f0eeea] dark:border-[#38271c] gap-4"
         data-node-id="1:5737"
         data-name="Pagination Footer"
       >
@@ -393,7 +393,7 @@ export function SubscriptionManagementTable({
           </div>
 
           {onPageSizeChange && (
-            <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#2f2a24] ps-3">
+            <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
               <span className="text-[11px] text-[#837565] dark:text-[#a89f91]">
                 {t("صفوف بالصفحة:", "Rows per page:")}
               </span>
@@ -413,7 +413,7 @@ export function SubscriptionManagementTable({
             disabled={pageIndex === 0}
             onClick={() => onPageChange(0)}
             title={t("الصفحة الأولى", "First Page")}
-            className="size-8 rounded-[4px] bg-[#f5f3ef] dark:bg-[#2c2621] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#514537] dark:text-[#d1c9bd] flex items-center justify-center transition-colors cursor-pointer"
+            className="size-8 rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] flex items-center justify-center transition-colors cursor-pointer"
           >
             <ChevronsRight className={cn("w-4 h-4", isEn && "rotate-180")} />
           </button>
@@ -423,7 +423,7 @@ export function SubscriptionManagementTable({
             disabled={pageIndex === 0}
             onClick={() => onPageChange(pageIndex - 1)}
             title={t("الصفحة السابقة", "Previous Page")}
-            className="bg-[#f5f3ef] dark:bg-[#2c2621] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#514537] dark:text-[#d1c9bd] px-2.5 py-1.5 rounded-[4px] font-['Cairo'] font-semibold text-[12px] flex items-center gap-1 transition-colors cursor-pointer"
+            className="bg-[#f5f3ef] dark:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] px-2.5 py-1.5 rounded-[4px] font-['Cairo'] font-semibold text-[12px] flex items-center gap-1 transition-colors cursor-pointer"
           >
             <ChevronRight className={cn("w-3.5 h-3.5", isEn && "rotate-180")} />
             <span>{t("السابق", "Previous")}</span>
@@ -435,7 +435,7 @@ export function SubscriptionManagementTable({
             className={`size-8 rounded-[4px] font-['Cairo'] text-[12px] flex items-center justify-center transition-colors cursor-pointer ${
               pageIndex === 0
                 ? "bg-[#9c6402] text-[#fff3e9] font-bold shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-                : "bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] font-semibold hover:bg-[#eae8e4]"
+                : "bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] font-semibold hover:bg-[#eae8e4]"
             }`}
           >
             1
@@ -448,7 +448,7 @@ export function SubscriptionManagementTable({
               className={`size-8 rounded-[4px] font-['Cairo'] text-[12px] flex items-center justify-center transition-colors cursor-pointer ${
                 pageIndex === 1
                   ? "bg-[#9c6402] text-[#fff3e9] font-bold shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-                  : "bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] font-semibold hover:bg-[#eae8e4]"
+                  : "bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] font-semibold hover:bg-[#eae8e4]"
               }`}
             >
               2
@@ -462,7 +462,7 @@ export function SubscriptionManagementTable({
               className={`size-8 rounded-[4px] font-['Cairo'] text-[12px] flex items-center justify-center transition-colors cursor-pointer ${
                 pageIndex === 2
                   ? "bg-[#9c6402] text-[#fff3e9] font-bold shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-                : "bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] font-semibold hover:bg-[#eae8e4]"
+                : "bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] font-semibold hover:bg-[#eae8e4]"
               }`}
             >
               3
@@ -480,7 +480,7 @@ export function SubscriptionManagementTable({
               className={`size-8 rounded-[4px] font-['Cairo'] text-[12px] flex items-center justify-center transition-colors cursor-pointer ${
                 pageIndex === totalPages - 1
                   ? "bg-[#9c6402] text-[#fff3e9] font-bold shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-                  : "bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] font-semibold hover:bg-[#eae8e4]"
+                  : "bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] font-semibold hover:bg-[#eae8e4]"
               }`}
             >
               {totalPages}
@@ -492,7 +492,7 @@ export function SubscriptionManagementTable({
             disabled={pageIndex >= totalPages - 1}
             onClick={() => onPageChange(pageIndex + 1)}
             title={t("الصفحة التالية", "Next Page")}
-            className="bg-[#f5f3ef] dark:bg-[#2c2621] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#1b1c1a] dark:text-[#fdfbf7] px-2.5 py-1.5 rounded-[4px] font-['Cairo'] font-semibold text-[12px] flex items-center gap-1 transition-colors cursor-pointer"
+            className="bg-[#f5f3ef] dark:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] px-2.5 py-1.5 rounded-[4px] font-['Cairo'] font-semibold text-[12px] flex items-center gap-1 transition-colors cursor-pointer"
           >
             <span>{t("التالي", "Next")}</span>
             <ChevronLeft className={cn("w-3.5 h-3.5", isEn && "rotate-180")} />
@@ -503,7 +503,7 @@ export function SubscriptionManagementTable({
             disabled={pageIndex >= totalPages - 1}
             onClick={() => onPageChange(totalPages - 1)}
             title={t("الصفحة الأخيرة", "Last Page")}
-            className="size-8 rounded-[4px] bg-[#f5f3ef] dark:bg-[#2c2621] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#514537] dark:text-[#d1c9bd] flex items-center justify-center transition-colors cursor-pointer"
+            className="size-8 rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] flex items-center justify-center transition-colors cursor-pointer"
           >
             <ChevronsLeft className={cn("w-4 h-4", isEn && "rotate-180")} />
           </button>

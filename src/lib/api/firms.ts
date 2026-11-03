@@ -1,7 +1,7 @@
 "use client";
 
 import { apiRequest } from "./http";
-import type { ApiEnvelope, FirmListItem, Paginated } from "./types";
+import type { ApiEnvelope, FirmListItem, Paginated, ApiFirmStats, ApiFirmDetail } from "./types";
 
 export type FirmsListParams = {
   status?: string;
@@ -29,7 +29,7 @@ function unwrapList(payload: unknown): FirmListItem[] {
 }
 
 export async function fetchFirmsStats() {
-  return apiRequest<ApiEnvelope<Record<string, unknown>> | Record<string, unknown>>(
+  return apiRequest<ApiEnvelope<ApiFirmStats> | ApiFirmStats>(
     "/admin/firms/stats",
     { method: "GET" }
   );
@@ -57,7 +57,7 @@ export async function fetchFirms(params: FirmsListParams = {}) {
 }
 
 export async function fetchFirmById(firmId: string | number) {
-  return apiRequest<ApiEnvelope<FirmListItem> | FirmListItem>(
+  return apiRequest<ApiEnvelope<ApiFirmDetail> | ApiFirmDetail>(
     `/admin/firms/${firmId}`,
     { method: "GET" }
   );
@@ -85,9 +85,12 @@ export async function updateFirmStatus(
   status: string,
   reason?: string
 ) {
+  // Database column `companies`.`status` is ENUM('active','inactive').
+  // Map any "suspended" or other inactive aliases to "inactive" to prevent MySQL 1265 Data truncated error.
+  const safeStatus = status === "suspended" ? "inactive" : status;
   return apiRequest(`/admin/firms/${firmId}/status`, {
     method: "PATCH",
-    body: { status, reason },
+    body: { status: safeStatus, reason },
   });
 }
 

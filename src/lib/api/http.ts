@@ -1,7 +1,7 @@
 "use client";
 
 import { API_BASE_URL } from "./config";
-import { getAccessToken, clearAuthSession } from "@/lib/auth-client";
+import { getAccessToken } from "@/lib/auth-client";
 
 export class ApiError extends Error {
   status: number;
@@ -53,6 +53,7 @@ export async function apiRequest<T>(
   }
 
   const response = await fetch(buildUrl(path, query), {
+    cache: "no-store",
     ...rest,
     headers,
     body:
@@ -74,12 +75,9 @@ export async function apiRequest<T>(
   }
 
   if (!response.ok) {
-    if (response.status === 401 && auth) {
-      const token = getAccessToken();
-      if (token && !token.includes("test")) {
-        clearAuthSession();
-      }
-    }
+    // Never auto-clear the session on 401. One failing endpoint was logging
+    // users out and trapping them on the login screen after every navigation.
+    // Logout stays explicit (sidebar confirm only).
 
     const message =
       typeof parsed === "object" &&

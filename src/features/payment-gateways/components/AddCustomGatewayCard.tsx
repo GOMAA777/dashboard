@@ -15,7 +15,7 @@ export function AddCustomGatewayCard({ onAdd }: AddCustomGatewayCardProps) {
   return (
     <div
       onClick={onAdd}
-      className="border-2 border-dashed border-[#e8e4de] dark:border-[#38271c] hover:border-[#9c6402] dark:hover:border-[#e29d38] transition-all duration-200 rounded-[16px] p-6 flex flex-col items-center justify-center text-center min-h-[380px] h-full cursor-pointer group bg-white/40 dark:bg-[#221812]/40 hover:bg-[#fffdf9] dark:hover:bg-[#251b14] shadow-2xs hover:shadow-md select-none"
+      className="border-2 border-dashed border-[#e8e4de] dark:border-[#38271c] hover:border-[#9c6402] dark:hover:border-[#e29d38] transition-all duration-200 rounded-[16px] p-6 flex flex-col items-center justify-center text-center min-h-[380px] h-full cursor-pointer group bg-white/40 dark:bg-[#221812]/40 hover:bg-[#fffdf9] dark:hover:bg-[#281c15] shadow-2xs hover:shadow-md select-none"
     >
       {/* Plus Icon Container */}
       <div className="bg-[#f0eeea] dark:bg-[#281c15] group-hover:bg-[#fceccf] dark:group-hover:bg-[#9c6402]/25 group-hover:scale-105 border border-transparent group-hover:border-[#9c6402]/30 dark:group-hover:border-[#e29d38]/30 transition-all rounded-[16px] size-14 flex items-center justify-center mb-4 shadow-2xs">

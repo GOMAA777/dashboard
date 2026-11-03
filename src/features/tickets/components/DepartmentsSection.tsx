@@ -248,7 +248,7 @@ export function DepartmentsSection({
                   <tr
                     key={dept.id}
                     className={`transition-colors hover:bg-[#faf9f6] dark:hover:bg-[#2c221c]/60 ${
-                      isEven ? "bg-[rgba(245,243,239,0.3)] dark:bg-[#1e1510]" : "bg-white dark:bg-[#221812]"
+                      isEven ? "bg-[rgba(245,243,239,0.3)] dark:bg-[#1a120d]" : "bg-white dark:bg-[#221812]"
                     }`}
                   >
                     {/* Column 1: Code */}

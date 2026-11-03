@@ -26,6 +26,7 @@ import {
   FileText,
 } from "lucide-react";
 import { toast } from "sonner";
+import { formatDate } from "@/lib/formatters";
 import { ClientOffice } from "../types/client.types";
 import { InvoiceItem, PaymentMethodType } from "@/features/invoices/types/invoices.types";
 import { initialInvoicesList } from "@/features/invoices/data/initialInvoices";
@@ -47,12 +48,35 @@ export function ClientSubscriptionsInvoicesView({
 }: ClientSubscriptionsInvoicesViewProps) {
   const { isEn, direction, t } = useLanguage();
 
-  const officeName = office?.name || "مكتب المحاماة";
-  const licenseNum = office?.licenseNumber.replace("ترخيص عدلي: ", "") || "38/194";
-  const email = office?.email || "contact@law-firm.sa";
-  const phone = office?.phone || "+966 50 123 4567";
-  const city = office?.city || "الرياض";
-  const [currentPlan, setCurrentPlan] = useState(office?.plan || "الباقة الاحترافية");
+  const officeName = office?.name || "—";
+  const licenseNum = office?.licenseNumber && office.licenseNumber !== "—" ? office.licenseNumber.replace("ترخيص عدلي: ", "") : "—";
+  const email = office?.email || "—";
+  const phone = office?.phone || "—";
+  const city = office?.city || "—";
+  const [currentPlan, setCurrentPlan] = useState(office?.plan || "—");
+
+  const isMonthly = (() => {
+    const rawCycle = (office?.billingCycle || office?.activeSubscriptionDetails?.billingCycle || "").toLowerCase().trim();
+    if (rawCycle.includes("سنو") || rawCycle.includes("year") || rawCycle.includes("annu")) return false;
+    if (rawCycle.includes("month") || rawCycle.includes("شهري")) return true;
+    const s = office?.subscriptionStart || office?.activeSubscriptionDetails?.startDate;
+    const e = office?.subscriptionEnd || office?.activeSubscriptionDetails?.renewalDate;
+    if (s && e) {
+      const sTime = new Date(s).getTime();
+      const eTime = new Date(e).getTime();
+      if (!isNaN(sTime) && !isNaN(eTime) && eTime > sTime) {
+        const diffDays = Math.round((eTime - sTime) / (1000 * 60 * 60 * 24));
+        if (diffDays <= 45) return true;
+        if (diffDays > 100) return false;
+      }
+    }
+    const subAmt = Number(office?.activeSubscriptionDetails?.amount || 0);
+    const mPrice = Number(office?.planDetails?.monthlyPrice || 0);
+    const yPrice = Number(office?.planDetails?.yearlyPrice || 0);
+    if (subAmt > 0 && mPrice > 0 && Math.abs(subAmt - mPrice) < 5) return true;
+    if (subAmt > 0 && yPrice > 0 && Math.abs(subAmt - yPrice) < 5) return false;
+    return false;
+  })();
 
   // Filter invoices for this client or provide realistic invoices matching this law firm
   const [clientInvoices, setClientInvoices] = useState<InvoiceItem[]>([]);
@@ -154,7 +178,7 @@ export function ClientSubscriptionsInvoicesView({
           <button
             type="button"
             onClick={onBack}
-            className="size-9 rounded-[6px] bg-[#f5f3ef] dark:bg-[#2c2621] hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#514537] dark:text-[#cdc5bd] flex items-center justify-center transition-colors cursor-pointer"
+            className="size-9 rounded-[6px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] flex items-center justify-center transition-colors cursor-pointer"
             title={isEn ? "Back to Clients List" : "العودة لقائمة العملاء"}
           >
             {direction === "rtl" ? (
@@ -255,7 +279,9 @@ export function ClientSubscriptionsInvoicesView({
                   {currentPlan}
                 </span>
                 <span className="text-[11px] text-[#837565] dark:text-[#a89f91]">
-                  (سداد سنوي - يتجدد 15 أكتوبر 2027)
+                  {isMonthly
+                    ? `(${t("سداد شهري", "Monthly Billing")}${office?.subscriptionEnd ? ` - ${t("يتجدد في", "renews on")} ${formatDate(office.subscriptionEnd, "dd MMMM yyyy")}` : ""})`
+                    : `(${t("سداد سنوي", "Annual Billing")}${office?.subscriptionEnd ? ` - ${t("يتجدد في", "renews on")} ${formatDate(office.subscriptionEnd, "dd MMMM yyyy")}` : ""})`}
                 </span>
               </div>
               <button
@@ -551,7 +577,7 @@ export function ClientSubscriptionsInvoicesView({
                           type="button"
                           onClick={() => handleDownloadPdf(inv)}
                           title="تحميل PDF"
-                          className="p-1.5 rounded-[4px] bg-[#f5f3ef] dark:bg-[#2c2621] hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#514537] dark:text-[#cdc5bd] hover:text-[#059669] cursor-pointer"
+                          className="p-1.5 rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:text-[#059669] cursor-pointer"
                         >
                           <Download className="size-3.5" />
                         </button>
@@ -592,6 +618,7 @@ export function ClientSubscriptionsInvoicesView({
       <UpgradeClientOfficePlanModal
         isOpen={isUpgradeModalOpen}
         office={office}
+        initialBillingCycle={isMonthly ? "monthly" : "annual"}
         onClose={() => setIsUpgradeModalOpen(false)}
         onConfirmUpgrade={(officeId: string, newPlanName: string) => {
           setCurrentPlan(newPlanName);

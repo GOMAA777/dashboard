@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { withBasePath } from "@/lib/base-path";
 
 export default function GlobalError({
@@ -11,12 +11,21 @@ export default function GlobalError({
   reset: () => void;
 }) {
   void _error;
-  const handleHomeClick = () => {
-    if (typeof window !== "undefined") {
-      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-      window.location.href = withBasePath("/");
-    }
-  };
+  const [countdown, setCountdown] = useState(4);
+
+  useEffect(() => {
+    const started = Date.now();
+    const total = 4000;
+    const tick = window.setInterval(() => {
+      const left = Math.max(0, Math.ceil((total - (Date.now() - started)) / 1000));
+      setCountdown(left);
+      if (left <= 0) {
+        window.clearInterval(tick);
+        window.location.href = withBasePath("/");
+      }
+    }, 250);
+    return () => window.clearInterval(tick);
+  }, []);
 
   return (
     <html lang="ar" dir="rtl">
@@ -25,11 +34,10 @@ export default function GlobalError({
           margin: 0,
           minHeight: "100vh",
           display: "flex",
-          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#fcfbfa",
-          color: "#1c1917",
+          backgroundColor: "#150f0b",
+          color: "#fdfbf7",
           fontFamily: "system-ui, -apple-system, sans-serif",
           padding: "24px",
           textAlign: "center",
@@ -37,86 +45,65 @@ export default function GlobalError({
       >
         <div
           style={{
-            maxWidth: "480px",
-            background: "#ffffff",
-            padding: "40px 32px",
-            borderRadius: "24px",
-            border: "1px solid #eeddbb",
-            boxShadow: "0 10px 40px rgba(0,0,0,0.06)",
+            maxWidth: "420px",
+            width: "100%",
+            background: "#221812",
+            padding: "40px 28px",
+            borderRadius: "16px",
+            border: "1px solid #38271c",
+            boxShadow: "0 16px 40px rgba(0,0,0,0.35)",
           }}
         >
           <div
             style={{
-              width: "56px",
-              height: "56px",
+              width: "64px",
+              height: "64px",
               borderRadius: "50%",
-              background: "#faf5eb",
-              border: "1px solid #eeddbb",
+              background: "#2d1f16",
+              border: "1px solid #4d3627",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              margin: "0 auto 20px auto",
-              fontSize: "24px",
-              color: "#c29547",
+              margin: "0 auto 18px auto",
+              fontSize: "26px",
             }}
           >
             ⚖️
           </div>
-          <h1
-            style={{
-              fontSize: "24px",
-              fontWeight: 800,
-              color: "#1c1917",
-              margin: "0 0 12px 0",
-            }}
-          >
-            حدث خطأ غير متوقع
+          <h1 style={{ fontSize: "20px", fontWeight: 800, margin: "0 0 10px 0" }}>
+            حدث خلل مؤقت
           </h1>
-          <p
-            style={{
-              fontSize: "14px",
-              color: "#6b6357",
-              lineHeight: 1.6,
-              margin: "0 0 24px 0",
-            }}
-          >
-            واجهت المنظومة صعوبة مؤقتة في تهيئة الصفحة الرئيسية. يمكنك الضغط أدناه
-            لإعادة المحاولة أو العودة للرئيسية.
+          <p style={{ fontSize: "13px", color: "#a89f91", lineHeight: 1.6, margin: "0 0 12px 0" }}>
+            نعيد تهيئة الصفحة الآن. سيتم التوجيه خلال {countdown} ث...
           </p>
-          <div
-            style={{
-              display: "flex",
-              gap: "12px",
-              justifyContent: "center",
-              flexWrap: "wrap",
-            }}
-          >
+          <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
             <button
               type="button"
               onClick={() => reset()}
               style={{
-                padding: "12px 24px",
-                borderRadius: "9999px",
-                backgroundColor: "#c29547",
-                color: "#ffffff",
+                padding: "11px 22px",
+                borderRadius: "10px",
+                backgroundColor: "#e29d38",
+                color: "#1c140f",
                 border: "none",
                 fontWeight: 700,
                 fontSize: "13px",
                 cursor: "pointer",
-                boxShadow: "0 4px 14px rgba(194, 149, 71, 0.35)",
               }}
             >
               إعادة المحاولة
             </button>
             <button
               type="button"
-              onClick={handleHomeClick}
+              onClick={() => {
+                window.location.href = withBasePath("/");
+              }}
               style={{
-                padding: "12px 24px",
-                borderRadius: "9999px",
-                backgroundColor: "#ffffff",
-                color: "#1c1917",
-                border: "1px solid #ded5c6",
+                padding: "11px 22px",
+                borderRadius: "10px",
+                backgroundColor: "#281c15",
+                color: "#fdfbf7",
+                border: "1px solid #38271c",
                 fontWeight: 700,
                 fontSize: "13px",
                 cursor: "pointer",

@@ -200,7 +200,7 @@ export function CurrencySettingsView() {
   return (
     <div
       dir={direction}
-      className="flex h-screen h-dvh bg-[#f5f3ef] dark:bg-[#17120e] text-[#1b1c1a] dark:text-[#fdfbf7] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00] transition-colors duration-200"
+      className="flex h-screen h-dvh bg-[#f5f3ef] dark:bg-[#150f0b] text-[#1b1c1a] dark:text-[#fdfbf7] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00] transition-colors duration-200"
     >
       {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar activeNav="system-settings" activeSubNav="currency" />

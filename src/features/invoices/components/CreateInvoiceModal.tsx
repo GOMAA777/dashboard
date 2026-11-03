@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { X, Check, FilePlus, Building2, Calendar, DollarSign, ShieldCheck } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { X, Check, FilePlus } from "lucide-react";
 import { toast } from "sonner";
 import { InvoiceItem } from "../types/invoices.types";
 import { useLanguage } from "@/lib/i18n";
@@ -29,6 +29,19 @@ export function CreateInvoiceModal({
   const [subtotal, setSubtotal] = useState(24000);
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setLawFirmName("");
+    setClientContact("");
+    setClientEmail("");
+    setTaxNumber("");
+    setPlanChoice("enterprise");
+    setBillingPeriod("annual");
+    setSubtotal(48000);
+    setNotes("");
+    setIsSubmitting(false);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -336,9 +349,13 @@ export function CreateInvoiceModal({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="h-10 px-6 rounded-[6px] bg-[#9c6402] hover:bg-[#835401] text-white text-[13px] font-bold flex items-center gap-2 cursor-pointer shadow-sm transition-all disabled:opacity-60"
+              className="h-10 px-6 rounded-[6px] bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#835401] dark:hover:bg-[#d4922f] text-white dark:text-[#1c140f] text-[13px] font-bold flex items-center gap-2 cursor-pointer shadow-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <Check className="size-4 stroke-[2.5]" />
+              {isSubmitting ? (
+                <span className="size-4 border-2 border-white/40 dark:border-[#1c140f]/40 border-t-white dark:border-t-[#1c140f] rounded-full animate-spin" />
+              ) : (
+                <Check className="size-4 stroke-[2.5]" />
+              )}
               <span>{isSubmitting ? (isEn ? "Issuing..." : "جارٍ الإصدار...") : (isEn ? "Issue Tax Invoice" : "إصدار الفاتورة الضريبية")}</span>
             </button>
           </div>

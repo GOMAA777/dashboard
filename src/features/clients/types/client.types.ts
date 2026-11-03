@@ -1,4 +1,4 @@
-export type AccountStatusType = "active" | "suspended" | "trial";
+export type AccountStatusType = "active" | "suspended" | "inactive" | "trial";
 export type SubscriptionStatusType = "active" | "expiring" | "trial" | "overdue" | "expired";
 
 export interface OfficeResourceUsage {
@@ -55,9 +55,12 @@ export interface ActiveSubscriptionDetails {
 
 export interface ClientOffice {
   id: string;
+  companyId?: string | number;
   initial: string;
   initialBg: string;
   initialText: string;
+  themeColor?: string;
+  color?: string;
   name: string;
   licenseNumber: string;
   city: string;

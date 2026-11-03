@@ -10,6 +10,19 @@ interface ModalPortalProps {
 
 let activeModalCount = 0;
 
+function lockPageScroll() {
+  if (typeof document === "undefined") return;
+  document.documentElement.classList.add("modal-open");
+  document.body.classList.add("modal-open");
+}
+
+function unlockPageScroll() {
+  if (typeof document === "undefined") return;
+  if (activeModalCount > 0) return;
+  document.documentElement.classList.remove("modal-open");
+  document.body.classList.remove("modal-open");
+}
+
 export function ModalPortal({ children, isOpen = true }: ModalPortalProps) {
   const [mounted, setMounted] = useState(false);
 
@@ -21,15 +34,11 @@ export function ModalPortal({ children, isOpen = true }: ModalPortalProps) {
     if (!mounted) return;
 
     if (isOpen) {
-      activeModalCount++;
-      if (typeof document !== "undefined") {
-        document.body.classList.add("modal-open");
-      }
+      activeModalCount += 1;
+      lockPageScroll();
       return () => {
         activeModalCount = Math.max(0, activeModalCount - 1);
-        if (activeModalCount === 0 && typeof document !== "undefined") {
-          document.body.classList.remove("modal-open");
-        }
+        unlockPageScroll();
       };
     }
   }, [isOpen, mounted]);

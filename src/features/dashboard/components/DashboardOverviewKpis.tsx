@@ -29,8 +29,8 @@ export function DashboardOverviewKpis() {
       value: 0,
       icon: Bot,
       textColor: "text-[#c29547] dark:text-[#d4a759]",
-      cardBorder: "border border-[#ded5c6] dark:border-[#2f2a24] hover:border-[#c29547]/60 dark:hover:border-[#d4a759]/60",
-      iconWrapper: "bg-[#faf5eb] dark:bg-[#201c17] border-[#eeddbb] dark:border-[#382b18] text-[#c29547] dark:text-[#d4a759]",
+      cardBorder: "border border-[#ded5c6] dark:border-[#38271c] hover:border-[#c29547]/60 dark:hover:border-[#d4a759]/60",
+      iconWrapper: "bg-[#faf5eb] dark:bg-[#281c15] border-[#eeddbb] dark:border-[#382b18] text-[#c29547] dark:text-[#d4a759]",
       barColor: "bg-[#c29547] dark:bg-[#d4a759]",
       bars: [3, 72, 48, 62, 30, 48, 20],
     },
@@ -40,8 +40,8 @@ export function DashboardOverviewKpis() {
       value: 0,
       icon: MessageSquare,
       textColor: "text-[#b87928] dark:text-[#e59a3c]",
-      cardBorder: "border border-[#ded5c6] dark:border-[#2f2a24] hover:border-[#b87928]/60 dark:hover:border-[#e59a3c]/60",
-      iconWrapper: "bg-[#fdf7ed] dark:bg-[#251e16] border-[#f5dfbc] dark:border-[#44331e] text-[#b87928] dark:text-[#e59a3c]",
+      cardBorder: "border border-[#ded5c6] dark:border-[#38271c] hover:border-[#b87928]/60 dark:hover:border-[#e59a3c]/60",
+      iconWrapper: "bg-[#fdf7ed] dark:bg-[#281c15] border-[#f5dfbc] dark:border-[#44331e] text-[#b87928] dark:text-[#e59a3c]",
       barColor: "bg-[#b87928] dark:bg-[#e59a3c]",
       bars: [3, 35, 68, 50, 26, 42, 15],
     },
@@ -51,8 +51,8 @@ export function DashboardOverviewKpis() {
       value: 0,
       icon: Check,
       textColor: "text-[#a67322] dark:text-[#e8bf72]",
-      cardBorder: "border border-[#ded5c6] dark:border-[#2f2a24] hover:border-[#a67322]/60 dark:hover:border-[#e8bf72]/60",
-      iconWrapper: "bg-[#faf5eb] dark:bg-[#201c17] border-[#eeddbb] dark:border-[#382b18] text-[#a67322] dark:text-[#e8bf72]",
+      cardBorder: "border border-[#ded5c6] dark:border-[#38271c] hover:border-[#a67322]/60 dark:hover:border-[#e8bf72]/60",
+      iconWrapper: "bg-[#faf5eb] dark:bg-[#281c15] border-[#eeddbb] dark:border-[#382b18] text-[#a67322] dark:text-[#e8bf72]",
       barColor: "bg-[#a67322] dark:bg-[#e8bf72]",
       bars: [3, 62, 44, 55, 38, 50, 24],
     },
@@ -62,8 +62,8 @@ export function DashboardOverviewKpis() {
       value: 0,
       icon: TrendingUp,
       textColor: "text-[#c29547] dark:text-[#d4a759]",
-      cardBorder: "border border-[#ded5c6] dark:border-[#2f2a24] hover:border-[#c29547]/60 dark:hover:border-[#d4a759]/60",
-      iconWrapper: "bg-[#faf5eb] dark:bg-[#201c17] border-[#eeddbb] dark:border-[#382b18] text-[#c29547] dark:text-[#d4a759]",
+      cardBorder: "border border-[#ded5c6] dark:border-[#38271c] hover:border-[#c29547]/60 dark:hover:border-[#d4a759]/60",
+      iconWrapper: "bg-[#faf5eb] dark:bg-[#281c15] border-[#eeddbb] dark:border-[#382b18] text-[#c29547] dark:text-[#d4a759]",
       barColor: "bg-[#c29547] dark:bg-[#d4a759]",
       bars: [3, 48, 68, 30, 50, 32, 16],
     },
@@ -72,7 +72,7 @@ export function DashboardOverviewKpis() {
   return (
     <section
       aria-label="Overview KPI Cards"
-      className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4"
+      className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6"
     >
       {kpiCards.map((kpi) => {
         const Icon = kpi.icon;
@@ -81,7 +81,7 @@ export function DashboardOverviewKpis() {
           <div
             key={kpi.id}
             className={cn(
-              "bg-white dark:bg-[#1a1816] rounded-2xl p-4 flex flex-col justify-between shadow-[0_4px_16px_-2px_rgba(80,65,45,0.04),0_1px_3px_rgba(0,0,0,0.02)] dark:shadow-[0_4px_20px_-2px_rgba(0,0,0,0.4)] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden",
+              "bg-white dark:bg-[#1a120d] rounded-2xl p-5 sm:p-6 flex flex-col justify-between shadow-[0_4px_16px_-2px_rgba(80,65,45,0.04),0_1px_3px_rgba(0,0,0,0.02)] dark:shadow-[0_4px_20px_-2px_rgba(0,0,0,0.4)] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden",
               kpi.cardBorder
             )}
           >

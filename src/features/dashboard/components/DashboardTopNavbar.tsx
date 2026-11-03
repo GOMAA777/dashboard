@@ -30,8 +30,6 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
   const toggleTheme = useUIStore((state) => state.toggleTheme);
   const direction = useUIStore((state) => state.direction);
   const toggleDirection = useUIStore((state) => state.toggleDirection);
-  const isPageNavigating = useUIStore((state) => state.isPageNavigating);
-
   const currentLanguage = isMounted ? language : "ar";
   const currentTheme = isMounted ? theme : "light";
   const currentDirection = isMounted ? direction : "rtl";
@@ -42,12 +40,6 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
       data-node-id="1:641"
       data-name="Header"
     >
-      {/* Dynamic Route Transition Shimmer Bar */}
-      {isPageNavigating && (
-        <div className="absolute top-0 inset-x-0 h-[2.5px] bg-[#9c6402]/20 overflow-hidden z-50">
-          <div className="h-full bg-gradient-to-r from-[#c29547] via-[#e29d38] to-[#9c6402] animate-pulse w-full" />
-        </div>
-      )}
       {/* 1. Primary Actions Bar (64px) */}
       <div className="h-[64px] px-[24px] flex items-center justify-between">
         {/* Right / Start Side (in RTL): Search, Calendar Date */}
@@ -59,7 +51,7 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
               placeholder={currentLanguage === "en" ? "Search system..." : "البحث في النظام"}
-              className="w-full h-full bg-[#f5f3ef] dark:bg-[#251b14] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder-[#837565] dark:placeholder-[#8e8680] border border-transparent dark:border-[#38271c] text-[12px] rounded-[8px] pe-[38px] ps-[16px] focus:outline-none focus:ring-1 focus:ring-[#9c6402]/30 transition-all font-sans"
+              className="w-full h-full bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder-[#837565] dark:placeholder-[#8e8680] border border-transparent dark:border-[#38271c] text-[12px] rounded-[8px] pe-[38px] ps-[16px] focus:outline-none focus:ring-1 focus:ring-[#9c6402]/30 transition-all font-sans"
               data-node-id="1:662"
             />
             <div className="absolute top-1/2 -translate-y-1/2 end-[14px] pointer-events-none size-[13.5px] flex items-center justify-center">
@@ -84,7 +76,7 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
             onClick={toggleLanguage}
             title={currentLanguage === "ar" ? "English" : "العربية"}
             aria-label={currentLanguage === "ar" ? "English" : "العربية"}
-            className="size-[36px] rounded-[6px] hover:bg-[#f5f3ef] dark:hover:bg-[#251b14] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] border border-transparent hover:border-[#eae8e4] dark:hover:border-[#38271c] transition-colors flex items-center justify-center shrink-0 cursor-pointer"
+            className="size-[36px] rounded-[6px] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] border border-transparent hover:border-[#eae8e4] dark:hover:border-[#38271c] transition-colors flex items-center justify-center shrink-0 cursor-pointer"
           >
             <Languages className="size-[16px]" />
           </button>
@@ -99,7 +91,7 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
                 : "التبديل إلى RTL"
             }
             aria-label={currentDirection === "rtl" ? "Switch to LTR" : "التبديل إلى RTL"}
-            className="size-[36px] rounded-[6px] hover:bg-[#f5f3ef] dark:hover:bg-[#251b14] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] border border-transparent hover:border-[#eae8e4] dark:hover:border-[#38271c] transition-colors flex items-center justify-center shrink-0 cursor-pointer"
+            className="size-[36px] rounded-[6px] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] border border-transparent hover:border-[#eae8e4] dark:hover:border-[#38271c] transition-colors flex items-center justify-center shrink-0 cursor-pointer"
           >
             <ArrowLeftRight className="size-[16px]" />
           </button>
@@ -110,7 +102,7 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
             onClick={toggleTheme}
             title={currentTheme === "dark" ? "Light Mode" : "Dark Mode"}
             aria-label={currentTheme === "dark" ? "Light Mode" : "Dark Mode"}
-            className="size-[36px] rounded-[6px] hover:bg-[#f5f3ef] dark:hover:bg-[#251b14] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] border border-transparent hover:border-[#eae8e4] dark:hover:border-[#38271c] transition-colors flex items-center justify-center shrink-0 cursor-pointer"
+            className="size-[36px] rounded-[6px] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] border border-transparent hover:border-[#eae8e4] dark:hover:border-[#38271c] transition-colors flex items-center justify-center shrink-0 cursor-pointer"
           >
             {currentTheme === "dark" ? (
               <Sun className="size-[17px] text-[#e29d38]" />
@@ -126,8 +118,8 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
               aria-label="الإشعارات"
               onClick={() => setIsNotificationsOpen((prev) => !prev)}
               className={cn(
-                "relative size-[36px] rounded-[6px] hover:bg-[#f5f3ef] dark:hover:bg-[#251b14] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] border border-transparent hover:border-[#eae8e4] dark:hover:border-[#38271c] transition-colors flex items-center justify-center shrink-0 cursor-pointer",
-                isNotificationsOpen && "bg-[#f5f3ef] dark:bg-[#251b14] border-[#eae8e4] dark:border-[#38271c]"
+                "relative size-[36px] rounded-[6px] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] border border-transparent hover:border-[#eae8e4] dark:hover:border-[#38271c] transition-colors flex items-center justify-center shrink-0 cursor-pointer",
+                isNotificationsOpen && "bg-[#f5f3ef] dark:bg-[#281c15] border-[#eae8e4] dark:border-[#38271c]"
               )}
               data-node-id="1:650"
             >
@@ -183,7 +175,7 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
       </div>
 
       {/* 2. Sleek shadcn/ui Breadcrumb Bar (38px) */}
-      <div className="h-[38px] px-[24px] bg-[#fbfaf8]/95 dark:bg-[#17120e]/95 backdrop-blur-xs border-t border-[#f0ede8] dark:border-[#281f18] flex items-center justify-between">
+      <div className="h-[38px] px-[24px] bg-[#fbfaf8]/95 dark:bg-[#150f0b]/95 backdrop-blur-xs border-t border-[#f0ede8] dark:border-[#281f18] flex items-center justify-between">
         <DashboardBreadcrumb customItems={customBreadcrumbs} />
 
         {/* Subtle Platform Status indicator */}

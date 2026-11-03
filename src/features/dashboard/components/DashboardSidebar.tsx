@@ -283,6 +283,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                 <Link
                   key={item.id}
                   href={targetHref}
+                  prefetch={true}
                   onClick={() => handleNavClick(targetHref)}
                   title={itemLabel}
                   className={cn(
@@ -330,6 +331,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                 ) : (
                   <Link
                     href={item.href}
+                    prefetch={true}
                     onClick={() => handleNavClick(item.href)}
                     className={cn(
                       "flex items-center gap-[12px] px-[12px] py-[8px] rounded-[12px] transition-colors duration-150 group text-start",
@@ -369,6 +371,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#eae8e4] dark:border-[#38271c] my-1">
                     <Link
                       href="/permissions?tab=staff"
+                      prefetch={true}
                       onClick={() => handleNavClick("/permissions?tab=staff")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
@@ -398,6 +401,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                     </Link>
                     <Link
                       href="/permissions?tab=roles"
+                      prefetch={true}
                       onClick={() => handleNavClick("/permissions?tab=roles")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
@@ -433,6 +437,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#eae8e4] dark:border-[#38271c] my-1">
                     <Link
                       href="/invoices"
+                      prefetch={true}
                       onClick={() => handleNavClick("/invoices")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
@@ -462,6 +467,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                     </Link>
                     <Link
                       href="/payment-gateways"
+                      prefetch={true}
                       onClick={() => handleNavClick("/payment-gateways")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
@@ -497,6 +503,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#eae8e4] dark:border-[#38271c] my-1">
                     <Link
                       href="/tickets?tab=tickets"
+                      prefetch={true}
                       onClick={() => handleNavClick("/tickets?tab=tickets")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
@@ -526,6 +533,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                     </Link>
                     <Link
                       href="/tickets?tab=departments"
+                      prefetch={true}
                       onClick={() => handleNavClick("/tickets?tab=departments")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
@@ -561,6 +569,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#eae8e4] dark:border-[#38271c] my-1">
                     <Link
                       href="/settings/general"
+                      prefetch={true}
                       onClick={() => handleNavClick("/settings/general")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
@@ -582,6 +591,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
 
                     <Link
                       href="/settings/currency"
+                      prefetch={true}
                       onClick={() => handleNavClick("/settings/currency")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
@@ -603,6 +613,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
 
                     <Link
                       href="/settings/language"
+                      prefetch={true}
                       onClick={() => handleNavClick("/settings/language")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
@@ -629,6 +640,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#eae8e4] dark:border-[#38271c] my-1">
                     <Link
                       href="/utility/update"
+                      prefetch={true}
                       onClick={() => handleNavClick("/utility/update")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
@@ -650,6 +662,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
 
                     <Link
                       href="/utility/server-info"
+                      prefetch={true}
                       onClick={() => handleNavClick("/utility/server-info")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
@@ -689,6 +702,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
             {/* Collapsed Mode: User Avatar Link to Profile */}
             <Link
               href="/profile"
+              prefetch={true}
               onClick={() => handleNavClick("/profile")}
               title={currentLang === "en" ? "Profile - Eng. Abdulaziz Bin Fahad" : "الملف الشخصي - م. عبد العزيز بن فهد"}
               className="size-[38px] rounded-full overflow-hidden border border-[#9c6402] hover:border-[#b47818] transition-colors flex items-center justify-center shrink-0 relative group"
@@ -709,7 +723,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
               onClick={() => setIsLogoutModalOpen(true)}
               title={currentLang === "en" ? "Logout" : "تسجيل الخروج"}
               aria-label={currentLang === "en" ? "Logout" : "تسجيل الخروج"}
-              className="size-[34px] rounded-full bg-white dark:bg-[#251b14] border border-[#eae8e4] dark:border-[#3b2a1f] hover:border-[#ba1a1a]/40 hover:bg-[#ba1a1a]/10 text-[#837565] dark:text-[#8e8680] hover:text-[#ba1a1a] dark:hover:text-[#f87171] flex items-center justify-center transition-colors cursor-pointer shadow-2xs"
+              className="size-[34px] rounded-full bg-white dark:bg-[#281c15] border border-[#eae8e4] dark:border-[#3b2a1f] hover:border-[#ba1a1a]/40 hover:bg-[#ba1a1a]/10 text-[#837565] dark:text-[#8e8680] hover:text-[#ba1a1a] dark:hover:text-[#f87171] flex items-center justify-center transition-colors cursor-pointer shadow-2xs"
             >
               <LogOut className="size-[15px]" />
             </button>
@@ -720,6 +734,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
             {/* User Info Link (Avatar + Name + Role) leading to /profile */}
             <Link
               href="/profile"
+              prefetch={true}
               onClick={() => handleNavClick("/profile")}
               title={currentLang === "en" ? "View Profile" : "فتح الملف الشخصي"}
               className="flex items-center gap-2.5 flex-1 min-w-0 text-start group cursor-pointer"

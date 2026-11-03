@@ -99,7 +99,7 @@ export function InvoicesTable({
         );
       case "refunded":
         return (
-          <div className="bg-[#f0eeea] border border-[#e2ded8] dark:bg-[#2c2621] dark:border-[#4d3627] flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit">
+          <div className="bg-[#f0eeea] border border-[#e2ded8] dark:bg-[#281c15] dark:border-[#4d3627] flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit">
             <span className="font-bold text-[11px] text-[#514537] dark:text-[#cdc5bd]">
               {isEn ? "Refunded" : "مستردة"}
             </span>
@@ -131,7 +131,7 @@ export function InvoicesTable({
         );
       case "apple_pay":
         return (
-          <span className="inline-flex items-center gap-1 bg-[#f8fafc] dark:bg-[#1e1b18] text-[#334155] dark:text-[#e2e8f0] border border-slate-200 dark:border-slate-700/40 px-2 py-0.5 rounded-[4px] text-[11px] font-bold">
+          <span className="inline-flex items-center gap-1 bg-[#f8fafc] dark:bg-[#1a120d] text-[#334155] dark:text-[#e2e8f0] border border-slate-200 dark:border-slate-700/40 px-2 py-0.5 rounded-[4px] text-[11px] font-bold">
             Apple Pay
           </span>
         );
@@ -348,7 +348,7 @@ export function InvoicesTable({
                         <button
                           type="button"
                           onClick={() => onViewInvoice(invoice)}
-                          className="px-2.5 py-1.5 rounded-[5px] bg-[#f5f3ef] hover:bg-[#eae8e4] dark:bg-[#2c2621] dark:hover:bg-[#38332c] text-[#514537] dark:text-[#cdc5bd] border border-[#eae8e4] dark:border-[#38271c] text-[12px] font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer shrink-0"
+                          className="px-2.5 py-1.5 rounded-[5px] bg-[#f5f3ef] hover:bg-[#eae8e4] dark:bg-[#281c15] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] border border-[#eae8e4] dark:border-[#38271c] text-[12px] font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer shrink-0"
                           title={isEn ? "View credit note" : "عرض الإشعار الدائن"}
                         >
                           <FileText className="size-3.5" />
@@ -364,7 +364,7 @@ export function InvoicesTable({
                             type="button"
                             onClick={() => onViewInvoice(invoice)}
                             title={isEn ? "Preview Tax Invoice" : "معاينة الفاتورة الضريبية"}
-                            className="p-1.5 rounded-[4px] bg-[#f5f3ef] dark:bg-[#2c2621] hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#514537] dark:text-[#cdc5bd] hover:text-[#9c6402] dark:hover:text-[#e29d38] transition-colors cursor-pointer"
+                            className="p-1.5 rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:text-[#9c6402] dark:hover:text-[#e29d38] transition-colors cursor-pointer"
                           >
                             <Eye className="size-3.5" />
                           </button>
@@ -375,7 +375,7 @@ export function InvoicesTable({
                           type="button"
                           onClick={() => onDownloadPdf(invoice)}
                           title={isEn ? "Download PDF Invoice" : "تحميل الفاتورة PDF"}
-                          className="p-1.5 rounded-[4px] bg-[#f5f3ef] dark:bg-[#2c2621] hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#514537] dark:text-[#cdc5bd] hover:text-[#059669] dark:hover:text-[#10b981] transition-colors cursor-pointer"
+                          className="p-1.5 rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:text-[#059669] dark:hover:text-[#10b981] transition-colors cursor-pointer"
                         >
                           <Download className="size-3.5" />
                         </button>
@@ -386,7 +386,7 @@ export function InvoicesTable({
                             type="button"
                             onClick={() => onResendEmail(invoice)}
                             title={isEn ? "Resend to Client Email" : "إعادة إرسال للبريد"}
-                            className="p-1.5 rounded-[4px] bg-[#f5f3ef] dark:bg-[#2c2621] hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#514537] dark:text-[#cdc5bd] hover:text-[#2563eb] dark:hover:text-[#60a5fa] transition-colors cursor-pointer hidden md:inline-flex"
+                            className="p-1.5 rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:text-[#2563eb] dark:hover:text-[#60a5fa] transition-colors cursor-pointer hidden md:inline-flex"
                           >
                             <Send className="size-3.5" />
                           </button>
@@ -428,7 +428,7 @@ export function InvoicesTable({
           </div>
 
           {onPageSizeChange && (
-            <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#2f2a24] ps-3">
+            <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
               <span className="text-[11px] text-[#837565] dark:text-[#a89f91]">
                 {t("صفوف بالصفحة:", "Rows per page:")}
               </span>
@@ -448,7 +448,7 @@ export function InvoicesTable({
             disabled={pageIndex === 0}
             onClick={() => onPageChange(0)}
             title={t("الصفحة الأولى", "First Page")}
-            className="size-8 rounded-[4px] bg-[#f5f3ef] dark:bg-[#2c2621] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#514537] dark:text-[#d1c9bd] flex items-center justify-center transition-colors cursor-pointer"
+            className="size-8 rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] flex items-center justify-center transition-colors cursor-pointer"
           >
             <ChevronsRight className={cn("size-4", isEn && "rotate-180")} />
           </button>
@@ -458,7 +458,7 @@ export function InvoicesTable({
             disabled={pageIndex === 0}
             onClick={() => onPageChange(pageIndex - 1)}
             title={t("الصفحة السابقة", "Previous Page")}
-            className="bg-[#f5f3ef] dark:bg-[#2c2621] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#514537] dark:text-[#d1c9bd] px-2.5 py-1.5 rounded-[4px] font-semibold text-[12px] flex items-center gap-1 transition-colors cursor-pointer"
+            className="bg-[#f5f3ef] dark:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] px-2.5 py-1.5 rounded-[4px] font-semibold text-[12px] flex items-center gap-1 transition-colors cursor-pointer"
           >
             <ChevronRight className={cn("size-3.5", isEn && "rotate-180")} />
             <span>{t("السابق", "Previous")}</span>
@@ -479,7 +479,7 @@ export function InvoicesTable({
                   className={`size-8 rounded-[4px] text-[12px] flex items-center justify-center transition-colors cursor-pointer ${
                     pageIndex === idx
                       ? "bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] font-bold shadow-xs"
-                      : "bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] font-semibold hover:bg-[#eae8e4] dark:hover:bg-[#38332c]"
+                      : "bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] font-semibold hover:bg-[#eae8e4] dark:hover:bg-[#38271c]"
                   }`}
                 >
                   {idx + 1}
@@ -501,7 +501,7 @@ export function InvoicesTable({
             disabled={pageIndex >= totalPages - 1}
             onClick={() => onPageChange(pageIndex + 1)}
             title={t("الصفحة التالية", "Next Page")}
-            className="bg-[#f5f3ef] dark:bg-[#2c2621] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#1b1c1a] dark:text-[#fdfbf7] px-2.5 py-1.5 rounded-[4px] font-semibold text-[12px] flex items-center gap-1 transition-colors cursor-pointer"
+            className="bg-[#f5f3ef] dark:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] px-2.5 py-1.5 rounded-[4px] font-semibold text-[12px] flex items-center gap-1 transition-colors cursor-pointer"
           >
             <span>{t("التالي", "Next")}</span>
             <ChevronLeft className={cn("size-3.5", isEn && "rotate-180")} />
@@ -512,7 +512,7 @@ export function InvoicesTable({
             disabled={pageIndex >= totalPages - 1}
             onClick={() => onPageChange(totalPages - 1)}
             title={t("الصفحة الأخيرة", "Last Page")}
-            className="size-8 rounded-[4px] bg-[#f5f3ef] dark:bg-[#2c2621] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38332c] text-[#514537] dark:text-[#d1c9bd] flex items-center justify-center transition-colors cursor-pointer"
+            className="size-8 rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] flex items-center justify-center transition-colors cursor-pointer"
           >
             <ChevronsLeft className={cn("size-4", isEn && "rotate-180")} />
           </button>

@@ -2,15 +2,30 @@
 
 import { apiRequest } from "./http";
 
+/** POST /admin/staff — Postman folder 05. Staff & Team body contract */
+export type CreateStaffBody = {
+  name: string;
+  emp_code: string;
+  email: string;
+  phone: string;
+  password: string;
+  department_id: number;
+  role_id: number;
+  status: "active" | "suspended";
+};
+
 export async function fetchStaffStats() {
   return apiRequest("/admin/staff/stats", { method: "GET" });
 }
 
 export async function fetchStaff() {
-  return apiRequest("/admin/staff", { method: "GET" });
+  return apiRequest("/admin/staff", {
+    method: "GET",
+    query: { page: 1, per_page: 100 },
+  });
 }
 
-export async function createStaff(body: Record<string, unknown>) {
+export async function createStaff(body: CreateStaffBody) {
   return apiRequest("/admin/staff", { method: "POST", body });
 }
 

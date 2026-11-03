@@ -75,7 +75,7 @@ export function DashboardBottomSection({
 
   return (
     <div
-      className="grid grid-cols-1 lg:grid-cols-12 gap-[16px] w-full"
+      className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full"
       data-node-id="1:454"
       data-name="Section 5: Bottom Grid (Recent Activity & Support Summary)"
     >
@@ -284,7 +284,7 @@ export function DashboardBottomSection({
 
             {/* 3. Awaiting Client */}
             <div
-              className="bg-[#f5f3ef] dark:bg-[#251b14] rounded-[4px] p-[12px] flex flex-col justify-between border border-transparent dark:border-[#38271c]"
+              className="bg-[#f5f3ef] dark:bg-[#281c15] rounded-[4px] p-[12px] flex flex-col justify-between border border-transparent dark:border-[#38271c]"
               data-node-id="1:592"
             >
               <div className="flex items-center justify-between w-full">
@@ -369,7 +369,7 @@ export function DashboardBottomSection({
 
         {/* Live Team Presence Indicator */}
         <div
-          className="bg-[#f5f3ef] dark:bg-[#251b14] border border-transparent dark:border-[#38271c] rounded-[4px] px-[12px] py-[10px] mt-[16px] flex items-center justify-between w-full"
+          className="bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] rounded-[4px] px-[12px] py-[10px] mt-[16px] flex items-center justify-between w-full"
           data-node-id="1:634"
         >
           <div className="flex items-center gap-[8px]">

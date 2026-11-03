@@ -19,6 +19,7 @@ import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
 import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
 import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { useLanguage } from "@/lib/i18n";
+import { getLocalCustomAutoRenew, getLocalCustomLogo } from "@/lib/api/mappers";
 
 export { initialOffices };
 
@@ -31,6 +32,7 @@ interface ClientManagementTableProps {
   onOpenDeactivateModal?: (office: ClientOffice) => void;
   onOpenDeleteModal?: (office: ClientOffice) => void;
   onManageSubscriptions?: (office: ClientOffice) => void;
+  onReactivate?: (office: ClientOffice) => void;
 }
 
 export function ClientManagementTable({
@@ -42,6 +44,7 @@ export function ClientManagementTable({
   onOpenDeactivateModal,
   onOpenDeleteModal,
   onManageSubscriptions,
+  onReactivate,
 }: ClientManagementTableProps) {
   const { t, isEn } = useLanguage();
   const [internalOffices, setInternalOffices] = useState<ClientOffice[]>([]);
@@ -53,7 +56,6 @@ export function ClientManagementTable({
   // Filters
   const [planFilter, setPlanFilter] = useState("all");
   const [cityFilter, setCityFilter] = useState("all");
-  const [subscriptionStatusFilter, setSubscriptionStatusFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | "name">("newest");
 
   // Pagination
@@ -65,6 +67,15 @@ export function ClientManagementTable({
     const list = offices.filter((item) => {
       // Tab filter (Quick filter outside)
       if (activeTab === "active" && item.accountStatus.type !== "active") return false;
+      if (
+        activeTab === "trial" &&
+        item.accountStatus.type !== "trial" &&
+        item.subscriptionStatus.type !== "trial" &&
+        item.planType !== "trial" &&
+        !item.plan?.includes("تجرب") &&
+        !item.plan?.toLowerCase().includes("trial")
+      )
+        return false;
       if (activeTab === "suspended" && item.accountStatus.type !== "suspended") return false;
 
       // Search query
@@ -74,15 +85,17 @@ export function ClientManagementTable({
         const matchesOwner = item.owner.toLowerCase().includes(q);
         const matchesPhone = item.phone.includes(q);
         const matchesEmail = item.email.toLowerCase().includes(q);
-        if (!matchesName && !matchesOwner && !matchesPhone && !matchesEmail) return false;
+        const companyIdStr = String(item.companyId || item.id || "").toLowerCase();
+        const matchesCompanyId =
+          companyIdStr.includes(q.replace(/^#/, "")) ||
+          `id: ${companyIdStr}`.includes(q) ||
+          `id:#${companyIdStr}`.includes(q);
+        if (!matchesName && !matchesOwner && !matchesPhone && !matchesEmail && !matchesCompanyId) return false;
       }
 
       // Comprehensive Filters inside Drawer
       if (planFilter !== "all" && !item.plan.includes(planFilter)) return false;
       if (cityFilter !== "all" && item.city !== cityFilter) return false;
-      if (subscriptionStatusFilter !== "all" && item.subscriptionStatus.type !== subscriptionStatusFilter) {
-        return false;
-      }
 
       return true;
     });
@@ -92,7 +105,22 @@ export function ClientManagementTable({
       if (sortOrder === "oldest") return (Number(a.id) || 0) - (Number(b.id) || 0);
       return (Number(b.id) || 0) - (Number(a.id) || 0);
     });
-  }, [offices, activeTab, searchQuery, planFilter, cityFilter, subscriptionStatusFilter, sortOrder]);
+  }, [offices, activeTab, searchQuery, planFilter, cityFilter, sortOrder]);
+
+  const tabCounts = useMemo(() => {
+    const all = offices.length;
+    const trial = offices.filter(
+      (item) =>
+        item.accountStatus.type === "trial" ||
+        item.subscriptionStatus.type === "trial" ||
+        item.planType === "trial" ||
+        item.plan?.includes("تجرب") ||
+        item.plan?.toLowerCase().includes("trial")
+    ).length;
+    const suspended = offices.filter((item) => item.accountStatus.type === "suspended").length;
+    const active = offices.filter((item) => item.accountStatus.type === "active").length;
+    return { all, active, trial, suspended };
+  }, [offices]);
 
   const totalItems = filteredOffices.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
@@ -110,23 +138,23 @@ export function ClientManagementTable({
     const isCurrentlyActive = office.accountStatus.type === "active";
     setInternalOffices((prev) =>
       prev.map((o) => {
-        if (o.id === office.id) {
+        if (String(o.id) === String(office.id)) {
           return {
             ...o,
             accountStatus: isCurrentlyActive
               ? {
-                  label: "معطل",
+                  label: "غير نشط",
                   type: "suspended",
-                  bgClass: "bg-[#fef2f2]",
-                  textClass: "text-[#dc2626]",
-                  dotClass: "bg-[#dc2626]",
+                  bgClass: "bg-[#fef2f2] dark:bg-[#2c1313]",
+                  textClass: "text-[#dc2626] dark:text-[#f87171]",
+                  dotClass: "bg-[#dc2626] dark:bg-[#ef4444]",
                 }
               : {
                   label: "نشط",
                   type: "active",
-                  bgClass: "bg-[#e8f5e9]",
-                  textClass: "text-[#1b7340]",
-                  dotClass: "bg-[#1b7340]",
+                  bgClass: "bg-[#e8f5e9] dark:bg-[#132c1c]",
+                  textClass: "text-[#1b7340] dark:text-[#6ee7b7]",
+                  dotClass: "bg-[#1b7340] dark:bg-[#10b981]",
                 },
           };
         }
@@ -159,15 +187,15 @@ export function ClientManagementTable({
         onPrimaryFilterChange={(v) => setActiveTab(v as TabFilter)}
         primaryFilterMode="pills"
         primaryFilterOptions={[
-          { label: t("الكل (128)", "All (128)"), value: "all" },
-          { label: t("النشطة (96)", "Active (96)"), value: "active" },
-          { label: t("المعطلة (14)", "Suspended (14)"), value: "suspended" },
+          { label: `${t("الكل", "All")} (${tabCounts.all})`, value: "all" },
+          { label: `${t("النشطة", "Active")} (${tabCounts.active})`, value: "active" },
+          { label: `${t("تحت التجربة", "Trial")} (${tabCounts.trial})`, value: "trial" },
+          { label: `${t("المعطلة", "Suspended")} (${tabCounts.suspended})`, value: "suspended" },
         ]}
         hasActiveFilters={
           activeTab !== "all" ||
           planFilter !== "all" ||
           cityFilter !== "all" ||
-          subscriptionStatusFilter !== "all" ||
           sortOrder !== "newest" ||
           Boolean(searchQuery)
         }
@@ -176,7 +204,6 @@ export function ClientManagementTable({
           setActiveTab("all");
           setPlanFilter("all");
           setCityFilter("all");
-          setSubscriptionStatusFilter("all");
           setSortOrder("newest");
         }}
         drawerTitle={t("تصفية شاملة لمكاتب المحاماة", "Comprehensive Law Firm Filters")}
@@ -194,27 +221,12 @@ export function ClientManagementTable({
               >
                 <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">كافة الحالات (الكل)</option>
                 <option value="active" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الحسابات النشطة فقط</option>
+                <option value="trial" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الحسابات تحت التجربة فقط</option>
                 <option value="suspended" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الحسابات المعطلة فقط</option>
               </DashboardSelect>
             </div>
 
-            {/* 2. Subscription Status */}
-            <div className="space-y-2">
-              <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-                حالة الاشتراك
-              </label>
-              <DashboardSelect
-                value={subscriptionStatusFilter}
-                onChange={(e) => setSubscriptionStatusFilter(e.target.value)}
-              >
-                <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">كافة اشتراكات المكاتب</option>
-                <option value="active" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">اشتراك نشط وساري</option>
-                <option value="trial" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">تحت التجربة المجانية</option>
-                <option value="expired" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">منتهي الصلاحية</option>
-              </DashboardSelect>
-            </div>
-
-            {/* 3. Plan Filter */}
+            {/* 2. Plan Filter */}
             <div className="space-y-2">
               <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
                 باقة الاشتراك المعتمدة
@@ -224,6 +236,7 @@ export function ClientManagementTable({
                 onChange={(e) => setPlanFilter(e.target.value)}
               >
                 <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">جميع الباقات</option>
+                <option value="التميز" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">باقة التميز العدلي (VIP)</option>
                 <option value="الاحترافية" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الباقة الاحترافية (Pro)</option>
                 <option value="الشركات" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">باقة الشركات (Enterprise)</option>
                 <option value="الأساسية" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الباقة الأساسية (Basic)</option>
@@ -290,7 +303,7 @@ export function ClientManagementTable({
       />
 
       {/* Table Data */}
-      <div className="overflow-x-auto scrollbar-none w-full">
+      <div className="overflow-x-auto overflow-y-hidden scrollbar-none w-full">
         <table className="w-full text-start border-collapse">
           <thead>
             <tr className="bg-[#f5f3ef] dark:bg-[#281c15] border-b border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[18px] font-semibold">
@@ -300,8 +313,7 @@ export function ClientManagementTable({
               <th className="py-[12px] px-[16px] whitespace-nowrap">{t("البريد الإلكتروني", "Email")}</th>
               <th className="py-[12px] px-[16px] whitespace-nowrap">{t("رقم التواصل", "Phone Number")}</th>
               <th className="py-[12px] px-[16px] whitespace-nowrap">{t("الباقة الحالية", "Current Plan")}</th>
-              <th className="py-[12px] px-[16px] whitespace-nowrap">{t("حالة الاشتراك", "Subscription")}</th>
-              <th className="py-[12px] px-[16px] whitespace-nowrap">{t("حالة الحساب", "Account Status")}</th>
+              <th className="py-[12px] px-[16px] whitespace-nowrap">{t("الحالة", "Status")}</th>
               <th className="py-[12px] px-[16px] text-center whitespace-nowrap">{t("الإجراءات", "Actions")}</th>
             </tr>
           </thead>
@@ -336,9 +348,6 @@ export function ClientManagementTable({
                   <td className="py-[16px] px-[16px]">
                     <div className="h-5 w-20 bg-black/5 dark:bg-white/10 rounded-full" />
                   </td>
-                  <td className="py-[16px] px-[16px]">
-                    <div className="h-5 w-16 bg-black/5 dark:bg-white/10 rounded-full" />
-                  </td>
                   <td className="py-[16px] px-[16px] text-center">
                     <div className="size-[32px] rounded-[4px] bg-black/5 dark:bg-white/10 mx-auto" />
                   </td>
@@ -346,7 +355,7 @@ export function ClientManagementTable({
               ))
             ) : paginatedOffices.length === 0 ? (
               <tr>
-                <td colSpan={9} className="py-[48px] text-center text-[#837565] dark:text-[#8e8680] text-[14px]">
+                <td colSpan={8} className="py-[48px] text-center text-[#837565] dark:text-[#8e8680] text-[14px]">
                   {t("لا توجد مكاتب تطابق معايير البحث الحالية", "No law offices match the current search criteria")}
                 </td>
               </tr>
@@ -365,26 +374,56 @@ export function ClientManagementTable({
                   {/* 1. اسم المكتب والترخيص */}
                   <td className="py-[16px] px-[16px]">
                     <div className="flex items-center gap-[12px]">
-                      {office.logo && !failedLogos[office.id] ? (
-                        <div className="size-[36px] rounded-[4px] bg-white dark:bg-[#1a120d] border border-[#eae8e4] dark:border-[#422e20] p-0.5 flex items-center justify-center shrink-0 overflow-hidden">
-                          <img
-                            src={office.logo}
-                            alt={office.name}
-                            className="max-h-full max-w-full object-contain"
-                            onError={() => setFailedLogos((prev) => ({ ...prev, [office.id]: true }))}
-                          />
-                        </div>
-                      ) : (
-                        <div
-                          className={`size-[36px] rounded-[4px] flex items-center justify-center font-bold text-[14px] shrink-0 ${office.initialBg} ${office.initialText}`}
-                        >
-                          {office.initial}
-                        </div>
-                      )}
+                      {(() => {
+                        const localLogo = getLocalCustomLogo(office.id);
+                        const tableLogo = (!failedLogos[office.id] && office.logo && !office.logo.includes("/storage/firms/"))
+                          ? office.logo
+                          : (localLogo || (!failedLogos[office.id] ? office.logo : undefined));
+
+                        if (tableLogo) {
+                          return (
+                            <div className="size-[36px] rounded-[4px] bg-white dark:bg-[#1a120d] border border-[#eae8e4] dark:border-[#422e20] p-0.5 flex items-center justify-center shrink-0 overflow-hidden relative">
+                              <span className={`text-[12px] font-bold ${office.initialText} absolute pointer-events-none select-none`}>
+                                {office.initial}
+                              </span>
+                              <img
+                                src={tableLogo}
+                                alt=""
+                                className="max-h-full max-w-full object-contain relative z-10 bg-white dark:bg-[#1a120d]"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = "none";
+                                  setFailedLogos((prev) => ({ ...prev, [office.id]: true }));
+                                }}
+                              />
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <div
+                            className={`size-[36px] rounded-[4px] flex items-center justify-center font-bold text-[14px] shrink-0 border border-[#eae8e4] dark:border-[#423122] bg-[#fff9ee] dark:bg-[#2d1f16] text-[#9c6402] dark:text-[#e29d38]`}
+                            style={
+                              office.themeColor
+                                ? { borderColor: `${office.themeColor}59` }
+                                : undefined
+                            }
+                          >
+                            {office.initial}
+                          </div>
+                        );
+                      })()}
                       <div className="flex flex-col">
-                        <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-bold leading-[19px]">
-                          {office.name}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-bold leading-[19px]">
+                            {office.name}
+                          </span>
+                          <span
+                            className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#f4efe6] dark:bg-[#271d15] text-[#78644f] dark:text-[#c4b3a3] border border-[#dfd7cc] dark:border-[#423122]"
+                            title={`معرف المنشأة (Company ID): #${office.companyId || office.id}`}
+                          >
+                            ID: #{office.companyId || office.id}
+                          </span>
+                        </div>
                         <span className="text-[#837565] dark:text-[#8e8680] text-[11px] leading-[16px]">
                           {office.licenseNumber} • {office.city}
                         </span>
@@ -409,71 +448,83 @@ export function ClientManagementTable({
 
                   {/* 4. رقم التواصل */}
                   <td className="py-[16px] px-[16px]">
-                    <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] font-normal direction-ltr block">
+                    <span dir="ltr" className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] font-normal inline-block whitespace-nowrap font-mono">
                       {office.phone}
                     </span>
                   </td>
 
                   {/* 5. الباقة الحالية */}
                   <td className="py-[16px] px-[16px]">
-                    <span
-                      className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap border ${office.planBadgeClass}`}
-                    >
-                      {isEn
-                        ? office.plan
-                            .replace("الباقة الاحترافية", "Professional")
-                            .replace("باقة الشركات", "Enterprise")
-                            .replace("الباقة الأساسية", "Basic")
-                            .replace("تجربة مجانية", "Free Trial")
-                        : office.plan}
-                    </span>
+                    <div className="flex flex-col gap-1 items-start">
+                      <span
+                        className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap border ${office.planBadgeClass}`}
+                      >
+                        {isEn
+                          ? office.plan
+                              .replace("الباقة الاحترافية", "Professional")
+                              .replace("باقة الشركات", "Enterprise")
+                              .replace("الباقة الأساسية", "Basic")
+                              .replace("تجربة مجانية", "Free Trial")
+                          : office.plan}
+                      </span>
+                      {(() => {
+                        const effectiveAutoRenew = office.id ? getLocalCustomAutoRenew(office.id) ?? office.autoRenew : office.autoRenew;
+                        if (effectiveAutoRenew === undefined) return null;
+                        return (
+                          <span className={`text-[10px] font-semibold inline-flex items-center gap-1 ${
+                            effectiveAutoRenew ? "text-[#065f46] dark:text-[#6ee7b7]" : "text-[#dc2626] dark:text-[#f87171]"
+                          }`}>
+                            <span className={`size-1.5 rounded-full ${effectiveAutoRenew ? "bg-[#10b981]" : "bg-[#dc2626]"}`} />
+                            {effectiveAutoRenew ? t("تجديد تلقائي", "Auto-renew") : t("تجديد يدوي", "Manual renew")}
+                          </span>
+                        );
+                      })()}
+                    </div>
                   </td>
 
-                  {/* 6. حالة الاشتراك */}
+                  {/* 6. الحالة */}
                   <td className="py-[16px] px-[16px]">
-                    <span
-                      className={`w-fit inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap border ${office.subscriptionStatus.bgClass} ${office.subscriptionStatus.textClass}`}
-                    >
-                      <span>
-                        {isEn
-                          ? office.subscriptionStatus.label === "نشط"
-                            ? "Active"
-                            : office.subscriptionStatus.label === "ساري"
-                            ? "Valid"
-                            : office.subscriptionStatus.label === "منتهي"
-                            ? "Expired"
-                            : office.subscriptionStatus.label
-                          : office.subscriptionStatus.label}
-                      </span>
-                      {office.subscriptionStatus.note && (
-                        <span className="font-medium text-[10px] opacity-90">
-                          {isEn
-                            ? office.subscriptionStatus.note
-                                .replace("(ساري)", "(Valid)")
-                                .replace("(منتهي)", "(Expired)")
-                                .replace("متبقي", "Remaining")
-                            : office.subscriptionStatus.note}
+                    {(() => {
+                      const statusType = office.accountStatus.type;
+                      const isActiveStatus = statusType === "active";
+                      const isTrialStatus = statusType === "trial";
+                      const statusTone = isActiveStatus
+                        ? {
+                            wrap: "bg-[#e8f5e9] dark:bg-[#132c1c] text-[#1b7340] dark:text-[#6ee7b7] border-[#c8e6c9] dark:border-emerald-500/40",
+                            dot: "bg-[#1b7340] dark:bg-[#10b981]",
+                          }
+                        : isTrialStatus
+                        ? {
+                            wrap: "bg-[#fffbeb] dark:bg-[#342711] text-[#92400e] dark:text-[#fbbf24] border-[#fde68a] dark:border-[#e29d38]/40",
+                            dot: "bg-[#d97706] dark:bg-[#fbbf24]",
+                          }
+                        : {
+                            wrap: "bg-[#fef2f2] dark:bg-[#2c1313] text-[#dc2626] dark:text-[#f87171] border-[#fecaca] dark:border-rose-500/40",
+                            dot: "bg-[#dc2626] dark:bg-[#ef4444]",
+                          };
+                      return (
+                        <span
+                          className={`w-fit inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap border ${statusTone.wrap}`}
+                        >
+                          <span
+                            className={`size-[7px] rounded-full shadow-[0_0_8px_currentColor] ring-1 ring-current/40 shrink-0 ${statusTone.dot}`}
+                          />
+                          <span>
+                            {isEn
+                              ? isActiveStatus
+                                ? "Active"
+                                : isTrialStatus
+                                ? "Trial"
+                                : "Inactive"
+                              : isActiveStatus
+                              ? "نشط"
+                              : isTrialStatus
+                              ? "تحت التجربة"
+                              : "غير نشط"}
+                          </span>
                         </span>
-                      )}
-                    </span>
-                  </td>
-
-                  {/* 7. حالة الحساب */}
-                  <td className="py-[16px] px-[16px]">
-                    <span
-                      className={`w-fit inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap border ${office.accountStatus.bgClass} ${office.accountStatus.textClass}`}
-                    >
-                      <span className={`size-[7px] rounded-full shadow-[0_0_8px_currentColor] ring-1 ring-current/40 shrink-0 ${office.accountStatus.dotClass}`} />
-                      <span>
-                        {isEn
-                          ? office.accountStatus.label === "نشط"
-                            ? "Active"
-                            : office.accountStatus.label === "معطل"
-                            ? "Suspended"
-                            : office.accountStatus.label
-                          : office.accountStatus.label}
-                      </span>
-                    </span>
+                      );
+                    })()}
                   </td>
 
                   {/* 8. الإجراءات */}
@@ -516,38 +567,57 @@ export function ClientManagementTable({
                           <MoreVertical className="size-[15px]" />
                         </button>
 
-                        <ClientRowActionMenu
-                          isOpen={openMenuRowId === office.id}
-                          onClose={() => setOpenMenuRowId(null)}
-                          onViewDetails={() => onViewOfficeDetails(office)}
-                          onEnterOfficeAsAdmin={
-                            onEnterOfficeAsAdmin
-                              ? () => onEnterOfficeAsAdmin(office)
-                              : undefined
-                          }
-                          onEdit={() => onEditOffice(office)}
-                          onManageSubscriptions={() => {
-                            if (onManageSubscriptions) {
-                              onManageSubscriptions(office);
-                            } else {
-                              toast.info(`إدارة اشتراكات وفواتير مكتب ${office.name}`);
-                            }
-                          }}
-                          onDeactivate={() => {
-                            if (onOpenDeactivateModal) {
-                              onOpenDeactivateModal(office);
-                            } else {
-                              handleDeactivateToggle(office);
-                            }
-                          }}
-                          onDelete={() => {
-                            if (onOpenDeleteModal) {
-                              onOpenDeleteModal(office);
-                            } else {
-                              handleDeleteOffice(office);
-                            }
-                          }}
-                        />
+                        {(() => {
+                          const accType = office.accountStatus.type as string | undefined;
+                          const isRowSuspended =
+                            accType === "suspended" ||
+                            accType === "inactive" ||
+                            office.accountStatus.label === "غير نشط" ||
+                            office.accountStatus.label === "معطل";
+                          return (
+                            <ClientRowActionMenu
+                              isOpen={openMenuRowId === office.id}
+                              onClose={() => setOpenMenuRowId(null)}
+                              onViewDetails={() => onViewOfficeDetails(office)}
+                              onEnterOfficeAsAdmin={
+                                onEnterOfficeAsAdmin
+                                  ? () => onEnterOfficeAsAdmin(office)
+                                  : undefined
+                              }
+                              onEdit={() => onEditOffice(office)}
+                              onManageSubscriptions={() => {
+                                if (onManageSubscriptions) {
+                                  onManageSubscriptions(office);
+                                } else {
+                                  toast.info(`إدارة اشتراكات وفواتير مكتب ${office.name}`);
+                                }
+                              }}
+                              isSuspended={isRowSuspended}
+                              onDeactivate={() => {
+                                if (isRowSuspended) {
+                                  if (onReactivate) {
+                                    onReactivate(office);
+                                  } else {
+                                    handleDeactivateToggle(office);
+                                  }
+                                } else {
+                                  if (onOpenDeactivateModal) {
+                                    onOpenDeactivateModal(office);
+                                  } else {
+                                    handleDeactivateToggle(office);
+                                  }
+                                }
+                              }}
+                              onDelete={() => {
+                                if (onOpenDeleteModal) {
+                                  onOpenDeleteModal(office);
+                                } else {
+                                  handleDeleteOffice(office);
+                                }
+                              }}
+                            />
+                          );
+                        })()}
                       </div>
                     </div>
                   </td>

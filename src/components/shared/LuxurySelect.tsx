@@ -76,7 +76,7 @@ export function LuxurySelect<T extends string | number = string>({
         onClick={() => !disabled && setIsOpen((prev) => !prev)}
         className={`w-full flex items-center justify-between gap-2.5 rounded-xl border transition-all select-none ${
           disabled
-            ? "opacity-60 cursor-not-allowed bg-stone-100 dark:bg-[#1a1816] border-[#ded5c6]/60 dark:border-[#2f2a24]"
+            ? "opacity-60 cursor-not-allowed bg-stone-100 dark:bg-[#1a120d] border-[#ded5c6]/60 dark:border-[#38271c]"
             : "cursor-pointer"
         } ${
           compact
@@ -84,8 +84,8 @@ export function LuxurySelect<T extends string | number = string>({
             : "h-10.5 px-3.5 text-xs font-semibold"
         } ${
           isOpen
-            ? "border-[#c29547] bg-[#faf5eb] dark:bg-[#282218] text-[#966e2e] dark:text-[#eeddbb] shadow-[0_2px_12px_rgba(194,149,71,0.18)]"
-            : "border-[#ded5c6] dark:border-[#2f2a24] bg-[#faf8f4] dark:bg-[#201d1a] text-[#1c1917] dark:text-[#f5f4f0] hover:border-[#c29547]"
+            ? "border-[#c29547] bg-[#faf5eb] dark:bg-[#281c15] text-[#966e2e] dark:text-[#eeddbb] shadow-[0_2px_12px_rgba(194,149,71,0.18)]"
+            : "border-[#ded5c6] dark:border-[#38271c] bg-[#faf8f4] dark:bg-[#281c15] text-[#1c1917] dark:text-[#fdfbf7] hover:border-[#c29547]"
         }`}
       >
         <span className="truncate text-start">
@@ -101,7 +101,7 @@ export function LuxurySelect<T extends string | number = string>({
       {/* Dropdown Menu Popover */}
       {isOpen && (
         <div
-          className={`absolute z-50 ${minWidth} rounded-2xl border border-[#eeddbb] dark:border-[#382b18] bg-white dark:bg-[#1a1714] p-1.5 shadow-[0_12px_36px_rgba(0,0,0,0.15)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.6)] backdrop-blur-md animate-in fade-in-0 zoom-in-95 duration-150 ${
+          className={`absolute z-50 ${minWidth} rounded-2xl border border-[#eeddbb] dark:border-[#382b18] bg-white dark:bg-[#221812] p-1.5 shadow-[0_12px_36px_rgba(0,0,0,0.15)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.6)] backdrop-blur-md animate-in fade-in-0 zoom-in-95 duration-150 ${
             placement === "top" ? "bottom-full mb-1.5" : "top-full mt-1.5"
           } start-0 ${dropdownClassName}`}
         >
@@ -118,8 +118,8 @@ export function LuxurySelect<T extends string | number = string>({
                   }}
                   className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer text-start ${
                     isSelected
-                      ? "bg-[#faf5eb] dark:bg-[#282218] text-[#966e2e] dark:text-[#eeddbb]"
-                      : "text-[#2c2825] dark:text-[#e4ded5] hover:bg-[#faf5eb]/60 dark:hover:bg-[#241f1a] hover:text-[#c29547]"
+                      ? "bg-[#faf5eb] dark:bg-[#281c15] text-[#966e2e] dark:text-[#eeddbb]"
+                      : "text-[#2c2825] dark:text-[#e4ded5] hover:bg-[#faf5eb]/60 dark:hover:bg-[#281c15] hover:text-[#c29547]"
                   }`}
                 >
                   <div className="flex items-center gap-2 truncate">

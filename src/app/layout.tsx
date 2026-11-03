@@ -4,6 +4,7 @@ import { Cairo } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "sonner";
 import { cn } from "@/lib/utils";
+import { AppAuthShell } from "@/components/shared/AppAuthShell";
 import "./globals.css";
 
 const cairo = Cairo({
@@ -52,7 +53,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-background text-foreground antialiased selection:bg-[#f3e3c3] selection:text-[#78541c]">
         <Suspense fallback={null}>
           <NuqsAdapter>
-            {children}
+            <AppAuthShell>{children}</AppAuthShell>
             <Toaster
               position="bottom-left"
               dir="rtl"

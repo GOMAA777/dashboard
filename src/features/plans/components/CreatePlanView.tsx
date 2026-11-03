@@ -16,7 +16,12 @@ import { PricingPlanItem } from "../types/plan.types";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { DashboardSelect } from "@/components/shared/DashboardSelect";
-import { createPlan, updatePlan } from "@/lib/api/plans";
+import {
+  createPlan,
+  updatePlan,
+  fetchPlanById,
+  saveLocalCustomPlan,
+} from "@/lib/api/plans";
 import { mapPlanFromApi } from "@/lib/api/mappers";
 
 interface CreatePlanViewProps {
@@ -49,6 +54,21 @@ function inferSupportSla(plan?: PricingPlanItem | null): string {
   if (sup.includes("أولوية") || sup.includes("متقدم")) return "priority";
   if (sup.includes("قياسي") || sup.includes("24")) return "standard";
   return "standard";
+}
+
+/** Map UI SLA codes to API support_level strings (Postman contract). */
+function supportLevelForApi(code: string): string {
+  if (code === "vip") return "دعم مباشر ذو أولوية فائقة (VIP SLA)";
+  if (code === "priority") return "دعم فني قياسي ذو أولوية";
+  if (code === "standard") return "دعم فني قياسي (خلال 24 ساعة)";
+  return code || "دعم فني قياسي (خلال 24 ساعة)";
+}
+
+/** Map UI status to API status values. */
+function statusForApi(uiStatus: string, isDraft: boolean): string {
+  if (isDraft || uiStatus === "draft" || uiStatus === "private") return "inactive";
+  if (uiStatus === "disabled" || uiStatus === "inactive") return "inactive";
+  return "active";
 }
 
 function inferFeatures(plan?: PricingPlanItem | null) {
@@ -122,23 +142,42 @@ export function CreatePlanView({
   );
   const [isPopular, setIsPopular] = useState(() => Boolean(planToEdit?.isPopular));
 
+  const resolvePricingModel = (plan?: PricingPlanItem | null): "paid" | "trial" => {
+    if (!plan) return "paid";
+    const type = String(plan.type || "").toLowerCase();
+    if (type === "trial" || type === "free") return "trial";
+    if (Number(plan.monthlyPrice) === 0 && Number(plan.annualPrice || 0) === 0) {
+      return "trial";
+    }
+    return "paid";
+  };
+
   // 2. Pricing & Cycles
   const [pricingModel, setPricingModel] = useState<"paid" | "trial">(() =>
-    planToEdit ? (planToEdit.monthlyPrice === 0 ? "trial" : "paid") : "paid"
+    resolvePricingModel(planToEdit)
   );
   const [billingCycle, setBillingCycle] = useState(() =>
     planToEdit ? (planToEdit.annualPrice ? "annual" : "monthly") : ""
   );
   const [vatOption, setVatOption] = useState(() => (planToEdit ? "inclusive" : ""));
-  const [monthlyPrice, setMonthlyPrice] = useState<number | string>(() =>
-    planToEdit ? planToEdit.monthlyPrice : ""
-  );
-  const [annualPrice, setAnnualPrice] = useState<number | string>(() =>
-    planToEdit && planToEdit.annualPrice ? planToEdit.annualPrice : ""
-  );
-  const [yearlyDiscountPercent, setYearlyDiscountPercent] = useState<number | string>(() =>
-    planToEdit?.yearlyDiscountPercent !== undefined ? planToEdit.yearlyDiscountPercent : ""
-  );
+  const [monthlyPrice, setMonthlyPrice] = useState<number | string>(() => {
+    if (!planToEdit) return "";
+    return resolvePricingModel(planToEdit) === "trial" ? 0 : planToEdit.monthlyPrice;
+  });
+  const [annualPrice, setAnnualPrice] = useState<number | string>(() => {
+    if (!planToEdit) return "";
+    return resolvePricingModel(planToEdit) === "trial"
+      ? 0
+      : planToEdit.annualPrice || "";
+  });
+  const [yearlyDiscountPercent, setYearlyDiscountPercent] = useState<number | string>(() => {
+    if (!planToEdit) return "";
+    return resolvePricingModel(planToEdit) === "trial"
+      ? 0
+      : planToEdit.yearlyDiscountPercent !== undefined
+        ? planToEdit.yearlyDiscountPercent
+        : "";
+  });
 
   // 3. Limits & Quotas
   const [lawyersLimit, setLawyersLimit] = useState<number | string>(() =>
@@ -184,14 +223,23 @@ export function CreatePlanView({
             : "#9c6402")
       );
       setIsPopular(Boolean(planToEdit.isPopular));
-      setPricingModel(planToEdit.monthlyPrice === 0 ? "trial" : "paid");
+      const nextModel = resolvePricingModel(planToEdit);
+      setPricingModel(nextModel);
       setBillingCycle(planToEdit.annualPrice ? "annual" : "monthly");
       setVatOption("inclusive");
-      setMonthlyPrice(planToEdit.monthlyPrice);
-      setAnnualPrice(planToEdit.annualPrice || "");
-      setYearlyDiscountPercent(
-        planToEdit.yearlyDiscountPercent !== undefined ? planToEdit.yearlyDiscountPercent : ""
-      );
+      if (nextModel === "trial") {
+        setMonthlyPrice(0);
+        setAnnualPrice(0);
+        setYearlyDiscountPercent(0);
+      } else {
+        setMonthlyPrice(planToEdit.monthlyPrice);
+        setAnnualPrice(planToEdit.annualPrice || "");
+        setYearlyDiscountPercent(
+          planToEdit.yearlyDiscountPercent !== undefined
+            ? planToEdit.yearlyDiscountPercent
+            : ""
+        );
+      }
       setLawyersLimit(extractLimitValue(planToEdit.limits?.lawyers));
       setCasesLimit(extractLimitValue(planToEdit.limits?.cases));
       setAgentsLimit(extractLimitValue(planToEdit.limits?.agents));
@@ -205,6 +253,15 @@ export function CreatePlanView({
 
   const toggleFeature = (key: keyof typeof features) => {
     setFeatures((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const applyPricingModel = (model: "paid" | "trial") => {
+    setPricingModel(model);
+    if (model === "trial") {
+      setMonthlyPrice(0);
+      setAnnualPrice(0);
+      setYearlyDiscountPercent(0);
+    }
   };
 
   const getLimitText = (
@@ -231,8 +288,17 @@ export function CreatePlanView({
       return;
     }
 
-    const numMonthly = monthlyPrice === "" ? 0 : Number(monthlyPrice) || 0;
-    const numAnnual = annualPrice === "" ? 0 : Number(annualPrice) || 0;
+    const isTrial = pricingModel === "trial";
+    const numMonthly = isTrial
+      ? 0
+      : monthlyPrice === ""
+        ? 0
+        : Number(monthlyPrice) || 0;
+    const numAnnual = isTrial
+      ? 0
+      : annualPrice === ""
+        ? 0
+        : Number(annualPrice) || 0;
     const numLawyers = lawyersLimit === "" ? 0 : Number(lawyersLimit);
     const numCases = casesLimit === "" ? 0 : Number(casesLimit);
     const numAgents = agentsLimit === "" ? 0 : Number(agentsLimit);
@@ -247,18 +313,20 @@ export function CreatePlanView({
     activeFeatures.push("ربط تكاملي فوري مع بوابة ناجز ومساند");
     if (features.vipSla) activeFeatures.push("دعم مباشر ذو أولوية فائقة (VIP)");
 
-    const calculatedDiscount =
-      yearlyDiscountPercent !== ""
+    const calculatedDiscount = isTrial
+      ? 0
+      : yearlyDiscountPercent !== ""
         ? Number(yearlyDiscountPercent)
         : numMonthly > 0 && numAnnual > 0
-        ? Math.max(0, Math.round(((numMonthly * 12 - numAnnual) / (numMonthly * 12)) * 100))
-        : 0;
+          ? Math.max(
+              0,
+              Math.round(((numMonthly * 12 - numAnnual) / (numMonthly * 12)) * 100)
+            )
+          : 0;
 
-    const payload = {
+    const payload: Record<string, unknown> = {
       name: name.trim(),
       description: description.trim(),
-      badge: badge.trim() || undefined,
-      badge_color: badgeColor || undefined,
       type: pricingModel,
       monthly_price: numMonthly,
       yearly_price: numAnnual,
@@ -269,11 +337,15 @@ export function CreatePlanView({
       max_assistants: numAssistants,
       max_clients: numClients,
       storage_limit_gb: numStorage,
-      support_level: supportSla,
+      support_level: supportLevelForApi(supportSla),
       features: activeFeatures,
       is_popular: isPopular,
-      status: isDraft ? "inactive" : status,
+      status: statusForApi(status, isDraft),
     };
+    if (badge.trim()) {
+      payload.badge = badge.trim();
+      payload.badge_color = badgeColor || "#d97706";
+    }
 
     let savedPlan: PricingPlanItem = {
       id: planToEdit ? planToEdit.id : `plan-${Date.now()}`,
@@ -343,18 +415,66 @@ export function CreatePlanView({
     };
 
     try {
-      const response = isEditMode && planToEdit
-        ? await updatePlan(planToEdit.id, payload)
-        : await createPlan(payload);
-      const mapped = mapPlanFromApi(
-        ((response as { data?: Record<string, unknown> })?.data ||
-          response) as Record<string, unknown>
-      );
-      if (mapped?.id) savedPlan = { ...savedPlan, ...mapped, colorTheme };
-    } catch {
-      // Fall back to local plan object so UI flow stays intact.
+      const response =
+        isEditMode && planToEdit
+          ? await updatePlan(planToEdit.id, payload)
+          : await createPlan(payload);
+
+      const responseData = ((response as { data?: Record<string, unknown> })?.data ||
+        response) as Record<string, unknown>;
+      let mapped = mapPlanFromApi(responseData);
+      const persistedId = planToEdit?.id || mapped.id;
+
+      // Re-read from API so list/details match what was actually stored.
+      if (persistedId) {
+        try {
+          const fresh = await fetchPlanById(persistedId);
+          const freshData = ((fresh as { data?: Record<string, unknown> })?.data ||
+            fresh) as Record<string, unknown>;
+          if (freshData && (freshData.id || freshData.name)) {
+            mapped = mapPlanFromApi(freshData);
+          }
+        } catch {
+          // Keep mapped response if detail fetch fails.
+        }
+      }
+
+      if (mapped?.id || persistedId) {
+        savedPlan = {
+          ...savedPlan,
+          ...mapped,
+          id: String(persistedId || mapped.id),
+          // Enforce the submitted commercial model from this save.
+          type: String(mapped.type || pricingModel),
+          monthlyPrice:
+            mapped.type === "trial" || pricingModel === "trial"
+              ? 0
+              : Number(mapped.monthlyPrice ?? numMonthly),
+          annualPrice:
+            mapped.type === "trial" || pricingModel === "trial"
+              ? 0
+              : Number(mapped.annualPrice ?? numAnnual),
+          colorTheme,
+        };
+      }
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === "object" && "message" in err
+          ? String((err as { message: unknown }).message)
+          : t(
+              "تعذر حفظ الباقة على الخادم. تحقق من البيانات وحاول مرة أخرى.",
+              "Failed to save the plan on the server. Check the data and try again."
+            );
+      toast.error(message);
+      return;
     }
 
+    if (isEditMode && planToEdit) {
+      savedPlan.id = planToEdit.id;
+      if (planToEdit.code) savedPlan.code = planToEdit.code;
+    }
+
+    saveLocalCustomPlan(savedPlan, planToEdit?.id, planToEdit?.name);
     onSuccess(savedPlan);
     toast.success(
       isEditMode
@@ -432,10 +552,10 @@ export function CreatePlanView({
           <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col gap-5">
             {/* Step Header */}
             <div className="bg-[#f5f3ef]/50 dark:bg-[#281c15] rounded-[4px] px-[16px] py-[10px] flex items-center justify-between">
-              <span className="bg-[#eae8e4] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px]">
-                {t("خطوة 1 من 4", "Step 1 of 4")}
-              </span>
               <div className="flex items-center gap-[10px]">
+                <div className="size-[28px] rounded-full bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] font-bold text-[12px] flex items-center justify-center shrink-0">
+                  {isEn ? "1" : "١"}
+                </div>
                 <div className="flex flex-col text-start">
                   <h2 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                     {t("البيانات الأساسية للباقة", "Basic Plan Details")}
@@ -447,10 +567,10 @@ export function CreatePlanView({
                     )}
                   </p>
                 </div>
-                <div className="size-[28px] rounded-full bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] font-bold text-[12px] flex items-center justify-center shrink-0">
-                  {isEn ? "1" : "١"}
-                </div>
               </div>
+              <span className="bg-[#eae8e4] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px] shrink-0">
+                {t("خطوة 1 من 4", "Step 1 of 4")}
+              </span>
             </div>
 
             {/* Input: اسم الباقة */}
@@ -678,7 +798,7 @@ export function CreatePlanView({
                 onClick={() => setIsPopular(!isPopular)}
                 className={`relative inline-flex h-[24px] w-[44px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                   isPopular
-                    ? "bg-[#9c6402] dark:bg-[#e29d38]"
+                    ? "bg-[#10b981] dark:bg-[#10b981]"
                     : "bg-[#d1ccc4] dark:bg-[#38271c]"
                 }`}
               >
@@ -700,10 +820,10 @@ export function CreatePlanView({
           <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col gap-5">
             {/* Step Header */}
             <div className="bg-[#f5f3ef]/50 dark:bg-[#281c15] rounded-[4px] px-[16px] py-[10px] flex items-center justify-between">
-              <span className="bg-[#eae8e4] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px]">
-                {t("خطوة 2 من 4", "Step 2 of 4")}
-              </span>
               <div className="flex items-center gap-[10px]">
+                <div className="size-[28px] rounded-full bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] font-bold text-[12px] flex items-center justify-center shrink-0">
+                  {isEn ? "2" : "٢"}
+                </div>
                 <div className="flex flex-col text-start">
                   <h2 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                     {t("السعر ودورات الفوترة", "Pricing & Billing Cycles")}
@@ -715,16 +835,16 @@ export function CreatePlanView({
                     )}
                   </p>
                 </div>
-                <div className="size-[28px] rounded-full bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] font-bold text-[12px] flex items-center justify-center shrink-0">
-                  {isEn ? "2" : "٢"}
-                </div>
               </div>
+              <span className="bg-[#eae8e4] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px] shrink-0">
+                {t("خطوة 2 من 4", "Step 2 of 4")}
+              </span>
             </div>
 
             {/* نوع النموذج المالي */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px]">
               <label
-                onClick={() => setPricingModel("paid")}
+                onClick={() => applyPricingModel("paid")}
                 className={`p-[14px] rounded-[6px] border flex items-center justify-between cursor-pointer transition-all ${
                   pricingModel === "paid"
                     ? "border-[#9c6402] dark:border-[#e29d38] bg-[#f5f3ef] dark:bg-[#281c15] ring-1 ring-[#9c6402] dark:ring-[#e29d38]"
@@ -746,13 +866,13 @@ export function CreatePlanView({
                   type="radio"
                   name="model"
                   checked={pricingModel === "paid"}
-                  onChange={() => setPricingModel("paid")}
+                  onChange={() => applyPricingModel("paid")}
                   className="accent-[#9c6402]"
                 />
               </label>
 
               <label
-                onClick={() => setPricingModel("trial")}
+                onClick={() => applyPricingModel("trial")}
                 className={`p-[14px] rounded-[6px] border flex items-center justify-between cursor-pointer transition-all ${
                   pricingModel === "trial"
                     ? "border-[#9c6402] dark:border-[#e29d38] bg-[#f5f3ef] dark:bg-[#281c15] ring-1 ring-[#9c6402] dark:ring-[#e29d38]"
@@ -774,7 +894,7 @@ export function CreatePlanView({
                   type="radio"
                   name="model"
                   checked={pricingModel === "trial"}
-                  onChange={() => setPricingModel("trial")}
+                  onChange={() => applyPricingModel("trial")}
                   className="accent-[#9c6402]"
                 />
               </label>
@@ -810,12 +930,6 @@ export function CreatePlanView({
                     {t(
                       "فوترة شهرية مرنة (تجديد دوري كل 30 يوماً)",
                       "Flexible Monthly Billing (Renews every 30 days)"
-                    )}
-                  </option>
-                  <option value="quarterly">
-                    {t(
-                      "فوترة ربع سنوية (تجديد كل 3 أشهر للمشاريع المؤقتة)",
-                      "Quarterly Billing (Renews every 3 months)"
                     )}
                   </option>
                 </DashboardSelect>
@@ -876,6 +990,7 @@ export function CreatePlanView({
                   <input
                     type="number"
                     value={monthlyPrice}
+                    disabled={pricingModel === "trial"}
                     onChange={(e) =>
                       setMonthlyPrice(e.target.value === "" ? "" : Number(e.target.value))
                     }
@@ -883,7 +998,7 @@ export function CreatePlanView({
                       "أدخل قيمة الاشتراك الشهري بالريال السعودي (مثال: 499)",
                       "Enter monthly subscription fee in SAR (e.g. 499)"
                     )}
-                    className="w-full h-[44px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] ps-[44px] pe-[14px] text-[14px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none"
+                    className="w-full h-[44px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] ps-[44px] pe-[14px] text-[14px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
                   />
                   <span className="text-[11px] font-bold text-[#837565] dark:text-[#cdc5bd] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none">
                     {t("ر.س", "SAR")}
@@ -912,6 +1027,7 @@ export function CreatePlanView({
                   <input
                     type="number"
                     value={annualPrice}
+                    disabled={pricingModel === "trial"}
                     onChange={(e) =>
                       setAnnualPrice(e.target.value === "" ? "" : Number(e.target.value))
                     }
@@ -919,7 +1035,7 @@ export function CreatePlanView({
                       "أدخل قيمة الاشتراك السنوي الإجمالي بعد الخصم التشجيعي (مثال: 4990)",
                       "Enter total annual fee after discount (e.g. 4990)"
                     )}
-                    className="w-full h-[44px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] ps-[44px] pe-[14px] text-[14px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none"
+                    className="w-full h-[44px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] ps-[44px] pe-[14px] text-[14px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
                   />
                   <span className="text-[11px] font-bold text-[#837565] dark:text-[#cdc5bd] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none">
                     {t("ر.س", "SAR")}
@@ -953,6 +1069,7 @@ export function CreatePlanView({
                     min="0"
                     max="100"
                     value={yearlyDiscountPercent}
+                    disabled={pricingModel === "trial"}
                     onChange={(e) =>
                       setYearlyDiscountPercent(e.target.value === "" ? "" : Number(e.target.value))
                     }
@@ -960,7 +1077,7 @@ export function CreatePlanView({
                       "أدخل نسبة الخصم السنوي (مثال: 19)",
                       "Enter annual discount % (e.g. 19)"
                     )}
-                    className="w-full h-[44px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] ps-[44px] pe-[14px] text-[14px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none"
+                    className="w-full h-[44px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] ps-[44px] pe-[14px] text-[14px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
                   />
                   <span className="text-[11px] font-bold text-[#837565] dark:text-[#cdc5bd] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none">
                     %
@@ -980,10 +1097,10 @@ export function CreatePlanView({
           <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col gap-5">
             {/* Step Header */}
             <div className="bg-[#f5f3ef]/50 dark:bg-[#281c15] rounded-[4px] px-[16px] py-[10px] flex items-center justify-between">
-              <span className="bg-[#eae8e4] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px]">
-                {t("خطوة 3 من 4", "Step 3 of 4")}
-              </span>
               <div className="flex items-center gap-[10px]">
+                <div className="size-[28px] rounded-full bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] font-bold text-[12px] flex items-center justify-center shrink-0">
+                  {isEn ? "3" : "٣"}
+                </div>
                 <div className="flex flex-col text-start">
                   <h2 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                     {t("حدود الاستخدام والموارد السحابية", "Usage Limits & Cloud Quotas")}
@@ -995,10 +1112,10 @@ export function CreatePlanView({
                     )}
                   </p>
                 </div>
-                <div className="size-[28px] rounded-full bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] font-bold text-[12px] flex items-center justify-center shrink-0">
-                  {isEn ? "3" : "٣"}
-                </div>
               </div>
+              <span className="bg-[#eae8e4] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px] shrink-0">
+                {t("خطوة 3 من 4", "Step 3 of 4")}
+              </span>
             </div>
 
             {/* Note banner */}
@@ -1243,10 +1360,10 @@ export function CreatePlanView({
           <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col gap-5">
             {/* Step Header */}
             <div className="bg-[#f5f3ef]/50 dark:bg-[#281c15] rounded-[4px] px-[16px] py-[10px] flex items-center justify-between">
-              <span className="bg-[#eae8e4] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px]">
-                {t("خطوة 4 من 4", "Step 4 of 4")}
-              </span>
               <div className="flex items-center gap-[10px]">
+                <div className="size-[28px] rounded-full bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] font-bold text-[12px] flex items-center justify-center shrink-0">
+                  {isEn ? "4" : "٤"}
+                </div>
                 <div className="flex flex-col text-start">
                   <h2 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                     {t(
@@ -1261,10 +1378,10 @@ export function CreatePlanView({
                     )}
                   </p>
                 </div>
-                <div className="size-[28px] rounded-full bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] font-bold text-[12px] flex items-center justify-center shrink-0">
-                  {isEn ? "4" : "٤"}
-                </div>
               </div>
+              <span className="bg-[#eae8e4] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px] shrink-0">
+                {t("خطوة 4 من 4", "Step 4 of 4")}
+              </span>
             </div>
 
             {/* 4 Feature Checkboxes */}

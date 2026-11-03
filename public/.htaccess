@@ -44,9 +44,10 @@ DirectoryIndex index.html
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
+  # Keep query strings when resolving /path -> /path/index.html
   # /dashboard/login -> /dashboard/login/index.html
   RewriteCond %{REQUEST_FILENAME}/index.html -f
-  RewriteRule ^(.+?)/?$ $1/index.html [L]
+  RewriteRule ^(.+?)/?$ $1/index.html [L,QSA]
 
   # /dashboard/login.html style exports
   RewriteCond %{REQUEST_FILENAME}.html -f

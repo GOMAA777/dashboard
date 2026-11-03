@@ -3,72 +3,465 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>دخول المكتب…</title>
+    <title>بوابة الربط والتحويل الإشرافي | منصة الجودي</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
     <style>
-      body {
+      * {
+        box-sizing: border-box;
         margin: 0;
+        padding: 0;
+      }
+      body {
         min-height: 100vh;
-        display: grid;
-        place-items: center;
-        background: #f7f4ef;
-        color: #1b1c1a;
-        font-family: Cairo, Tahoma, sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #140d09;
+        color: #fdfbf7;
+        font-family: 'Cairo', Tahoma, sans-serif;
+        padding: 16px;
+        position: relative;
+        overflow-x: hidden;
+        user-select: none;
+      }
+      .ambient-glow {
+        position: absolute;
+        width: 450px;
+        height: 450px;
+        background: rgba(156, 100, 2, 0.12);
+        border-radius: 999px;
+        filter: blur(120px);
+        top: 20%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+      }
+      .wrapper {
+        width: 100%;
+        max-width: 620px;
+        position: relative;
+        z-index: 10;
+        display: flex;
+        flex-col;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .top-brand {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 4px;
+      }
+      .brand-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #fdfbf7;
+      }
+      .brand-sub {
+        font-size: 11px;
+        color: #a89f91;
+      }
+      .security-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(27, 115, 64, 0.15);
+        border: 1px solid rgba(27, 115, 64, 0.3);
+        color: #6ee7b7;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .ping-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #10b981;
+        box-shadow: 0 0 8px #10b981;
       }
       .card {
-        width: min(420px, 92vw);
-        background: #fff;
-        border: 1px solid #eae8e4;
-        border-radius: 12px;
+        background: #1c130d;
+        border: 1px solid #38271c;
+        border-radius: 16px;
         padding: 28px 24px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        position: relative;
+      }
+      .card-glow-bar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #9c6402, transparent);
+      }
+      .bridge-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 4px 0;
+      }
+      .node-card {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         text-align: center;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        padding: 16px 12px;
+        border-radius: 12px;
+        background: rgba(38, 25, 17, 0.85);
+        border: 1px solid #422e20;
       }
-      .spinner {
-        width: 40px;
-        height: 40px;
-        margin: 0 auto 16px;
+      .node-card.target {
+        border-color: rgba(156, 100, 2, 0.45);
+      }
+      .node-icon-wrap {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #9c6402, #603b00);
+        padding: 2px;
+        margin-bottom: 10px;
+        box-shadow: 0 0 15px rgba(156, 100, 2, 0.35);
+      }
+      .node-icon-inner {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: #1c130d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #e29d38;
+        font-weight: 800;
+        font-size: 17px;
+      }
+      .node-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #fdfbf7;
+        margin-bottom: 2px;
+      }
+      .node-desc {
+        font-size: 11px;
+        color: #a89f91;
+      }
+      .node-tag {
+        margin-top: 8px;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 8px;
         border-radius: 999px;
-        border: 3px solid rgba(156, 100, 2, 0.25);
-        border-top-color: #9c6402;
-        animation: spin 0.8s linear infinite;
       }
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
+      .tag-green {
+        background: rgba(27, 115, 64, 0.2);
+        color: #6ee7b7;
+        border: 1px solid rgba(27, 115, 64, 0.4);
       }
-      h1 {
-        margin: 0;
-        font-size: 16px;
+      .tag-amber {
+        background: rgba(156, 100, 2, 0.2);
+        color: #e29d38;
+        border: 1px solid rgba(156, 100, 2, 0.4);
       }
-      p {
-        margin: 8px 0 0;
+      .bridge-center {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 110px;
+        position: relative;
+      }
+      .bridge-circle {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #38271c;
+        border: 1px solid #9c6402;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #e29d38;
+        box-shadow: 0 0 18px rgba(156, 100, 2, 0.5);
+        z-index: 2;
+      }
+      .bridge-line {
+        width: 100%;
+        height: 3px;
+        background: #38271c;
+        margin-top: -18px;
+        position: relative;
+        overflow: hidden;
+        border-radius: 999px;
+      }
+      .bridge-beam {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 40px;
+        background: linear-gradient(270deg, transparent, #e29d38, transparent);
+        animation: beamFlow 1.4s infinite linear;
+      }
+      @keyframes beamFlow {
+        from { transform: translateX(110px); }
+        to { transform: translateX(-110px); }
+      }
+      .bridge-label {
+        font-size: 10px;
+        font-weight: 600;
+        color: #e29d38;
+        margin-top: 10px;
+        white-space: nowrap;
+      }
+      .progress-area {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .progress-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         font-size: 12px;
-        color: #737067;
+      }
+      .progress-status {
+        color: #cdc5bd;
+        font-weight: 600;
+      }
+      .progress-pct {
+        font-family: monospace;
+        font-weight: 700;
+        color: #e29d38;
+      }
+      .progress-track {
+        height: 8px;
+        width: 100%;
+        background: #261911;
+        border: 1px solid #38271c;
+        border-radius: 999px;
+        overflow: hidden;
+        padding: 1px;
+      }
+      .progress-bar {
+        height: 100%;
+        background: linear-gradient(270deg, #e29d38, #9c6402);
+        border-radius: 999px;
+        width: 15%;
+        transition: width 0.4s ease-out;
+        box-shadow: 0 0 10px rgba(226, 157, 56, 0.5);
+      }
+      .steps-box {
+        background: rgba(22, 14, 10, 0.9);
+        border: 1px solid #2d1e15;
+        border-radius: 10px;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .step-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 12px;
+      }
+      .step-icon {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+      .step-done {
+        background: rgba(27, 115, 64, 0.2);
+        color: #6ee7b7;
+        border: 1px solid rgba(27, 115, 64, 0.5);
+      }
+      .step-pending {
+        background: #261911;
+        color: #a89f91;
+        border: 1px solid #38271c;
+      }
+      .step-active {
+        background: rgba(156, 100, 2, 0.2);
+        color: #e29d38;
+        border: 1px solid rgba(156, 100, 2, 0.5);
+      }
+      .actions-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border-top: 1px solid #38271c;
+        padding-top: 14px;
+      }
+      .btn-cancel {
+        padding: 8px 16px;
+        border-radius: 6px;
+        background: transparent;
+        border: none;
+        color: #a89f91;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .btn-cancel:hover {
+        color: #fdfbf7;
+        background: #261911;
+      }
+      .btn-proceed {
+        padding: 9px 18px;
+        border-radius: 6px;
+        background: #9c6402;
+        border: none;
+        color: #fff;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      }
+      .btn-proceed:hover {
+        background: #855402;
+      }
+      .footer-note {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 11px;
+        color: #8e8680;
+        text-align: center;
       }
     </style>
   </head>
   <body>
-    <div class="card">
-      <div class="spinner" aria-hidden="true"></div>
-      <h1 id="msg">جاري فتح لوحة المكتب…</h1>
-      <p>لن يُطلب منك إدخال البريد أو كلمة المرور.</p>
+    <div class="ambient-glow"></div>
+
+    <div class="wrapper">
+      <div class="top-brand">
+        <div>
+          <div class="brand-title">منظومة الجودي الرقمية للمحاماة</div>
+          <div class="brand-sub">بوابة الربط والتحويل الإشرافي المباشر</div>
+        </div>
+        <div class="security-badge">
+          <span class="ping-dot"></span>
+          <span>جلسة إشراف مشفرة ومؤمنة</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-glow-bar"></div>
+
+        <div class="bridge-container">
+          <!-- Super Admin -->
+          <div class="node-card">
+            <div class="node-icon-wrap">
+              <div class="node-icon-inner">🛡️</div>
+            </div>
+            <div class="node-title">لوحة الإدارة المركزية</div>
+            <div class="node-desc">المشرف العام (Super Admin)</div>
+            <span class="node-tag tag-green">مفوّض ومعتمد</span>
+          </div>
+
+          <!-- Connecting Beam -->
+          <div class="bridge-center">
+            <div class="bridge-circle">⇄</div>
+            <div class="bridge-line">
+              <div class="bridge-beam"></div>
+            </div>
+            <div class="bridge-label">ربط إشرافي مباشر</div>
+          </div>
+
+          <!-- Target Firm -->
+          <div class="node-card target">
+            <div class="node-icon-wrap" style="background: linear-gradient(135deg, #e29d38, #9c6402);">
+              <div class="node-icon-inner" id="firmInitial">م</div>
+            </div>
+            <div class="node-title" id="firmName">مكتب المحاماة</div>
+            <div class="node-desc" id="firmOwner">لوحة تحكم المكتب القضائية</div>
+            <span class="node-tag tag-amber">جاري فتح الجلسة...</span>
+          </div>
+        </div>
+
+        <div class="progress-area">
+          <div class="progress-header">
+            <span class="progress-status" id="statusText">جاري التحقق من هوية المشرف واعتماد الجلسة...</span>
+            <span class="progress-pct" id="pctText">15%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-bar" id="progressBar"></div>
+          </div>
+        </div>
+
+        <div class="steps-box">
+          <div class="step-item">
+            <div class="step-icon step-done">✓</div>
+            <span>التحقق من تصريح المشرف العام وصلاحيات الدخول الإشرافي</span>
+          </div>
+          <div class="step-item" id="step2Item">
+            <div class="step-icon step-pending" id="step2Icon">•</div>
+            <span id="step2Text" style="color: #a89f91;">إنشاء توكن أمني مشفر وحفظ جلسة العمل القانونية للمكتب</span>
+          </div>
+          <div class="step-item" id="step3Item">
+            <div class="step-icon step-pending" id="step3Icon">•</div>
+            <span id="step3Text" style="color: #a89f91;">نقل التوجيه إلى واجهة المحامي بدون طلب كلمة مرور</span>
+          </div>
+        </div>
+
+        <div class="actions-row">
+          <button type="button" class="btn-cancel" onclick="handleCancel()">إلغاء والعودة</button>
+          <button type="button" class="btn-proceed" id="btnProceed" onclick="proceedNow()">
+            <span>الانتقال المباشر الآن</span>
+            <span>↗</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="footer-note">
+        🔒 هذه الجلسة مسجلة وموثقة في سجلات الإشراف (Audit Logs) بدقة للحفاظ على سرية البيانات.
+      </div>
     </div>
+
     <script>
       (function () {
         var SESSION_KEY = "doussary_auth_session";
         var USER_KEY = "doussary_auth";
-        var params = new URLSearchParams(window.location.search);
-        var encoded = params.get("s") || "";
-        var next = params.get("next") || "https://law.elmoroj.com/lawyer/";
-        var msg = document.getElementById("msg");
+        var BRIDGE_KEY = "__aljudy_impersonation_bridge";
+        var query = new URLSearchParams(window.location.search);
+        var hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+        var next =
+          query.get("next") ||
+          hash.get("next") ||
+          "https://law.elmoroj.com/lawyer/";
 
-        function fail(text) {
-          msg.textContent = text;
-          setTimeout(function () {
-            window.location.replace("https://law.elmoroj.com/lawyer/login");
-          }, 1200);
-        }
+        var firmNameEl = document.getElementById("firmName");
+        var firmOwnerEl = document.getElementById("firmOwner");
+        var firmInitialEl = document.getElementById("firmInitial");
+        var progressBar = document.getElementById("progressBar");
+        var pctText = document.getElementById("pctText");
+        var statusText = document.getElementById("statusText");
+        var step2Icon = document.getElementById("step2Icon");
+        var step2Text = document.getElementById("step2Text");
+        var step3Icon = document.getElementById("step3Icon");
+        var step3Text = document.getElementById("step3Text");
+
+        var targetUrl = next.charAt(next.length - 1) === "/" ? next : next + "/";
+        var redirected = false;
 
         function decodeSession(raw) {
           try {
@@ -84,33 +477,197 @@
           }
         }
 
-        var session = encoded ? decodeSession(encoded) : null;
-        if (!session || !session.token) {
-          fail("رابط الدخول غير صالح أو منتهي.");
-          return;
+        function readSession() {
+          try {
+            var bridge = localStorage.getItem(BRIDGE_KEY);
+            if (bridge) {
+              var fromBridge = JSON.parse(bridge);
+              localStorage.removeItem(BRIDGE_KEY);
+              if (fromBridge && fromBridge.token) return fromBridge;
+            }
+            var existing = localStorage.getItem(SESSION_KEY);
+            if (existing) {
+              var fromStorage = JSON.parse(existing);
+              if (fromStorage && fromStorage.token) return fromStorage;
+            }
+          } catch (e) {}
+
+          var encoded = hash.get("s") || query.get("s") || "";
+          return encoded ? decodeSession(encoded) : null;
         }
 
-        try {
-          sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
-          localStorage.setItem(
-            USER_KEY,
-            JSON.stringify({
-              id: session.id,
-              user: {
-                id: session.id,
-                name: session.name,
-                email: session.email,
-                role: session.role,
-              },
+        function persist(session) {
+          // Flattened shape matching lawyer login success (`jc` → sessionStorage).
+          var payload = Object.assign({}, session, {
+            token: session.token,
+            permissions: session.permissions || { all: true },
+            company_id: session.company_id == null ? null : session.company_id,
+          });
+          var json = JSON.stringify(payload);
+          var userJson = JSON.stringify({
+            id: payload.id,
+            user: {
+              id: payload.id,
+              name: payload.name,
+              email: payload.email,
+              role: payload.role,
+              phone: payload.phone,
+              company_id: payload.company_id,
+            },
+          });
+          try {
+            sessionStorage.setItem(SESSION_KEY, json);
+          } catch (e) {}
+          try {
+            localStorage.setItem(SESSION_KEY, json);
+            localStorage.setItem(USER_KEY, userJson);
+            localStorage.setItem("token", payload.token);
+            localStorage.setItem("access_token", payload.token);
+          } catch (e) {}
+        }
+
+        function enrichFromMe(session) {
+          return fetch("https://law.elmoroj.com/api/me", {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+              Authorization: "Bearer " + session.token,
+            },
+          })
+            .then(function (res) {
+              if (!res.ok) return session;
+              return res.json().then(function (payload) {
+                var data = payload.data || payload;
+                var user = (data && data.user) || payload.user || data;
+                if (!user || typeof user !== "object") return session;
+                var role = user.role || session.role || "owner";
+                var assigned =
+                  user.assignedRole ||
+                  user.assigned_role ||
+                  session.assignedRole ||
+                  "المستشار العام";
+                var company =
+                  user.company_id != null
+                    ? user.company_id
+                    : (user.company && user.company.id) != null
+                    ? user.company.id
+                    : session.company_id;
+                var companyName =
+                  (user.company && user.company.name) ||
+                  user.company_name ||
+                  session.company_name ||
+                  session.firm_name ||
+                  "Law Office";
+                return Object.assign({}, session, {
+                  id: user.id != null ? user.id : session.id,
+                  name: user.full_name || user.name || session.name,
+                  email: user.email || session.email,
+                  phone: user.phone || session.phone,
+                  role: role,
+                  roleId: "admin",
+                  assignedRole: assigned,
+                  company_id: company,
+                  company_name: companyName,
+                  firm_name: companyName,
+                  status: user.status || session.status || "نشط",
+                  permissions: user.permissions || session.permissions || { all: true },
+                  raw: user,
+                  token: session.token,
+                });
+              });
             })
-          );
-        } catch (e) {
-          fail("تعذر حفظ جلسة الدخول في المتصفح.");
+            .catch(function () {
+              return session;
+            });
+        }
+
+        function safeTarget(url) {
+          if (!url || url.indexOf("/login") !== -1) {
+            return "https://law.elmoroj.com/lawyer/";
+          }
+          return url.charAt(url.length - 1) === "/" ? url : url + "/";
+        }
+
+        function goToOffice(session) {
+          if (redirected) return;
+          redirected = true;
+          persist(session);
+          try {
+            window.history.replaceState({}, "", window.location.pathname);
+          } catch (e) {}
+          window.location.replace(safeTarget(targetUrl));
+        }
+
+        var session = readSession();
+        var firm = (session && session.firm_name) || query.get("firm") || "مكتب المحاماة";
+        var owner = (session && session.name) || query.get("owner") || "المستشار / المحامي المسؤول";
+
+        firmNameEl.textContent = firm;
+        firmOwnerEl.textContent = owner;
+        firmInitialEl.textContent = firm.trim().charAt(0) || "م";
+
+        if (!session || !session.token) {
+          statusText.textContent = "رابط الدخول غير صالح أو منتهي. سيتم إعادتك للوحة الإدارة...";
+          statusText.style.color = "#f87171";
+          setTimeout(function () {
+            window.location.replace("https://law.elmoroj.com/dashboard/accounts");
+          }, 2500);
           return;
         }
 
-        window.history.replaceState({}, "", window.location.pathname);
-        window.location.replace(next.indexOf("/") === next.length - 1 ? next : next + "/");
+        persist(session);
+
+        enrichFromMe(session).then(function (enriched) {
+          session = enriched;
+          persist(session);
+          firm = session.firm_name || firm;
+          owner = session.name || owner;
+          firmNameEl.textContent = firm;
+          firmOwnerEl.textContent = owner;
+          firmInitialEl.textContent = firm.trim().charAt(0) || "م";
+
+          setTimeout(function () {
+            progressBar.style.width = "50%";
+            pctText.textContent = "50%";
+            statusText.textContent = "جاري توليد مفتاح المصادقة ومطابقة صلاحيات الإدارة...";
+            step2Icon.className = "step-icon step-done";
+            step2Icon.textContent = "✓";
+            step2Text.style.color = "#fdfbf7";
+            step2Text.style.fontWeight = "600";
+          }, 500);
+
+          setTimeout(function () {
+            progressBar.style.width = "85%";
+            pctText.textContent = "85%";
+            statusText.textContent = "اكتمل الربط! جاري فتح لوحة تحكم المكتب الآن...";
+            step3Icon.className = "step-icon step-active";
+            step3Icon.textContent = "⏳";
+            step3Text.style.color = "#e29d38";
+            step3Text.style.fontWeight = "700";
+            persist(session);
+          }, 1100);
+
+          setTimeout(function () {
+            progressBar.style.width = "100%";
+            pctText.textContent = "100%";
+          }, 1700);
+
+          setTimeout(function () {
+            goToOffice(session);
+          }, 2100);
+        });
+
+        window.proceedNow = function () {
+          goToOffice(session);
+        };
+
+        window.handleCancel = function () {
+          if (window.opener) {
+            window.close();
+          } else {
+            window.location.replace("https://law.elmoroj.com/dashboard/accounts");
+          }
+        };
       })();
     </script>
   </body>

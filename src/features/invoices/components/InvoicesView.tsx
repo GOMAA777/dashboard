@@ -468,7 +468,7 @@ export function InvoicesView() {
                     <button
                       type="button"
                       onClick={handleResetFilters}
-                      className="mt-2 w-full py-2 bg-[#f5f3ef] dark:bg-[#2c2621] hover:bg-[#eae8e4] text-[#514537] dark:text-[#cdc5bd] rounded-[6px] text-[12px] font-bold transition-colors"
+                      className="mt-2 w-full py-2 bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] text-[#514537] dark:text-[#cdc5bd] rounded-[6px] text-[12px] font-bold transition-colors"
                     >
                       {isEn ? "Clear Filter Criteria" : "إعادة ضبط المعايير"}
                     </button>

@@ -77,7 +77,7 @@ export function SubscriptionsCompareTable({
   const renderValue = (val: string | boolean) => {
     if (typeof val === "boolean") {
       return val ? (
-        <span className="w-5 h-5 rounded-full bg-[#f3ecdf] dark:bg-[#282119] text-[#c29547] dark:text-[#d4a759] flex items-center justify-center mx-auto shadow-2xs">
+        <span className="w-5 h-5 rounded-full bg-[#f3ecdf] dark:bg-[#281c15] text-[#c29547] dark:text-[#d4a759] flex items-center justify-center mx-auto shadow-2xs">
           <Check className="w-3 h-3 stroke-[3]" />
         </span>
       ) : (
@@ -100,7 +100,7 @@ export function SubscriptionsCompareTable({
 
       {/* Header */}
       <div className="text-center mb-10">
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1c1917] dark:text-[#f5f4f0] mb-2 tracking-tight">
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1c1917] dark:text-[#fdfbf7] mb-2 tracking-tight">
           مقارنة تفصيلية بين كافة الباقات
         </h2>
         <p className="text-xs sm:text-sm text-[#7d7367] dark:text-[#9e968a]">
@@ -109,22 +109,22 @@ export function SubscriptionsCompareTable({
       </div>
 
       {/* Comparison Table Container */}
-      <div className="rounded-3xl bg-white dark:bg-[#1a1816] border border-[#ded5c6] dark:border-[#2f2a24] shadow-xs overflow-hidden">
+      <div className="rounded-3xl bg-white dark:bg-[#1a120d] border border-[#ded5c6] dark:border-[#38271c] shadow-xs overflow-hidden">
         <div className="overflow-x-auto scrollbar-thin">
           <table className="w-full border-collapse text-start min-w-[650px]">
             {/* Table Header */}
             <thead>
-              <tr className="border-b border-[#ded5c6] dark:border-[#2f2a24] bg-[#faf8f4] dark:bg-[#201d1a]">
+              <tr className="border-b border-[#ded5c6] dark:border-[#38271c] bg-[#faf8f4] dark:bg-[#281c15]">
                 <th className="py-4 px-6 text-start text-xs font-extrabold text-[#756c60] dark:text-[#9e968a] w-2/5">
                   الميزات والأقسام
                 </th>
-                <th className="py-4 px-4 text-center text-xs font-extrabold text-[#1c1917] dark:text-[#f5f4f0] w-1/5">
+                <th className="py-4 px-4 text-center text-xs font-extrabold text-[#1c1917] dark:text-[#fdfbf7] w-1/5">
                   مجاني
                 </th>
-                <th className="py-4 px-4 text-center text-xs font-extrabold text-[#c29547] dark:text-[#d4a759] w-1/5 bg-[#faf5eb]/80 dark:bg-[#272017]/80">
+                <th className="py-4 px-4 text-center text-xs font-extrabold text-[#c29547] dark:text-[#d4a759] w-1/5 bg-[#faf5eb]/80 dark:bg-[#281c15]/80">
                   المحترف (الأكثر طلباً)
                 </th>
-                <th className="py-4 px-4 text-center text-xs font-extrabold text-[#1c1917] dark:text-[#f5f4f0] w-1/5">
+                <th className="py-4 px-4 text-center text-xs font-extrabold text-[#1c1917] dark:text-[#fdfbf7] w-1/5">
                   المؤسسات والشركات
                 </th>
               </tr>
@@ -135,7 +135,7 @@ export function SubscriptionsCompareTable({
               {categories.map((cat) => (
                 <React.Fragment key={cat.category}>
                   {/* Category Header Row */}
-                  <tr className="bg-[#fcfbfa] dark:bg-[#161412] border-b border-[#eee6d9] dark:border-[#28221a]">
+                  <tr className="bg-[#fcfbfa] dark:bg-[#150f0b] border-b border-[#eee6d9] dark:border-[#38271c]">
                     <td
                       colSpan={4}
                       className="py-3 px-6 text-xs font-extrabold text-[#c29547] dark:text-[#d4a759]"
@@ -149,8 +149,8 @@ export function SubscriptionsCompareTable({
                     <tr
                       key={item.feature}
                       className={cn(
-                        "border-b border-[#f2ede4] dark:border-[#241f19] hover:bg-[#faf8f4]/60 dark:hover:bg-[#201c18]/60 transition-colors",
-                        itemIdx % 2 === 1 ? "bg-[#faf9f6]/40 dark:bg-[#1a1715]/40" : ""
+                        "border-b border-[#f2ede4] dark:border-[#38271c] hover:bg-[#faf8f4]/60 dark:hover:bg-[#221812]/60 transition-colors",
+                        itemIdx % 2 === 1 ? "bg-[#faf9f6]/40 dark:bg-[#1a120d]/40" : ""
                       )}
                     >
                       <td className="py-3.5 px-6 text-xs font-medium text-[#423b33] dark:text-[#ded7cc]">
@@ -159,7 +159,7 @@ export function SubscriptionsCompareTable({
                       <td className="py-3.5 px-4 text-center">
                         {renderValue(item.free)}
                       </td>
-                      <td className="py-3.5 px-4 text-center bg-[#faf5eb]/30 dark:bg-[#272017]/30">
+                      <td className="py-3.5 px-4 text-center bg-[#faf5eb]/30 dark:bg-[#281c15]/30">
                         {renderValue(item.starter)}
                       </td>
                       <td className="py-3.5 px-4 text-center">
@@ -171,27 +171,27 @@ export function SubscriptionsCompareTable({
               ))}
 
               {/* Bottom Summary Action Row */}
-              <tr className="border-t-2 border-[#ded5c6] dark:border-[#383126] bg-[#faf8f4] dark:bg-[#201d1a]">
-                <td className="py-5 px-6 text-xs font-extrabold text-[#1c1917] dark:text-[#f5f4f0]">
+              <tr className="border-t-2 border-[#ded5c6] dark:border-[#383126] bg-[#faf8f4] dark:bg-[#281c15]">
+                <td className="py-5 px-6 text-xs font-extrabold text-[#1c1917] dark:text-[#fdfbf7]">
                   الأسعار وبدء الاستخدام
                 </td>
                 {/* Free Column CTA */}
                 <td className="py-5 px-4 text-center">
                   <div className="flex flex-col items-center gap-2">
-                    <span className="text-sm font-extrabold text-[#1c1917] dark:text-[#f5f4f0]">
+                    <span className="text-sm font-extrabold text-[#1c1917] dark:text-[#fdfbf7]">
                       0 ر.س
                     </span>
                     <button
                       type="button"
                       onClick={() => onSelectPlan?.("free")}
-                      className="px-4 py-2 rounded-xl text-xs font-bold text-[#1c1917] dark:text-[#f5f4f0] bg-white dark:bg-[#2c241a] border border-[#ded5c6] dark:border-[#383126] hover:border-[#c29547] shadow-2xs transition-all cursor-pointer"
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-[#1c1917] dark:text-[#fdfbf7] bg-white dark:bg-[#281c15] border border-[#ded5c6] dark:border-[#383126] hover:border-[#c29547] shadow-2xs transition-all cursor-pointer"
                     >
                       ابدأ مجاناً
                     </button>
                   </div>
                 </td>
                 {/* Starter Column CTA */}
-                <td className="py-5 px-4 text-center bg-[#faf5eb]/80 dark:bg-[#272017]/80">
+                <td className="py-5 px-4 text-center bg-[#faf5eb]/80 dark:bg-[#281c15]/80">
                   <div className="flex flex-col items-center gap-2">
                     <span className="text-sm font-extrabold text-[#c29547] dark:text-[#d4a759]">
                       {isAnnual ? "120" : "150"} ر.س
@@ -208,13 +208,13 @@ export function SubscriptionsCompareTable({
                 {/* Growth Column CTA */}
                 <td className="py-5 px-4 text-center">
                   <div className="flex flex-col items-center gap-2">
-                    <span className="text-sm font-extrabold text-[#1c1917] dark:text-[#f5f4f0]">
+                    <span className="text-sm font-extrabold text-[#1c1917] dark:text-[#fdfbf7]">
                       {isAnnual ? "360" : "450"} ر.س
                     </span>
                     <button
                       type="button"
                       onClick={() => onSelectPlan?.("growth")}
-                      className="px-4 py-2 rounded-xl text-xs font-bold text-[#1c1917] dark:text-[#f5f4f0] bg-white dark:bg-[#2c241a] border border-[#ded5c6] dark:border-[#383126] hover:border-[#c29547] shadow-2xs transition-all cursor-pointer"
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-[#1c1917] dark:text-[#fdfbf7] bg-white dark:bg-[#281c15] border border-[#ded5c6] dark:border-[#383126] hover:border-[#c29547] shadow-2xs transition-all cursor-pointer"
                     >
                       ترقية الحساب
                     </button>

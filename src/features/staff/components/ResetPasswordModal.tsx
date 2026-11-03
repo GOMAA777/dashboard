@@ -49,10 +49,16 @@ export function ResetPasswordModal({
     try {
       await resetStaffPassword(
         employee.id,
-        method === "manual" ? manualPassword : `temp-${Date.now()}`
+        method === "manual" ? manualPassword : `TempReset@${Date.now().toString().slice(-6)}`
       );
     } catch {
-      // Keep local success UX.
+      toast.error(
+        t(
+          "تعذر إعادة تعيين كلمة المرور عبر الخادم.",
+          "Failed to reset password via the server."
+        )
+      );
+      return;
     }
 
     if (method === "link") {

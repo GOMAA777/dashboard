@@ -59,13 +59,13 @@ export function DashboardKpiCards({ kpis: initialKpis }: DashboardKpiCardsProps 
 
   return (
     <div
-      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full"
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 w-full"
       data-node-id="1:35"
       data-name="Section 2: Primary KPI Cards (4 Tiles)"
     >
       {/* KPI 1: إجمالي المكاتب */}
       <div
-        className="bg-white dark:bg-[#221812] rounded-[8px] p-4 sm:p-5 drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] border border-[#f0eeea]/70 dark:border-[#38271c] flex flex-col justify-between"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] border border-[#f0eeea]/70 dark:border-[#38271c] flex flex-col justify-between"
         data-node-id="1:97"
         data-name="KPI 1"
       >
@@ -125,7 +125,7 @@ export function DashboardKpiCards({ kpis: initialKpis }: DashboardKpiCardsProps 
 
       {/* KPI 2: الاشتراكات النشطة */}
       <div
-        className="bg-white dark:bg-[#221812] rounded-[8px] p-4 sm:p-5 drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] border border-[#f0eeea]/70 dark:border-[#38271c] flex flex-col justify-between"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] border border-[#f0eeea]/70 dark:border-[#38271c] flex flex-col justify-between"
         data-node-id="1:78"
         data-name="KPI 2"
       >
@@ -185,7 +185,7 @@ export function DashboardKpiCards({ kpis: initialKpis }: DashboardKpiCardsProps 
 
       {/* KPI 3: الإيرادات الشهرية */}
       <div
-        className="bg-white dark:bg-[#221812] rounded-[8px] p-4 sm:p-5 drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] border border-[#f0eeea]/70 dark:border-[#38271c] flex flex-col justify-between"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] border border-[#f0eeea]/70 dark:border-[#38271c] flex flex-col justify-between"
         data-node-id="1:55"
         data-name="KPI 3"
       >
@@ -250,7 +250,7 @@ export function DashboardKpiCards({ kpis: initialKpis }: DashboardKpiCardsProps 
 
       {/* KPI 4: تذاكر الدعم المفتوحة */}
       <div
-        className="bg-white dark:bg-[#221812] rounded-[8px] p-4 sm:p-5 drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] border border-[#f0eeea]/70 dark:border-[#38271c] flex flex-col justify-between"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] border border-[#f0eeea]/70 dark:border-[#38271c] flex flex-col justify-between"
         data-node-id="1:36"
         data-name="KPI 4"
       >
@@ -293,7 +293,13 @@ export function DashboardKpiCards({ kpis: initialKpis }: DashboardKpiCardsProps 
             >
               <span className="size-[7px] rounded-full bg-[#e11d48] shadow-[0_0_8px_#e11d48] ring-1 ring-rose-400/60 shrink-0" />
               <span className="text-[#9f1239] dark:text-[#fca5a5] text-[11px] font-bold">
-                {currentLang === "en" ? "4 Critical / Urgent" : "4 حرجة / عاجلة"}
+                {kpis.openTickets > 0
+                  ? currentLang === "en"
+                    ? `${kpis.openTickets} Active / Urgent`
+                    : `${kpis.openTickets} حرجة / عاجلة`
+                  : currentLang === "en"
+                    ? "All Resolved"
+                    : "تم حل الجميع"}
               </span>
             </div>
 

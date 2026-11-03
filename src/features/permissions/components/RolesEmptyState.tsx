@@ -14,7 +14,7 @@ export function RolesEmptyState({ onAddRole }: RolesEmptyStateProps) {
   return (
     <div
       dir={direction}
-      className="bg-white dark:bg-[#1e1c1a] rounded-[8px] p-8 md:p-14 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col items-center justify-center text-center font-['Cairo']"
+      className="bg-white dark:bg-[#221812] rounded-[8px] p-8 md:p-14 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col items-center justify-center text-center font-['Cairo']"
       data-node-id="1:11321"
     >
       {/* Icon with warm badge */}
@@ -22,7 +22,7 @@ export function RolesEmptyState({ onAddRole }: RolesEmptyStateProps) {
         <div className="bg-[#fff8e1] dark:bg-[#342711] size-[76px] rounded-[16px] flex items-center justify-center text-[#9c6402] dark:text-[#f59e0b] shadow-xs">
           <Shield className="size-[36px]" />
         </div>
-        <div className="absolute -bottom-1 -start-1 bg-white dark:bg-[#1e1c1a] border border-[#ffddb6] dark:border-[#543b1f] size-[26px] rounded-full flex items-center justify-center text-[#9c6402] dark:text-[#f59e0b] shadow-xs">
+        <div className="absolute -bottom-1 -start-1 bg-white dark:bg-[#221812] border border-[#ffddb6] dark:border-[#543b1f] size-[26px] rounded-full flex items-center justify-center text-[#9c6402] dark:text-[#f59e0b] shadow-xs">
           <Key className="size-[13px]" />
         </div>
       </div>
@@ -59,7 +59,7 @@ export function RolesEmptyState({ onAddRole }: RolesEmptyStateProps) {
 
       {/* Pro Tip Box */}
       <div
-        className="mt-8 bg-[#f5f3ef] dark:bg-[#2c2621] border border-[#e6e2dc] dark:border-[#38271c] rounded-[8px] p-4 max-w-[680px] w-full flex items-start gap-3 text-start"
+        className="mt-8 bg-[#f5f3ef] dark:bg-[#281c15] border border-[#e6e2dc] dark:border-[#38271c] rounded-[8px] p-4 max-w-[680px] w-full flex items-start gap-3 text-start"
         data-node-id="1:11375"
       >
         <div className="size-[28px] rounded-full bg-[#ffeed9] dark:bg-[#3d2716] flex items-center justify-center text-[#9c6402] dark:text-[#f59e0b] shrink-0 mt-0.5">

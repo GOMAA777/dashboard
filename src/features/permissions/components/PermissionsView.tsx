@@ -135,7 +135,7 @@ export function PermissionsView() {
   };
 
   return (
-    <div className="flex h-screen h-dvh overflow-hidden bg-[#fcfbfa] dark:bg-[#121110] text-[#1c1917] dark:text-[#f5f4f0] transition-colors duration-200 relative">
+    <div className="flex h-screen h-dvh overflow-hidden bg-[#fcfbfa] dark:bg-[#150f0b] text-[#1c1917] dark:text-[#fdfbf7] transition-colors duration-200 relative">
       <DashboardSidebar />
 
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
@@ -159,7 +159,7 @@ export function PermissionsView() {
 
           <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
             {/* Header Hero Banner */}
-            <div className="relative overflow-hidden rounded-2xl border border-[#eeddbb]/70 dark:border-[#383126] bg-gradient-to-br from-[#ffffff] via-[#fbf8f2] to-[#f4ece0] dark:from-[#1e1b18] dark:via-[#191715] dark:to-[#141210] p-6 sm:p-8 shadow-sm">
+            <div className="relative overflow-hidden rounded-2xl border border-[#eeddbb]/70 dark:border-[#383126] bg-gradient-to-br from-[#ffffff] via-[#fbf8f2] to-[#f4ece0] dark:from-[#1e1b18] dark:via-[#191715] dark:to-[#150f0b] p-6 sm:p-8 shadow-sm">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
                 <div className="space-y-2">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#c29547]/10 dark:bg-[#c29547]/20 text-[#966e2e] dark:text-[#eeddbb] border border-[#c29547]/30">
@@ -171,11 +171,11 @@ export function PermissionsView() {
                     </span>
                   </div>
 
-                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1c1917] dark:text-[#f5f4f0]">
+                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1c1917] dark:text-[#fdfbf7]">
                     {isAr ? "إدارة الصلاحيات والرتب (Permissions)" : "Access Roles & Permissions"}
                   </h1>
 
-                  <p className="text-sm sm:text-base text-[#6b6357] dark:text-[#a8a196] max-w-2xl leading-relaxed">
+                  <p className="text-sm sm:text-base text-[#6b6357] dark:text-[#a89f91] max-w-2xl leading-relaxed">
                     {isAr
                       ? "التحكم في ظهور القوائم الجانبية لكل رتبة إدارية، وتخصيص صلاحيات العرض، التعديل، الحذف، وتصدير التقارير بدقة متناهية."
                       : "Control sidebar visibility, page access, creation, editing, deletion, and data exports per administrative role."}
@@ -186,7 +186,7 @@ export function PermissionsView() {
                   <button
                     type="button"
                     onClick={handleReset}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-[#1c1917] dark:text-[#f5f4f0] bg-white dark:bg-[#25221d] border border-[#e2d5c0] dark:border-[#3d372e] shadow-sm hover:border-[#c29547] transition-all cursor-pointer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-[#1c1917] dark:text-[#fdfbf7] bg-white dark:bg-[#221812] border border-[#e2d5c0] dark:border-[#3d372e] shadow-sm hover:border-[#c29547] transition-all cursor-pointer"
                   >
                     <RotateCcw className="w-4 h-4 text-[#8c8279]" />
                     <span>{isAr ? "الافتراضي" : "Reset"}</span>
@@ -219,8 +219,8 @@ export function PermissionsView() {
                   onClick={() => setActiveRole(role.id)}
                   className={`flex items-center gap-2.5 px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold border transition-all cursor-pointer ${
                     activeRole === role.id
-                      ? "bg-[#faf5eb] dark:bg-[#282117] text-[#966e2e] dark:text-[#eeddbb] border-[#eeddbb] dark:border-[#523e20] shadow-sm"
-                      : "bg-white dark:bg-[#1a1714] text-[#7c7366] dark:text-[#a8a196] border-[#ded5c6] dark:border-[#2f2a24] hover:border-[#c29547]"
+                      ? "bg-[#faf5eb] dark:bg-[#281c15] text-[#966e2e] dark:text-[#eeddbb] border-[#eeddbb] dark:border-[#523e20] shadow-sm"
+                      : "bg-white dark:bg-[#221812] text-[#7c7366] dark:text-[#a89f91] border-[#ded5c6] dark:border-[#38271c] hover:border-[#c29547]"
                   }`}
                 >
                   <ShieldCheck
@@ -237,9 +237,9 @@ export function PermissionsView() {
             </div>
 
             {/* RBAC Matrix Table */}
-            <div className="rounded-2xl border border-[#ded5c6] dark:border-[#2f2a24] bg-white dark:bg-[#1a1714] shadow-xs overflow-hidden">
-              <div className="p-4 border-b border-[#ded5c6]/60 dark:border-[#2f2a24] bg-[#faf8f4] dark:bg-[#201d1a] flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#2c2825] dark:text-[#f5f4f0]">
+            <div className="rounded-2xl border border-[#ded5c6] dark:border-[#38271c] bg-white dark:bg-[#221812] shadow-xs overflow-hidden">
+              <div className="p-4 border-b border-[#ded5c6]/60 dark:border-[#38271c] bg-[#faf8f4] dark:bg-[#281c15] flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs font-bold text-[#2c2825] dark:text-[#fdfbf7]">
                   <Layers className="w-4 h-4 text-[#c29547]" />
                   <span>
                     {isAr
@@ -260,7 +260,7 @@ export function PermissionsView() {
               <div className="overflow-x-auto">
                 <table className="w-full text-start text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-[#ded5c6] dark:border-[#2f2a24] bg-[#faf8f4]/50 dark:bg-[#201d1a]/50 text-[#7c7366] dark:text-[#a8a196]">
+                    <tr className="border-b border-[#ded5c6] dark:border-[#38271c] bg-[#faf8f4]/50 dark:bg-[#281c15]/50 text-[#7c7366] dark:text-[#a89f91]">
                       <th className="py-3 px-4 text-start font-bold">
                         {isAr ? "القائمة / الشاشة" : "Menu / Section"}
                       </th>
@@ -281,15 +281,15 @@ export function PermissionsView() {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#ded5c6]/50 dark:divide-[#2f2a24]/50">
+                  <tbody className="divide-y divide-[#ded5c6]/50 dark:divide-[#38271c]/50">
                     {currentRules.map((rule) => (
                       <tr
                         key={rule.id}
-                        className="hover:bg-[#faf5eb]/40 dark:hover:bg-[#201d1a]/40 transition-colors"
+                        className="hover:bg-[#faf5eb]/40 dark:hover:bg-[#281c15]/40 transition-colors"
                       >
                         {/* Menu Item Name & Section */}
                         <td className="py-3.5 px-4">
-                          <div className="font-bold text-[#1c1917] dark:text-[#f5f4f0]">
+                          <div className="font-bold text-[#1c1917] dark:text-[#fdfbf7]">
                             {isAr ? rule.name : rule.nameEn}
                           </div>
                           <div className="text-[10px] text-[#8c8279] mt-0.5">
@@ -319,7 +319,7 @@ export function PermissionsView() {
                             onClick={() => handleToggle(rule.id, "canView")}
                             className={`w-6 h-6 inline-flex items-center justify-center rounded-lg border transition-all cursor-pointer ${
                               rule.canView
-                                ? "bg-[#faf5eb] dark:bg-[#282218] border-[#eeddbb] dark:border-[#4d3a1f] text-[#c29547] dark:text-[#d4a759]"
+                                ? "bg-[#faf5eb] dark:bg-[#281c15] border-[#eeddbb] dark:border-[#4d3a1f] text-[#c29547] dark:text-[#d4a759]"
                                 : "bg-stone-100 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-400"
                             }`}
                           >
@@ -334,7 +334,7 @@ export function PermissionsView() {
                             onClick={() => handleToggle(rule.id, "canEdit")}
                             className={`w-6 h-6 inline-flex items-center justify-center rounded-lg border transition-all cursor-pointer ${
                               rule.canEdit
-                                ? "bg-[#faf5eb] dark:bg-[#282218] border-[#eeddbb] dark:border-[#4d3a1f] text-[#c29547] dark:text-[#d4a759]"
+                                ? "bg-[#faf5eb] dark:bg-[#281c15] border-[#eeddbb] dark:border-[#4d3a1f] text-[#c29547] dark:text-[#d4a759]"
                                 : "bg-stone-100 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-400"
                             }`}
                           >
@@ -349,7 +349,7 @@ export function PermissionsView() {
                             onClick={() => handleToggle(rule.id, "canDelete")}
                             className={`w-6 h-6 inline-flex items-center justify-center rounded-lg border transition-all cursor-pointer ${
                               rule.canDelete
-                                ? "bg-[#faf5eb] dark:bg-[#282218] border-[#eeddbb] dark:border-[#4d3a1f] text-[#c29547] dark:text-[#d4a759]"
+                                ? "bg-[#faf5eb] dark:bg-[#281c15] border-[#eeddbb] dark:border-[#4d3a1f] text-[#c29547] dark:text-[#d4a759]"
                                 : "bg-stone-100 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-400"
                             }`}
                           >
@@ -364,7 +364,7 @@ export function PermissionsView() {
                             onClick={() => handleToggle(rule.id, "canExport")}
                             className={`w-6 h-6 inline-flex items-center justify-center rounded-lg border transition-all cursor-pointer ${
                               rule.canExport
-                                ? "bg-[#faf5eb] dark:bg-[#282117] border-[#eeddbb] dark:border-[#523e20] text-[#c29547]"
+                                ? "bg-[#faf5eb] dark:bg-[#281c15] border-[#eeddbb] dark:border-[#523e20] text-[#c29547]"
                                 : "bg-stone-100 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-400"
                             }`}
                           >

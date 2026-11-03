@@ -2,7 +2,8 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:where(.dark, .dark *));
+/* Use :is() so dark: utilities keep specificity and win over light utilities */
+@custom-variant dark (&:is(.dark, .dark *));
 
 @theme inline {
   --font-heading: var(--font-cairo), sans-serif;
@@ -35,14 +36,14 @@
   --color-background: var(--background);
   --color-brand-gold: #9c6402;
   --color-brand-gold-light: #f5f3ef;
-  --color-brand-gold-border: #eae8e4;
+  --color-brand-gold-border: #cfc4b6;
   --color-figma-primary: #9c6402;
   --color-figma-primary-hover: #b47818;
   --color-figma-sidebar: #1c140f;
   --color-figma-sidebar-border: #2c221c;
   --color-figma-sidebar-footer: #16100c;
-  --color-figma-border: #f0eeea;
-  --color-figma-border-alt: #eae8e4;
+  --color-figma-border: #cfc4b6;
+  --color-figma-border-alt: #cfc4b6;
   --color-figma-muted-bg: #f5f3ef;
   --color-figma-heading: #1b1c1a;
   --color-figma-body: #514537;
@@ -85,8 +86,8 @@ main {
   --accent: #fbf6ec;
   --accent-foreground: #9a6f29;
   --destructive: #ef4444;
-  --border: #ddd4c5;
-  --input: #ddd4c5;
+  --border: #c4b5a0;
+  --input: #c4b5a0;
   --ring: #c29547;
   --radius: 0.75rem;
   --sidebar: #ffffff;
@@ -95,38 +96,69 @@ main {
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #fbf6ec;
   --sidebar-accent-foreground: #9a6f29;
-  --sidebar-border: #ded5c6;
+  --sidebar-border: #c4b5a0;
   --sidebar-ring: #c29547;
 }
 
 .dark {
   color-scheme: dark;
+  /* Canonical warm-brown palette (matches إدارة العملاء) */
   --background: #150f0b;
   --foreground: #fdfbf7;
   --card: #221812;
   --card-foreground: #fdfbf7;
-  --popover: #1e1510;
+  --popover: #221812;
   --popover-foreground: #fdfbf7;
-  --primary: #c29547;
+  --primary: #e29d38;
   --primary-foreground: #1c140f;
-  --secondary: #2a1d15;
+  --secondary: #281c15;
   --secondary-foreground: #e29d38;
-  --muted: #241912;
+  --muted: #281c15;
   --muted-foreground: #a89f91;
-  --accent: #2a1d15;
+  --accent: #281c15;
   --accent-foreground: #e29d38;
   --destructive: #f87171;
-  --border: #38271c;
-  --input: #241912;
-  --ring: #c29547;
+  --border: #5c4433;
+  --input: #5c4433;
+  --ring: #e29d38;
   --sidebar: #1c140f;
   --sidebar-foreground: #fdfbf7;
-  --sidebar-primary: #c29547;
+  --sidebar-primary: #e29d38;
   --sidebar-primary-foreground: #1c140f;
-  --sidebar-accent: #2a1d15;
+  --sidebar-accent: #281c15;
   --sidebar-accent-foreground: #e29d38;
-  --sidebar-border: #2c221c;
-  --sidebar-ring: #c29547;
+  --sidebar-border: #5c4433;
+  --sidebar-ring: #e29d38;
+}
+
+/* Light mode: darker borders so cards/inputs/dividers stay visible */
+html:not(.dark) .border-\[\#f0eeea\],
+html:not(.dark) .border-\[\#eae8e4\],
+html:not(.dark) .border-\[\#f0ede6\],
+html:not(.dark) .border-\[\#f2efe9\],
+html:not(.dark) .border-\[\#f0ece5\],
+html:not(.dark) .border-\[\#ede8e1\],
+html:not(.dark) .border-\[\#f2ede4\],
+html:not(.dark) .border-\[\#eee6d9\],
+html:not(.dark) .border-\[\#e8e4de\],
+html:not(.dark) .border-\[\#e6e2dc\],
+html:not(.dark) .border-\[\#e8e2d8\],
+html:not(.dark) .border-\[\#ded5c6\],
+html:not(.dark) .border-\[\#ddd4c5\],
+html:not(.dark) .border-\[\#d6cfc7\],
+html:not(.dark) .border-\[\#d6cfc5\],
+html:not(.dark) .border-\[\#dfd7cc\],
+html:not(.dark) .border-\[\#e5e7eb\],
+html:not(.dark) .border-\[\#e2e8f0\],
+html:not(.dark) .divide-\[\#f2efe9\] > :not([hidden]) ~ :not([hidden]),
+html:not(.dark) .divide-\[\#e6e2dc\] > :not([hidden]) ~ :not([hidden]),
+html:not(.dark) .divide-\[\#f0ece5\] > :not([hidden]) ~ :not([hidden]) {
+  border-color: #c4b5a0 !important;
+}
+
+html:not(.dark) .border,
+html:not(.dark) [class*="border-border"] {
+  border-color: var(--border);
 }
 
 /* Full Dark Mode Warm Brown Theme Support across entire dashboard - Zero White */
@@ -142,17 +174,40 @@ main {
   color: #fdfbf7 !important;
 }
 
+/* Page-level light backgrounds → deep clients page bg */
 .dark .bg-\[\#fcfbfa\],
-.dark .bg-\[\#f5f3ef\],
 .dark .bg-\[\#f8f7f5\],
-.dark .bg-\[\#f6f3ed\],
 .dark .bg-\[\#fff\],
 .dark .bg-\[\#ffffff\],
 .dark .bg-slate-50,
 .dark .bg-gray-50,
 .dark .bg-neutral-50,
-.dark .bg-\[\#faf8f5\] {
+.dark .bg-stone-50,
+.dark .bg-\[\#fffdf9\] {
   background-color: #150f0b !important;
+}
+
+/* Muted ivory / cream surfaces → clients muted (#281c15) */
+.dark .bg-\[\#f5f3ef\],
+.dark .bg-\[\#f6f3ed\],
+.dark .bg-\[\#faf8f5\],
+.dark .bg-\[\#faf8f4\],
+.dark .bg-\[\#faf9f7\],
+.dark .bg-\[\#faf9f6\],
+.dark .bg-\[\#fbf9f6\],
+.dark .bg-\[\#fbf9f5\],
+.dark .bg-\[\#fdfbf7\],
+.dark .bg-\[\#f2efe9\],
+.dark .bg-\[\#f5efe6\],
+.dark .bg-\[\#fbf5ed\],
+.dark .bg-\[\#f5ebd9\],
+.dark .bg-\[\#f0ece5\] {
+  background-color: #281c15 !important;
+}
+
+/* Employee details field tiles & similar cream panels */
+.dark .bg-\[\#fcfaf7\] {
+  background-color: #160e0a !important;
 }
 
 .dark .border-\[\#eae8e4\],
@@ -163,8 +218,25 @@ main {
 .dark .border-\[\#e2e8f0\],
 .dark .border-\[\#e6e2dc\],
 .dark .border-\[\#f0ede6\],
-.dark .border-\[\#ede8e1\] {
-  border-color: #38271c !important;
+.dark .border-\[\#ede8e1\],
+.dark .border-\[\#d6cfc7\],
+.dark .border-\[\#d6cfc5\],
+.dark .border-\[\#e8e2d8\],
+.dark .border-\[\#f2efe9\],
+.dark .border-\[\#f0ece5\],
+.dark .border-\[\#f2e2ce\],
+.dark .border-\[\#ebdcc8\],
+.dark .border-\[\#38271c\],
+.dark .border-\[\#2c221c\],
+.dark .border-\[\#2c1f17\],
+.dark .divide-\[\#38271c\] > :not([hidden]) ~ :not([hidden]),
+.dark .divide-\[\#f2efe9\] > :not([hidden]) ~ :not([hidden]),
+.dark .divide-\[\#e6e2dc\] > :not([hidden]) ~ :not([hidden]) {
+  border-color: #5c4433 !important;
+}
+
+.dark .text-\[\#948b83\] {
+  color: #a89f91 !important;
 }
 
 .dark .text-\[\#1b1c1a\],
@@ -191,9 +263,14 @@ main {
 .dark input,
 .dark select,
 .dark textarea {
-  background-color: #241912 !important;
+  background-color: #160e0a !important;
   color: #fdfbf7 !important;
-  border-color: #3d2a1d !important;
+  border-color: #5c4433 !important;
+}
+
+.dark input.bg-transparent,
+.dark textarea.bg-transparent {
+  background-color: transparent !important;
 }
 
 .dark input::placeholder,
@@ -202,13 +279,13 @@ main {
 }
 
 .dark table thead th {
-  background-color: #1a120d !important;
+  background-color: #281c15 !important;
   color: #cdc5bd !important;
-  border-color: #2c1f17 !important;
+  border-color: #5c4433 !important;
 }
 
 .dark table tbody tr {
-  border-color: #2c1f17 !important;
+  border-color: #5c4433 !important;
   background-color: #221812 !important;
 }
 
@@ -220,16 +297,113 @@ main {
 .dark [role="dialog"],
 .dark .shadow-2xl {
   background-color: #221812 !important;
-  border-color: #3d2a1d !important;
+  border-color: #5c4433 !important;
+}
+
+/* Extra light borders → clients border */
+.dark .border-\[\#f2ede4\],
+.dark .border-\[\#d6cfc5\],
+.dark .border-\[\#e8e4de\],
+.dark .border-\[\#eee6d9\] {
+  border-color: #5c4433 !important;
+}
+
+/* Cool-gray leftover surfaces → warm clients palette */
+.dark .bg-\[\#1a1714\],
+.dark .bg-\[\#1a1816\],
+.dark .bg-\[\#1e1c1a\],
+.dark .bg-\[\#171513\],
+.dark .bg-\[\#141210\],
+.dark .bg-\[\#161412\] {
+  background-color: #221812 !important;
+}
+
+.dark .bg-\[\#201d1a\],
+.dark .bg-\[\#201c17\],
+.dark .bg-\[\#2c2621\],
+.dark .bg-\[\#25221e\],
+.dark .bg-\[\#282119\],
+.dark .bg-\[\#241c16\],
+.dark .bg-\[\#251f17\],
+.dark .bg-\[\#25201a\] {
+  background-color: #281c15 !important;
+}
+
+.dark .border-\[\#2f2a24\],
+.dark .border-\[\#38332c\],
+.dark .border-\[\#251f18\],
+.dark .border-\[\#241f19\] {
+  border-color: #5c4433 !important;
+}
+
+.dark .text-\[\#f5f4f0\],
+.dark .text-\[\#fdfcfb\] {
+  color: #fdfbf7 !important;
+}
+
+.dark .text-\[\#a8a196\],
+.dark .text-\[\#9e8f7c\],
+.dark .text-\[\#787166\] {
+  color: #a89f91 !important;
+}
+
+.dark .text-\[\#c4bcb1\],
+.dark .text-\[\#d1c9bd\] {
+  color: #cdc5bd !important;
 }
 
 /* Badges and tags in Dark Mode: Zero bright pastel/white */
-.dark .bg-\[\#ecfdf5\] {
-  background-color: #12281a !important;
+.dark .bg-\[\#fff9ee\],
+.dark .bg-\[\#ffeed9\],
+.dark .bg-\[\#fff5ea\],
+.dark .bg-\[\#f4efe6\] {
+  background-color: #2d1f16 !important;
 }
+.dark .text-\[\#9c6402\],
+.dark .text-\[\#7b4e00\],
+.dark .text-\[\#825200\] {
+  color: #e29d38 !important;
+}
+.dark .border-\[\#fcd8b0\],
+.dark .border-\[\#fed7aa\],
+.dark .border-\[\#dfd7cc\] {
+  border-color: rgba(226, 157, 56, 0.4) !important;
+}
+
+.dark .bg-\[\#ecfdf5\],
+.dark .bg-\[\#e8f5e9\],
+.dark .bg-\[\#ecfdf5\]\/60,
+.dark .bg-\[\#e8f5e9\]\/80 {
+  background-color: #132c1c !important;
+}
+.dark .text-\[\#1b7340\],
 .dark .text-\[\#065f46\],
-.dark .text-\[\#047857\] {
+.dark .text-\[\#047857\],
+.dark .text-\[\#059669\] {
   color: #6ee7b7 !important;
+}
+.dark .border-\[\#c8e6c9\],
+.dark .border-\[\#a7f3d0\] {
+  border-color: rgba(16, 185, 129, 0.4) !important;
+}
+.dark .bg-\[\#fef2f2\],
+.dark .bg-\[\#fee2e2\] {
+  background-color: #2c1313 !important;
+}
+.dark .bg-\[\#fff7ed\] {
+  background-color: #342711 !important;
+}
+.dark .text-\[\#c2410c\] {
+  color: #fdba74 !important;
+}
+.dark .bg-\[\#ffddb6\]\/40 {
+  background-color: rgba(226, 157, 56, 0.18) !important;
+}
+.dark .text-\[\#7b4e00\] {
+  color: #f3c27e !important;
+}
+.dark .border-\[\#ffddb6\] {
+  border-color: rgba(226, 157, 56, 0.5) !important;
 }
 
 .dark .bg-\[\#fffbeb\],
@@ -288,6 +462,14 @@ main {
 }
 .dark .text-\[\#064e3b\] {
   color: #6ee7b7 !important;
+}
+
+/* Lock page scroll while any modal/popover portal is open (prevents background scrollbar) */
+html.modal-open,
+body.modal-open {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+  touch-action: none;
 }
 
 /* Custom sleek scrollbar for sidebar & dashboard workspace */
@@ -453,10 +635,10 @@ main {
    2. Dark Mode (Night / نايت مود) - Deep Obsidian & Glowing Gold
    -------------------------------------------------------------------------- */
 .dark [data-sonner-toast] {
-  background: #141210 !important;
-  color: #fdfcfb !important;
-  border: 1.5px solid #d4a759 !important;
-  box-shadow: 0 20px 45px -8px rgba(0, 0, 0, 0.75), 0 0 26px -2px rgba(212, 167, 89, 0.45) !important;
+  background: #221812 !important;
+  color: #fdfbf7 !important;
+  border: 1.5px solid #e29d38 !important;
+  box-shadow: 0 20px 45px -8px rgba(0, 0, 0, 0.75), 0 0 26px -2px rgba(226, 157, 56, 0.45) !important;
 }
 
 .dark [data-sonner-toast] [data-title] {
@@ -499,4 +681,24 @@ main {
 .dark [data-sonner-toast] [data-close-button]:hover {
   background: #d4a759 !important;
   color: #161412 !important;
+}
+
+@keyframes subtle-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+
+.animate-subtle-shake {
+  animation: subtle-shake 0.4s ease-in-out;
+}
+
+@keyframes route-loader {
+  0% { transform: translateX(100%); }
+  50% { transform: translateX(0%); }
+  100% { transform: translateX(-100%); }
+}
+
+.animate-route-loader {
+  animation: route-loader 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }

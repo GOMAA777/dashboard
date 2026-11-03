@@ -6,6 +6,7 @@ import { SubscriptionRecord } from "../types/subscription.types";
 import { toast } from "sonner";
 import { useLanguage } from "@/lib/i18n";
 import { ModalPortal } from "@/components/shared/ModalPortal";
+import { DashboardSelect } from "@/components/shared/DashboardSelect";
 
 interface CancelSubscriptionModalProps {
   isOpen: boolean;
@@ -58,7 +59,7 @@ export function CancelSubscriptionModal({
         }}
       >
         <div
-          className="bg-white dark:bg-[#1e1c1a] border border-[#d6c4b1]/40 dark:border-[#38332c] rounded-[8px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95"
+          className="bg-white dark:bg-[#221812] border border-[#d6c4b1]/40 dark:border-[#38271c] rounded-[8px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95"
           data-node-id="1:7101"
           onClick={(e) => e.stopPropagation()}
         >
@@ -67,7 +68,7 @@ export function CancelSubscriptionModal({
 
         {/* MODAL HEADER */}
         <div
-          className="flex items-center justify-between px-6 py-4 border-b border-[#f0eeea] dark:border-[#2f2a24] bg-white dark:bg-[#1e1c1a]"
+          className="flex items-center justify-between px-6 py-4 border-b border-[#f0eeea] dark:border-[#38271c] bg-white dark:bg-[#221812]"
           data-node-id="1:7103"
         >
           <div className="flex items-center gap-3 order-1 rtl:order-2">
@@ -82,7 +83,7 @@ export function CancelSubscriptionModal({
           <button
             type="button"
             onClick={onClose}
-            className="size-8 rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#2c2621] text-[#514537] dark:text-[#a89f91] flex items-center justify-center transition-colors cursor-pointer order-2 rtl:order-1"
+            className="size-8 rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] text-[#514537] dark:text-[#a89f91] flex items-center justify-center transition-colors cursor-pointer order-2 rtl:order-1"
             aria-label={t("إغلاق النافذة", "Close Window")}
           >
             <X className="w-4 h-4" />
@@ -93,17 +94,17 @@ export function CancelSubscriptionModal({
         <div className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
           {/* 1. Office & Subscription Summary Box */}
           <div
-            className="bg-[#f5f3ef] dark:bg-[#2c2621] p-3.5 rounded-[4px] space-y-2.5 border border-[#eae8e4] dark:border-[#38332c]"
+            className="bg-[#f5f3ef] dark:bg-[#281c15] p-3.5 rounded-[4px] space-y-2.5 border border-[#eae8e4] dark:border-[#38271c]"
             data-node-id="1:7115"
           >
-            <div className="flex items-center justify-between pb-2 border-b border-[#e4e2de] dark:border-[#38332c]">
+            <div className="flex items-center justify-between pb-2 border-b border-[#e4e2de] dark:border-[#38271c]">
               <div className="flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-[#9c6402]" />
                 <span className="font-bold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7]">
                   {firmName}
                 </span>
               </div>
-              <span className="bg-[#f0eeea] dark:bg-[#38332c] text-[#514537] dark:text-[#d1c9bd] font-bold text-[10px] px-2 py-0.5 rounded-[2px]">
+              <span className="bg-[#f0eeea] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] font-bold text-[10px] px-2 py-0.5 rounded-[2px]">
                 {subId}
               </span>
             </div>
@@ -156,7 +157,7 @@ export function CancelSubscriptionModal({
               className={`p-3 rounded-[4px] border transition-all cursor-pointer flex items-start gap-3 ${
                 timingOption === "end_of_period"
                   ? "border-[#9c6402] bg-[#fff9ee]/30 dark:bg-[#342711]/40 shadow-xs"
-                  : "border-[#e4e2de] dark:border-[#38332c] hover:bg-[#faf9f7]"
+                  : "border-[#e4e2de] dark:border-[#38271c] hover:bg-[#faf9f7]"
               }`}
             >
               <div className="pt-0.5">
@@ -190,7 +191,7 @@ export function CancelSubscriptionModal({
               className={`p-3 rounded-[4px] border transition-all cursor-pointer flex items-start gap-3 ${
                 timingOption === "immediate"
                   ? "border-[#9c6402] bg-[#fff9ee]/30 dark:bg-[#342711]/40 shadow-xs"
-                  : "border-[#e4e2de] dark:border-[#38332c] hover:bg-[#faf9f7]"
+                  : "border-[#e4e2de] dark:border-[#38271c] hover:bg-[#faf9f7]"
               }`}
             >
               <div className="pt-0.5">
@@ -230,10 +231,11 @@ export function CancelSubscriptionModal({
               </span>
             </div>
 
-            <select
+            <DashboardSelect
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              className="w-full h-10 px-3 bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] rounded-[4px] text-[12px] border border-[#e4e2de] dark:border-[#38332c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] cursor-pointer"
+              placeholder={t("يرجى تحديد سبب الإلغاء الرئيسي...", "Select primary cancellation reason...")}
+              className="h-10 text-[12px] rounded-[4px]"
             >
               <option value="">{t("يرجى تحديد سبب الإلغاء الرئيسي...", "Select primary cancellation reason...")}</option>
               <option value="بطلب من العميل لعدم الحاجة الحالية">{t("بطلب من العميل لعدم الحاجة الحالية", "Requested by client (no current need)")}</option>
@@ -241,24 +243,24 @@ export function CancelSubscriptionModal({
               <option value="الانتقال إلى نظام إداري بديل">{t("الانتقال إلى نظام إداري بديل", "Switching to alternative administrative system")}</option>
               <option value="توقف أو تجميد نشاط المكتب القضائي">{t("توقف أو تجميد نشاط المكتب القضائي", "Suspension of office legal practice")}</option>
               <option value="عدم التوافق مع المتطلبات التقنية">{t("عدم التوافق مع المتطلبات التقنية", "Technical compatibility mismatch")}</option>
-            </select>
+            </DashboardSelect>
 
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder={t("دون ملاحظات إضافية لسجل المراجعة (اختياري)...", "Note additional details for audit log (optional)...")}
               rows={2}
-              className="w-full p-2.5 bg-[#f5f3ef] dark:bg-[#2c2621] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder-[#837565] rounded-[4px] text-[12px] border border-[#e4e2de] dark:border-[#38332c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] resize-none"
+              className="w-full p-2.5 bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder-[#837565] rounded-[4px] text-[12px] border border-[#e4e2de] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] resize-none"
             />
           </div>
         </div>
 
         {/* MODAL FOOTER */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 bg-[#faf9f7] dark:bg-[#25221e] border-t border-[#f0eeea] dark:border-[#2f2a24]">
+        <div className="flex items-center justify-end gap-3 px-6 py-4 bg-[#faf9f7] dark:bg-[#221812] border-t border-[#f0eeea] dark:border-[#38271c]">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-[4px] bg-[#f5f3ef] dark:bg-[#2c2621] hover:bg-[#eae8e4] text-[#514537] dark:text-[#a89f91] text-[12px] font-semibold transition-colors cursor-pointer"
+            className="px-4 py-2 rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] text-[#514537] dark:text-[#a89f91] text-[12px] font-semibold transition-colors cursor-pointer"
           >
             {t("إلغاء", "Cancel")}
           </button>
