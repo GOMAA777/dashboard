@@ -49,7 +49,7 @@ describe("09. Payment Gateways & Invoices (طرق الدفع والفوترة) -
             brand: "stripe",
             status: "active",
             is_enabled: true,
-            client_id: "mock_pub_stripe_123",
+            client_id: "pk_test_stripe_123",
             client_secret: "mock_sec_stripe_456",
           },
         ],
@@ -104,7 +104,7 @@ describe("09. Payment Gateways & Invoices (طرق الدفع والفوترة) -
           id: "stripe",
           name: "Stripe Gateway",
           mode: "live",
-          client_id: "mock_pub_123",
+          client_id: "pk_test_123",
           client_secret: "mock_sec_456",
         },
       };

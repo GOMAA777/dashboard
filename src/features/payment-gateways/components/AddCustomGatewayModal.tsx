@@ -159,7 +159,7 @@ export function AddCustomGatewayModal({
             <input
               type="password"
               dir="ltr"
-              placeholder="sk_live_..."
+              placeholder="sk_test_..."
               value={clientSecret}
               onChange={(e) => setClientSecret(e.target.value)}
               className="w-full bg-white border border-[#eae8e4] rounded-[4px] px-3.5 py-2.5 text-xs font-mono text-[#1b1c1a] shadow-xs focus:ring-1 focus:ring-[#9c6403] focus:border-[#9c6403] outline-none text-left"
