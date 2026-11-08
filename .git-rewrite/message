@@ -1,1 +1,0 @@
-feat(pagination): standardize default page size to 5 and relocate rows-per-page to pagination controls
