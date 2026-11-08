@@ -7,11 +7,15 @@ import { useLanguage } from "@/lib/i18n";
 interface TelemetryCardsProps {
   totalCount: number;
   activeCount: number;
+  securityStandard?: string;
+  zatcaPhase?: string;
 }
 
 export function TelemetryCards({
   totalCount,
   activeCount,
+  securityStandard,
+  zatcaPhase,
 }: TelemetryCardsProps) {
   const { t } = useLanguage();
 
@@ -65,12 +69,14 @@ export function TelemetryCards({
             {t("معايير التشفير والأمان", "Security & Encryption")}
           </span>
           <span className="text-[#1c140f] dark:text-[#fdfbf7] text-[18px] font-bold leading-[26px] tracking-[-0.45px] my-1">
-            PCI-DSS L1
+            {securityStandard ? securityStandard.split("(")[0].trim() : "PCI-DSS L1"}
           </span>
           <div className="flex items-center gap-1.5">
             <span className="bg-[#059669] dark:bg-[#10b981] rounded-full size-1.5 shrink-0" />
             <span className="text-[#047857] dark:text-[#6ee7b7] text-[10px] font-semibold leading-[14px]">
-              {t("تشفير بنكي 256-bit TLS", "Bank-grade 256-bit TLS")}
+              {securityStandard && securityStandard.includes("(")
+                ? securityStandard.split("(")[1].replace(")", "").trim()
+                : t("تشفير بنكي 256-bit TLS", "Bank-grade 256-bit TLS")}
             </span>
           </div>
         </div>
@@ -91,7 +97,7 @@ export function TelemetryCards({
           <div className="flex items-center gap-1">
             <Check className="size-3 text-[#059669] dark:text-[#10b981]" />
             <span className="text-[#514537] dark:text-[#8e8680] text-[10px] font-bold leading-[14px]">
-              {t("المرحلة الثانية (الربط والتكامل)", "Phase 2 (Integration)")}
+              {zatcaPhase || t("المرحلة الثانية (الربط والتكامل)", "Phase 2 (Integration)")}
             </span>
           </div>
         </div>

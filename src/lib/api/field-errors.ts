@@ -20,13 +20,13 @@ export function mapStaffFormFieldErrors(
   apiErrors: Record<string, string>
 ): Partial<
   Record<
-    "name" | "email" | "phone" | "roleId" | "departmentId" | "password" | "confirmPassword",
+    "name" | "email" | "phone" | "roleId" | "departmentId" | "password",
     string
   >
 > {
   const mapped: Partial<
     Record<
-      "name" | "email" | "phone" | "roleId" | "departmentId" | "password" | "confirmPassword",
+      "name" | "email" | "phone" | "roleId" | "departmentId" | "password",
       string
     >
   > = {};

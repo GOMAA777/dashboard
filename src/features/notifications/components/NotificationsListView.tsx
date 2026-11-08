@@ -24,6 +24,8 @@ import {
   NotificationStatus,
 } from "../types/notifications.types";
 import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
+import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
+import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { useLanguage } from "@/lib/i18n";
 
 interface NotificationsListViewProps {
@@ -39,11 +41,13 @@ export function NotificationsListView({
   onViewDetails,
   onInitiateDelete,
 }: NotificationsListViewProps) {
-  const { direction, isEn } = useLanguage();
+  const { direction, isEn, t } = useLanguage();
 
   // Filters & State
   const [activeTab, setActiveTab] = useState<"all" | "active" | "scheduled" | "draft">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [audienceFilter, setAudienceFilter] = useState<"all" | "all_firms" | "specific">("all");
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
   const [pageSize, setPageSize] = useState<number>(5);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -62,7 +66,7 @@ export function NotificationsListView({
 
   // Filtered dataset
   const filteredNotifications = useMemo(() => {
-    return notifications.filter((item) => {
+    const list = notifications.filter((item) => {
       // Tab filter
       if (activeTab === "active" && item.status !== "sent" && item.status !== "active") {
         return false;
@@ -71,6 +75,14 @@ export function NotificationsListView({
         return false;
       }
       if (activeTab === "draft" && item.status !== "draft") {
+        return false;
+      }
+
+      // Audience filter
+      if (audienceFilter === "all_firms" && item.audienceType !== "all") {
+        return false;
+      }
+      if (audienceFilter === "specific" && item.audienceType !== "specific") {
         return false;
       }
 
@@ -88,7 +100,84 @@ export function NotificationsListView({
 
       return true;
     });
-  }, [notifications, activeTab, searchQuery]);
+
+    if (sortOrder === "oldest") {
+      return [...list].reverse();
+    }
+    return list;
+  }, [notifications, activeTab, audienceFilter, sortOrder, searchQuery]);
+
+  const handleResetFilters = () => {
+    setSearchQuery("");
+    setActiveTab("all");
+    setAudienceFilter("all");
+    setSortOrder("newest");
+    setCurrentPage(1);
+  };
+
+  const hasActiveFilters =
+    activeTab !== "all" ||
+    audienceFilter !== "all" ||
+    sortOrder !== "newest" ||
+    Boolean(searchQuery.trim());
+
+  const drawerContent = (
+    <div className="space-y-6 text-start font-['Cairo',sans-serif]">
+      {/* 1. حالة الإشعار */}
+      <div className="space-y-2">
+        <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
+          {t("حالة الإشعار", "Notification Status")}
+        </label>
+        <DashboardSelect
+          value={activeTab}
+          onChange={(e) => {
+            setActiveTab(e.target.value as any);
+            setCurrentPage(1);
+          }}
+        >
+          <option value="all">{t("كافة الإشعارات", "All Notifications")}</option>
+          <option value="active">{t("نشطة ومستلمة", "Active & Received")}</option>
+          <option value="scheduled">{t("مجدولة", "Scheduled")}</option>
+          <option value="draft">{t("مسودة", "Drafts")}</option>
+        </DashboardSelect>
+      </div>
+
+      {/* 2. الجمهور المستهدف */}
+      <div className="space-y-2">
+        <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
+          {t("الجمهور المستهدف", "Target Audience")}
+        </label>
+        <DashboardSelect
+          value={audienceFilter}
+          onChange={(e) => {
+            setAudienceFilter(e.target.value as any);
+            setCurrentPage(1);
+          }}
+        >
+          <option value="all">{t("جميع الفئات والجمهور", "All Audiences")}</option>
+          <option value="all_firms">{t("كافة المكاتب المسجلة (بث عام)", "Broadcast to All Firms")}</option>
+          <option value="specific">{t("مكاتب محددة مخصصة", "Specific Firms Only")}</option>
+        </DashboardSelect>
+      </div>
+
+      {/* 3. ترتيب الإشعارات */}
+      <div className="space-y-2">
+        <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
+          {t("ترتيب العرض", "Sort Order")}
+        </label>
+        <DashboardSelect
+          value={sortOrder}
+          onChange={(e) => {
+            setSortOrder(e.target.value as any);
+            setCurrentPage(1);
+          }}
+        >
+          <option value="newest">{t("الأحدث أولاً (تاريخ الإرسال)", "Newest First")}</option>
+          <option value="oldest">{t("الأقدم أولاً", "Oldest First")}</option>
+        </DashboardSelect>
+      </div>
+    </div>
+  );
 
   // Pagination calculation
   const totalItems = filteredNotifications.length;
@@ -173,164 +262,51 @@ export function NotificationsListView({
         </button>
       </div>
 
-      {/* Search & Filter Header */}
+      {/* Unified Table Card: Filter Bar + Table + Pagination Footer */}
       <div
-        className="bg-white dark:bg-[#1a120d] rounded-[8px] p-4 sm:p-5 border border-[#e6e2dc] dark:border-[#2e231b] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-wrap lg:flex-nowrap items-center justify-between gap-4"
+        className="bg-white dark:bg-[#221812] rounded-[8px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] overflow-hidden w-full shrink-0 font-['Cairo',sans-serif]"
       >
-        {/* Search Input */}
-        <div className="relative w-full sm:w-[320px] md:w-[360px] shrink-0">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
-            placeholder={
-              isEn
-                ? "Search by notification title or action URL..."
-                : "ابحث بعنوان الإشعار أو نص الرابط..."
-            }
-            className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder-[#837565] dark:placeholder-[#8e8680] text-[13px] rounded-[6px] pe-[36px] ps-[14px] border border-transparent dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] transition-all"
-          />
-          <Search className="size-4 text-[#837565] dark:text-[#8e8680] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none" />
-        </div>
+        <UnifiedFilterBar
+          searchQuery={searchQuery}
+          onSearchChange={(val) => {
+            setSearchQuery(val);
+            setCurrentPage(1);
+          }}
+          searchPlaceholder={
+            isEn
+              ? "Search by notification title or action URL..."
+              : "ابحث بعنوان الإشعار أو نص الرابط..."
+          }
+          primaryFilterValue={activeTab}
+          onPrimaryFilterChange={(v) => {
+            setActiveTab(v as any);
+            setCurrentPage(1);
+          }}
+          primaryFilterMode="pills"
+          primaryFilterOptions={[
+            { label: `${isEn ? "All" : "الكل"} (${tabCounts.all})`, value: "all" },
+            { label: `${isEn ? "Active & Received" : "نشطة ومستلمة"} (${tabCounts.activeAndReceived})`, value: "active" },
+            { label: `${isEn ? "Scheduled" : "مجدولة"} (${tabCounts.scheduled})`, value: "scheduled" },
+            { label: `${isEn ? "Drafts" : "مسودة"} (${tabCounts.drafts})`, value: "draft" },
+          ]}
+          hasActiveFilters={hasActiveFilters}
+          onReset={handleResetFilters}
+          drawerTitle={t("تصفية الإشعارات", "Filter Notifications")}
+          drawerDescription={t(
+            "خيارات تصفية وفلترة متقدمة للوصول الدقيق للإشعارات",
+            "Advanced filter options for broadcast notifications"
+          )}
+          drawerContent={drawerContent}
+          className="rounded-b-none border-0 border-b border-[#f0eeea] dark:border-[#38271c]"
+        />
 
-        {/* Filter Tabs & Page Size */}
-        <div className="flex flex-wrap items-center gap-3 ms-auto">
-          {/* Tab Pills */}
-          <div
-            className="bg-[#f5f3ef] dark:bg-[#281c15] p-1 rounded-[8px] border border-[#eae8e4] dark:border-[#38271c] flex items-center gap-1.5 overflow-x-auto"
-          >
-            {/* Tab: All */}
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab("all");
-                setCurrentPage(1);
-              }}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-[6px] text-[13px] font-semibold transition-all cursor-pointer ${
-                activeTab === "all"
-                  ? "bg-white dark:bg-[#1a120d] text-[#9c6402] dark:text-[#e29d38] shadow-xs"
-                  : "text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
-              }`}
-            >
-              <span>{isEn ? "All" : "الكل"}</span>
-              <span
-                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-[4px] ${
-                  activeTab === "all"
-                    ? "bg-[#f0eeea] dark:bg-[#38271c] text-[#7b4e00] dark:text-[#ffddb6]"
-                    : "bg-[#e4e2de] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd]"
-                }`}
-              >
-                {tabCounts.all}
-              </span>
-            </button>
-
-            {/* Tab: Active & Received */}
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab("active");
-                setCurrentPage(1);
-              }}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-[6px] text-[13px] font-semibold transition-all cursor-pointer ${
-                activeTab === "active"
-                  ? "bg-white dark:bg-[#1a120d] text-[#9c6402] dark:text-[#e29d38] shadow-xs"
-                  : "text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
-              }`}
-            >
-              <span>{isEn ? "Active & Received" : "نشطة ومستلمة"}</span>
-              <span
-                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-[4px] ${
-                  activeTab === "active"
-                    ? "bg-[#f0eeea] dark:bg-[#38271c] text-[#7b4e00] dark:text-[#ffddb6]"
-                    : "bg-[#e4e2de] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd]"
-                }`}
-              >
-                {tabCounts.activeAndReceived}
-              </span>
-            </button>
-
-            {/* Tab: Scheduled */}
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab("scheduled");
-                setCurrentPage(1);
-              }}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-[6px] text-[13px] font-semibold transition-all cursor-pointer ${
-                activeTab === "scheduled"
-                  ? "bg-white dark:bg-[#1a120d] text-[#9c6402] dark:text-[#e29d38] shadow-xs"
-                  : "text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
-              }`}
-            >
-              <span>{isEn ? "Scheduled" : "مجدولة"}</span>
-              <span
-                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-[4px] ${
-                  activeTab === "scheduled"
-                    ? "bg-[#f0eeea] dark:bg-[#38271c] text-[#7b4e00] dark:text-[#ffddb6]"
-                    : "bg-[#e4e2de] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd]"
-                }`}
-              >
-                {tabCounts.scheduled}
-              </span>
-            </button>
-
-            {/* Tab: Drafts */}
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab("draft");
-                setCurrentPage(1);
-              }}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-[6px] text-[13px] font-semibold transition-all cursor-pointer ${
-                activeTab === "draft"
-                  ? "bg-white dark:bg-[#1a120d] text-[#9c6402] dark:text-[#e29d38] shadow-xs"
-                  : "text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
-              }`}
-            >
-              <span>{isEn ? "Drafts" : "مسودة"}</span>
-              <span
-                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-[4px] ${
-                  activeTab === "draft"
-                    ? "bg-[#f0eeea] dark:bg-[#38271c] text-[#7b4e00] dark:text-[#ffddb6]"
-                    : "bg-[#e4e2de] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd]"
-                }`}
-              >
-                {tabCounts.drafts}
-              </span>
-            </button>
-          </div>
-
-          {/* Page Size Dropdown */}
-          <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
-            <span className="text-[12px] font-semibold text-[#837565] dark:text-[#8e8680] whitespace-nowrap">
-              {isEn ? "Page Size:" : "الترقيم:"}
-            </span>
-            <PageSizeDropdown
-              value={pageSize}
-              onChange={(newSize) => {
-                setPageSize(newSize);
-                setCurrentPage(1);
-              }}
-              options={[5, 10, 20, 50]}
-              dropdownPlacement="bottom"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content Table */}
-      <div
-        className="bg-white dark:bg-[#1a120d] rounded-[8px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#e6e2dc] dark:border-[#2e231b] overflow-hidden"
-      >
+        {/* Main Content Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-start border-collapse">
             {/* Table Header Row */}
             <thead>
               <tr
-                className="bg-[#f0eeea] dark:bg-[#281c15] h-[60px] text-[#514537] dark:text-[#cdc5bd] font-bold text-[12px] border-b border-[#eae8e4] dark:border-[#2e231b]"
+                className="bg-[#fcfaf7] dark:bg-[#1a120d] h-[52px] text-[#514537] dark:text-[#cdc5bd] font-bold text-[12px] border-b border-[#f0eeea] dark:border-[#38271c]"
               >
                 <th className="px-4 py-3 text-start font-bold w-[540px]">
                   {isEn ? "Notification Title" : "عنوان الإشعار"}
@@ -348,7 +324,7 @@ export function NotificationsListView({
             </thead>
 
             {/* Table Body */}
-            <tbody className="divide-y divide-[#f5f3ef] dark:divide-[#261d16]">
+            <tbody className="divide-y divide-[#f0eeea] dark:divide-[#38271c]">
               {paginatedNotifications.length === 0 ? (
                 <tr>
                   <td
@@ -493,24 +469,23 @@ export function NotificationsListView({
           </table>
         </div>
 
-        {/* Table Footer: Pagination */}
-        <div className="border-t border-[#eae8e4] dark:border-[#2e231b] px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#faf9f7] dark:bg-[#1a120d]">
-          <div className="flex items-center gap-3">
-            <p className="text-[12px] text-[#514537] dark:text-[#a89f91]">
-              {isEn
-                ? `Showing ${
-                    totalItems === 0 ? 0 : (validCurrentPage - 1) * pageSize + 1
-                  } to ${Math.min(
-                    validCurrentPage * pageSize,
-                    totalItems
-                  )} of ${totalItems} notifications`
-                : `عرض ${
-                    totalItems === 0 ? 0 : (validCurrentPage - 1) * pageSize + 1
-                  } إلى ${Math.min(
-                    validCurrentPage * pageSize,
-                    totalItems
-                  )} من أصل ${totalItems} إشعاراً`}
-            </p>
+        {/* Pagination Footer */}
+        <div className="bg-[#fcfaf7] dark:bg-[#1a120d] p-[16px] border-t border-[#f0eeea] dark:border-[#38271c] flex flex-col sm:flex-row items-center justify-between gap-[12px] text-[12px] text-[#514537] dark:text-[#cdc5bd] font-['Cairo']">
+          {/* Right in RTL: Count Summary & Rows per page */}
+          <div className="flex flex-wrap items-center gap-4">
+            <div>
+              <span>{isEn ? "Showing " : "عرض "}</span>
+              <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                {totalItems === 0 ? 0 : (validCurrentPage - 1) * pageSize + 1}
+              </span>
+              <span> {isEn ? "to " : "إلى "}</span>
+              <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                {Math.min(validCurrentPage * pageSize, totalItems)}
+              </span>
+              <span> {isEn ? "of " : "من أصل "}</span>
+              <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{totalItems}</span>
+              <span> {isEn ? " notifications" : " إشعاراً مسجلاً"}</span>
+            </div>
 
             <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
               <span className="text-[11px] text-[#837565] dark:text-[#8e8680]">
@@ -523,46 +498,35 @@ export function NotificationsListView({
                   setCurrentPage(1);
                 }}
                 options={[5, 10, 20, 50]}
+                dropdownPlacement="top"
               />
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            {/* First Page */}
+          {/* Left in RTL: Page Controls */}
+          <div className="flex items-center gap-[4px]">
             <button
               type="button"
+              disabled={validCurrentPage <= 1 || totalItems === 0}
               onClick={() => setCurrentPage(1)}
-              disabled={validCurrentPage <= 1}
               title={isEn ? "First page" : "الصفحة الأولى"}
-              className="size-[28px] rounded-[4px] border border-[#e6e2dc] dark:border-[#38271c] bg-white dark:bg-[#221812] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer flex items-center justify-center"
+              className="size-[30px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center cursor-pointer"
             >
-              {isEn ? (
-                <ChevronsLeft className="size-3.5" />
-              ) : (
-                <ChevronsRight className="size-3.5" />
-              )}
+              <ChevronsRight className="size-[14px] rtl:rotate-0 rotate-180" />
             </button>
 
-            {/* Previous Page */}
             <button
               type="button"
+              disabled={validCurrentPage <= 1 || totalItems === 0}
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={validCurrentPage <= 1}
-              className="px-3 py-1 text-[12px] rounded-[4px] border border-[#e6e2dc] dark:border-[#38271c] bg-white dark:bg-[#221812] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer flex items-center gap-1"
+              title={isEn ? "Previous page" : "الصفحة السابقة"}
+              className="px-[10px] py-[6px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-[4px] cursor-pointer"
             >
-              {isEn ? (
-                <>
-                  <ChevronLeft className="size-3.5" />
-                  <span>Previous</span>
-                </>
-              ) : (
-                <>
-                  <ChevronRight className="size-3.5" />
-                  <span>السابق</span>
-                </>
-              )}
+              <ChevronRight className="size-[13px] rtl:rotate-0 rotate-180" />
+              <span>{isEn ? "Previous" : "السابق"}</span>
             </button>
 
+            {/* Page number buttons */}
             {Array.from({ length: totalPages }).map((_, idx) => {
               const pageNumber = idx + 1;
               if (
@@ -589,10 +553,10 @@ export function NotificationsListView({
                   key={pageNumber}
                   type="button"
                   onClick={() => setCurrentPage(pageNumber)}
-                  className={`size-7 text-[12px] font-bold rounded-[4px] transition-colors cursor-pointer ${
+                  className={`size-[30px] rounded-[4px] text-[12px] font-bold transition-colors cursor-pointer flex items-center justify-center ${
                     validCurrentPage === pageNumber
-                      ? "bg-[#9c6402] dark:bg-[#e29d38] text-white shadow-xs"
-                      : "bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#edebe6] dark:hover:bg-[#34241b] text-[#1b1c1a] dark:text-[#fdfbf7] border border-transparent dark:border-[#38271c]"
+                      ? "bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] shadow-xs"
+                      : "border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15]"
                   }`}
                 >
                   {pageNumber}
@@ -600,39 +564,25 @@ export function NotificationsListView({
               );
             })}
 
-            {/* Next Page */}
             <button
               type="button"
+              disabled={validCurrentPage >= totalPages || totalItems === 0}
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={validCurrentPage >= totalPages}
-              className="px-3 py-1 text-[12px] rounded-[4px] border border-[#e6e2dc] dark:border-[#38271c] bg-white dark:bg-[#221812] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer flex items-center gap-1"
+              title={isEn ? "Next page" : "الصفحة التالية"}
+              className="px-[10px] py-[6px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-[4px] cursor-pointer"
             >
-              {isEn ? (
-                <>
-                  <span>Next</span>
-                  <ChevronRight className="size-3.5" />
-                </>
-              ) : (
-                <>
-                  <span>التالي</span>
-                  <ChevronLeft className="size-3.5" />
-                </>
-              )}
+              <span>{isEn ? "Next" : "التالي"}</span>
+              <ChevronLeft className="size-[13px] rtl:rotate-0 rotate-180" />
             </button>
 
-            {/* Last Page */}
             <button
               type="button"
+              disabled={validCurrentPage >= totalPages || totalItems === 0}
               onClick={() => setCurrentPage(totalPages)}
-              disabled={validCurrentPage >= totalPages}
               title={isEn ? "Last page" : "الصفحة الأخيرة"}
-              className="size-[28px] rounded-[4px] border border-[#e6e2dc] dark:border-[#38271c] bg-white dark:bg-[#221812] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer flex items-center justify-center"
+              className="size-[30px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center cursor-pointer"
             >
-              {isEn ? (
-                <ChevronsRight className="size-3.5" />
-              ) : (
-                <ChevronsLeft className="size-3.5" />
-              )}
+              <ChevronsLeft className="size-[14px] rtl:rotate-0 rotate-180" />
             </button>
           </div>
         </div>

@@ -43,6 +43,7 @@ const ROUTE_LABELS: Record<string, { ar: string; en: string }> = {
   "notifications": { ar: "مركز الإشعارات", en: "Notifications" },
   "settings": { ar: "إعدادات النظام", en: "System Settings" },
   "general": { ar: "الإعدادات العامة", en: "General Settings" },
+  "edit": { ar: "تعديل الإعدادات", en: "Edit Settings" },
   "currency": { ar: "إعدادات العملة", en: "Currency Settings" },
   "language": { ar: "إعدادات اللغة", en: "Language Settings" },
   "website-settings": { ar: "إعدادات الموقع", en: "Site Settings" },

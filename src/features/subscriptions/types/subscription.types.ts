@@ -1,8 +1,8 @@
-export type SubscriptionStatus = "active" | "pending" | "expired" | "cancelled" | "rejected";
+export type SubscriptionStatus = "active" | "pending" | "expired" | "cancelled" | "rejected" | "suspended";
 
 export type SubscriptionPlanType = "custom" | "gold" | "silver" | "basic";
 
-export type PaymentMethodType = "mada" | "visa" | "sadad" | "transfer" | "settlement";
+export type PaymentMethodType = "mada" | "visa" | "sadad" | "transfer" | "settlement" | "bank_transfer" | "cash";
 
 export interface LawFirmOffice {
   id: string;
@@ -33,7 +33,7 @@ export interface ActivityTimelineEvent {
   description: string;
   actor: string;
   date: string;
-  type: "renewal" | "upgrade" | "payment_update" | "cancellation" | "dispatch" | "bank_auth" | "submitted";
+  type: "renewal" | "upgrade" | "payment_update" | "cancellation" | "dispatch" | "bank_auth" | "submitted" | "status_change";
   upgradeFrom?: string;
   upgradeTo?: string;
 }
@@ -76,6 +76,7 @@ export interface SubscriptionRecord {
     isAutoPaid: boolean;
   };
   // Detailed metadata for view modes
+  isCustomOffer?: boolean;
   taxNumber?: string;
   zatcaCompliant?: boolean;
   cancellationDate?: string;
@@ -106,3 +107,74 @@ export interface SubscriptionRecord {
 }
 
 export type SubscriptionTabFilter = "all" | "active" | "pending" | "cancelled_expired";
+
+// API Request and Response Types
+export interface SubscriptionsStatsData {
+  total?: number;
+  total_subscriptions?: number;
+  active?: number;
+  active_subscriptions?: number;
+  expiring?: number;
+  expiring_soon?: number;
+  pending?: number;
+  cancelled?: number;
+  cancelled_expired?: number;
+  expired?: number;
+}
+
+export interface SubscriptionsStatsResponse {
+  status: boolean;
+  message?: string;
+  data: SubscriptionsStatsData;
+}
+
+export interface SubscriptionListParams {
+  tab?: string;
+  page?: number;
+  per_page?: number;
+  is_custom_offer?: number | boolean;
+  status?: string;
+  plan?: string;
+  search?: string;
+}
+
+export interface SubscriptionsListResponse {
+  status: boolean;
+  message?: string;
+  data: Record<string, unknown>[] | {
+    data: Record<string, unknown>[];
+    total?: number;
+    current_page?: number;
+    per_page?: number;
+    last_page?: number;
+  };
+}
+
+export interface SubscriptionDetailResponse {
+  status: boolean;
+  message?: string;
+  data: Record<string, unknown>;
+}
+
+export interface RejectSubscriptionPayload {
+  reason: string;
+}
+
+export interface RenewSubscriptionPayload {
+  period?: "year" | "month" | string;
+  payment_method?: string;
+}
+
+export interface UpgradeSubscriptionPayload {
+  new_plan_id: number | string;
+  billing_cycle?: "monthly" | "yearly" | string;
+}
+
+export interface CancelSubscriptionPayload {
+  reason: string;
+}
+
+export interface UpdateSubscriptionStatusPayload {
+  status: string;
+}
+

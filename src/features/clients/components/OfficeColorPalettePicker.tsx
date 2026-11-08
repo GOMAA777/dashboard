@@ -17,6 +17,8 @@ interface OfficeColorPalettePickerProps {
   onChange: (hex: string) => void;
   firmName?: string;
   className?: string;
+  defaultColor?: string;
+  label?: string;
 }
 
 /**
@@ -30,12 +32,15 @@ export function OfficeColorPalettePicker({
   onChange,
   firmName = "مكتب المحاماة",
   className,
+  defaultColor = DEFAULT_OFFICE_THEME_COLOR,
+  label,
 }: OfficeColorPalettePickerProps) {
   const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const currentColor = isValidHexColor(value) ? value : DEFAULT_OFFICE_THEME_COLOR;
+  const defaultFallback = defaultColor || DEFAULT_OFFICE_THEME_COLOR;
+  const currentColor = isValidHexColor(value) ? value : defaultFallback;
   const colorName = getOfficeColorName(currentColor);
   const isLight = isLightColor(currentColor);
 
@@ -91,8 +96,8 @@ export function OfficeColorPalettePicker({
   };
 
   const handleResetDefault = () => {
-    setHexInput(DEFAULT_OFFICE_THEME_COLOR);
-    onChange(DEFAULT_OFFICE_THEME_COLOR);
+    setHexInput(defaultFallback);
+    onChange(defaultFallback);
   };
 
   return (

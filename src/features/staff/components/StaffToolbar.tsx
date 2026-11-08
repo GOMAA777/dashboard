@@ -13,11 +13,17 @@ interface StaffToolbarProps {
   onRoleChange: (role: string) => void;
   selectedStatus: string;
   onStatusChange: (status: string) => void;
-  selectedLastLogin: string;
-  onLastLoginChange: (period: string) => void;
+  selectedLastLogin?: string;
+  onLastLoginChange?: (period: string) => void;
   onResetFilters: () => void;
   isEmptyView?: boolean;
   onToggleEmptyView?: () => void;
+  roles?: { id: string; name: string }[];
+  statusCounts?: {
+    all: number;
+    active: number;
+    suspended: number;
+  };
 }
 
 export function StaffToolbar({
@@ -30,13 +36,17 @@ export function StaffToolbar({
   selectedLastLogin,
   onLastLoginChange,
   onResetFilters,
+  roles,
+  statusCounts,
 }: StaffToolbarProps) {
   const { t } = useLanguage();
+
+  const counts = statusCounts ?? { all: 0, active: 0, suspended: 0 };
 
   const hasActiveFilters =
     selectedRole !== "all" ||
     selectedStatus !== "all" ||
-    selectedLastLogin !== "all" ||
+    (selectedLastLogin && selectedLastLogin !== "all") ||
     Boolean(searchQuery);
 
   const drawerContent = (
@@ -53,7 +63,7 @@ export function StaffToolbar({
           <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
             {t("كافة الأدوار والصلاحيات", "All Roles & Permissions")}
           </option>
-          {staffRoles.map((r) => (
+          {(roles && roles.length > 0 ? roles : staffRoles).map((r) => (
             <option key={r.id} value={r.id} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
               {r.name}
             </option>
@@ -81,30 +91,6 @@ export function StaffToolbar({
           </option>
         </DashboardSelect>
       </div>
-
-      {/* Last Login Filter */}
-      <div className="space-y-2">
-        <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-          {t("آخر تسجيل دخول", "Last Login")}
-        </label>
-        <DashboardSelect
-          value={selectedLastLogin}
-          onChange={(e) => onLastLoginChange(e.target.value)}
-        >
-          <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
-            {t("الكل", "All")}
-          </option>
-          <option value="today" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
-            {t("اليوم", "Today")}
-          </option>
-          <option value="week" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
-            {t("هذا الأسبوع", "This Week")}
-          </option>
-          <option value="month" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
-            {t("هذا الشهر", "This Month")}
-          </option>
-        </DashboardSelect>
-      </div>
     </div>
   );
 
@@ -112,17 +98,28 @@ export function StaffToolbar({
     <UnifiedFilterBar
       searchQuery={searchQuery}
       onSearchChange={onSearchChange}
-      searchPlaceholder={t("ابحث بالاسم، البريد الإلكتروني، أو رقم الموظف...", "Search by name, email, or employee ID...")}
+      searchPlaceholder={t(
+        "ابحث بالاسم، البريد الإلكتروني، أو رقم الموظف...",
+        "Search by name, email, or employee ID..."
+      )}
       primaryFilterValue={selectedStatus}
       onPrimaryFilterChange={onStatusChange}
+      primaryFilterMode="pills"
       primaryFilterOptions={[
-        { label: t("الكل", "All"), value: "all" },
-        { label: t("نشط", "Active"), value: "active" },
-        { label: t("موقوف", "Suspended"), value: "suspended" },
+        { label: `${t("الكل", "All")} (${counts.all})`, value: "all" },
+        { label: `${t("النشطة", "Active")} (${counts.active})`, value: "active" },
+        {
+          label: `${t("الموقوفة", "Suspended")} (${counts.suspended})`,
+          value: "suspended",
+        },
       ]}
       hasActiveFilters={hasActiveFilters}
       onReset={onResetFilters}
       drawerTitle={t("تصفية طاقم العمل", "Filter Staff")}
+      drawerDescription={t(
+        "خيارات تصفية متقدمة للوصول الدقيق لبيانات الموظفين",
+        "Advanced filter options for precise staff queries"
+      )}
       drawerContent={drawerContent}
     />
   );

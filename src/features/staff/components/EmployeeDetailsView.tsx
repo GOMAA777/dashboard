@@ -6,7 +6,6 @@ import {
   ArrowLeft,
   ArrowRight,
   Edit3,
-  LogIn,
   UserX,
   UserCheck,
   RotateCcw,
@@ -31,7 +30,7 @@ interface EmployeeDetailsViewProps {
   employee: Employee;
   onBack: () => void;
   onEdit: () => void;
-  onLoginAsEmployee: () => void;
+  onLoginAsEmployee?: () => void;
   onDeactivate: () => void;
   onActivate: () => void;
   onResetPassword: () => void;
@@ -134,16 +133,6 @@ export function EmployeeDetailsView({
           >
             <Edit3 className="size-[15px]" />
             <span>{t("تعديل الموظف", "Edit Employee")}</span>
-          </button>
-
-          {/* Login as employee */}
-          <button
-            type="button"
-            onClick={onLoginAsEmployee}
-            className="px-4 py-2 rounded-[6px] bg-[#fbf5ed] hover:bg-[#f5ebd9] text-[#8e5927] border border-[#ebdcc8] text-[13px] font-bold flex items-center gap-2 transition-colors"
-          >
-            <LogIn className="size-[15px]" />
-            <span>{t("الدخول كالموظف", "Login as Employee")}</span>
           </button>
 
           {/* Deactivate / Activate */}

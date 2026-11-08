@@ -1,10 +1,14 @@
 import type { ClientOffice, OfficeInternalNote } from "@/features/clients/types/client.types";
 import type { PricingPlanItem } from "@/features/plans/types/plan.types";
-import type { SubscriptionRecord } from "@/features/subscriptions/types/subscription.types";
+import type {
+  SubscriptionRecord,
+  ActivityTimelineEvent,
+} from "@/features/subscriptions/types/subscription.types";
 import type { Employee } from "@/features/staff/types/staff.types";
 import type { RoleItem } from "@/features/permissions/types/roles.types";
 import type {
   Ticket,
+  TicketAttachment,
   TicketDepartment,
   TicketPriority,
   TicketStatus,
@@ -283,6 +287,84 @@ export function saveLocalCustomThemeColor(id: string | number, color: string) {
   }
 }
 
+export function getLocalCustomSecondaryColor(id: string | number): string | undefined {
+  if (typeof window === "undefined" || !id) return undefined;
+  try {
+    const raw = localStorage.getItem("aljudy_firm_secondary_colors");
+    if (!raw) return undefined;
+    const parsed = JSON.parse(raw);
+    const val = parsed[String(id)];
+    return val ? String(val) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export function saveLocalCustomSecondaryColor(id: string | number, color: string) {
+  if (typeof window === "undefined" || !id || !color) return;
+  try {
+    const raw = localStorage.getItem("aljudy_firm_secondary_colors");
+    const parsed = raw ? JSON.parse(raw) : {};
+    parsed[String(id)] = String(color);
+    localStorage.setItem("aljudy_firm_secondary_colors", JSON.stringify(parsed));
+  } catch {
+    // ignore
+  }
+}
+
+export function getLocalCustomOfficeId(id: string | number): string | undefined {
+  if (typeof window === "undefined" || !id) return undefined;
+  try {
+    const raw = localStorage.getItem("aljudy_firm_office_ids");
+    if (!raw) return undefined;
+    const parsed = JSON.parse(raw);
+    const val = parsed[String(id)];
+    return val ? String(val) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export function saveLocalCustomOfficeId(id: string | number, officeId: string) {
+  if (typeof window === "undefined" || !id || !officeId) return;
+  try {
+    const raw = localStorage.getItem("aljudy_firm_office_ids");
+    const parsed = raw ? JSON.parse(raw) : {};
+    parsed[String(id)] = String(officeId);
+    localStorage.setItem("aljudy_firm_office_ids", JSON.stringify(parsed));
+  } catch {
+    // ignore
+  }
+}
+
+export function getLocalTicketAttachments(ticketId: string | number): TicketAttachment[] {
+  if (typeof window === "undefined" || !ticketId) return [];
+  try {
+    const raw = localStorage.getItem("aljudy_ticket_attachments");
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed[String(ticketId)]) ? parsed[String(ticketId)] : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveLocalTicketAttachments(
+  ticketId: string | number,
+  attachments: TicketAttachment[]
+) {
+  if (typeof window === "undefined" || !ticketId || !attachments.length) return;
+  try {
+    const raw = localStorage.getItem("aljudy_ticket_attachments");
+    const parsed = raw ? JSON.parse(raw) : {};
+    const existing = Array.isArray(parsed[String(ticketId)]) ? parsed[String(ticketId)] : [];
+    parsed[String(ticketId)] = [...existing, ...attachments];
+    localStorage.setItem("aljudy_ticket_attachments", JSON.stringify(parsed));
+  } catch {
+    // ignore
+  }
+}
+
 export function mapFirmToClientOffice(raw: unknown): ClientOffice {
   const container = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
   const firm = (container.firm && typeof container.firm === "object" ? container.firm : container) as Record<string, unknown>;
@@ -513,6 +595,22 @@ export function mapFirmToClientOffice(raw: unknown): ClientOffice {
     initialText: "text-[#9c6402] dark:text-[#e29d38]",
     themeColor: resolvedThemeColor,
     color: resolvedThemeColor,
+    primaryColor: resolvedThemeColor,
+    secondaryColor:
+      (firm.secondary_color ? String(firm.secondary_color) : undefined) ||
+      getLocalCustomSecondaryColor(id) ||
+      (companyId ? getLocalCustomSecondaryColor(companyId) : undefined) ||
+      "#d97706",
+    officeId:
+      (firm.office_id ? String(firm.office_id) : firm.slug ? String(firm.slug) : undefined) ||
+      getLocalCustomOfficeId(id) ||
+      (companyId ? getLocalCustomOfficeId(companyId) : undefined) ||
+      undefined,
+    slug:
+      (firm.slug ? String(firm.slug) : firm.office_id ? String(firm.office_id) : undefined) ||
+      getLocalCustomOfficeId(id) ||
+      (companyId ? getLocalCustomOfficeId(companyId) : undefined) ||
+      undefined,
     name,
     licenseNumber,
     city: firm.city ? String(firm.city) : "",
@@ -526,13 +624,10 @@ export function mapFirmToClientOffice(raw: unknown): ClientOffice {
       (firm.tax_number ? String(firm.tax_number) : firm.vat_number ? String(firm.vat_number) : undefined) ||
       getLocalCustomTaxNumber(id),
     logo: (() => {
-      const local = getLocalCustomLogo(id);
       const serverLogo = firm.logo ? String(firm.logo) : undefined;
-      // If server logo is null or from /storage/firms/ (which returns 403 Forbidden on this backend), prefer local copy
-      if (local && (local.startsWith("data:") || !serverLogo || serverLogo.includes("/storage/firms/"))) {
-        return local;
-      }
-      return normalizeLogoUrl(serverLogo || local);
+      const normalizedServerLogo = normalizeLogoUrl(serverLogo);
+      const local = getLocalCustomLogo(id);
+      return normalizedServerLogo || local;
     })(),
     password: firm.password ? String(firm.password) : undefined,
     initialPassword: firm.password ? String(firm.password) : undefined,
@@ -605,13 +700,36 @@ export function mapPlanFromApi(raw: Record<string, unknown>): PricingPlanItem {
   const name = asString(raw.name, "باقة");
   const monthly = asNumber(raw.monthly_price ?? raw.monthlyPrice, 0);
   const yearly = asNumber(raw.yearly_price ?? raw.annual_price ?? raw.annualPrice, monthly * 10);
-  const maxLawyers = asNumber(raw.max_lawyers, 0);
-  const maxCases = asNumber(raw.max_cases, 0);
-  const maxAssistants = asNumber(raw.max_assistants, 0);
-  const maxPowerOfAttorney = asNumber(raw.max_power_of_attorney, 0);
-  const maxClients = asNumber(raw.max_clients, 0);
-  const storage = asNumber(raw.storage_limit_gb, 0);
-  const yearlyDiscount = asNumber(raw.yearly_discount_percent, 0);
+  const maxLawyers = asNumber(raw.max_lawyers ?? raw.maxLawyers, 0);
+  const maxCases = asNumber(raw.max_cases ?? raw.maxCases, 0);
+  const maxAssistants = asNumber(raw.max_assistants ?? raw.maxAssistants, 0);
+  const maxPowerOfAttorney = asNumber(
+    raw.max_power_of_attorney ?? raw.maxPowerOfAttorney ?? raw.max_agents ?? raw.maxAgents,
+    0
+  );
+  const maxClients = asNumber(raw.max_clients ?? raw.maxClients, 0);
+  const maxDocuments = asNumber(
+    raw.max_documents ?? raw.maxDocuments ?? raw.documents_limit ?? raw.documentsLimit,
+    0
+  );
+  const storage = asNumber(
+    raw.storage_limit_gb ?? raw.storageLimitGb ?? raw.storage_limit ?? raw.storageLimit,
+    0
+  );
+  const explicitDiscount = asNumber(
+    raw.yearly_discount_percent ??
+      raw.yearlyDiscountPercent ??
+      raw.discount_percent ??
+      raw.discount ??
+      raw.yearly_discount,
+    0
+  );
+  const resolvedDiscount =
+    explicitDiscount > 0
+      ? explicitDiscount
+      : monthly > 0 && yearly > 0 && yearly < monthly * 12
+      ? Math.round(((monthly * 12 - yearly) / (monthly * 12)) * 100)
+      : 0;
   const badge = asString(raw.badge, "");
   const badgeColor = asString(raw.badge_color, "#d97706");
   const type = asString(raw.type, "paid");
@@ -627,7 +745,7 @@ export function mapPlanFromApi(raw: Record<string, unknown>): PricingPlanItem {
     type,
     monthlyPrice: monthly,
     annualPrice: yearly,
-    yearlyDiscountPercent: yearlyDiscount || undefined,
+    yearlyDiscountPercent: resolvedDiscount > 0 ? resolvedDiscount : undefined,
     annualNote: asString(raw.annual_note, "تدفع سنوياً أو شهرياً"),
     subscribedFirmsCount: asNumber(
       raw.active_companies_count ?? raw.subscribed_firms_count ?? raw.subscribers_count ?? raw.firms_count,
@@ -639,19 +757,55 @@ export function mapPlanFromApi(raw: Record<string, unknown>): PricingPlanItem {
     ),
     isPopular: Boolean(raw.is_popular || raw.isPopular),
     isEnterprise: Boolean(raw.is_enterprise || type === "enterprise" || raw.name?.toString().includes("شركات")),
-    limits: {
-      lawyers: maxLawyers ? `${maxLawyers} محامين ومستشارين` : asString(raw.lawyers_limit, "—"),
-      cases: maxCases ? `${maxCases} قضية نشطة` : asString(raw.cases_limit, "—"),
-      agents: maxPowerOfAttorney
-        ? `${maxPowerOfAttorney} وكلاء شرعيين`
-        : asString(raw.agents_limit, "—"),
-      assistants: maxAssistants
-        ? `${maxAssistants} مساعدين إداريين`
-        : asString(raw.assistants_limit, "—"),
-      clients: maxClients ? `${maxClients} عميل` : asString(raw.clients_limit, "—"),
-      storage: storage ? `${storage} GB مساحة تخزين` : asString(raw.storage_limit, "—"),
-      support: asString(raw.support_level, "دعم فني"),
-    },
+    limits: (() => {
+      const rawLimits = (raw.limits && typeof raw.limits === "object" ? raw.limits : {}) as Record<string, unknown>;
+      return {
+        lawyers:
+          maxLawyers === -1
+            ? "غير محدود: المحامين والمستشارين"
+            : maxLawyers > 0
+            ? `${maxLawyers.toLocaleString()} محامين ومستشارين`
+            : asString(raw.lawyers_limit ?? rawLimits.lawyers, "—"),
+        cases:
+          maxCases === -1
+            ? "غير محدود: القضايا والمعاملات النشطة"
+            : maxCases > 0
+            ? `${maxCases.toLocaleString()} قضية نشطة`
+            : asString(raw.cases_limit ?? rawLimits.cases, "—"),
+        agents:
+          maxPowerOfAttorney === -1
+            ? "غير محدود: الوكلاء والمفوضين"
+            : maxPowerOfAttorney > 0
+            ? `${maxPowerOfAttorney.toLocaleString()} وكلاء شرعيين`
+            : asString(raw.agents_limit ?? rawLimits.agents, "—"),
+        assistants:
+          maxAssistants === -1
+            ? "غير محدود: المساعدين والمحاسبين"
+            : maxAssistants > 0
+            ? `${maxAssistants.toLocaleString()} مساعدين ومحاسبين`
+            : asString(raw.assistants_limit ?? rawLimits.assistants, "—"),
+        clients:
+          maxClients === -1
+            ? "غير محدود: العملاء والشركات"
+            : maxClients > 0
+            ? `${maxClients.toLocaleString()} عميل وموكل`
+            : asString(raw.clients_limit ?? rawLimits.clients, "—"),
+        documents:
+          maxDocuments === -1
+            ? "غير محدود: المستندات والوثائق"
+            : maxDocuments > 0
+            ? `${maxDocuments.toLocaleString()} مستند ووثيقة`
+            : asString(raw.documents_limit ?? rawLimits.documents, "—"),
+        storage:
+          storage === -1
+            ? "غير محدود: المساحة السحابية"
+            : storage > 0
+            ? `${storage.toLocaleString()} GB مساحة تخزين سحابية`
+            : asString(raw.storage_limit ?? rawLimits.storage, "—"),
+        support: asString(raw.support_level ?? raw.support_sla ?? rawLimits.support, "دعم فني قياسي"),
+        integration: asString(rawLimits.integration, "") || undefined,
+      };
+    })(),
     features: Array.isArray(raw.features)
       ? raw.features.map((f, idx) => {
           if (typeof f === "string") {
@@ -691,7 +845,96 @@ export function mapSubscriptionFromApi(raw: Record<string, unknown>): Subscripti
           ? "rejected"
           : statusRaw.includes("expir")
             ? "expired"
-            : "active";
+            : statusRaw.includes("suspend")
+              ? "suspended"
+              : "active";
+
+  const isCustomOffer = asBoolean(raw.is_custom_offer ?? raw.custom_offer, false);
+
+  // Parse metrics if available
+  const rawMetrics = (raw.metrics || raw.limits || raw.usage) as Record<string, unknown> | undefined;
+  let metrics: SubscriptionRecord["metrics"] = undefined;
+  if (rawMetrics && typeof rawMetrics === "object") {
+    const parseMetric = (val: unknown, fallbackTitle: string, fallbackUnit: string) => {
+      const v = (val && typeof val === "object" ? val : {}) as Record<string, unknown>;
+      const used = asNumber(v.used, 0);
+      const total = asNumber(v.total || v.limit, 100);
+      const percentage = total > 0 ? Math.min(100, Math.round((used / total) * 100)) : 0;
+      return {
+        title: asString(v.title, fallbackTitle),
+        used,
+        total,
+        unit: asString(v.unit, fallbackUnit),
+        percentage,
+        remainingText: asString(v.remaining_text || v.remainingText, `${Math.max(0, total - used)} ${fallbackUnit}`),
+        statusBadge: v.status_badge ? asString(v.status_badge) : undefined,
+        isLocked: asBoolean(v.is_locked, false),
+      };
+    };
+
+    metrics = {
+      team: parseMetric(rawMetrics.team || rawMetrics.lawyers, "فريق العمل والمحامين", "محامٍ"),
+      cases: parseMetric(rawMetrics.cases, "القضايا المفتوحة", "قضية"),
+      clients: parseMetric(rawMetrics.clients, "ملفات العملاء", "عميل"),
+      agents: parseMetric(rawMetrics.agents || rawMetrics.power_of_attorney, "الوكالات المعتمدة", "وكالة"),
+      storage: parseMetric(rawMetrics.storage, "المساحة السحابية", "GB"),
+      addonsCount: asNumber(rawMetrics.addons_count, 0),
+      addons: Array.isArray(rawMetrics.addons)
+        ? (rawMetrics.addons as Record<string, unknown>[]).map((a) => ({
+            title: asString(a.title, ""),
+            value: asString(a.value, ""),
+            isAvailable: asBoolean(a.is_available ?? a.isAvailable, true),
+            statusColor: a.status_color ? asString(a.status_color) : undefined,
+          }))
+        : [],
+    };
+  }
+
+  // Parse invoices if available
+  const rawInvoices = Array.isArray(raw.invoices) ? (raw.invoices as Record<string, unknown>[]) : [];
+  const invoices = rawInvoices.length > 0 ? rawInvoices.map((inv) => ({
+    id: asString(inv.id || inv.invoice_number, cryptoRandomId()),
+    date: asString(inv.date || inv.created_at, "—"),
+    amount: asString(inv.amount || inv.total, "0"),
+    vatNote: inv.vat_note ? asString(inv.vat_note) : undefined,
+    paymentMethod: asString(inv.payment_method || inv.method, "مدى"),
+    paymentMethodDetail: asString(inv.payment_method_detail || inv.detail, ""),
+    status: (asString(inv.status, "success").toLowerCase().includes("fail")
+      ? "failed"
+      : asString(inv.status, "success").toLowerCase().includes("cancel")
+        ? "cancelled"
+        : "success") as "success" | "failed" | "cancelled" | "authorized",
+    statusLabel: asString(inv.status_label || inv.status, "ناجحة"),
+    subDescription: asString(inv.sub_description || inv.description, ""),
+  })) : undefined;
+
+  // Parse timeline if available
+  const rawTimeline = Array.isArray(raw.timeline || raw.history || raw.logs)
+    ? ((raw.timeline || raw.history || raw.logs) as Record<string, unknown>[])
+    : [];
+  const timeline = rawTimeline.length > 0 ? rawTimeline.map((ev) => ({
+    id: asString(ev.id, cryptoRandomId()),
+    title: asString(ev.title, "حدث إداري"),
+    description: asString(ev.description || ev.notes, ""),
+    actor: asString(ev.actor || ev.user_name, "النظام"),
+    date: asString(ev.date || ev.created_at, "—"),
+    type: (asString(ev.type, "renewal") as ActivityTimelineEvent["type"]),
+    upgradeFrom: ev.upgrade_from ? asString(ev.upgrade_from) : undefined,
+    upgradeTo: ev.upgrade_to ? asString(ev.upgrade_to) : undefined,
+  })) : undefined;
+
+  // Parse documents if available
+  const rawDocs = Array.isArray(raw.documents) ? (raw.documents as Record<string, unknown>[]) : [];
+  const documents = rawDocs.length > 0 ? rawDocs.map((doc) => ({
+    id: asString(doc.id, cryptoRandomId()),
+    title: asString(doc.title, "وثيقة"),
+    subtitle: asString(doc.subtitle || doc.description, ""),
+    status: (asString(doc.status, "verified").toLowerCase().includes("reject")
+      ? "rejected"
+      : asString(doc.status, "verified").toLowerCase().includes("pend")
+        ? "pending"
+        : "verified") as "verified" | "pending" | "rejected",
+  })) : undefined;
 
   return {
     id: asString(raw.id || raw.code, cryptoRandomId()),
@@ -722,13 +965,30 @@ export function mapSubscriptionFromApi(raw: Record<string, unknown>): Subscripti
             ? "ملغي"
             : status === "rejected"
               ? "مرفوض"
-              : "منتهي",
+              : status === "suspended"
+                ? "معلق"
+                : "منتهي",
     paymentMethod: {
       type: "mada",
       badgeLabel: asString(raw.payment_method || "مدى", "مدى"),
       statusText: asString(raw.payment_status, "مدفوع"),
       isAutoPaid: Boolean(raw.auto_renew ?? true),
     },
+    isCustomOffer,
+    taxNumber: asString(firmObj.tax_number || firmObj.taxNumber || raw.tax_number, ""),
+    zatcaCompliant: asBoolean(firmObj.zatca_compliant ?? raw.zatca_compliant, true),
+    cancellationDate: asString(raw.cancellation_date || raw.cancelled_at, ""),
+    cancellationReason: asString(raw.cancellation_reason || raw.cancel_reason, ""),
+    rejectionDate: asString(raw.rejection_date || raw.rejected_at, ""),
+    rejectionReason: asString(raw.rejection_reason || raw.reject_reason, ""),
+    submissionDate: asString(raw.submission_date || raw.created_at, ""),
+    decisionDate: asString(raw.decision_date || raw.approved_at, ""),
+    pendingReason: asString(raw.pending_reason || raw.pending_notes, ""),
+    assignedSupervisor: asString(raw.assigned_supervisor || raw.supervisor, ""),
+    documents,
+    metrics,
+    invoices,
+    timeline,
   };
 }
 
@@ -778,11 +1038,13 @@ export function mapStaffFromApi(raw: Record<string, unknown>): Employee {
 
 export function mapRoleFromApi(raw: Record<string, unknown>): RoleItem {
   const name = asString(raw.name, "دور");
-  const isSystem = Boolean(raw.is_system || raw.is_protected || raw.type === "system");
+  const slug = asString(raw.slug || raw.code, name.toLowerCase().replace(/\s+/g, "_"));
+  const isSuperAdmin = slug.includes("admin") || name.toLowerCase().includes("admin");
+  const isSystem = Boolean(raw.is_system || raw.is_protected || raw.type === "system" || isSuperAdmin);
   const perms = Array.isArray(raw.permissions) ? raw.permissions.length : asNumber(raw.permissions_count, 0);
   return {
     id: asString(raw.id, cryptoRandomId()),
-    slug: asString(raw.slug || raw.code, name.toLowerCase().replace(/\s+/g, "_")),
+    slug,
     name,
     subtitle: asString(raw.subtitle || raw.description, ""),
     description: asString(raw.description, ""),
@@ -793,18 +1055,18 @@ export function mapRoleFromApi(raw: Record<string, unknown>): RoleItem {
     type: isSystem ? "system" : "custom",
     typeBadge: isSystem
       ? {
-          label: "نظامي",
+          label: "نظام أساسي",
           sublabel: "محمي",
-          badgeClass: "bg-[#eff6ff] text-[#1d4ed8]",
-          dotClass: "bg-[#1d4ed8]",
+          badgeClass: "bg-[#fff8e1] dark:bg-[#2d1f16] text-[#b76e00] dark:text-[#f3c27e] border-[#fcd8b0] dark:border-[#e29d38]/30",
+          dotClass: "bg-[#b76e00]",
         }
       : {
-          label: "مخصص",
-          badgeClass: "bg-[#fff9ee] text-[#9c6402]",
-          dotClass: "bg-[#9c6402]",
+          label: "دور مخصص",
+          badgeClass: "bg-[#e8f5e9] dark:bg-[#1b2f23] text-[#1b7340] dark:text-[#66bb6a] border-[#c8e6c9] dark:border-[#2e7d32]/30",
+          dotClass: "bg-[#1b7340]",
         },
     isProtected: isSystem,
-    iconType: "briefcase",
+    iconType: isSuperAdmin ? "shield" : "briefcase",
     iconBg: "bg-[#fff9ee]",
     createdAt: raw.created_at ? asString(raw.created_at) : undefined,
     permissions: Array.isArray(raw.permissions)
@@ -818,10 +1080,12 @@ export function mapRoleFromApi(raw: Record<string, unknown>): RoleItem {
 export function mapTicketFromApi(raw: Record<string, unknown>): Ticket {
   const clientObj = (raw.client as Record<string, unknown> | undefined) ||
     (raw.firm as Record<string, unknown> | undefined) ||
+    (raw.company as Record<string, unknown> | undefined) ||
     {};
   const deptObj = (raw.department as Record<string, unknown> | undefined) || {};
   const assigneeObj = (raw.assignee as Record<string, unknown> | undefined) ||
     (raw.assigned_to as Record<string, unknown> | undefined) ||
+    (raw.staff as Record<string, unknown> | undefined) ||
     {};
   const statusRaw = asString(raw.status, "open").toLowerCase();
   const status: TicketStatus = statusRaw.includes("close")
@@ -837,7 +1101,89 @@ export function mapTicketFromApi(raw: Record<string, unknown>): Ticket {
     : priorityRaw.includes("low")
       ? "low"
       : "medium";
-  const assigneeName = asString(assigneeObj.name || raw.assignee_name, "غير مسند");
+  const assigneeName = asString(assigneeObj.name || raw.assignee_name || raw.staff_name, "غير مسند");
+
+  const channelRaw = asString(raw.channel, "portal").toLowerCase();
+  const channel: "portal" | "email" | "phone" | "whatsapp" =
+    channelRaw.includes("email") || channelRaw.includes("mail")
+      ? "email"
+      : channelRaw.includes("phone") || channelRaw.includes("call")
+        ? "phone"
+        : channelRaw.includes("what")
+          ? "whatsapp"
+          : "portal";
+
+  const channelLabel =
+    channel === "portal"
+      ? "بوابة العملاء (ناجز)"
+      : channel === "email"
+        ? "البريد الإلكتروني"
+        : channel === "phone"
+          ? "الاتصال الهاتفي المباشر"
+          : "واتساب الأعمال";
+
+  const rawMessages = (raw.messages || raw.replies || raw.conversation || []) as Array<Record<string, unknown>>;
+  const messages = Array.isArray(rawMessages) && rawMessages.length > 0
+    ? rawMessages.map((m, idx) => ({
+        id: asString(m.id, `msg-${idx}`),
+        senderName: asString(m.sender_name || m.user_name || m.author_name || (m.is_staff || m.is_internal_note ? "مشرف النظام" : asString(clientObj.name || raw.client_name, "العميل"))),
+        senderRole: asString(m.sender_role || m.author_role || (m.is_internal_note ? "ملاحظة داخلية خاصة" : m.is_staff ? "مشرف النظام العام" : asString(clientObj.firm_name || clientObj.name, "مكتب المحاماة"))),
+        senderInitials: asString(m.sender_initials || m.initials, (asString(m.sender_name || m.user_name || "ع").slice(0, 2))),
+        isStaff: Boolean(m.is_staff || m.is_internal_note || m.isStaff),
+        timestamp: asString(m.created_at || m.timestamp || m.created_at_human || m.time, "الآن"),
+        content: asString(m.message || m.content || m.body, ""),
+        isInternalNote: Boolean(m.is_internal_note),
+      }))
+    : (raw.description || raw.body)
+      ? [
+          {
+            id: `msg-initial-${raw.id || "0"}`,
+            senderName: asString(clientObj.name || raw.client_name, "العميل المستفيد"),
+            senderRole: asString(clientObj.firm_name || clientObj.name || raw.firm_name, "مكتب المحاماة"),
+            senderInitials: asString(clientObj.name || raw.client_name, "عم").slice(0, 2),
+            isStaff: false,
+            timestamp: asString(raw.created_at || raw.createdAt, "الآن"),
+            content: asString(raw.description || raw.body, ""),
+          },
+        ]
+      : [];
+
+  const rawEvents = (raw.audit_events || raw.timeline || raw.activity || raw.history || []) as Array<Record<string, unknown>>;
+  const auditEvents = Array.isArray(rawEvents) && rawEvents.length > 0
+    ? rawEvents.map((e, idx) => ({
+        id: asString(e.id, `evt-${idx}`),
+        action: asString(e.action || e.description || e.event, "إجراء إداري"),
+        performer: asString(e.performer || e.user_name || e.causer_name, "مشرف النظام"),
+        timestamp: asString(e.created_at || e.timestamp || e.created_at_human, "الآن"),
+        details: e.details ? asString(e.details) : undefined,
+      }))
+    : [
+        {
+          id: `evt-init-${raw.id || "0"}`,
+          action: "تم إنشاء التذكرة بنجاح في النظام",
+          performer: "مشرف النظام",
+          timestamp: asString(raw.created_at || raw.createdAt, "الآن"),
+        },
+      ];
+
+  const rawAttachments = (raw.attachments || raw.files || []) as Array<Record<string, unknown>>;
+  const apiAttachments = Array.isArray(rawAttachments)
+    ? rawAttachments.map((a, idx) => ({
+        id: asString(a.id, `att-${idx}`),
+        name: asString(a.name || a.filename || a.file_name, `مرفق-${idx + 1}`),
+        size: asString(a.size || a.file_size, "450 كيلوبايت"),
+        typeLabel: asString(a.type_label || a.type || a.file_type, "ملف مرفق"),
+        category: (asString(a.category, "log") as "json" | "image" | "log" | "pdf"),
+        verifiedStatus: asString(a.verified_status, "سليم وموثق"),
+        downloadUrl: a.url || a.download_url ? asString(a.url || a.download_url) : undefined,
+      }))
+    : [];
+
+  const localAttachments = raw.id ? getLocalTicketAttachments(String(raw.id)) : [];
+  const attachments = [...apiAttachments, ...localAttachments];
+
+  const clientName = asString(clientObj.name || raw.client_name, "عميل");
+  const firmName = asString(clientObj.firm_name || clientObj.name || raw.firm_name || raw.company_name, "مكتب محاماة");
 
   return {
     id: asString(raw.id, cryptoRandomId()),
@@ -845,37 +1191,38 @@ export function mapTicketFromApi(raw: Record<string, unknown>): Ticket {
     title: asString(raw.title || raw.subject, "تذكرة دعم"),
     description: asString(raw.description || raw.body, ""),
     client: {
-      id: asString(clientObj.id || raw.client_id || raw.firm_id, "0"),
-      name: asString(clientObj.name || raw.client_name, "عميل"),
-      firm: asString(clientObj.firm_name || clientObj.name || raw.firm_name, "مكتب"),
-      email: asString(clientObj.email, ""),
-      phone: asString(clientObj.phone, ""),
-      crNumber: asString(clientObj.cr_number || clientObj.license_number, "—"),
+      id: asString(clientObj.id || raw.client_id || raw.company_id || raw.firm_id, "0"),
+      name: clientName,
+      firm: firmName,
+      email: asString(clientObj.email || raw.client_email, "support@client.com"),
+      phone: asString(clientObj.phone || raw.client_phone, "+966 50 000 0000"),
+      crNumber: asString(clientObj.cr_number || clientObj.license_number || raw.cr_number, "—"),
     },
     department: {
       id: asString(deptObj.id || raw.department_id, "0"),
-      name: asString(deptObj.name || raw.department_name, "الدعم الفني"),
-      code: asString(deptObj.code, "SUP"),
+      name: asString(deptObj.name || raw.department_name, "الدعم الفني والربط التقني"),
+      code: asString(deptObj.code || raw.department_code, "DEP-01"),
     },
     assignee: {
       id: asString(assigneeObj.id || raw.assignee_id || raw.staff_id, "0"),
       name: assigneeName,
       initials: assigneeName.trim().slice(0, 2) || "—",
-      role: asString(assigneeObj.role || assigneeObj.job_title, "موظف"),
-      department: asString(assigneeObj.department || deptObj.name, "—"),
+      role: asString(assigneeObj.role || assigneeObj.job_title, "أخصائي دعم فني"),
+      department: asString(assigneeObj.department || deptObj.name, "الدعم الفني"),
       activeTicketsCount: asNumber(assigneeObj.active_tickets, 0),
       isAvailable: true,
     },
     priority,
     status,
-    channel: "portal",
-    channelLabel: asString(raw.channel, "بوابة العملاء"),
-    category: asString(raw.category, "عام"),
+    channel,
+    channelLabel,
+    category: asString(raw.category, "دعم فني وتشغيلي"),
+    judicialReference: raw.judicial_reference ? asString(raw.judicial_reference) : undefined,
     createdAt: asString(raw.created_at || raw.createdAt, "—"),
     updatedAt: asString(raw.updated_at || raw.updatedAt, "—"),
-    attachments: [],
-    messages: [],
-    auditEvents: [],
+    attachments,
+    messages,
+    auditEvents,
   };
 }
 

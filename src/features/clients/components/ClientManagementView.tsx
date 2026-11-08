@@ -28,6 +28,7 @@ import {
 } from "@/lib/api/firms";
 import {
   mapFirmToClientOffice,
+  normalizeLogoUrl,
   saveLocalCustomLogo,
   removeLocalCustomLogo,
   getLocalCustomLogo,
@@ -39,10 +40,31 @@ import {
   getLocalCustomStatus,
   saveLocalCustomThemeColor,
   getLocalCustomThemeColor,
+  saveLocalCustomOfficeId,
+  getLocalCustomOfficeId,
+  saveLocalCustomSecondaryColor,
+  getLocalCustomSecondaryColor,
 } from "@/lib/api/mappers";
 import { unwrapData } from "@/lib/api/helpers";
 import { ApiError } from "@/lib/api/http";
 import { enterOfficeAsAdmin } from "@/lib/api/enter-office";
+
+function dataUrlToFile(dataUrl: string, filename = "firm-logo.png"): File | null {
+  try {
+    const arr = dataUrl.split(",");
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : "image/png";
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
+  } catch {
+    return null;
+  }
+}
 
 export function ClientManagementView() {
   const searchParams = useSearchParams();
@@ -181,9 +203,7 @@ export function ClientManagementView() {
                 ? { ...o.activeSubscriptionDetails, autoRenew: effectiveRenew }
                 : undefined,
               taxNumber: mapped.taxNumber || o.taxNumber || getLocalCustomTaxNumber(String(o.id)),
-              logo: (mapped.logo && !mapped.logo.includes("/storage/firms/"))
-                ? mapped.logo
-                : (o.logo || getLocalCustomLogo(String(o.id)) || mapped.logo),
+              logo: mapped.logo || o.logo || getLocalCustomLogo(String(o.id)),
             };
           });
         });
@@ -216,16 +236,40 @@ export function ClientManagementView() {
     try {
       const handoffUrl = await enterOfficeAsAdmin({
         id: office.id,
+        companyId: office.companyId,
         name: office.name,
         owner: office.owner,
         email: office.email,
         phone: office.phone,
+        primaryColor: office.primaryColor || office.themeColor,
+        secondaryColor: office.secondaryColor,
+        logo: office.logo,
+        officeId: office.officeId,
       });
       toast.success(`جاري الربط والانتقال إلى لوحة مكتب «${office.name}»...`);
       setOfficeToEnter(null);
       window.location.assign(handoffUrl);
-    } catch {
-      toast.error("تعذر فتح بوابة الدخول للمكتب. حاول مرة أخرى.");
+    } catch (err: unknown) {
+      console.error("Failed to enter office as admin:", err);
+      let message = "تعذر فتح بوابة الدخول للمكتب. حاول مرة أخرى.";
+      if (err instanceof ApiError) {
+        if (err.status === 401) {
+          message = "انتهت صلاحية جلسة الأدمن (401). يرجى تسجيل الدخول بحساب أدمن مصرح.";
+        } else if (err.status === 404) {
+          message = `المكتب المطلوب غير موجود على الخادم (404: مكتب #${office.companyId || office.id}).`;
+        } else if (String(err.message || "").includes("SaasImpersonationLog")) {
+          message = "تعذر الدخول للمكتب: خطأ في خادم الـ API (الموديل SaasImpersonationLog غير معرف في الـ Backend على السيرفر).";
+        } else if (err.message) {
+          message = err.message;
+        }
+      } else if (err instanceof Error && err.message) {
+        if (err.message.includes("SaasImpersonationLog")) {
+          message = "تعذر الدخول للمكتب: خطأ في خادم الـ API (الموديل SaasImpersonationLog غير معرف في الـ Backend على السيرفر).";
+        } else {
+          message = err.message;
+        }
+      }
+      toast.error(message);
       setIsEnteringOffice(false);
     }
   };
@@ -254,6 +298,7 @@ export function ClientManagementView() {
       data.planType === "trial" ||
       data.planType === "free_trial" ||
       Boolean(data.plan?.includes("تجرب"));
+    const trialDays = Number((data as any).trialDays) || 14;
 
     const targetPlanType = isTrial ? "trial" : (data.planType || "paid");
     // Trial has no priced plan. Never fall back to plan_id=1 — the API rejects missing/stale ids
@@ -277,7 +322,6 @@ export function ClientManagementView() {
     const targetApiStatus: "active" | "inactive" = isOfficeInactive ? "inactive" : "active";
     const firmDbStatus = targetApiStatus;
     const resolvedPlanId = (() => {
-      if (isTrial) return null;
       const candidates = [data.planId, officeToEdit?.planId];
       for (const raw of candidates) {
         if (raw === undefined || raw === null || raw === "") continue;
@@ -287,7 +331,7 @@ export function ClientManagementView() {
           if (n > 0) return n;
         }
       }
-      return 1;
+      return isTrial ? null : 1;
     })();
     const targetAccountStatus: ClientOffice["accountStatus"] = isOfficeInactive
       ? {
@@ -312,7 +356,14 @@ export function ClientManagementView() {
 
     let payload: Record<string, unknown> | FormData;
 
-    if (data.logoFile) {
+    const effectiveLogoFile: File | null =
+      data.logoFile instanceof File
+        ? data.logoFile
+        : data.logoUrl?.startsWith("data:")
+        ? dataUrlToFile(data.logoUrl)
+        : null;
+
+    if (effectiveLogoFile) {
       const fd = new FormData();
       fd.append("name", data.name);
       fd.append("owner_name", data.owner);
@@ -326,20 +377,27 @@ export function ClientManagementView() {
       fd.append("plan_type", safePlanType);
       fd.append("subscription_plan", targetSubscriptionPlan);
       fd.append("status", firmDbStatus);
-      if (isTrial) {
-        fd.append("plan_id", "");
-      } else if (resolvedPlanId != null) {
+      if (resolvedPlanId != null) {
         fd.append("plan_id", String(resolvedPlanId));
       }
       fd.append("billing_cycle", cleanBilling || "yearly");
       fd.append("auto_renew", isTrial ? "0" : (data.autoRenew !== false ? "1" : "0"));
-      if (!isEdit) fd.append("password", initialPassword);
+      if (!isEdit || (data.password && data.password !== "••••••••••••")) {
+        fd.append("password", data.password || initialPassword);
+      }
       if (data.themeColor) {
         fd.append("color", data.themeColor);
         fd.append("theme_color", data.themeColor);
         fd.append("primary_color", data.themeColor);
       }
-      fd.append("logo", data.logoFile);
+      if (data.secondaryColor) {
+        fd.append("secondary_color", data.secondaryColor);
+      }
+      if (data.officeId) {
+        fd.append("office_id", data.officeId);
+        fd.append("slug", data.officeId);
+      }
+      fd.append("logo", effectiveLogoFile, effectiveLogoFile.name || "logo.png");
       payload = fd;
     } else {
       payload = {
@@ -352,16 +410,21 @@ export function ClientManagementView() {
         city: data.city,
         address: data.address || (data.city ? `المملكة العربية السعودية - ${data.city}` : null),
         tax_number: data.taxNumber || null,
+        office_id: data.officeId || null,
+        slug: data.officeId || null,
         color: data.themeColor || "#9c6402",
         theme_color: data.themeColor || "#9c6402",
         primary_color: data.themeColor || "#9c6402",
+        secondary_color: data.secondaryColor || undefined,
         plan_type: safePlanType,
         subscription_plan: targetSubscriptionPlan,
         status: firmDbStatus,
         plan_id: isTrial ? null : (resolvedPlanId ?? 1),
         billing_cycle: cleanBilling,
         auto_renew: isTrial ? false : (data.autoRenew !== false),
-        password: isEdit ? undefined : initialPassword,
+        password: isEdit
+          ? (data.password && data.password !== "••••••••••••" ? data.password : undefined)
+          : initialPassword,
       };
     }
 
@@ -381,6 +444,18 @@ export function ClientManagementView() {
       }
       if (data.taxNumber) {
         saveLocalCustomTaxNumber(officeToEdit.id, data.taxNumber);
+      }
+      if (data.officeId) {
+        saveLocalCustomOfficeId(officeToEdit.id, data.officeId);
+        if (officeToEdit.companyId) {
+          saveLocalCustomOfficeId(officeToEdit.companyId, data.officeId);
+        }
+      }
+      if (data.secondaryColor) {
+        saveLocalCustomSecondaryColor(officeToEdit.id, data.secondaryColor);
+        if (officeToEdit.companyId) {
+          saveLocalCustomSecondaryColor(officeToEdit.companyId, data.secondaryColor);
+        }
       }
       try {
         await updateFirm(officeToEdit.id, payload);
@@ -430,14 +505,19 @@ export function ClientManagementView() {
               : o.planId,
             planType: targetPlanType,
             subscriptionPlan: targetSubscriptionPlan,
-            billingCycle: isTrial ? "فترة تجريبية" : cleanBilling === "yearly" ? "سنوي" : "شهري",
+            billingCycle: isTrial ? (data.billingCycle || `فترة تجريبية (${trialDays} يوماً)`) : cleanBilling === "yearly" ? "سنوي" : "شهري",
             autoRenew: isAutoRenew,
+            planDetails: data.planDetails || o.planDetails,
             activeSubscriptionDetails: o.activeSubscriptionDetails
               ? { ...o.activeSubscriptionDetails, autoRenew: isAutoRenew }
               : undefined,
             logo: data.logoUrl || o.logo || getLocalCustomLogo(o.id),
+            officeId: data.officeId || o.officeId,
+            slug: data.officeId || o.slug,
             themeColor: data.themeColor || o.themeColor || "#9c6402",
             color: data.themeColor || o.themeColor || "#9c6402",
+            primaryColor: data.themeColor || o.primaryColor || o.themeColor || "#9c6402",
+            secondaryColor: data.secondaryColor || o.secondaryColor,
             initialPassword: data.password || o.initialPassword,
             accountStatus: targetAccountStatus,
             subscriptionStatus: isOfficeInactive
@@ -474,6 +554,15 @@ export function ClientManagementView() {
             secondaryPayload.theme_color = data.themeColor;
             secondaryPayload.primary_color = data.themeColor;
           }
+          if (data.secondaryColor) {
+            saveLocalCustomSecondaryColor(newId, data.secondaryColor);
+            secondaryPayload.secondary_color = data.secondaryColor;
+          }
+          if (data.officeId) {
+            saveLocalCustomOfficeId(newId, data.officeId);
+            secondaryPayload.office_id = data.officeId;
+            secondaryPayload.slug = data.officeId;
+          }
           if (Object.keys(secondaryPayload).length > 0) {
             try {
               await updateFirm(newId, secondaryPayload);
@@ -496,12 +585,12 @@ export function ClientManagementView() {
         }
 
         // 2. Cache local custom logo so it's always available even if backend storage returns 403
-        if (data.logoUrl && newId) {
+        if (createdFirm?.logo) {
+          returnedLogo = normalizeLogoUrl(String(createdFirm.logo)) || data.logoUrl;
+          if (returnedLogo) saveLocalCustomLogo(newId, returnedLogo);
+        } else if (data.logoUrl && newId) {
           saveLocalCustomLogo(newId, data.logoUrl);
           returnedLogo = data.logoUrl;
-        } else if (createdFirm?.logo) {
-          returnedLogo = String(createdFirm.logo);
-          saveLocalCustomLogo(newId, returnedLogo);
         }
 
         if (newId) {
@@ -516,6 +605,12 @@ export function ClientManagementView() {
         }
         if (data.themeColor) {
           saveLocalCustomThemeColor(createdOfficeId, data.themeColor);
+        }
+        if (data.secondaryColor) {
+          saveLocalCustomSecondaryColor(createdOfficeId, data.secondaryColor);
+        }
+        if (data.officeId) {
+          saveLocalCustomOfficeId(createdOfficeId, data.officeId);
         }
         saveLocalCustomStatus(createdOfficeId, isOfficeInactive ? "suspended" : "active");
         const statusLabel = isOfficeInactive ? "حساب غير نشط" : "حساب نشط";
@@ -536,11 +631,15 @@ export function ClientManagementView() {
 
       const newlyCreatedOffice: ClientOffice = {
         id: createdOfficeId,
+        officeId: data.officeId || createdOfficeId,
+        slug: data.officeId || createdOfficeId,
         initial: (data.name.trim().charAt(0) || "م").toUpperCase(),
         initialBg: "bg-[#fff9ee] dark:bg-[#2d1f16]",
         initialText: "text-[#9c6402] dark:text-[#e29d38]",
         themeColor: data.themeColor || "#9c6402",
         color: data.themeColor || "#9c6402",
+        primaryColor: data.themeColor || "#9c6402",
+        secondaryColor: data.secondaryColor,
         name: data.name,
         owner: data.owner,
         licenseNumber: cleanLicense
@@ -557,22 +656,30 @@ export function ClientManagementView() {
         country: "المملكة العربية السعودية",
         password: initialPassword,
         initialPassword: initialPassword,
-        plan: data.plan,
-        planId: isTrial ? undefined : resolvedPlanId ?? undefined,
+        plan: isTrial ? (data.plan ? (data.plan.includes("تجرب") ? data.plan : `${data.plan} (تجربة مجانية)`) : "الباقة الفضية (تجربة مجانية)") : data.plan,
+        planId:
+          typeof data.planId === "number"
+            ? data.planId
+            : typeof data.planId === "string" && /^\d+$/.test(data.planId)
+              ? Number(data.planId)
+              : isTrial
+                ? undefined
+                : (resolvedPlanId ?? undefined),
         planType: targetPlanType,
         subscriptionPlan: targetSubscriptionPlan,
-        billingCycle: isTrial ? "فترة تجريبية" : cleanBilling === "yearly" ? "سنوي" : "شهري",
+        billingCycle: isTrial ? (data.billingCycle || `فترة تجريبية (${trialDays} يوماً)`) : cleanBilling === "yearly" ? "سنوي" : "شهري",
         autoRenew: isTrial ? false : (data.autoRenew !== false),
+        planDetails: data.planDetails,
         activeSubscriptionDetails: {
-          billingCycle: isTrial ? "فترة تجريبية" : cleanBilling === "yearly" ? "سنوي" : "شهري",
+          billingCycle: isTrial ? (data.billingCycle || `فترة تجريبية (${trialDays} يوماً)`) : cleanBilling === "yearly" ? "سنوي" : "شهري",
           autoRenew: isTrial ? false : (data.autoRenew !== false),
           startDate: new Date().toISOString().split("T")[0],
-          renewalDate: new Date(Date.now() + (isTrial ? 14 : cleanBilling === "yearly" ? 365 : 30) * 86400000).toISOString().split("T")[0],
+          renewalDate: new Date(Date.now() + (isTrial ? trialDays : cleanBilling === "yearly" ? 365 : 30) * 86400000).toISOString().split("T")[0],
           status: isOfficeInactive ? "inactive" : isTrial ? "trial" : "active",
         },
         registrationDate: new Date().toISOString().split("T")[0],
         subscriptionStart: new Date().toISOString().split("T")[0],
-        subscriptionEnd: new Date(Date.now() + (isTrial ? 14 : cleanBilling === "yearly" ? 365 : 30) * 86400000).toISOString().split("T")[0],
+        subscriptionEnd: new Date(Date.now() + (isTrial ? trialDays : cleanBilling === "yearly" ? 365 : 30) * 86400000).toISOString().split("T")[0],
         logo: returnedLogo,
         planBadgeClass:
           "bg-[#ffddb6]/40 text-[#7b4e00] border border-[#ffddb6] dark:bg-[rgba(226,157,56,0.18)] dark:text-[#f3c27e] dark:border-[#e29d38]/50",
@@ -662,9 +769,7 @@ export function ClientManagementView() {
               taxNumber: fetched.taxNumber || local.taxNumber || getLocalCustomTaxNumber(local.id),
               owner: fetched.owner && fetched.owner !== "—" ? fetched.owner : local.owner,
               city: fetched.city || local.city,
-              logo: (fetched.logo && !fetched.logo.includes("/storage/firms/"))
-                ? fetched.logo
-                : (local.logo || getLocalCustomLogo(local.id) || fetched.logo),
+              logo: fetched.logo || local.logo || getLocalCustomLogo(local.id),
             };
           });
         });
@@ -869,6 +974,8 @@ export function ClientManagementView() {
                 <ClientManagementTable
                   offices={offices}
                   isLoading={isLoadingOffices}
+                  isEnteringOffice={isEnteringOffice}
+                  enteringOfficeId={officeToEnter?.id}
                   onViewOfficeDetails={(office) => {
                     setActiveOfficeId(office.id);
                     setEditingOfficeId(null);
@@ -897,6 +1004,7 @@ export function ClientManagementView() {
               <AddClientOfficeView
                 key={officeToEdit ? officeToEdit.id : "new-office"}
                 officeToEdit={officeToEdit}
+                existingOffices={offices}
                 onBack={handleBackToList}
                 onSuccess={handleSaveOffice}
               />

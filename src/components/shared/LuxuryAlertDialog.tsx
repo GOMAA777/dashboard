@@ -9,11 +9,14 @@ import { ModalPortal } from "./ModalPortal";
 export interface LuxuryAlertDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>;
   title: string;
   description: string;
   confirmLabel?: string;
   cancelLabel?: string;
+  confirmText?: string;
+  cancelText?: string;
+  isLoading?: boolean;
   variant?: "danger" | "warning" | "success" | "info";
   itemDetails?: {
     name?: string;
@@ -30,11 +33,15 @@ export function LuxuryAlertDialog({
   description,
   confirmLabel,
   cancelLabel,
+  confirmText,
+  cancelText,
+  isLoading = false,
   variant = "danger",
   itemDetails,
 }: LuxuryAlertDialogProps) {
   const { t } = useLanguage();
-  const finalCancelLabel = cancelLabel || t("إلغاء", "Cancel");
+  const finalConfirmLabel = confirmLabel || confirmText || t("تأكيد", "Confirm");
+  const finalCancelLabel = cancelLabel || cancelText || t("إلغاء", "Cancel");
   // ESC key to close
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -156,12 +163,13 @@ export function LuxuryAlertDialog({
 
           <button
             type="button"
+            disabled={isLoading}
             onClick={() => {
               onConfirm();
-              onClose();
+              if (!isLoading) onClose();
             }}
             className={cn(
-              "px-5 py-2.5 rounded-xl text-xs font-bold text-white transition-all cursor-pointer shadow-xs flex items-center gap-1.5",
+              "px-5 py-2.5 rounded-xl text-xs font-bold text-white transition-all cursor-pointer shadow-xs flex items-center gap-1.5 disabled:opacity-50",
               variant === "danger" &&
                 "bg-rose-600 hover:bg-rose-700 shadow-rose-600/20",
               variant === "warning" &&
@@ -175,7 +183,7 @@ export function LuxuryAlertDialog({
             {variant === "danger" && <Trash2 className="w-3.5 h-3.5" />}
             {variant === "warning" && <Lock className="w-3.5 h-3.5" />}
             {variant === "success" && <CheckCircle2 className="w-3.5 h-3.5" />}
-            <span>{confirmLabel || defaultConfirmLabel}</span>
+            <span>{finalConfirmLabel}</span>
           </button>
         </div>
       </div>

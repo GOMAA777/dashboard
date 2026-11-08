@@ -1,20 +1,22 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Check, RefreshCw, AlertCircle, Clock, CheckCircle2 } from "lucide-react";
+import { X, Check, RefreshCw, AlertCircle, Clock, CheckCircle2, Loader2 } from "lucide-react";
 import { Ticket, TicketStatus } from "../types/tickets.types";
 import { useLanguage } from "@/lib/i18n";
 
 interface ChangeStatusModalProps {
   ticket: Ticket;
   onClose: () => void;
-  onConfirm: (newStatus: TicketStatus, notes: string) => void;
+  onConfirm: (newStatus: TicketStatus, notes: string) => Promise<boolean | void> | void;
+  isSubmitting?: boolean;
 }
 
 export function ChangeStatusModal({
   ticket,
   onClose,
   onConfirm,
+  isSubmitting = false,
 }: ChangeStatusModalProps) {
   const { direction, isEn } = useLanguage();
   const [selectedStatus, setSelectedStatus] = useState<TicketStatus>(ticket.status);
@@ -240,18 +242,29 @@ export function ChangeStatusModal({
         <div className="border-t border-[#eae8e4] px-[20px] py-[14px] flex items-center justify-end gap-[10px]">
           <button
             type="button"
+            disabled={isSubmitting}
             onClick={onClose}
-            className="bg-[#f0eeea] hover:bg-[#eae8e4] text-[#1b1c1a] px-[16px] py-[8px] rounded-[4px] font-semibold text-[12px] transition-colors cursor-pointer"
+            className="bg-[#f0eeea] hover:bg-[#eae8e4] text-[#1b1c1a] px-[16px] py-[8px] rounded-[4px] font-semibold text-[12px] transition-colors cursor-pointer disabled:opacity-50"
           >
             {isEn ? "Cancel" : "الغاء"}
           </button>
           <button
             type="button"
+            disabled={isSubmitting}
             onClick={handleConfirm}
-            className="bg-[#9c6403] hover:bg-[#855402] text-white flex items-center gap-[6px] px-[20px] py-[8px] rounded-[4px] font-bold text-[12px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-all cursor-pointer"
+            className="bg-[#9c6403] hover:bg-[#855402] text-white flex items-center gap-[6px] px-[20px] py-[8px] rounded-[4px] font-bold text-[12px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            <Check className="size-[14px]" />
-            <span>{isEn ? "Save Status" : "حفظ الحالة"}</span>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="size-[14px] animate-spin" />
+                <span>{isEn ? "Saving..." : "جاري الحفظ..."}</span>
+              </>
+            ) : (
+              <>
+                <Check className="size-[14px]" />
+                <span>{isEn ? "Save Status" : "حفظ الحالة"}</span>
+              </>
+            )}
           </button>
         </div>
       </div>

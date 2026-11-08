@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   ArrowLeft,
   User,
   Mail,
-  Shield,
   Lightbulb,
   KeyRound,
   Eye,
@@ -13,13 +13,13 @@ import {
   UserCheck,
   ShieldCheck,
   Loader2,
-  Building2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Employee, EmployeeRole } from "../types/staff.types";
 import { addEmployeeSchema, AddEmployeeFormData } from "../schemas/staff.schema";
 import { DashboardStickyActionBar } from "@/components/shared/DashboardStickyActionBar";
 import { LuxuryAlertDialog } from "@/components/shared/LuxuryAlertDialog";
+import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { fetchRoles } from "@/lib/api/roles";
@@ -30,6 +30,20 @@ import {
   extractFieldErrors,
   mapStaffFormFieldErrors,
 } from "@/lib/api/field-errors";
+
+const initialDefaultRoles: RoleOption[] = [
+  { id: "1", name: "Super Admin", category: "الإدارة العليا" },
+  { id: "3", name: "موظف", category: "طاقم العمل" },
+];
+
+const initialDefaultDepartments: DeptOption[] = [
+  { id: "1", name: "الإدارة العليا" },
+  { id: "2", name: "قسم القضايا العمالية والنزاعات" },
+  { id: "3", name: "قسم الشركات والاستشارات التجارية" },
+  { id: "4", name: "قسم الترافع والتمثيل القضائي" },
+  { id: "5", name: "قسم التوثيق والعقود العقارية" },
+  { id: "6", name: "قسم الدعم الفني والربط التقني" },
+];
 
 export type SaveEmployeePayload = {
   employee: Employee;
@@ -64,17 +78,15 @@ export function AddEmployeeView({
     roleId: "",
     departmentId: "",
     password: "",
-    confirmPassword: "",
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof AddEmployeeFormData, string>>>({});
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [roles, setRoles] = useState<RoleOption[]>([]);
-  const [departments, setDepartments] = useState<DeptOption[]>([]);
-  const [listsLoading, setListsLoading] = useState(true);
+  const [roles, setRoles] = useState<RoleOption[]>(initialDefaultRoles);
+  const [departments, setDepartments] = useState<DeptOption[]>(initialDefaultDepartments);
+  const [listsLoading, setListsLoading] = useState(false);
   const [listsError, setListsError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -85,33 +97,37 @@ export function AddEmployeeView({
 
   useEffect(() => {
     let cancelled = false;
-    setListsLoading(true);
-    setListsError(null);
-    Promise.all([fetchRoles(), fetchDepartments()])
-      .then(([rolesPayload, deptsPayload]) => {
+    Promise.allSettled([fetchRoles(), fetchDepartments()])
+      .then(([rolesRes, deptsRes]) => {
         if (cancelled) return;
-        const roleRows = unwrapList<Record<string, unknown>>(rolesPayload).map((raw) => ({
-          id: String(raw.id ?? ""),
-          name: String(raw.name ?? ""),
-          category: String(
-            (raw as { slug?: string }).slug ||
-              (raw as { description?: string }).description ||
-              "—"
-          ),
-        }));
-        const deptRows = unwrapList<Record<string, unknown>>(deptsPayload).map((raw) => ({
-          id: String(raw.id ?? ""),
-          name: String(raw.name ?? ""),
-        }));
-        setRoles(roleRows.filter((r) => r.id));
-        setDepartments(deptRows.filter((d) => d.id));
+        if (rolesRes.status === "fulfilled") {
+          const roleRows = unwrapList<Record<string, unknown>>(rolesRes.value).map((raw) => ({
+            id: String(raw.id ?? ""),
+            name: String(raw.name ?? ""),
+            category: String(
+              (raw as { slug?: string }).slug ||
+                (raw as { description?: string }).description ||
+                "—"
+            ),
+          }));
+          const filtered = roleRows.filter((r) => r.id);
+          if (filtered.length > 0) setRoles(filtered);
+        }
+        if (deptsRes.status === "fulfilled") {
+          const deptRows = unwrapList<Record<string, unknown>>(deptsRes.value).map((raw) => ({
+            id: String(raw.id ?? ""),
+            name: String(raw.name ?? ""),
+          }));
+          const filtered = deptRows.filter((d) => d.id);
+          if (filtered.length > 0) setDepartments(filtered);
+        }
       })
       .catch((err: unknown) => {
         if (cancelled) return;
         const message =
           err instanceof ApiError
             ? err.message
-            : t("تعذر تحميل الأدوار والأقسام.", "Failed to load roles and departments.");
+            : "تعذر تحديث الأدوار والأقسام من الخادم.";
         setListsError(message);
       })
       .finally(() => {
@@ -120,7 +136,7 @@ export function AddEmployeeView({
     return () => {
       cancelled = true;
     };
-  }, [t]);
+  }, []);
 
   const getPasswordStrength = (pwd: string) => {
     if (!pwd)
@@ -209,11 +225,14 @@ export function AddEmployeeView({
       createdAt: isEn ? "Today" : "اليوم",
     };
 
+    const deptIdNum = Number(formData.departmentId);
+    const roleIdNum = Number(formData.roleId);
+
     return {
       employee,
       password: formData.password,
-      departmentId: Number(formData.departmentId),
-      roleId: Number(formData.roleId),
+      departmentId: Number.isFinite(deptIdNum) && deptIdNum > 0 ? deptIdNum : 1,
+      roleId: Number.isFinite(roleIdNum) && roleIdNum > 0 ? roleIdNum : 1,
     };
   };
 
@@ -242,6 +261,7 @@ export function AddEmployeeView({
       await onSave(payload);
       setConfirmOpen(false);
     } catch (err: unknown) {
+      setConfirmOpen(false);
       if (err instanceof ApiError) {
         const apiFields = mapStaffFormFieldErrors(extractFieldErrors(err.body));
         if (Object.keys(apiFields).length > 0) {
@@ -264,7 +284,7 @@ export function AddEmployeeView({
       : "border-[#eae8e4] dark:border-[#38271c] focus:ring-[#9c6402] dark:focus:ring-[#e29d38] focus:border-[#9c6402] dark:focus:border-[#e29d38]";
 
   return (
-    <div dir={direction} className="space-y-6 pb-2 sm:pb-3" data-node-id="1:9529">
+    <div dir={direction} className="space-y-4 pb-2" data-node-id="1:9529">
       <div className="bg-white dark:bg-[#221812] rounded-[8px] p-6 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button
@@ -289,7 +309,7 @@ export function AddEmployeeView({
       </div>
 
       {listsError && (
-        <div className="rounded-[8px] border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-[#2c1313] px-4 py-3 text-[13px] text-red-700 dark:text-red-300 flex items-center justify-between gap-3">
+        <div className="rounded-[8px] border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-[#2c2013] px-4 py-3 text-[13px] text-amber-800 dark:text-amber-300 flex items-center justify-between gap-3">
           <span>{listsError}</span>
           <button
             type="button"
@@ -346,10 +366,10 @@ export function AddEmployeeView({
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder="name@aljudy.sa"
-                className={cn(inputBase, fieldError(!!errors.email))}
+                className={cn(inputBase, "text-left", fieldError(!!errors.email))}
                 dir="ltr"
               />
-              <Mail className="size-[16px] text-[#948b83] dark:text-[#a89f91] absolute top-1/2 -translate-y-1/2 end-3 pointer-events-none" />
+              <Mail className="size-[16px] text-[#948b83] dark:text-[#a89f91] absolute top-1/2 -translate-y-1/2 start-3 pointer-events-none" />
             </div>
             {errors.email && (
               <span className="text-[11px] text-red-500 mt-0.5 block">{errors.email}</span>
@@ -368,23 +388,18 @@ export function AddEmployeeView({
                   : "border-[#eae8e4] dark:border-[#38271c] bg-[#f5f3ef] dark:bg-[#160e0a] focus-within:border-[#9c6402] dark:focus-within:border-[#e29d38] focus-within:ring-[#9c6402] dark:focus-within:ring-[#e29d38]"
               )}
             >
-              <span className="bg-[#eae8e4] dark:bg-[#281c15] px-3 py-2 text-[12px] font-semibold text-[#514537] dark:text-[#cdc5bd] border-e border-[#d6cfc7] dark:border-[#38271c] flex items-center justify-center shrink-0">
+              <span className="bg-[#eae8e4] dark:bg-[#281c15] px-3 py-2 text-[12px] font-semibold text-[#514537] dark:text-[#cdc5bd] border-e border-[#d6cfc7] dark:border-[#38271c] flex items-center justify-center shrink-0 select-none">
                 +966
               </span>
               <input
-                type="text"
+                type="tel"
+                dir="ltr"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 placeholder="50 123 4567"
-                className="w-full h-[40px] px-3 text-[13px] bg-transparent text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#8e8680] focus:outline-none font-mono"
+                className="w-full h-[40px] px-3 text-[13px] bg-transparent text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#8e8680] focus:outline-none font-mono text-right"
               />
             </div>
-            <p className="text-[11px] text-[#79716b] dark:text-[#a89f91] mt-1">
-              {t(
-                "يُستخدم لتأكيد العمليات الحساسة وإرسال رموز OTP",
-                "Used to confirm sensitive operations & send OTPs"
-              )}
-            </p>
             {errors.phone && (
               <span className="text-[11px] text-red-500 mt-0.5 block">{errors.phone}</span>
             )}
@@ -394,26 +409,29 @@ export function AddEmployeeView({
             <label className="block text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] mb-2">
               {t("القسم", "Department")} <span className="text-red-500">*</span>
             </label>
-            <div className="relative">
-              <select
-                value={formData.departmentId}
-                onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
-                disabled={listsLoading}
-                className={cn(inputBase, "appearance-none", fieldError(!!errors.departmentId))}
-              >
-                <option value="">
-                  {listsLoading
-                    ? t("جاري التحميل...", "Loading...")
-                    : t("اختر القسم", "Select department")}
+            <DashboardSelect
+              value={formData.departmentId}
+              onChange={(e) => {
+                setFormData({ ...formData, departmentId: e.target.value });
+                if (errors.departmentId) {
+                  setErrors((prev) => ({ ...prev, departmentId: undefined }));
+                }
+              }}
+              placeholder={t("اختر القسم", "Select department")}
+              className={cn(
+                "rounded-[6px] bg-[#f5f3ef] dark:bg-[#160e0a]",
+                fieldError(!!errors.departmentId)
+              )}
+            >
+              <option value="">
+                {t("اختر القسم", "Select department")}
+              </option>
+              {departments.map((dept) => (
+                <option key={dept.id} value={dept.id}>
+                  {dept.name}
                 </option>
-                {departments.map((dept) => (
-                  <option key={dept.id} value={dept.id}>
-                    {dept.name}
-                  </option>
-                ))}
-              </select>
-              <Building2 className="size-[16px] text-[#948b83] dark:text-[#a89f91] absolute top-1/2 -translate-y-1/2 end-3 pointer-events-none" />
-            </div>
+              ))}
+            </DashboardSelect>
             {errors.departmentId && (
               <span className="text-[11px] text-red-500 mt-0.5 block">{errors.departmentId}</span>
             )}
@@ -423,75 +441,34 @@ export function AddEmployeeView({
             <label className="block text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] mb-2">
               {t("الدور الوظيفي", "Role")} <span className="text-red-500">*</span>
             </label>
-            <div className="relative">
-              <select
-                value={formData.roleId}
-                onChange={(e) => setFormData({ ...formData, roleId: e.target.value })}
-                disabled={listsLoading}
-                className={cn(inputBase, "appearance-none", fieldError(!!errors.roleId))}
-              >
-                <option value="">
-                  {listsLoading
-                    ? t("جاري التحميل...", "Loading...")
-                    : t("اختر دور الموظف", "Select employee role")}
-                </option>
-                {roles.map((role) => (
-                  <option key={role.id} value={role.id}>
-                    {role.name}
-                  </option>
-                ))}
-              </select>
-              <Shield className="size-[16px] text-[#948b83] dark:text-[#a89f91] absolute top-1/2 -translate-y-1/2 end-3 pointer-events-none" />
-            </div>
-            <p className="text-[11px] text-[#79716b] dark:text-[#a89f91] mt-1">
-              {t(
-                "يحدد الدور الحزم والأقسام والإجراءات التي يمكن للموظف النفاذ إليها داخل المنصة.",
-                "The role determines packages, modules, and actions accessible inside the platform."
+            <DashboardSelect
+              value={formData.roleId}
+              onChange={(e) => {
+                setFormData({ ...formData, roleId: e.target.value });
+                if (errors.roleId) {
+                  setErrors((prev) => ({ ...prev, roleId: undefined }));
+                }
+              }}
+              placeholder={t("اختر دور الموظف", "Select employee role")}
+              className={cn(
+                "rounded-[6px] bg-[#f5f3ef] dark:bg-[#160e0a]",
+                fieldError(!!errors.roleId)
               )}
-            </p>
+            >
+              <option value="">
+                {t("اختر دور الموظف", "Select employee role")}
+              </option>
+              {roles.map((role) => (
+                <option key={role.id} value={role.id}>
+                  {role.name}
+                </option>
+              ))}
+            </DashboardSelect>
             {errors.roleId && (
               <span className="text-[11px] text-red-500 mt-0.5 block">{errors.roleId}</span>
             )}
           </div>
-        </div>
 
-        <div className="mt-6 bg-[#faf8f5] dark:bg-[#1a120d] border border-[#e8e2d8] dark:border-[#38271c] rounded-[8px] p-4 flex items-start gap-3">
-          <Lightbulb className="size-[18px] text-[#d97706] dark:text-[#e29d38] shrink-0 mt-0.5" />
-          <p className="text-[12px] text-[#514537] dark:text-[#cdc5bd] leading-[20px]">
-            <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-              {t("ملاحظة تنظيمية: ", "Regulatory note: ")}
-            </span>
-            {t(
-              "في حال عدم توفر دور ملائم لطبيعة مهام الموظف، يمكنك ",
-              "If no suitable role matches employee tasks, you can "
-            )}
-            <span className="font-bold text-[#9c6402] dark:text-[#e29d38] underline cursor-pointer">
-              {t("إنشاء دور جديد +", "Create New Role +")}
-            </span>{" "}
-            {t(
-              "عبر قسم الأدوار والصلاحيات المستقل وتطبيقه مباشرة دون فقدان البيانات المدخلة هنا.",
-              "via the independent Roles & Permissions section and apply it directly without losing inputs."
-            )}
-          </p>
-        </div>
-      </div>
-
-      <div className="bg-white dark:bg-[#221812] rounded-[8px] p-6 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]">
-        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#f2efe9] dark:border-[#38271c]">
-          <div className="size-[42px] rounded-[8px] bg-[#f5efe6] dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 flex items-center justify-center shrink-0">
-            <KeyRound className="size-[20px] text-[#9c6402] dark:text-[#e29d38]" />
-          </div>
-          <div>
-            <h2 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-              {t("كلمة المرور وتأكيد الحساب", "Password & Account Confirmation")}
-            </h2>
-            <p className="text-[12px] text-[#79716b] dark:text-[#a89f91]">
-              {t("تعيين بيانات الاعتماد الأمنية الأولية", "Set initial security credentials")}
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] mb-2">
               {t("كلمة المرور", "Password")} <span className="text-red-500">*</span>
@@ -531,40 +508,29 @@ export function AddEmployeeView({
               <span className="text-[11px] text-red-500 mt-1 block">{errors.password}</span>
             )}
           </div>
+        </div>
 
-          <div>
-            <label className="block text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] mb-2">
-              {t("تأكيد كلمة المرور", "Confirm Password")} <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <input
-                type={showConfirmPassword ? "text" : "password"}
-                value={formData.confirmPassword}
-                onChange={(e) =>
-                  setFormData({ ...formData, confirmPassword: e.target.value })
-                }
-                placeholder="••••••••••••"
-                className={cn(inputBase, "ps-10", fieldError(!!errors.confirmPassword))}
-              />
-              <KeyRound className="size-[16px] text-[#948b83] dark:text-[#a89f91] absolute top-1/2 -translate-y-1/2 end-3 pointer-events-none" />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute top-1/2 -translate-y-1/2 start-3 text-[#948b83] dark:text-[#a89f91] hover:text-[#514537] dark:hover:text-[#fdfbf7] cursor-pointer"
-              >
-                {showConfirmPassword ? (
-                  <EyeOff className="size-[16px]" />
-                ) : (
-                  <Eye className="size-[16px]" />
-                )}
-              </button>
-            </div>
-            {errors.confirmPassword && (
-              <span className="text-[11px] text-red-500 mt-1 block">
-                {errors.confirmPassword}
-              </span>
+        <div className="mt-6 bg-[#faf8f5] dark:bg-[#1a120d] border border-[#e8e2d8] dark:border-[#38271c] rounded-[8px] p-4 flex items-start gap-3">
+          <Lightbulb className="size-[18px] text-[#d97706] dark:text-[#e29d38] shrink-0 mt-0.5" />
+          <p className="text-[12px] text-[#514537] dark:text-[#cdc5bd] leading-[20px]">
+            <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+              {t("ملاحظة تنظيمية: ", "Regulatory note: ")}
+            </span>
+            {t(
+              "في حال عدم توفر دور ملائم لطبيعة مهام الموظف، يمكنك ",
+              "If no suitable role matches employee tasks, you can "
             )}
-          </div>
+            <Link
+              href="/roles?action=add"
+              className="font-bold text-[#9c6402] dark:text-[#e29d38] underline cursor-pointer hover:opacity-80"
+            >
+              {t("إنشاء دور جديد +", "Create New Role +")}
+            </Link>{" "}
+            {t(
+              "عبر قسم الأدوار والصلاحيات المستقل وتطبيقه مباشرة دون فقدان البيانات المدخلة هنا.",
+              "via the independent Roles & Permissions section and apply it directly without losing inputs."
+            )}
+          </p>
         </div>
       </div>
 
@@ -601,7 +567,7 @@ export function AddEmployeeView({
           <button
             type="button"
             onClick={() => handleSubmit(false)}
-            disabled={isSubmitting || listsLoading || !!listsError}
+            disabled={isSubmitting}
             className="px-5 py-2 text-[13px] font-bold text-white dark:text-[#1c140f] bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#855402] dark:hover:bg-[#f3c27e] rounded-[6px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-60 disabled:pointer-events-none"
           >
             {isSubmitting ? (

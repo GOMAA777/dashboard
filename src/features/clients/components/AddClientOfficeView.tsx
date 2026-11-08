@@ -38,9 +38,16 @@ import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { fetchPlans, createPlan, updatePlan, getLocalCustomPlans, saveLocalCustomPlan } from "@/lib/api/plans";
 import { unwrapList } from "@/lib/api/helpers";
-import { normalizeLogoUrl, mapPlanFromApi, getLocalCustomAutoRenew, getLocalCustomThemeColor } from "@/lib/api/mappers";
+import {
+  normalizeLogoUrl,
+  mapPlanFromApi,
+  getLocalCustomAutoRenew,
+  getLocalCustomThemeColor,
+  getLocalCustomOfficeId,
+} from "@/lib/api/mappers";
 import type { PricingPlanItem } from "@/features/plans/types/plan.types";
 import { DashboardSelect } from "@/components/shared/DashboardSelect";
+import { LuxuryAlertDialog } from "@/components/shared/LuxuryAlertDialog";
 import { OfficeColorPalettePicker } from "./OfficeColorPalettePicker";
 import { DEFAULT_OFFICE_THEME_COLOR } from "../constants/office-colors";
 import {
@@ -58,6 +65,8 @@ import {
 
 export interface OfficeFormData {
   id?: string;
+  officeId?: string;
+  slug?: string;
   name: string;
   owner: string;
   licenseNumber: string;
@@ -71,12 +80,15 @@ export interface OfficeFormData {
   planId?: number | string;
   planType?: string;
   billingCycle?: string;
+  trialDays?: number;
   autoRenew?: boolean;
   planDetails?: any;
   password?: string;
   logoFile?: File | null;
   logoUrl?: string;
   themeColor?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
   status?: "active" | "inactive" | "suspended";
 }
 
@@ -100,6 +112,7 @@ function resolveOfficeAccountStatus(
 
 interface AddClientOfficeViewProps {
   officeToEdit?: ClientOffice | null;
+  existingOffices?: ClientOffice[];
   onBack: () => void;
   onSuccess: (officeData: OfficeFormData, isEdit: boolean) => void | Promise<void>;
 }
@@ -167,6 +180,7 @@ export function createThumbnail(file: File, maxSize = 256): Promise<string> {
 
 export function AddClientOfficeView({
   officeToEdit,
+  existingOffices,
   onBack,
   onSuccess,
 }: AddClientOfficeViewProps) {
@@ -208,6 +222,9 @@ export function AddClientOfficeView({
     }
   }, [officeToEdit]);
 
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const [pendingFormData, setPendingFormData] = useState<OfficeFormValues | null>(null);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStage, setSubmitStage] = useState<number>(1);
 
@@ -244,10 +261,34 @@ export function AddClientOfficeView({
     return "اشتراك سنوي (موصى به - خصم شهرين مجاناً)";
   });
   const [availablePlans, setAvailablePlans] = useState<
-    Array<{ id: number | string; name: string; monthlyPrice: string; yearlyPrice: string }>
+    Array<{ id: number | string; name: string; monthlyPrice: string; yearlyPrice: string; isPopular?: boolean }>
   >([]);
 
   const isTrial = selectedPlanType === "trial";
+  const popularPlan = availablePlans.find((p) => p.isPopular) || availablePlans[0];
+
+  const [trialDurationDays, setTrialDurationDays] = useState<number>(() => {
+    const rawCycle = officeToEdit?.billingCycle || "";
+    const match = rawCycle.match(/(\d+)\s*يوم/);
+    if (match && match[1]) {
+      const d = Number(match[1]);
+      if (d > 0) return d;
+    }
+    if (officeToEdit?.subscriptionStart && officeToEdit?.subscriptionEnd) {
+      const diff = Math.round((new Date(officeToEdit.subscriptionEnd).getTime() - new Date(officeToEdit.subscriptionStart).getTime()) / 86400000);
+      if (diff > 0) return diff;
+    }
+    return 14;
+  });
+  const [isCustomTrialDays, setIsCustomTrialDays] = useState<boolean>(() => {
+    const rawCycle = officeToEdit?.billingCycle || "";
+    const match = rawCycle.match(/(\d+)\s*يوم/);
+    if (match && match[1]) {
+      const d = Number(match[1]);
+      return ![7, 14, 21, 30, 60, 90].includes(d);
+    }
+    return false;
+  });
 
   const [isCustomPlan, setIsCustomPlan] = useState<boolean>(
     Boolean(officeToEdit?.plan?.includes("مخصصة") || officeToEdit?.planId === -1)
@@ -318,6 +359,11 @@ export function AddClientOfficeView({
     resolver: zodResolver(officeSchema),
     mode: "onTouched",
     defaultValues: {
+      officeId:
+        officeToEdit?.officeId ||
+        officeToEdit?.slug ||
+        (officeToEdit?.id ? getLocalCustomOfficeId(officeToEdit.id) : "") ||
+        "",
       ownerName: officeToEdit && officeToEdit.owner !== "—" ? officeToEdit.owner : "",
       firmName: officeToEdit ? officeToEdit.name : "",
       licenseNumber: formatLicenseForInput(officeToEdit?.licenseNumber),
@@ -328,6 +374,7 @@ export function AddClientOfficeView({
       city: defaultCityValue,
       address: officeToEdit?.address || "",
       password: officeToEdit ? "Secret123!" : "",
+      primaryColor: selectedThemeColor,
     },
   });
 
@@ -340,6 +387,11 @@ export function AddClientOfficeView({
       const validCity = SAUDI_CITIES.includes(cleanCity) ? cleanCity : "";
 
       reset({
+        officeId:
+          officeToEdit.officeId ||
+          officeToEdit.slug ||
+          (officeToEdit.id ? getLocalCustomOfficeId(officeToEdit.id) : "") ||
+          "",
         ownerName: officeToEdit.owner && officeToEdit.owner !== "—" ? officeToEdit.owner : "",
         firmName: officeToEdit.name || "",
         licenseNumber: formatLicenseForInput(officeToEdit.licenseNumber),
@@ -350,6 +402,7 @@ export function AddClientOfficeView({
         city: validCity,
         address: officeToEdit.address || "",
         password: officeToEdit.initialPassword || "Secret123!",
+        primaryColor: selectedThemeColor,
       });
 
       setSelectedPlanType(
@@ -375,6 +428,22 @@ export function AddClientOfficeView({
           ? "اشتراك سنوي (موصى به - خصم شهرين مجاناً)"
           : "اشتراك شهري عادي"
       );
+
+      const match = raw.match(/(\d+)\s*يوم/);
+      if (match && match[1]) {
+        const d = Number(match[1]);
+        if (d > 0) {
+          setTrialDurationDays(d);
+          setIsCustomTrialDays(![7, 14, 21, 30, 60, 90].includes(d));
+        }
+      } else if (officeToEdit.subscriptionStart && officeToEdit.subscriptionEnd) {
+        const diff = Math.round((new Date(officeToEdit.subscriptionEnd).getTime() - new Date(officeToEdit.subscriptionStart).getTime()) / 86400000);
+        if (diff > 0) {
+          setTrialDurationDays(diff);
+          setIsCustomTrialDays(![7, 14, 21, 30, 60, 90].includes(diff));
+        }
+      }
+
       setOfficeStatus(resolveOfficeAccountStatus(officeToEdit));
       setLogoPreview(normalizeLogoUrl(officeToEdit.logo) || null);
     }
@@ -449,6 +518,7 @@ export function AddClientOfficeView({
           name: String(p.name),
           monthlyPrice: String(p.monthly_price || "0.00"),
           yearlyPrice: String(p.yearly_price || "0.00"),
+          isPopular: Boolean(p.is_popular ?? p.isPopular),
         }));
 
         // Merge server plans and local custom plans without duplicate IDs/names
@@ -460,6 +530,7 @@ export function AddClientOfficeView({
               name: lp.name,
               monthlyPrice: String(lp.monthlyPrice || "0.00"),
               yearlyPrice: String(lp.annualPrice || "0.00"),
+              isPopular: Boolean(lp.isPopular),
             });
           }
         });
@@ -485,6 +556,7 @@ export function AddClientOfficeView({
             name: lp.name,
             monthlyPrice: String(lp.monthlyPrice || "0.00"),
             yearlyPrice: String(lp.annualPrice || "0.00"),
+            isPopular: Boolean(lp.isPopular),
           }));
           setAvailablePlans(mapped);
           if (!officeToEdit) {
@@ -596,7 +668,7 @@ export function AddClientOfficeView({
   };
 
   // On Valid Submit: Format and persist data with dynamic progress tracking
-  const onSubmit = async (data: OfficeFormValues) => {
+  const executeSave = async (data: OfficeFormValues) => {
     setIsSubmitting(true);
     setSubmitStage(1);
 
@@ -607,10 +679,7 @@ export function AddClientOfficeView({
     let cleanPlanName = packageTier;
     let finalPlanId: number | string | undefined = selectedPlanId;
 
-    if (isTrial) {
-      cleanPlanName = "تجربة مجانية";
-      finalPlanId = undefined;
-    } else if (isCustomPlan) {
+    if (isCustomPlan) {
       cleanPlanName = customPlanName.trim() || `باقة مخصصة - ${data.firmName || "المكتب"}`;
 
       const numMonthly = Number(customMonthlyPrice) || 0;
@@ -647,9 +716,9 @@ export function AddClientOfficeView({
         description:
           customPlanDescription.trim() ||
           `باقة مخصصة تم إعدادها لمكتب ${data.firmName || "المحاماة"} بمزايا وشروط حصرية.`,
-        badge: "باقة مخصصة",
+        badge: isTrial ? "تجربة مجانية مخصصة" : "باقة مخصصة",
         badge_color: "#d97706",
-        type: "paid",
+        type: isTrial ? "trial" : "paid",
         monthly_price: numMonthly,
         yearly_price: numYearly,
         yearly_discount_percent: calculatedDiscount,
@@ -774,16 +843,16 @@ export function AddClientOfficeView({
       setSelectedPlanId(finalPlanId!);
     } else {
       const selectedPlan = availablePlans.find((p) => String(p.id) === String(selectedPlanId));
-      cleanPlanName = selectedPlan?.name || packageTier || "باقة مخصصة";
-      finalPlanId = selectedPlan ? selectedPlan.id : (selectedPlanId || 1);
+      cleanPlanName = selectedPlan?.name || packageTier || (isTrial ? (popularPlan?.name || "الباقة الفضية") : "الباقة الأساسية");
+      finalPlanId = selectedPlan ? selectedPlan.id : (selectedPlanId || (isTrial ? (popularPlan?.id || 1) : 1));
     }
 
-    const customPlanDetailsObj = isCustomPlan && !isTrial ? {
+    const customPlanDetailsObj = isCustomPlan ? {
       id: finalPlanId || -1,
       name: cleanPlanName,
-      badge: "باقة مخصصة",
+      badge: isTrial ? "تجربة مجانية مخصصة" : "باقة مخصصة",
       badgeColor: "gold",
-      type: "custom",
+      type: isTrial ? "trial" : "custom",
       monthlyPrice: customMonthlyPrice,
       yearlyPrice: customYearlyPrice,
       maxLawyers: customLawyersLimit === "unlimited" ? 999 : Number(customLawyersLimit) || 10,
@@ -807,6 +876,8 @@ export function AddClientOfficeView({
       await onSuccess(
         {
           id: officeToEdit?.id,
+          officeId: data.officeId?.trim() || undefined,
+          slug: data.officeId?.trim() || undefined,
           name: data.firmName,
           owner: data.ownerName,
           licenseNumber: data.licenseNumber.startsWith("ترخيص عدلي: ")
@@ -819,15 +890,17 @@ export function AddClientOfficeView({
           taxNumber: data.taxNumber || undefined,
           city: cleanCity,
           plan: cleanPlanName,
-          planId: isTrial ? undefined : finalPlanId,
+          planId: finalPlanId,
           planType: selectedPlanType,
-          billingCycle: isTrial ? "فترة تجريبية" : billingCycle,
-          autoRenew,
+          billingCycle: isTrial ? `فترة تجريبية (${trialDurationDays} يوماً)` : billingCycle,
+          trialDays: isTrial ? trialDurationDays : undefined,
+          autoRenew: isTrial ? false : autoRenew,
           planDetails: customPlanDetailsObj || officeToEdit?.planDetails,
           password: data.password && data.password !== "••••••••••••" ? data.password : undefined,
           logoFile: resolvedLogoFile,
           logoUrl: logoPreview || undefined,
           themeColor: selectedThemeColor || DEFAULT_OFFICE_THEME_COLOR,
+          primaryColor: selectedThemeColor || DEFAULT_OFFICE_THEME_COLOR,
           status: officeStatus,
         },
         isEditMode
@@ -840,6 +913,11 @@ export function AddClientOfficeView({
       clearTimeout(timer2);
       setIsSubmitting(false);
     }
+  };
+
+  const onSubmit = (data: OfficeFormValues) => {
+    setPendingFormData(data);
+    setIsConfirmDialogOpen(true);
   };
 
   // Smooth scroll and focus field from checklist click
@@ -1667,11 +1745,11 @@ export function AddClientOfficeView({
               </div>
             </div>
 
-            {/* 12. لون هوية المكتب (باليت الألوان) */}
+            {/* 12. اللون الأساسي للهوية (باليت الألوان) */}
             <div className="flex flex-col gap-[6px] text-start">
               <div className="flex items-center justify-between">
                 <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                  {t("لون هوية المكتب (باليت الألوان)", "Firm Brand Color Palette")} <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
+                  {t("اللون الأساسي للهوية", "Primary Brand Color")} <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
                 </label>
                 <span className="text-[10px] font-bold px-[8px] py-[1.5px] rounded-full border border-[#eae8e4] dark:border-[#38271c] bg-white dark:bg-[#1f150f] text-[#514537] dark:text-[#cdc5bd] uppercase font-mono">
                   {selectedThemeColor}
@@ -1680,6 +1758,8 @@ export function AddClientOfficeView({
               <OfficeColorPalettePicker
                 value={selectedThemeColor}
                 onChange={setSelectedThemeColor}
+                defaultColor="#9c6402"
+                label={t("اللون الأساسي", "Primary Color")}
                 firmName={watch("firmName") || officeToEdit?.name || t("مكتب المحاماة", "Law Firm")}
                 className="w-full"
               />
@@ -1900,12 +1980,18 @@ export function AddClientOfficeView({
                       </div>
 
                       <span className="bg-[#eae8e4] dark:bg-[#2c1e15] text-[#514537] dark:text-[#f0e6dc] border border-[#ded5c6] dark:border-[#523b2c] text-[10px] font-semibold px-[8px] py-[2px] rounded-[2px]">
-                        ١٤ يوماً
+                        {trialDurationDays} {t("يوماً", "Days")}
                       </span>
                     </div>
 
                     <div className="bg-white/80 dark:bg-[#1f150f] border border-[#eae8e4] dark:border-[#422e20] rounded-[4px] px-[8px] py-[5px] flex items-center justify-between text-[11px] font-bold text-[#514537] dark:text-[#d5cec5]">
-                      <span>إمكانية إضافة 3 محامين</span>
+                      <span>
+                        {isCustomPlan
+                          ? `${t("إمكانية إضافة", "Add up to")} ${customLawyersLimit === "unlimited" ? t("غير محدود من", "Unlimited") : customLawyersLimit} ${t("محامين", "Lawyers")}`
+                          : selectedPlanId
+                          ? `${packageTier || t("الباقة المعتمدة", "Approved Plan")}`
+                          : t("إمكانية إضافة 3 محامين", "Up to 3 lawyers")}
+                      </span>
                       <Hourglass className="size-[13px] text-[#837565] dark:text-[#a89f91]" />
                     </div>
                   </div>
@@ -1922,12 +2008,9 @@ export function AddClientOfficeView({
                     </label>
                     <DashboardSelect
                       aria-label={t("الباقة المعتمدة", "Approved Plan")}
-                      disabled={isTrial}
-                      value={isTrial ? "trial" : isCustomPlan ? "custom" : String(selectedPlanId)}
+                      value={isCustomPlan ? "custom" : String(selectedPlanId)}
                       placeholder={
-                        isTrial
-                          ? t("فترة تجريبية مجانية (14 يوماً)", "14-Day Free Trial")
-                          : isCustomPlan
+                        isCustomPlan
                           ? t("باقة مخصصة لهذا المكتب", "Custom Plan")
                           : packageTier || (availablePlans.length > 0 ? t("اختر الباقة المعتمدة...", "Select approved plan...") : t("باقة مخصصة لهذا المكتب", "Custom Plan"))
                       }
@@ -1946,37 +2029,34 @@ export function AddClientOfficeView({
                           setPackageTier(found.name);
                         }
                       }}
-                      className={cn(
-                        "bg-white dark:bg-[#1f150f] border-[#eae8e4] dark:border-[#422e20] h-[42px] rounded-[6px]",
-                        isTrial && "opacity-60 cursor-not-allowed bg-[#eae8e4]/50 dark:bg-[#20150e]/50"
-                      )}
+                      className="bg-white dark:bg-[#1f150f] border-[#eae8e4] dark:border-[#422e20] h-[42px] rounded-[6px]"
                     >
-                      {isTrial ? (
-                        <option value="trial">
-                          {t("فترة تجريبية مجانية (14 يوماً - غير مفعلة للفوترة)", "Free Trial (14 Days - Non-billing)")}
-                        </option>
-                      ) : (
-                        <>
-                          {availablePlans.length > 0 ? (
-                            availablePlans.map((p) => (
-                              <option key={p.id} value={String(p.id)}>
-                                {p.name} ({Number(p.monthlyPrice).toLocaleString("ar-SA")} ر.س / شهرياً)
-                              </option>
-                            ))
-                          ) : (
-                            <option value="" disabled className="text-[#837565] dark:text-[#a89f91]">
-                              {t("لا توجد باقات عامة معرفة في تاب الباقات", "No public plans in plans tab")}
-                            </option>
-                          )}
-                          <option value="custom" className="font-bold text-[#9c6402] dark:text-[#c29547]">
-                            ✨ {t("باقة مخصصة لهذا المكتب (اتفاق وشروط خاصة / إنشاء باقة)", "Custom Plan for this client (create new)")}
+                      {availablePlans.length > 0 ? (
+                        availablePlans.map((p) => (
+                          <option key={p.id} value={String(p.id)}>
+                            {p.name} ({Number(p.monthlyPrice).toLocaleString("ar-SA")} ر.س / شهرياً{isTrial ? ` - تجربة مجانية` : ""})
                           </option>
-                        </>
+                        ))
+                      ) : (
+                        <option value="" disabled className="text-[#837565] dark:text-[#a89f91]">
+                          {t("لا توجد باقات عامة معرفة في تاب الباقات", "No public plans in plans tab")}
+                        </option>
                       )}
+                      <option value="custom" className="font-bold text-[#9c6402] dark:text-[#c29547]">
+                        ✨ {t("باقة مخصصة لهذا المكتب (اتفاق وشروط خاصة / إنشاء باقة)", "Custom Plan for this client (create new)")}
+                      </option>
                     </DashboardSelect>
                     <span className={cn("text-[11px]", isTrial ? "text-[#9c6402] dark:text-[#c29547] font-medium" : "text-[#514537] dark:text-[#d5cec5]")}>
                       {isTrial
-                        ? t("غير متاحة في التجربة المجانية — يتم تحديد باقة الاشتراك عند الترقية والدفع.", "Not available in Free Trial — subscription plan is selected upon upgrade and payment.")
+                        ? isCustomPlan
+                          ? t(
+                              `تم تفعيل إعداد باقة خاصة ومخصصة لهذا المكتب خلال الفترة التجريبية (${trialDurationDays} يوماً) بدون أي رسوم.`,
+                              `Custom plan active for this client during the free trial (${trialDurationDays} days) at zero cost.`
+                            )
+                          : t(
+                              `يحصل المكتب خلال التجربة المجانية (${trialDurationDays} يوماً) على كافة صلاحيات ومزايا باقة "${packageTier || popularPlan?.name || "المعتمدة"}" لاختبار كامل إمكانيات المنظومة.`,
+                              `During the free trial (${trialDurationDays} days), the office receives full features of "${packageTier || popularPlan?.name || "Approved Plan"}" to test the system.`
+                            )
                         : isCustomPlan
                         ? availablePlans.length === 0
                           ? t("لا توجد باقات سابقة في تاب الباقات. قم بضبط بيانات الباقة المخصصة أدناه لتفعيلها وتسميعها مباشرة في تاب الباقات.", "No plans in plans tab. Configure custom plan below to activate and sync to plans tab.")
@@ -1985,65 +2065,123 @@ export function AddClientOfficeView({
                     </span>
                   </div>
 
-                  {/* دورة الفوترة والتحصيل */}
-                  <div className="flex flex-col gap-[6px] text-start">
-                    <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      {t("دورة الفوترة والتحصيل", "Billing Cycle")}
-                    </label>
-                    <DashboardSelect
-                      aria-label={t("دورة الفوترة والتحصيل", "Billing Cycle")}
-                      disabled={isTrial}
-                      value={isTrial ? "none" : billingCycle}
-                      placeholder={isTrial ? t("بدون دورة فوترة (فترة استكشافية مجانية)", "No billing cycle (Free trial)") : undefined}
-                      onChange={(e) => setBillingCycle(e.target.value)}
-                      className={cn(
-                        "bg-white dark:bg-[#1f150f] border-[#eae8e4] dark:border-[#422e20] h-[42px] rounded-[6px]",
-                        isTrial && "opacity-60 cursor-not-allowed bg-[#eae8e4]/50 dark:bg-[#20150e]/50"
-                      )}
-                    >
-                      {isTrial ? (
-                        <option value="none">
-                          {t("بدون دورة فوترة (فترة استكشافية مجانية)", "No billing cycle (Free exploratory period)")}
-                        </option>
-                      ) : (
-                        <>
-                          <option value="اشتراك سنوي (موصى به - خصم شهرين مجاناً)">
-                            {t("اشتراك سنوي (موصى به - خصم شهرين)", "Annual (Recommended - 2 Months Free)")}
-                          </option>
-                          <option value="اشتراك شهري عادي">
-                            {t("اشتراك شهري عادي", "Monthly Standard")}
-                          </option>
-                        </>
-                      )}
-                    </DashboardSelect>
-                    <span className={cn("text-[11px]", isTrial ? "text-[#9c6402] dark:text-[#c29547] font-medium" : "text-[#514537] dark:text-[#d5cec5]")}>
-                      {isTrial
-                        ? t("لا توجد مطالبات مالية أو فواتير مستحقة خلال فترة الـ 14 يوماً.", "No financial claims or invoices due during the 14-day trial.")
-                        : t("يتم احتساب الفاتورة الأولى فور التأكيد.", "First invoice is calculated upon confirmation.")}
-                    </span>
-                  </div>
-
-                  {/* قسم بناء باقة مخصصة لهذا المكتب */}
-                  {!isTrial && isCustomPlan && (
-                    <div className="md:col-span-2 p-[16px] bg-[#9c6402]/5 dark:bg-[#e29d38]/5 border border-[#9c6402]/30 dark:border-[#e29d38]/30 rounded-[8px] flex flex-col gap-[14px] text-start transition-all">
-                      <div className="flex items-center justify-between pb-[10px] border-b border-[#9c6402]/20 dark:border-[#e29d38]/20">
-                        <div className="flex items-center gap-[8px]">
-                          <div className="size-[28px] rounded-[6px] bg-[#9c6402]/15 dark:bg-[#e29d38]/15 flex items-center justify-center text-[#9c6402] dark:text-[#e29d38]">
-                            <Sparkles className="size-[16px]" />
-                          </div>
-                          <div>
-                            <h4 className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                              {t("تخصيص وإنشاء باقة متكاملة لهذا المكتب (تسمع في تاب الباقات)", "Custom Plan Configuration (Synced to Plans Tab)")}
-                            </h4>
-                            <p className="text-[11px] text-[#514537] dark:text-[#d5cec5]">
-                              {t("حدد مواصفات وبيانات الباقة العادية (التسعير، المقاعد، السعة، الدعم، والمزايا) لتثبيتها في تاب الباقات وربط المكتب بها", "Define full plan specs (pricing, seats, quota, SLA, features) to sync to Plans tab")}
-                            </p>
-                          </div>
-                        </div>
-                        <span className="text-[11px] font-semibold text-[#9c6402] dark:text-[#e29d38] bg-[#9c6402]/10 dark:bg-[#e29d38]/10 px-[8px] py-[3px] rounded-full">
-                          {t("باقة مخصصة ومعتمدة", "Custom & Approved Plan")}
+                  {/* دورة الفوترة والتحصيل أو مدة الفترة التجريبية */}
+                  {isTrial ? (
+                    <div className="flex flex-col gap-[6px] text-start">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                          {t("مدة الفترة التجريبية المعتمدة", "Approved Trial Duration")}
+                        </label>
+                        <span className="text-[11px] font-bold text-[#9c6402] dark:text-[#e29d38]">
+                          {trialDurationDays} {t("يوماً", "Days")}
                         </span>
                       </div>
+                      <div className="flex items-center gap-[8px]">
+                        <DashboardSelect
+                          aria-label={t("مدة الفترة التجريبية", "Trial Duration")}
+                          value={isCustomTrialDays ? "custom" : String(trialDurationDays)}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val === "custom") {
+                              setIsCustomTrialDays(true);
+                            } else {
+                              setIsCustomTrialDays(false);
+                              setTrialDurationDays(Number(val));
+                            }
+                          }}
+                          className="bg-white dark:bg-[#1f150f] border-[#eae8e4] dark:border-[#422e20] h-[42px] rounded-[6px] flex-1"
+                        >
+                          <option value="14">{t("14 يوماً (الافتراضي / القياسي)", "14 Days (Default / Standard)")}</option>
+                          <option value="7">{t("7 أيام (تجربة سريعة)", "7 Days (Quick Trial)")}</option>
+                          <option value="21">{t("21 يوماً (3 أسابيع)", "21 Days (3 Weeks)")}</option>
+                          <option value="30">{t("30 يوماً (شهر كامل)", "30 Days (Full Month)")}</option>
+                          <option value="60">{t("60 يوماً (شهران)", "60 Days (Two Months)")}</option>
+                          <option value="90">{t("90 يوماً (3 أشهر)", "90 Days (Three Months)")}</option>
+                          <option value="custom">✨ {t("تحديد مدة مخصصة بالـ (أيام)...", "Specify custom duration in days...")}</option>
+                        </DashboardSelect>
+
+                        {isCustomTrialDays && (
+                          <div className="flex items-center gap-[6px] shrink-0">
+                            <input
+                              type="number"
+                              min="1"
+                              max="365"
+                              value={trialDurationDays}
+                              onChange={(e) => {
+                                const v = Math.max(1, Math.min(365, Number(e.target.value) || 1));
+                                setTrialDurationDays(v);
+                              }}
+                              className="w-[84px] h-[42px] bg-white dark:bg-[#1f150f] border border-[#9c6402] dark:border-[#e29d38] rounded-[6px] px-[8px] text-center font-bold text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] focus:outline-none"
+                              placeholder="14"
+                            />
+                            <span className="text-[12px] font-bold text-[#514537] dark:text-[#d5cec5]">
+                              {t("يوم", "Day")}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-[11px] text-[#9c6402] dark:text-[#c29547] font-medium">
+                        {t(
+                          `فترة تجريبية مجانية لمدة ${trialDurationDays} يوماً بدون أي رسوم أو مطالبات مالية، تبدأ من تاريخ إنشاء الحساب.`,
+                          `Free trial for ${trialDurationDays} days with zero charges, starting from account creation date.`
+                        )}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-[6px] text-start">
+                      <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                        {t("دورة الفوترة والتحصيل", "Billing Cycle")}
+                      </label>
+                      <DashboardSelect
+                        aria-label={t("دورة الفوترة والتحصيل", "Billing Cycle")}
+                        value={billingCycle}
+                        onChange={(e) => setBillingCycle(e.target.value)}
+                        className="bg-white dark:bg-[#1f150f] border-[#eae8e4] dark:border-[#422e20] h-[42px] rounded-[6px]"
+                      >
+                        <option value="اشتراك سنوي (موصى به - خصم شهرين مجاناً)">
+                          {t("اشتراك سنوي (موصى به - خصم شهرين)", "Annual (Recommended - 2 Months Free)")}
+                        </option>
+                        <option value="اشتراك شهري عادي">
+                          {t("اشتراك شهري عادي", "Monthly Standard")}
+                        </option>
+                      </DashboardSelect>
+                      <span className="text-[11px] text-[#514537] dark:text-[#d5cec5]">
+                        {t("يتم احتساب الفاتورة الأولى فور التأكيد.", "First invoice is calculated upon confirmation.")}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* قسم بناء باقة مخصصة لهذا المكتب */}
+                  {isCustomPlan && (
+                  <div className="md:col-span-2 p-[16px] bg-[#9c6402]/5 dark:bg-[#e29d38]/5 border border-[#9c6402]/30 dark:border-[#e29d38]/30 rounded-[8px] flex flex-col gap-[14px] text-start transition-all">
+                    <div className="flex items-center justify-between pb-[10px] border-b border-[#9c6402]/20 dark:border-[#e29d38]/20">
+                      <div className="flex items-center gap-[8px]">
+                        <div className="size-[28px] rounded-[6px] bg-[#9c6402]/15 dark:bg-[#e29d38]/15 flex items-center justify-center text-[#9c6402] dark:text-[#e29d38]">
+                          <Sparkles className="size-[16px]" />
+                        </div>
+                        <div>
+                          <h4 className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                            {isTrial
+                              ? t("تخصيص وإنشاء باقة تجريبية لهذا المكتب (تسمع في تاب الباقات)", "Custom Trial Plan Configuration (Synced to Plans Tab)")
+                              : t("تخصيص وإنشاء باقة متكاملة لهذا المكتب (تسمع في تاب الباقات)", "Custom Plan Configuration (Synced to Plans Tab)")}
+                          </h4>
+                          <p className="text-[11px] text-[#514537] dark:text-[#d5cec5]">
+                            {isTrial
+                              ? t(
+                                  `حدد مواصفات وبيانات الباقة المخصصة (المقاعد، السعة، الدعم، والمزايا) لربط المكتب بها واختبارها مجاناً لمدة (${trialDurationDays} يوماً).`,
+                                  `Define custom plan specs (seats, quota, SLA, features) for this client to test free for (${trialDurationDays} days).`
+                                )
+                              : t(
+                                  "حدد مواصفات وبيانات الباقة العادية (التسعير، المقاعد، السعة، الدعم، والمزايا) لتثبيتها في تاب الباقات وربط المكتب بها",
+                                  "Define full plan specs (pricing, seats, quota, SLA, features) to sync to Plans tab"
+                                )}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-[11px] font-semibold text-[#9c6402] dark:text-[#e29d38] bg-[#9c6402]/10 dark:bg-[#e29d38]/10 px-[8px] py-[3px] rounded-full">
+                        {isTrial ? t("تجربة مجانية مخصصة", "Custom Free Trial") : t("باقة مخصصة ومعتمدة", "Custom & Approved Plan")}
+                      </span>
+                    </div>
 
                       {/* 1. Basic Plan Info */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-[12px]">
@@ -2122,15 +2260,16 @@ export function AddClientOfficeView({
                           <label className="text-[11px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
                             {t("مستوى الدعم الفني (SLA)", "Support Level SLA")}
                           </label>
-                          <select
+                          <DashboardSelect
+                            aria-label={t("مستوى الدعم الفني (SLA)", "Support Level SLA")}
                             value={customSupportLevel}
                             onChange={(e) => setCustomSupportLevel(e.target.value)}
-                            className="bg-white dark:bg-[#1f150f] border border-[#eae8e4] dark:border-[#422e20] h-[38px] px-[10px] rounded-[6px] text-[12px] text-[#1b1c1a] dark:text-[#fdfbf7] focus:outline-none focus:border-[#9c6402]"
+                            className="bg-white dark:bg-[#1f150f] border-[#eae8e4] dark:border-[#422e20] h-[38px] text-[12px] rounded-[6px]"
                           >
                             <option value="vip">{t("دعم مباشر ذو أولوية فائقة (VIP SLA)", "VIP Direct Support")}</option>
                             <option value="priority">{t("دعم فني ذو أولوية للمكتب (خلال 4 ساعات)", "Priority Support (4h)")}</option>
                             <option value="standard">{t("دعم فني قياسي (خلال 24 ساعة)", "Standard Support (24h)")}</option>
-                          </select>
+                          </DashboardSelect>
                         </div>
                       </div>
 
@@ -2597,6 +2736,33 @@ export function AddClientOfficeView({
           </div>
         </div>
       )}
+
+      {/* Confirmation Dialog before saving */}
+      <LuxuryAlertDialog
+        isOpen={isConfirmDialogOpen}
+        onClose={() => {
+          if (!isSubmitting) setIsConfirmDialogOpen(false);
+        }}
+        onConfirm={async () => {
+          setIsConfirmDialogOpen(false);
+          if (pendingFormData) {
+            await executeSave(pendingFormData);
+          }
+        }}
+        variant="info"
+        title={isEditMode ? "تأكيد تعديل بيانات المنشأة" : "تأكيد تسجيل المنشأة الجديدة"}
+        description={
+          isEditMode
+            ? `هل أنت متأكد من حفظ التعديلات والبيانات المحدثة لمنشأة "${pendingFormData?.firmName || watch("firmName") || ""}"؟`
+            : `هل أنت متأكد من اعتماد وتسجيل منشأة "${pendingFormData?.firmName || watch("firmName") || ""}" بالهوية والبيانات المحددة؟`
+        }
+        confirmLabel={isEditMode ? "تأكيد وحفظ التعديلات" : "تأكيد إنشاء المنشأة"}
+        cancelLabel="مراجعة وتعديل"
+        itemDetails={{
+          name: pendingFormData?.firmName || watch("firmName"),
+          email: pendingFormData?.email || watch("email"),
+        }}
+      />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { Coins, X, Copy, Eye, EyeOff, Lock, Send } from "lucide-react";
 import { toast } from "sonner";
 import { PaymentGatewayItem } from "../types/payment-gateways.types";
 import { useLanguage } from "@/lib/i18n";
+import { LuxuryAlertDialog } from "@/components/shared/LuxuryAlertDialog";
 
 interface GatewaySettingsModalProps {
   gateway: PaymentGatewayItem | null;
@@ -26,6 +27,7 @@ function GatewaySettingsDialogBody({
   const [clientId, setClientId] = useState(gateway.clientId);
   const [clientSecret, setClientSecret] = useState(gateway.clientSecret);
   const [showSecret, setShowSecret] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -34,8 +36,13 @@ function GatewaySettingsDialogBody({
     );
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setIsConfirmOpen(true);
+  };
+
+  const handleConfirmSave = () => {
+    setIsConfirmOpen(false);
     onSave(gateway.id, clientId, clientSecret);
     toast.success(
       isEn
@@ -80,7 +87,7 @@ function GatewaySettingsDialogBody({
         <div className="h-px bg-[#eae8e4] w-full" />
 
         {/* Form Body */}
-        <form onSubmit={handleSave} className="p-8 space-y-6">
+        <form onSubmit={handleFormSubmit} className="p-8 space-y-6">
           {/* Field 1: Client ID */}
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between w-full">
@@ -195,6 +202,20 @@ function GatewaySettingsDialogBody({
           </div>
         </form>
       </div>
+
+      <LuxuryAlertDialog
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={handleConfirmSave}
+        title={t("تأكيد حفظ إعدادات بوابة الدفع", "Confirm Gateway Settings Update")}
+        description={t(
+          `هل أنت متأكد من حفظ وتطبيق المفاتيح الجديدة لبوابة "${gateway.name}"؟ سيتم اعتماد هذه المفاتيح فوراً في معالجة عمليات الدفع.`,
+          `Are you sure you want to save the new credentials for "${gateway.name}"? They will take effect immediately for payment processing.`
+        )}
+        variant="warning"
+        confirmLabel={t("تأكيد الحفظ", "Confirm & Save")}
+        cancelLabel={t("إلغاء", "Cancel")}
+      />
     </div>
   );
 }

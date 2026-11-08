@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { DetailedSubscribedFirm, PricingPlanItem } from "../types/plan.types";
-import { detailedSilverSubscribedFirms, getSubscribedFirmsForPlan, initialPricingPlans } from "../data/initialPlans";
 import { UpgradeSubscriptionDialog } from "./UpgradeSubscriptionDialog";
 import { DeactivateSubscriptionDialog } from "./DeactivateSubscriptionDialog";
 import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
@@ -101,31 +100,61 @@ export function SubscribedFirmsView({
   onViewOfficeDetails,
 }: SubscribedFirmsViewProps) {
   const { t, isEn } = useLanguage();
-  const currentPlan = plan || initialPricingPlans[1];
-  const [firms, setFirms] = useState<DetailedSubscribedFirm[]>(() =>
-    getSubscribedFirmsForPlan(currentPlan)
-  );
+  const [firms, setFirms] = useState<DetailedSubscribedFirm[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (plan) {
-      setFirms(getSubscribedFirmsForPlan(plan));
-      setCurrentPage(1);
+  const currentPlan: PricingPlanItem = plan || {
+    id: "silver",
+    name: t("الباقة الفضية", "Silver Plan"),
+    code: "PLAN-SLV-02",
+    description: "",
+    type: "paid",
+    monthlyPrice: 399,
+    subscribedFirmsCount: firms.length,
+    sharePercentage: "0%",
+    isActive: true,
+    limits: {
+      lawyers: "—",
+      cases: "—",
+      agents: "—",
+      clients: "—",
+      storage: "—",
+      support: "—",
+    },
+  };
+
+  const loadSubscribers = React.useCallback(() => {
+    if (!plan?.id) {
+      setIsLoading(false);
+      setFirms([]);
+      return;
     }
-    if (!plan?.id) return;
     let cancelled = false;
+    setIsLoading(true);
+    setError(null);
     fetchPlanSubscribers(plan.id)
       .then((payload) => {
         if (cancelled) return;
         const mapped = unwrapList<Record<string, unknown>>(payload).map(mapSubscriberFirm);
-        if (mapped.length > 0) setFirms(mapped);
+        setFirms(mapped);
       })
-      .catch(() => {
-        // Keep mock subscribers if API unavailable.
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "فشل تحميل قائمة المكاتب المشتركة");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
       });
     return () => {
       cancelled = true;
     };
-  }, [plan]);
+  }, [plan?.id]);
+
+  useEffect(() => {
+    return loadSubscribers();
+  }, [loadSubscribers]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<
@@ -573,7 +602,26 @@ export function SubscribedFirmsView({
               </tr>
             </thead>
             <tbody className="divide-y divide-[#f0eeea] dark:divide-[#38271c]">
-              {paginatedFirms.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={8} className="py-8 text-center text-xs text-[#837565] dark:text-[#a89f91]">
+                    {t("جاري تحميل المكاتب المشتركة...", "Loading subscribed firms...")}
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan={8} className="py-8 text-center text-xs text-red-600 dark:text-red-400">
+                    <div>{error}</div>
+                    <button
+                      type="button"
+                      onClick={loadSubscribers}
+                      className="mt-2 px-3 py-1 bg-[#9c6402] hover:bg-[#855402] text-white text-xs font-bold rounded cursor-pointer"
+                    >
+                      {t("إعادة المحاولة", "Retry")}
+                    </button>
+                  </td>
+                </tr>
+              ) : paginatedFirms.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-8 text-center text-xs text-[#837565] dark:text-[#a89f91]">
                     {t("لا يوجد مشتركون في هذه الباقة", "No subscribers in this plan")}

@@ -5,6 +5,7 @@ import { X, ArrowLeftRight, ChevronDown, ShieldCheck, UserCheck } from "lucide-r
 import { RoleItem } from "../types/roles.types";
 import { useLanguage } from "@/lib/i18n";
 import { ModalPortal } from "@/components/shared/ModalPortal";
+import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { cn } from "@/lib/utils";
 
 interface ReassignEmployeesModalProps {
@@ -100,20 +101,17 @@ export function ReassignEmployeesModal({
               {t("الدور الوظيفي الجديد (البديل)", "New Target Role")}<span className="text-red-500">*</span>
             </label>
 
-            <div className="relative">
-              <select
-                value={selectedTargetId}
-                onChange={(e) => setSelectedTargetId(e.target.value)}
-                className="w-full h-[42px] px-3 pe-9 text-[13px] bg-[#fdfbf7] dark:bg-[#281c15] border border-[#d6cfc7] dark:border-[#38271c] rounded-[6px] text-[#1b1c1a] dark:text-[#fdfbf7] appearance-none focus:outline-none focus:ring-1 focus:ring-[#9c6402] focus:border-[#9c6402] cursor-pointer text-start font-medium"
-              >
-                {eligibleTargetRoles.map((role) => (
-                  <option key={role.id} value={role.id}>
-                    {role.name} ({role.permissionsLabel})
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className={cn("size-[16px] text-[#837565] absolute top-1/2 -translate-y-1/2 pointer-events-none", isEn ? "right-3" : "left-3")} />
-            </div>
+            <DashboardSelect
+              value={selectedTargetId}
+              onChange={(e) => setSelectedTargetId(e.target.value)}
+              className="bg-[#fdfbf7] dark:bg-[#281c15] border-[#d6cfc7] dark:border-[#38271c] rounded-[6px]"
+            >
+              {eligibleTargetRoles.map((role) => (
+                <option key={role.id} value={role.id}>
+                  {role.name} ({role.permissionsLabel})
+                </option>
+              ))}
+            </DashboardSelect>
             <p className="text-[11px] text-[#837565] dark:text-[#a89f91]">
               {t(
                 "سيتم نقل جميع صلاحيات الموظفين فورياً إلى الدور المختار دون انقطاع خدمتهم.",

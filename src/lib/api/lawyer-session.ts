@@ -29,6 +29,10 @@ export type LawyerAuthSession = {
   impersonated_by?: number | string | boolean;
   firm_name?: string;
   preview_banner?: { active?: boolean; message?: string };
+  primary_color?: string;
+  secondary_color?: string;
+  logo_url?: string;
+  office_id?: string;
 };
 
 function asString(value: unknown, fallback = ""): string {

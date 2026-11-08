@@ -5,6 +5,7 @@ import { Coins, X, Send } from "lucide-react";
 import { toast } from "sonner";
 import { PaymentGatewayItem } from "../types/payment-gateways.types";
 import { useLanguage } from "@/lib/i18n";
+import { DashboardSelect } from "@/components/shared/DashboardSelect";
 
 interface AddCustomGatewayModalProps {
   isOpen: boolean;
@@ -169,15 +170,15 @@ export function AddCustomGatewayModal({
             <label className="text-[#1b1c1a] text-sm font-semibold">
               {t("عملة التحصيل", "Collection Currency")}
             </label>
-            <select
+            <DashboardSelect
               value={baseCurrency}
               onChange={(e) => setBaseCurrency(e.target.value)}
-              className="w-full bg-white border border-[#eae8e4] rounded-[4px] px-3.5 py-2.5 text-xs text-[#1b1c1a] shadow-xs focus:ring-1 focus:ring-[#9c6403] focus:border-[#9c6403] outline-none"
+              className="bg-white border-[#eae8e4] rounded-[4px] h-[38px] text-xs text-[#1b1c1a]"
             >
               <option value="SAR">{t("SAR (ريال سعودي)", "SAR (Saudi Riyal)")}</option>
               <option value="USD">{t("USD (دولار أمريكي)", "USD (US Dollar)")}</option>
               <option value="AED">{t("AED (درهم إماراتي)", "AED (UAE Dirham)")}</option>
-            </select>
+            </DashboardSelect>
           </div>
 
           {/* Footer Actions */}

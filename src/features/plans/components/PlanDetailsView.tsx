@@ -12,6 +12,7 @@ import {
   Briefcase,
   UserCheck,
   Cloud,
+  FileText,
   CheckCircle2,
   XCircle,
   Eye,
@@ -23,7 +24,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { PricingPlanItem, SubscribedFirm } from "../types/plan.types";
-import { silverSubscribedFirms } from "../data/initialPlans";
 import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -48,7 +48,8 @@ export function PlanDetailsView({
   const [pageSize, setPageSize] = useState<number>(5);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [livePlan, setLivePlan] = useState<PricingPlanItem | undefined>(plan);
-  const [subscribers, setSubscribers] = useState<SubscribedFirm[]>(silverSubscribedFirms);
+  const [subscribers, setSubscribers] = useState<SubscribedFirm[]>([]);
+  const [isLoadingSubscribers, setIsLoadingSubscribers] = useState(true);
 
   useEffect(() => {
     setLivePlan(plan);
@@ -68,37 +69,39 @@ export function PlanDetailsView({
         // Keep prop plan if detail fetch fails.
       });
 
+    setIsLoadingSubscribers(true);
     fetchPlanSubscribers(plan.id)
       .then((payload) => {
         if (cancelled) return;
         const list = unwrapList<Record<string, unknown>>(payload);
-        if (list.length > 0) {
-          const mappedSubscribers: SubscribedFirm[] = list.map((item) => {
-            const firmName = asString(item.name || item.firm_name, "مكتب محاماة");
-            const activeSub = (item.active_subscription || {}) as Record<string, unknown>;
-            const billing = asString(activeSub.billing_cycle || item.billing_cycle, "monthly");
-            const subEnd = asString(activeSub.renewal_date || item.subscription_end || item.renewal_date, "—");
-            const subStart = asString(activeSub.start_date || item.subscription_start || item.created_at, "—");
-            const subStatus = asString(activeSub.status || item.status, "active");
-            return {
-              id: asString(item.id, String(Math.random())),
-              initial: firmName.trim().charAt(0) || "م",
-              name: firmName,
-              licenseNumber: asString(item.license_number, "—"),
-              city: asString(item.city, "—"),
-              owner: asString(item.owner_name || item.owner, "—"),
-              ownerRole: "المدير العام للمكتب",
-              subscriptionDate: subStart && subStart.includes("T") ? subStart.split("T")[0] : subStart,
-              renewalDate: subEnd && subEnd.includes("T") ? subEnd.split("T")[0] : subEnd,
-              billingCycle: billing.includes("year") || billing.includes("سنو") ? "سنوي" : "شهري",
-              status: subStatus === "active" ? "active" : "suspended",
-            };
-          });
-          setSubscribers(mappedSubscribers);
-        }
+        const mappedSubscribers: SubscribedFirm[] = list.map((item) => {
+          const firmName = asString(item.name || item.firm_name, "مكتب محاماة");
+          const activeSub = (item.active_subscription || {}) as Record<string, unknown>;
+          const billing = asString(activeSub.billing_cycle || item.billing_cycle, "monthly");
+          const subEnd = asString(activeSub.renewal_date || item.subscription_end || item.renewal_date, "—");
+          const subStart = asString(activeSub.start_date || item.subscription_start || item.created_at, "—");
+          const subStatus = asString(activeSub.status || item.status, "active");
+          return {
+            id: asString(item.id, String(Math.random())),
+            initial: firmName.trim().charAt(0) || "م",
+            name: firmName,
+            licenseNumber: asString(item.license_number, "—"),
+            city: asString(item.city, "—"),
+            owner: asString(item.owner_name || item.owner, "—"),
+            ownerRole: "المدير العام للمكتب",
+            subscriptionDate: subStart && subStart.includes("T") ? subStart.split("T")[0] : subStart,
+            renewalDate: subEnd && subEnd.includes("T") ? subEnd.split("T")[0] : subEnd,
+            billingCycle: billing.includes("year") || billing.includes("سنو") ? "سنوي" : "شهري",
+            status: subStatus === "active" ? "active" : "suspended",
+          };
+        });
+        setSubscribers(mappedSubscribers);
       })
       .catch(() => {
-        // Keep default/mock subscribers if API is not reachable
+        if (!cancelled) setSubscribers([]);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingSubscribers(false);
       });
 
     return () => {
@@ -216,11 +219,27 @@ export function PlanDetailsView({
           </div>
           <div className="flex items-center gap-[6px]">
             <span className="text-[11px] font-bold text-[#9c6402] bg-[#fbf6ee] dark:bg-[rgba(226,157,56,0.18)] dark:text-[#f3c27e] dark:border-[#e29d38]/50 px-[8px] py-[2px] rounded border border-[#f5e3c8]">
-              {livePlan?.yearlyDiscountPercent
-                ? t(`خصم ${livePlan.yearlyDiscountPercent}% عند السداد السنوي`, `Save ${livePlan.yearlyDiscountPercent}% on annual billing`)
-                : livePlan?.annualPrice
-                ? t(`السعر السنوي: ${livePlan.annualPrice} ر.س`, `Annual: ${livePlan.annualPrice} SAR`)
-                : t("خصم عند السداد السنوي", "Annual billing discount")}
+              {(() => {
+                const disc =
+                  livePlan?.yearlyDiscountPercent && livePlan.yearlyDiscountPercent > 0
+                    ? livePlan.yearlyDiscountPercent
+                    : (livePlan?.monthlyPrice ?? 0) > 0 &&
+                      (livePlan?.annualPrice ?? 0) > 0 &&
+                      (livePlan?.annualPrice ?? 0) < (livePlan?.monthlyPrice ?? 0) * 12
+                    ? Math.round(
+                        (((livePlan!.monthlyPrice * 12) - livePlan!.annualPrice!) /
+                          (livePlan!.monthlyPrice * 12)) *
+                          100
+                      )
+                    : 0;
+                if (disc > 0) {
+                  return t("خصم عند السداد السنوي", "Discount on annual billing");
+                }
+                if (livePlan?.annualPrice) {
+                  return t(`السعر السنوي: ${livePlan.annualPrice} ر.س`, `Annual: ${livePlan.annualPrice} SAR`);
+                }
+                return t("خصم عند السداد السنوي", "Annual billing discount");
+              })()}
             </span>
           </div>
         </div>
@@ -303,7 +322,7 @@ export function PlanDetailsView({
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-[12px]">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-[12px]">
           {/* Limit 1: Lawyers */}
           <div className="bg-[#faf8f5] dark:bg-[#281c15] border border-[#f0eeea] dark:border-[#38271c] rounded-[8px] p-[14px] flex flex-col items-start gap-[8px]">
             <div className="p-[7px] bg-[#fbf6ee] dark:bg-[#2d1f16] border border-[#f5e3c8] dark:border-[#4d3627]/60 text-[#9c6402] dark:text-[#e29d38] rounded-[6px]">
@@ -393,6 +412,21 @@ export function PlanDetailsView({
               </div>
             </div>
           </div>
+
+          {/* Limit 7: Documents */}
+          <div className="bg-[#faf8f5] dark:bg-[#281c15] border border-[#f0eeea] dark:border-[#38271c] rounded-[8px] p-[14px] flex flex-col items-start gap-[8px]">
+            <div className="p-[7px] bg-[#fbf6ee] dark:bg-[#2d1f16] border border-[#f5e3c8] dark:border-[#4d3627]/60 text-[#9c6402] dark:text-[#e29d38] rounded-[6px]">
+              <FileText className="size-[18px]" />
+            </div>
+            <div>
+              <div className="text-[15px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                {livePlan?.limits?.documents || t("5,000 مستند", "5,000 Documents")}
+              </div>
+              <div className="text-[11px] text-[#737067] dark:text-[#8e8680] leading-relaxed mt-[2px]">
+                {t("العقود والوثائق المرفوعة", "Uploaded contracts & documents")}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -448,9 +482,23 @@ export function PlanDetailsView({
                     </span>
                   </div>
                   <span className="text-[10px] font-bold bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] px-[8px] py-[2px] rounded">
-                    {livePlan?.yearlyDiscountPercent
-                      ? t(`الأكثر طلباً (-${livePlan.yearlyDiscountPercent}%)`, `Most Popular (-${livePlan.yearlyDiscountPercent}%)`)
-                      : t("الأكثر طلباً (-15%)", "Most Popular (-15%)")}
+                    {(() => {
+                      const disc =
+                        livePlan?.yearlyDiscountPercent && livePlan.yearlyDiscountPercent > 0
+                          ? livePlan.yearlyDiscountPercent
+                          : (livePlan?.monthlyPrice ?? 0) > 0 &&
+                            (livePlan?.annualPrice ?? 0) > 0 &&
+                            (livePlan?.annualPrice ?? 0) < (livePlan?.monthlyPrice ?? 0) * 12
+                          ? Math.round(
+                              (((livePlan!.monthlyPrice * 12) - livePlan!.annualPrice!) /
+                                (livePlan!.monthlyPrice * 12)) *
+                                100
+                            )
+                          : 0;
+                      return disc > 0
+                        ? t("الأكثر طلباً (خصم)", "Most Popular (discount)")
+                        : t("الأكثر طلباً", "Most Popular");
+                    })()}
                   </span>
                 </div>
                 <div className="flex items-baseline justify-between">
@@ -719,11 +767,24 @@ export function PlanDetailsView({
               </tr>
             </thead>
             <tbody className="divide-y divide-[#f0eeea] dark:divide-[#38271c]">
-              {pagedFirms.map((firm) => (
-                <tr
-                  key={firm.id}
-                  className="hover:bg-[#faf8f5] dark:hover:bg-[#281c15]/60 transition-colors"
-                >
+              {isLoadingSubscribers ? (
+                <tr>
+                  <td colSpan={6} className="py-[32px] text-center text-[#737067] dark:text-[#cdc5bd]">
+                    {t("جاري تحميل المكاتب المشتركة...", "Loading subscribed firms...")}
+                  </td>
+                </tr>
+              ) : pagedFirms.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-[32px] text-center text-[#737067] dark:text-[#cdc5bd]">
+                    {t("لا يوجد مكاتب مشتركة في هذه الباقة حالياً.", "No offices currently subscribed to this plan.")}
+                  </td>
+                </tr>
+              ) : (
+                pagedFirms.map((firm) => (
+                  <tr
+                    key={firm.id}
+                    className="hover:bg-[#faf8f5] dark:hover:bg-[#281c15]/60 transition-colors"
+                  >
                   {/* Firm name and license */}
                   <td className="py-[14px] px-[12px]">
                     <div className="flex items-center gap-[10px]">
@@ -808,7 +869,7 @@ export function PlanDetailsView({
                     </div>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>

@@ -1,0 +1,6 @@
+tree 492cb0fe6b7376a1ed38e2e0a54417c51147a913
+parent 9ff2d8143332612aa6def2498e62e6685a780796
+author abdalluhgomaa <abdallhamohamed381@gmail.com> 1793367471 +0200
+committer abdalluhgomaa <abdallhamohamed381@gmail.com> 1793367471 +0200
+
+feat(pagination): standardize default page size to 5 and relocate rows-per-page to pagination controls

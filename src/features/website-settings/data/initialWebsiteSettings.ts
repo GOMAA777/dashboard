@@ -13,11 +13,33 @@ import {
   SeoData,
 } from "../types/website-settings.types";
 
-export const initialMenuItems: MenuItem[] = [
-  { id: "1", label: "Home", url: "/" },
-  { id: "2", label: "Price", url: "#pricing" },
-  { id: "3", label: "Features", url: "#features" },
-];
+/** Page sections available as menu targets — mirrors landing sections / content tabs. */
+export const menuSectionTargets = [
+  { url: "/", labelAr: "الرئيسية", labelEn: "Home" },
+  { url: "#advantage", labelAr: "المزايا التنافسية", labelEn: "Advantage" },
+  { url: "#cta", labelAr: "الدعوة لاتخاذ إجراء", labelEn: "CTA" },
+  { url: "#faq", labelAr: "الأسئلة الشائعة", labelEn: "FAQ" },
+  { url: "#partner", labelAr: "شعارات الشركاء", labelEn: "Partner Logo" },
+  { url: "#features", labelAr: "المميزات", labelEn: "Features" },
+  { url: "#growth", labelAr: "حالات الاستخدام", labelEn: "Use Case" },
+  { url: "#pricing", labelAr: "الباقات والأسعار", labelEn: "Pricing" },
+  { url: "#stories", labelAr: "قصتنا", labelEn: "Story" },
+  { url: "#testimonials", labelAr: "آراء العملاء", labelEn: "Testimonials" },
+  { url: "#unique_feature", labelAr: "مميزات فريدة", labelEn: "Unique Feature" },
+] as const;
+
+export const menuSectionTargetUrls = new Set(
+  menuSectionTargets.map((section) => section.url)
+);
+
+/** Default menu = every available section (invalid/orphaned targets are excluded). */
+export const initialMenuItems: MenuItem[] = menuSectionTargets.map(
+  (section, index) => ({
+    id: String(index + 1),
+    label: section.labelEn,
+    url: section.url,
+  })
+);
 
 export const initialUseCases: UseCaseItem[] = [
   { id: "1", orderNumber: 1, title: "Retargeting", description: "Retarget your existing customers", status: true },

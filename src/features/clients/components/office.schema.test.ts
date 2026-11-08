@@ -8,6 +8,7 @@ import {
 
 describe("Validation Rules & Edge Cases for Add Law Office", () => {
   const validBaseOffice = {
+    officeId: "alajlan-law", // English letters, numbers, hyphens
     ownerName: "عبد العزيز فهد", // 14 chars, arabic letters and spaces
     firmName: "شركة العجلان للمحاماة", // 21 chars, letters and spaces
     licenseNumber: "38/412", // digits and slash, <= 15 chars, contains digit
@@ -18,10 +19,18 @@ describe("Validation Rules & Edge Cases for Add Law Office", () => {
     city: "الرياض", // in SAUDI_CITIES
     address: "طريق الملك فهد حي الصحافة", // >= 5 chars, has letter
     password: "Password123!", // >= 9 chars, letter + number + symbol
+    primaryColor: "#9c6402",
+    secondaryColor: "#d97706",
   };
 
   it("should pass with fully valid data", () => {
     const parsed = officeSchema.safeParse(validBaseOffice);
+    expect(parsed.success).toBe(true);
+  });
+
+  it("should pass without secondaryColor (optional)", () => {
+    const { secondaryColor: _, ...withoutSecondary } = validBaseOffice;
+    const parsed = officeSchema.safeParse(withoutSecondary);
     expect(parsed.success).toBe(true);
   });
 

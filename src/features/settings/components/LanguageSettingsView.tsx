@@ -23,6 +23,7 @@ import { AddLanguageView } from "./AddLanguageView";
 import { DeleteLanguageModal } from "./DeleteLanguageModal";
 import { toast } from "sonner";
 import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
+import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
 import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 import { useLanguage } from "@/lib/i18n";
@@ -116,18 +117,18 @@ export function LanguageSettingsView() {
         <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
           {isEn ? "Operational Status" : "الحالة التشغيلية"}
         </label>
-        <select
+        <DashboardSelect
           value={activeTab}
           onChange={(e) => {
             setActiveTab(e.target.value as "all" | "active" | "inactive");
             setPageIndex(0);
           }}
-          className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[12px] border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
+          className="bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] rounded-[6px] border-[#eae8e4] dark:border-[#38271c] h-[40px]"
         >
           <option value="all">{isEn ? `All Languages (${languages.length})` : `كل اللغات (${languages.length})`}</option>
           <option value="active">{isEn ? `Active Only (${activeCount})` : `اللغات النشطة فقط (${activeCount})`}</option>
           <option value="inactive">{isEn ? `Inactive Only (${inactiveCount})` : `اللغات المعطلة (${inactiveCount})`}</option>
-        </select>
+        </DashboardSelect>
       </div>
 
       {/* 2. Direction Filter */}
@@ -135,18 +136,18 @@ export function LanguageSettingsView() {
         <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
           {isEn ? "Text Direction" : "اتجاه النص (Direction)"}
         </label>
-        <select
+        <DashboardSelect
           value={directionFilter}
           onChange={(e) => {
             setDirectionFilter(e.target.value as "all" | "rtl" | "ltr");
             setPageIndex(0);
           }}
-          className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-[12px] border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] cursor-pointer"
+          className="bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] rounded-[6px] border-[#eae8e4] dark:border-[#38271c] h-[40px]"
         >
           <option value="all">{isEn ? "All Directions" : "كافة الاتجاهات (الكل)"}</option>
           <option value="rtl">{isEn ? "RTL (Right to Left)" : "RTL (من اليمين إلى اليسار)"}</option>
           <option value="ltr">{isEn ? "LTR (Left to Right)" : "LTR (من اليسار إلى اليمين)"}</option>
-        </select>
+        </DashboardSelect>
       </div>
     </div>
   );

@@ -5,7 +5,9 @@ import { getAuthSession } from "@/lib/auth-client";
 import { AuthSplitCard } from "@/features/auth/components/AuthSplitCard";
 
 export function DashboardAuthGate({ children }: { children: React.ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  // Always render children on initial SSR and initial client hydration
+  // so the HTML contains the exact React Server Component tree ({children}).
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
 
   const refresh = useCallback(() => {
     setIsAuthenticated(getAuthSession());
@@ -23,15 +25,6 @@ export function DashboardAuthGate({ children }: { children: React.ReactNode }) {
       window.removeEventListener("focus", onFocus);
     };
   }, [refresh]);
-
-  // Avoid flashing the login form before we read localStorage/cookies.
-  if (isAuthenticated === null) {
-    return (
-      <main className="min-h-screen w-full bg-[#fcfbfa] dark:bg-[#150f0b] flex items-center justify-center p-4">
-        <div className="size-10 rounded-full border-2 border-[#c29547]/30 border-t-[#c29547] dark:border-[#e29d38]/30 dark:border-t-[#e29d38] animate-spin" />
-      </main>
-    );
-  }
 
   if (!isAuthenticated) {
     return (

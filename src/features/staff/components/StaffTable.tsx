@@ -3,8 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import {
-  LogIn,
-  MoreVertical,
+  Eye,
   Shield,
   Headphones,
   Calculator,
@@ -17,18 +16,16 @@ import {
   ChevronLeft,
   ChevronsRight,
   ChevronsLeft,
-  Lock,
 } from "lucide-react";
 import { Employee, IconType } from "../types/staff.types";
 import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
-import { StaffRowActionMenu } from "./StaffRowActionMenu";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 interface StaffTableProps {
   employees: Employee[];
   onViewDetails: (employee: Employee) => void;
-  onLoginAsEmployee: (employee: Employee) => void;
+  onLoginAsEmployee?: (employee: Employee) => void;
   onDeactivate: (employee: Employee) => void;
   onActivate: (employee: Employee) => void;
   onResetPassword: (employee: Employee) => void;
@@ -43,7 +40,6 @@ export function StaffTable({
   onResetPassword,
 }: StaffTableProps) {
   const { t, isEn, direction } = useLanguage();
-  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [pageSize, setPageSize] = useState(5);
   const [pageIndex, setPageIndex] = useState(0);
 
@@ -92,25 +88,22 @@ export function StaffTable({
               className="bg-[#f5f3ef] dark:bg-[#281c15] border-b border-[#eae8e4] dark:border-[#38271c] text-[12px] leading-[18px] font-semibold text-[#514537] dark:text-[#cdc5bd] h-[52px]"
               data-node-id="1:8995"
             >
-              <th className="py-3 px-4 font-semibold min-w-[240px] text-start">
+              <th className="py-3 px-4 font-semibold min-w-[240px] text-start whitespace-nowrap">
                 {t("اسم الموظف والمعرف", "Employee Name & ID")}
               </th>
-              <th className="py-3 px-4 font-semibold min-w-[190px] text-start">
+              <th className="py-3 px-4 font-semibold min-w-[190px] text-center whitespace-nowrap">
                 {t("البريد الإلكتروني المهني", "Work Email")}
               </th>
-              <th className="py-3 px-4 font-semibold min-w-[140px] text-start">
+              <th className="py-3 px-4 font-semibold min-w-[140px] text-center whitespace-nowrap">
                 {t("رقم الجوال", "Phone Number")}
               </th>
-              <th className="py-3 px-4 font-semibold min-w-[170px] text-start">
+              <th className="py-3 px-4 font-semibold min-w-[170px] text-center whitespace-nowrap">
                 {t("الدور والصلاحية", "Role & Permission")}
               </th>
-              <th className="py-3 px-4 font-semibold min-w-[150px] text-start">
-                {t("آخر تسجيل دخول", "Last Login")}
-              </th>
-              <th className="py-3 px-4 font-semibold min-w-[110px] text-start">
+              <th className="py-3 px-4 font-semibold min-w-[110px] text-center whitespace-nowrap">
                 {t("حالة الحساب", "Status")}
               </th>
-              <th className="py-3 px-4 font-semibold text-center w-[100px]">
+              <th className="py-3 px-4 font-semibold text-center whitespace-nowrap w-[100px]">
                 {t("الإجراءات", "Actions")}
               </th>
             </tr>
@@ -120,7 +113,7 @@ export function StaffTable({
           <tbody className="divide-y divide-[#f0eeea] dark:divide-[#38271c]" data-node-id="1:9010">
             {employees.length === 0 ? (
               <tr>
-                <td colSpan={7} className="py-12 text-center text-[#79716b] dark:text-[#8e8680]">
+                <td colSpan={6} className="py-12 text-center text-[#79716b] dark:text-[#8e8680]">
                   {t("لا توجد نتائج مطابقة لخيارات البحث المحددة.", "No matching results found for search filters.")}
                 </td>
               </tr>
@@ -170,120 +163,56 @@ export function StaffTable({
                     </td>
 
                     {/* Email */}
-                    <td className="py-3.5 px-4 text-[13px] text-[#514537] dark:text-[#cdc5bd] font-mono text-start">
-                      {emp.email}
+                    <td className="py-3.5 px-4 text-[13px] text-[#514537] dark:text-[#cdc5bd] font-mono text-center">
+                      <span dir="ltr">{emp.email}</span>
                     </td>
 
                     {/* Phone */}
-                    <td className="py-3.5 px-4 text-[13px] text-[#514537] dark:text-[#cdc5bd] font-mono text-start" dir="ltr">
-                      {emp.phone}
+                    <td className="py-3.5 px-4 text-[13px] text-[#514537] dark:text-[#cdc5bd] font-mono text-center">
+                      <span dir="ltr">{emp.phone}</span>
                     </td>
 
                     {/* Role Badge */}
-                    <td className="py-3.5 px-4 text-start">
-                      <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] text-[12px] font-semibold border ${emp.role.badgeClass}`}
-                      >
-                        {getRoleIcon(emp.role.iconType)}
-                        <span>{emp.role.name}</span>
-                      </span>
-                    </td>
-
-                    {/* Last Login */}
-                    <td className="py-3.5 px-4 text-start">
-                      {emp.lastLogin.note ? (
-                        <div className="flex flex-col text-[12px] text-start">
-                          <span className="font-medium text-[#79716b] dark:text-[#a89f91]">
-                            {emp.lastLogin.time}
-                          </span>
-                          <span className="text-[11px] text-[#d97706] dark:text-[#fbbf24] mt-0.5">
-                            {emp.lastLogin.note}
-                          </span>
-                        </div>
-                      ) : emp.lastLogin.ip ? (
-                        <div className="flex flex-col text-[12px] text-start">
-                          <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                            {emp.lastLogin.time}
-                          </span>
-                          <span className="text-[11px] text-[#79716b] dark:text-[#a89f91] font-mono mt-0.5">
-                            IP: {emp.lastLogin.ip}
-                          </span>
-                          {emp.lastLogin.location && (
-                            <span className="text-[11px] text-[#9c6402] dark:text-[#e29d38]">
-                              ({emp.lastLogin.location})
-                            </span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="inline-block text-[11px] text-[#79716b] dark:text-[#a89f91] bg-[#f5f3ef] dark:bg-[#281c15] px-2 py-0.5 rounded-[4px]">
-                          {emp.lastLogin.time}
+                    <td className="py-3.5 px-4 text-center">
+                      <div className="flex justify-center">
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] text-[12px] font-semibold border ${emp.role.badgeClass}`}
+                        >
+                          {getRoleIcon(emp.role.iconType)}
+                          <span>{emp.role.name}</span>
                         </span>
-                      )}
+                      </div>
                     </td>
 
                     {/* Status Pill */}
-                    <td className="py-3.5 px-4 text-start">
-                      {isSuspended ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-semibold bg-[#fff5ea] dark:bg-[rgba(217,119,6,0.18)] text-[#d97706] dark:text-[#fbbf24] border border-[#fed7aa] dark:border-[#d97706]/40">
-                          <span className="size-[6px] rounded-full bg-[#d97706] dark:bg-[#fbbf24]" />
-                          {t("موقوف", "Suspended")}
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-semibold bg-[#e8f5e9] dark:bg-[#132c1c] text-[#1b7340] dark:text-[#6ee7b7] border border-[#c8e6c9] dark:border-emerald-500/40">
-                          <span className="size-[6px] rounded-full bg-[#1b7340] dark:bg-[#10b981]" />
-                          {t("نشط", "Active")}
-                        </span>
-                      )}
+                    <td className="py-3.5 px-4 text-center">
+                      <div className="flex justify-center">
+                        {isSuspended ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-semibold bg-[#fff5ea] dark:bg-[rgba(217,119,6,0.18)] text-[#d97706] dark:text-[#fbbf24] border border-[#fed7aa] dark:border-[#d97706]/40">
+                            <span className="size-[6px] rounded-full bg-[#d97706] dark:bg-[#fbbf24]" />
+                            {t("موقوف", "Suspended")}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-semibold bg-[#e8f5e9] dark:bg-[#132c1c] text-[#1b7340] dark:text-[#6ee7b7] border border-[#c8e6c9] dark:border-emerald-500/40">
+                            <span className="size-[6px] rounded-full bg-[#1b7340] dark:bg-[#10b981]" />
+                            {t("نشط", "Active")}
+                          </span>
+                        )}
+                      </div>
                     </td>
 
-                    {/* Actions — ghost icons like إدارة العملاء; menu via portal to avoid table overflow scroll */}
-                    <td className="py-3.5 px-4 text-center relative">
-                      <div className="flex items-center justify-center gap-[6px]">
+                    {/* Actions — Eye icon only */}
+                    <td className="py-3.5 px-4 text-center">
+                      <div className="flex items-center justify-center">
                         <button
                           type="button"
-                          onClick={() => onLoginAsEmployee(emp)}
-                          title={
-                            isSuspended
-                              ? t("محاولة الدخول كموظف (موقوف - سيظهر تنبيه الحوكمة)", "Try login (Suspended - Governance alert will show)")
-                              : t("الدخول كالموظف (بدء وضع المعاينة)", "Login as Employee (Start Preview)")
-                          }
-                          className={cn(
-                            "p-[6px] rounded-[4px] transition-colors cursor-pointer",
-                            isSuspended
-                              ? "hover:bg-[#fff5ea] dark:hover:bg-[rgba(217,119,6,0.18)] text-[#d97706] dark:text-[#fbbf24]"
-                              : "hover:bg-[#fff9ee] dark:hover:bg-[#342711] text-[#9c6402] dark:text-[#e29d38]"
-                          )}
+                          aria-label={t("عرض تفاصيل الموظف", "View Employee Details")}
+                          title={t("عرض تفاصيل الموظف", "View Employee Details")}
+                          onClick={() => onViewDetails(emp)}
+                          className="p-[6px] rounded-[4px] border border-transparent hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:text-[#9c6402] dark:hover:text-[#e29d38] transition-colors cursor-pointer outline-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[#9c6402]/50 dark:focus-visible:ring-[#e29d38]/40"
                         >
-                          {isSuspended ? (
-                            <Lock className="size-[15px]" />
-                          ) : (
-                            <LogIn className={cn("size-[15px]", isEn && "rotate-180")} />
-                          )}
+                          <Eye className="size-[16px]" />
                         </button>
-
-                        <div className="relative">
-                          <button
-                            type="button"
-                            aria-label={t("خيارات إضافية", "More Options")}
-                            onClick={() =>
-                              setActiveMenuId(activeMenuId === emp.id ? null : emp.id)
-                            }
-                            className="p-[6px] rounded-[4px] border border-transparent hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] transition-colors cursor-pointer outline-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[#9c6402]/50 dark:focus-visible:ring-[#e29d38]/40"
-                          >
-                            <MoreVertical className="size-[15px]" />
-                          </button>
-
-                          <StaffRowActionMenu
-                            isOpen={activeMenuId === emp.id}
-                            onClose={() => setActiveMenuId(null)}
-                            isSuspended={isSuspended}
-                            onViewDetails={() => onViewDetails(emp)}
-                            onLoginAsEmployee={() => onLoginAsEmployee(emp)}
-                            onResetPassword={() => onResetPassword(emp)}
-                            onActivate={() => onActivate(emp)}
-                            onDeactivate={() => onDeactivate(emp)}
-                          />
-                        </div>
                       </div>
                     </td>
                   </tr>

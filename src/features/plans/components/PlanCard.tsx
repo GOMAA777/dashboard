@@ -7,6 +7,7 @@ import {
   Briefcase,
   UserCheck,
   Cloud,
+  FileText,
   Headphones,
   Link,
   Settings,
@@ -46,6 +47,16 @@ export function PlanCard({
       ? plan.annualPrice
       : plan.monthlyPrice * 10;
   const displayPrice = isAnnual ? rawAnnualPrice : plan.monthlyPrice;
+
+  // Calculate discount percentage accurately:
+  // 1. Explicit discount on plan
+  // 2. OR derived from monthlyPrice * 12 vs annualPrice
+  const discountPercent =
+    plan.yearlyDiscountPercent && plan.yearlyDiscountPercent > 0
+      ? plan.yearlyDiscountPercent
+      : plan.monthlyPrice > 0 && rawAnnualPrice > 0 && rawAnnualPrice < plan.monthlyPrice * 12
+      ? Math.round(((plan.monthlyPrice * 12 - rawAnnualPrice) / (plan.monthlyPrice * 12)) * 100)
+      : 0;
 
   const translatedPlanName = isEn
     ? plan.name
@@ -171,11 +182,9 @@ export function PlanCard({
               {t("تسعير تعاقدي", "Contractual Pricing")}
             </span>
           )}
-          {isAnnual && (
+          {discountPercent > 0 && (
             <span className="bg-[#ecfdf5] border border-emerald-300 dark:bg-[#132c1c] dark:border-emerald-500/40 text-[#047857] dark:text-[#6ee7b7] text-[10px] font-bold px-[6px] py-[1px] rounded-full ms-auto">
-              {plan.yearlyDiscountPercent && plan.yearlyDiscountPercent > 0
-                ? t(`وفر ${plan.yearlyDiscountPercent}%`, `Save ${plan.yearlyDiscountPercent}%`)
-                : t("خصم شهرين", "Save 2 months")}
+              {t("خصم", "Discount")}
             </span>
           )}
         </div>
@@ -187,8 +196,17 @@ export function PlanCard({
               )
             : isAnnual
             ? t(
-                `ما يعادل ${Math.round(displayPrice / 12).toLocaleString()} ر.س / شهرياً - تدفع سنوياً بموجب فاتورة إلكترونية`,
-                `Equivalent to ${Math.round(displayPrice / 12).toLocaleString()} SAR / mo - billed annually via e-invoice`
+                `ما يعادل ${Math.round(displayPrice / 12).toLocaleString()} ر.س / شهرياً - تدفع سنوياً بموجب فاتورة إلكترونية${
+                  discountPercent > 0 ? " (خصم)" : ""
+                }`,
+                `Equivalent to ${Math.round(displayPrice / 12).toLocaleString()} SAR / mo - billed annually via e-invoice${
+                  discountPercent > 0 ? " (discount)" : ""
+                }`
+              )
+            : discountPercent > 0
+            ? t(
+                `أو ${(plan.annualPrice || rawAnnualPrice).toLocaleString()} ر.س عند السداد السنوي (خصم)`,
+                `or ${(plan.annualPrice || rawAnnualPrice).toLocaleString()} SAR billed annually (discount)`
               )
             : (plan.annualNote || t("تدفع سنوياً أو شهرياً بموجب فاتورة إلكترونية", "Billed annually or monthly via e-invoice"))}
         </p>
@@ -218,49 +236,69 @@ export function PlanCard({
           {t("الحدود والمميزات المتضمنة:", "Limits & Included Features:")}
         </span>
 
-        {/* 1. Lawyers */}
-        <div className="flex items-center gap-[8px]">
-          <Users className="size-[14px] text-[#837565] dark:text-[#e29d38] shrink-0" />
-          <span className="leading-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">{plan.limits.lawyers}</span>
-        </div>
+        {/* 1. المحامون والمستشارون */}
+        {plan.limits.lawyers && plan.limits.lawyers !== "—" && (
+          <div className="flex items-center gap-[8px]">
+            <Users className="size-[14px] text-[#837565] dark:text-[#e29d38] shrink-0" />
+            <span className="leading-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">{plan.limits.lawyers}</span>
+          </div>
+        )}
 
-        {/* 2. Cases */}
-        <div className="flex items-center gap-[8px]">
-          <Scale className="size-[14px] text-[#837565] dark:text-[#e29d38] shrink-0" />
-          <span className="leading-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">{plan.limits.cases}</span>
-        </div>
+        {/* 2. القضايا والمعاملات النشطة */}
+        {plan.limits.cases && plan.limits.cases !== "—" && (
+          <div className="flex items-center gap-[8px]">
+            <Scale className="size-[14px] text-[#837565] dark:text-[#e29d38] shrink-0" />
+            <span className="leading-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">{plan.limits.cases}</span>
+          </div>
+        )}
 
-        {/* 3. Agents */}
-        <div className="flex items-center gap-[8px]">
-          <Briefcase className="size-[14px] text-[#837565] dark:text-[#e29d38] shrink-0" />
-          <span className="leading-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">{plan.limits.agents}</span>
-        </div>
+        {/* 3. الوكلاء والمفوضون */}
+        {plan.limits.agents && plan.limits.agents !== "—" && (
+          <div className="flex items-center gap-[8px]">
+            <Briefcase className="size-[14px] text-[#837565] dark:text-[#e29d38] shrink-0" />
+            <span className="leading-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">{plan.limits.agents}</span>
+          </div>
+        )}
 
-        {/* 3.1 Assistants */}
-        {plan.limits.assistants && plan.limits.assistants !== "—" && (
+        {/* 4. الموكلون والشركات */}
+        {plan.limits.clients && plan.limits.clients !== "—" && (
           <div className="flex items-center gap-[8px]">
             <UserCheck className="size-[14px] text-[#837565] dark:text-[#e29d38] shrink-0" />
+            <span className="leading-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">{plan.limits.clients}</span>
+          </div>
+        )}
+
+        {/* 5. المساحة السحابية */}
+        {plan.limits.storage && plan.limits.storage !== "—" && (
+          <div className="flex items-center gap-[8px]">
+            <Cloud className="size-[14px] text-[#837565] dark:text-[#e29d38] shrink-0" />
+            <span className="leading-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">{plan.limits.storage}</span>
+          </div>
+        )}
+
+        {/* 6. المساعدون والمحاسبون */}
+        {plan.limits.assistants && plan.limits.assistants !== "—" && (
+          <div className="flex items-center gap-[8px]">
+            <Users className="size-[14px] text-[#837565] dark:text-[#e29d38] shrink-0" />
             <span className="leading-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">{plan.limits.assistants}</span>
           </div>
         )}
 
-        {/* 4. Clients */}
-        <div className="flex items-center gap-[8px]">
-          <UserCheck className="size-[14px] text-[#837565] dark:text-[#e29d38] shrink-0" />
-          <span className="leading-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">{plan.limits.clients}</span>
-        </div>
+        {/* 7. المستندات والوثائق */}
+        {plan.limits.documents && plan.limits.documents !== "—" && (
+          <div className="flex items-center gap-[8px]">
+            <FileText className="size-[14px] text-[#837565] dark:text-[#e29d38] shrink-0" />
+            <span className="leading-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">{plan.limits.documents}</span>
+          </div>
+        )}
 
-        {/* 5. Storage */}
-        <div className="flex items-center gap-[8px]">
-          <Cloud className="size-[14px] text-[#837565] dark:text-[#e29d38] shrink-0" />
-          <span className="leading-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">{plan.limits.storage}</span>
-        </div>
-
-        {/* 6. Support */}
-        <div className="flex items-center gap-[8px]">
-          <Headphones className="size-[14px] text-[#837565] dark:text-[#e29d38] shrink-0" />
-          <span className="leading-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">{plan.limits.support}</span>
-        </div>
+        {/* 8. الدعم الفني */}
+        {plan.limits.support && plan.limits.support !== "—" && (
+          <div className="flex items-center gap-[8px]">
+            <Headphones className="size-[14px] text-[#837565] dark:text-[#e29d38] shrink-0" />
+            <span className="leading-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">{plan.limits.support}</span>
+          </div>
+        )}
 
         {/* 7. Integration (Enterprise) */}
         {plan.limits.integration && (

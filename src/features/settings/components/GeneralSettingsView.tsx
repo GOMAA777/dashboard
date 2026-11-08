@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import logoImg from "../../../../public/logo.png";
 import { toast } from "sonner";
 import {
@@ -15,7 +16,6 @@ import {
   Check,
   Copy,
   ExternalLink,
-  ChevronDown,
   Trash2,
   Upload,
 } from "lucide-react";
@@ -33,6 +33,7 @@ import { mapGeneralSettingsFromApi } from "@/lib/api/mappers";
 
 export function GeneralSettingsView() {
   const { direction, isEn, setLanguage } = useLanguage();
+  const router = useRouter();
   const [formData, setFormData] = useState<GeneralSettings>(initialGeneralSettings);
   const [copiedCode, setCopiedCode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -90,15 +91,21 @@ export function GeneralSettingsView() {
         whatsapp_url: formData.whatsappGuideUrl,
         api_docs_url: formData.apiDocsUrl,
       });
+      setIsSaving(false);
+      toast.success(
+        isEn
+          ? "General settings saved successfully and brand identity updated."
+          : "تم حفظ الإعدادات العامة بنجاح وتحديث الهوية البصرية للنظام."
+      );
+      router.push("/settings/general");
     } catch {
-      // Keep local success UX.
+      setIsSaving(false);
+      toast.error(
+        isEn
+          ? "Failed to save general settings. Please try again."
+          : "تعذر حفظ الإعدادات العامة، برجاء المحاولة مرة أخرى."
+      );
     }
-    setIsSaving(false);
-    toast.success(
-      isEn
-        ? "General settings saved successfully and brand identity updated."
-        : "تم حفظ الإعدادات العامة بنجاح وتحديث الهوية البصرية للنظام."
-    );
   };
 
   const handleSaveDraft = () => {
@@ -106,8 +113,7 @@ export function GeneralSettingsView() {
   };
 
   const handleCancel = () => {
-    setFormData(initialGeneralSettings);
-    toast.info(isEn ? "Unsaved changes reverted" : "تم التراجع عن التعديلات غير المحفوظة");
+    router.push("/settings/general");
   };
 
   return (
@@ -131,12 +137,12 @@ export function GeneralSettingsView() {
               <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex flex-col gap-[4px] text-start">
                   <h1 className="text-[28px] leading-[38px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                    {isEn ? "General Settings" : "الإعدادات العامة"}
+                    {isEn ? "Edit General Settings" : "تعديل الإعدادات العامة"}
                   </h1>
                   <p className="text-[14px] leading-[22px] font-normal text-[#514537] dark:text-[#a89f91]">
                     {isEn
                       ? "Manage platform configuration, corporate identity, and core operational parameters."
-                      : "إدارة بيانات المنصة وهويتها المؤسسية وإعداداتها التشغيلية الأساسية."}
+                      : "تعديل بيانات المنصة وهويتها المؤسسية وإعداداتها التشغيلية الأساسية."}
                   </p>
                 </div>
               </div>

@@ -1,9 +1,20 @@
 "use client";
 
 import { apiRequest } from "./http";
+import type {
+  SubscriptionListParams,
+  SubscriptionsStatsResponse,
+  SubscriptionsListResponse,
+  SubscriptionDetailResponse,
+  RejectSubscriptionPayload,
+  RenewSubscriptionPayload,
+  UpgradeSubscriptionPayload,
+  CancelSubscriptionPayload,
+  UpdateSubscriptionStatusPayload,
+} from "@/features/subscriptions/types/subscription.types";
 
-export async function fetchSubscriptionsStats() {
-  return apiRequest("/admin/subscriptions/stats", { method: "GET" });
+export async function fetchSubscriptionsStats(): Promise<SubscriptionsStatsResponse> {
+  return apiRequest<SubscriptionsStatsResponse>("/admin/subscriptions/stats", { method: "GET" });
 }
 
 export type CustomOfferPayload = {
@@ -22,31 +33,29 @@ export type CustomOfferPayload = {
   offer_expires_at?: string;
 };
 
-export async function fetchSubscriptions(params: {
-  tab?: string;
-  page?: number;
-  is_custom_offer?: number | boolean;
-  status?: string;
-  plan?: string;
-  search?: string;
-} = {}) {
-  return apiRequest("/admin/subscriptions", {
+export async function fetchSubscriptions(
+  params: SubscriptionListParams = {}
+): Promise<SubscriptionsListResponse> {
+  return apiRequest<SubscriptionsListResponse>("/admin/subscriptions", {
     method: "GET",
     query: {
       tab: params.tab || "all",
       page: params.page || 1,
+      ...(params.per_page ? { per_page: params.per_page } : {}),
       ...(params.is_custom_offer != null
         ? { is_custom_offer: params.is_custom_offer ? 1 : 0 }
         : {}),
-      ...(params.status ? { status: params.status } : {}),
-      ...(params.plan ? { plan: params.plan } : {}),
-      ...(params.search ? { search: params.search } : {}),
+      ...(params.status && params.status !== "all" ? { status: params.status } : {}),
+      ...(params.plan && params.plan !== "all" ? { plan: params.plan } : {}),
+      ...(params.search && params.search.trim() ? { search: params.search.trim() } : {}),
     },
   });
 }
 
-export async function fetchSubscriptionById(id: string | number) {
-  return apiRequest(`/admin/subscriptions/${id}`, { method: "GET" });
+export async function fetchSubscriptionById(
+  id: string | number
+): Promise<SubscriptionDetailResponse> {
+  return apiRequest<SubscriptionDetailResponse>(`/admin/subscriptions/${id}`, { method: "GET" });
 }
 
 export async function applyCustomOffer(
@@ -81,16 +90,20 @@ export async function approveSubscription(id: string | number) {
   return apiRequest(`/admin/subscriptions/${id}/approve`, { method: "POST" });
 }
 
-export async function rejectSubscription(id: string | number, reason: string) {
+export async function rejectSubscription(
+  id: string | number,
+  reason: string | RejectSubscriptionPayload
+) {
+  const body = typeof reason === "string" ? { reason } : reason;
   return apiRequest(`/admin/subscriptions/${id}/reject`, {
     method: "POST",
-    body: { reason },
+    body,
   });
 }
 
 export async function renewSubscription(
   id: string | number,
-  body: { period?: string; payment_method?: string } = {}
+  body: RenewSubscriptionPayload = {}
 ) {
   return apiRequest(`/admin/subscriptions/${id}/renew`, {
     method: "POST",
@@ -103,7 +116,7 @@ export async function renewSubscription(
 
 export async function upgradeSubscription(
   id: string | number,
-  body: { new_plan_id: number | string; billing_cycle?: string }
+  body: UpgradeSubscriptionPayload
 ) {
   return apiRequest(`/admin/subscriptions/${id}/upgrade`, {
     method: "POST",
@@ -114,16 +127,24 @@ export async function upgradeSubscription(
   });
 }
 
-export async function cancelSubscription(id: string | number, reason: string) {
+export async function cancelSubscription(
+  id: string | number,
+  reason: string | CancelSubscriptionPayload
+) {
+  const body = typeof reason === "string" ? { reason } : reason;
   return apiRequest(`/admin/subscriptions/${id}/cancel`, {
     method: "POST",
-    body: { reason },
+    body,
   });
 }
 
-export async function updateSubscriptionStatus(id: string | number, status: string) {
+export async function updateSubscriptionStatus(
+  id: string | number,
+  status: string | UpdateSubscriptionStatusPayload
+) {
+  const body = typeof status === "string" ? { status } : status;
   return apiRequest(`/admin/subscriptions/${id}/status`, {
     method: "PATCH",
-    body: { status },
+    body,
   });
 }

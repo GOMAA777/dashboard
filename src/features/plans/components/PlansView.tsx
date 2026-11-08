@@ -25,6 +25,7 @@ import { DashboardPageSkeleton } from "@/components/shared/DashboardPageSkeleton
 import { useLanguage } from "@/lib/i18n";
 import { fetchPlans, deletePlan, updatePlanStatus, getLocalCustomPlans, saveLocalCustomPlan, removeLocalCustomPlan } from "@/lib/api/plans";
 import { mapPlansResponse, getLocalCustomThemeColor } from "@/lib/api/mappers";
+import { ApiError } from "@/lib/api/http";
 
 function firmToClientOffice(
   firm: DetailedSubscribedFirm | null,
@@ -119,30 +120,47 @@ export function PlansView() {
   const [viewMode, setViewMode] = useState<PlanViewMode>(viewParam || "list");
   const [plans, setPlans] = useState<PricingPlanItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<PricingPlanItem | null>(null);
 
-  useEffect(() => {
+  const loadData = React.useCallback(() => {
     let cancelled = false;
     setIsLoading(true);
+    setError(null);
     const localPlans = getLocalCustomPlans();
     fetchPlans()
       .then((payload) => {
         if (cancelled) return;
         const mapped = mapPlansResponse(payload);
-        const basePlans = mapped.length > 0 ? mapped : initialPricingPlans;
-        const merged = [...basePlans];
+        const merged = [...mapped];
         localPlans.forEach((lp) => {
           const idx = merged.findIndex(
             (m) => String(m.id) === String(lp.id) || m.name === lp.name
           );
           if (idx !== -1) {
-            // API is source of truth for type/prices/status; keep only UI-only local fields.
+            const apiLimits = merged[idx].limits || {};
+            const localLimits = lp.limits || {};
             merged[idx] = {
               ...lp,
               ...merged[idx],
+              limits: {
+                ...localLimits,
+                ...apiLimits,
+                lawyers: apiLimits.lawyers && apiLimits.lawyers !== "—" ? apiLimits.lawyers : (localLimits.lawyers || apiLimits.lawyers),
+                cases: apiLimits.cases && apiLimits.cases !== "—" ? apiLimits.cases : (localLimits.cases || apiLimits.cases),
+                agents: apiLimits.agents && apiLimits.agents !== "—" ? apiLimits.agents : (localLimits.agents || apiLimits.agents),
+                assistants: apiLimits.assistants && apiLimits.assistants !== "—" ? apiLimits.assistants : (localLimits.assistants || apiLimits.assistants),
+                clients: apiLimits.clients && apiLimits.clients !== "—" ? apiLimits.clients : (localLimits.clients || apiLimits.clients),
+                documents: apiLimits.documents && apiLimits.documents !== "—" ? apiLimits.documents : (localLimits.documents || apiLimits.documents),
+                storage: apiLimits.storage && apiLimits.storage !== "—" ? apiLimits.storage : (localLimits.storage || apiLimits.storage),
+                support: apiLimits.support && apiLimits.support !== "—" ? apiLimits.support : (localLimits.support || apiLimits.support),
+              },
+              yearlyDiscountPercent:
+                merged[idx].yearlyDiscountPercent ?? lp.yearlyDiscountPercent,
               colorTheme: lp.colorTheme || merged[idx].colorTheme,
             };
           } else if (mapped.length === 0) {
-            // Only inject purely-local plans when API returned nothing.
             merged.push(lp);
           }
         });
@@ -150,26 +168,14 @@ export function PlansView() {
         if (planIdParam) {
           const found = merged.find((p) => String(p.id) === String(planIdParam));
           if (found) setSelectedPlan(found);
+          else if (merged.length > 0) setSelectedPlan(merged[0]);
+        } else if (merged.length > 0) {
+          setSelectedPlan(merged[0]);
         }
       })
-      .catch(() => {
+      .catch((err: unknown) => {
         if (!cancelled) {
-          const fallback = [...initialPricingPlans];
-          localPlans.forEach((lp) => {
-            const idx = fallback.findIndex(
-              (p) => String(p.id) === String(lp.id) || p.name === lp.name
-            );
-            if (idx !== -1) {
-              fallback[idx] = { ...fallback[idx], ...lp };
-            } else {
-              fallback.push(lp);
-            }
-          });
-          setPlans(fallback);
-          if (planIdParam) {
-            const found = fallback.find((p) => String(p.id) === String(planIdParam));
-            if (found) setSelectedPlan(found);
-          }
+          setError(err instanceof Error ? err.message : "فشل تحميل الباقات والأسعار");
         }
       })
       .finally(() => {
@@ -180,15 +186,9 @@ export function PlansView() {
     };
   }, [planIdParam]);
 
-  const initialPlan = useMemo(() => {
-    if (planIdParam) {
-      const found = initialPricingPlans.find((p) => p.id === planIdParam);
-      if (found) return found;
-    }
-    return initialPricingPlans.find((p) => p.id === "silver") || initialPricingPlans[1];
-  }, [planIdParam]);
-
-  const [selectedPlan, setSelectedPlan] = useState<PricingPlanItem>(initialPlan);
+  useEffect(() => {
+    return loadData();
+  }, [loadData]);
 
   const initialFirm = useMemo(() => {
     if (firmIdParam) {
@@ -284,9 +284,11 @@ export function PlansView() {
           const matchCode = plan.code.toLowerCase().includes(q);
           const matchDesc = plan.description.toLowerCase().includes(q);
           const matchBadge = Boolean(plan.badge?.toLowerCase().includes(q));
-          const matchLimits = Object.values(plan.limits).some((val) =>
-            val.toLowerCase().includes(q)
-          );
+          const matchLimits = plan.limits
+            ? Object.values(plan.limits).some((val) =>
+                typeof val === "string" ? val.toLowerCase().includes(q) : String(val).includes(q)
+              )
+            : false;
           if (!matchName && !matchCode && !matchDesc && !matchBadge && !matchLimits) {
             return false;
           }
@@ -371,11 +373,15 @@ export function PlansView() {
           (p) => String(p.id) === String(savedPlan.id)
         );
         if (freshSelected) {
-          setSelectedPlan((prev) => ({
-            ...prev,
-            ...freshSelected,
-            colorTheme: prev.colorTheme,
-          }));
+          setSelectedPlan((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  ...freshSelected,
+                  colorTheme: prev.colorTheme,
+                }
+              : freshSelected
+          );
         }
       })
       .catch(() => {
@@ -386,15 +392,19 @@ export function PlansView() {
 
   const handleOpenDeactivateDialog = async (targetPlan: PricingPlanItem) => {
     if (!targetPlan.isActive) {
+      setActionLoading(true);
       try {
         await updatePlanStatus(targetPlan.id, "active");
-      } catch {
-        // Keep local UX even if API fails.
+        setPlans((prev) =>
+          prev.map((p) => (String(p.id) === String(targetPlan.id) ? { ...p, isActive: true } : p))
+        );
+        toast.success(t("تم تفعيل الباقة بنجاح وأصبحت متاحة للاشتراك.", "Plan activated successfully."));
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : t("فشل تفعيل الباقة", "Failed to activate plan");
+        toast.error(msg);
+      } finally {
+        setActionLoading(false);
       }
-      setPlans((prev) =>
-        prev.map((p) => (p.id === targetPlan.id ? { ...p, isActive: true } : p))
-      );
-      toast.success("تم تفعيل الباقة بنجاح وأصبحت متاحة للاشتراك.");
       return;
     }
     setPlanForAction(targetPlan);
@@ -402,15 +412,20 @@ export function PlansView() {
   };
 
   const handleConfirmDeactivatePlan = async (planId: string) => {
+    setActionLoading(true);
     try {
       await updatePlanStatus(planId, "disabled");
-    } catch {
-      // Keep local UX even if API fails.
+      setPlans((prev) =>
+        prev.map((p) => (String(p.id) === String(planId) ? { ...p, isActive: false } : p))
+      );
+      toast.success(t("تم تعطيل الباقة بنجاح ولم تعد متاحة للاشتراكات الجديدة.", "Plan deactivated successfully."));
+      setIsDeactivateDialogOpen(false);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : t("فشل تعطيل الباقة", "Failed to deactivate plan");
+      toast.error(msg);
+    } finally {
+      setActionLoading(false);
     }
-    setPlans((prev) =>
-      prev.map((p) => (p.id === planId ? { ...p, isActive: false } : p))
-    );
-    toast.success("تم تعطيل الباقة بنجاح ولم تعد متاحة للاشتراكات الجديدة.");
   };
 
   const handleOpenDeleteDialog = (targetPlan: PricingPlanItem) => {
@@ -423,14 +438,27 @@ export function PlansView() {
   };
 
   const handleConfirmDeletePlan = async (planId: string) => {
+    setActionLoading(true);
     try {
       await deletePlan(planId);
-    } catch {
-      // Keep local UX even if API fails.
+      removeLocalCustomPlan(planId);
+      setPlans((prev) => prev.filter((p) => String(p.id) !== String(planId)));
+      toast.success(t("تم حذف الباقة نهائياً من النظام.", "Plan deleted successfully."));
+      setIsDeleteDialogOpen(false);
+    } catch (err: unknown) {
+      const isBlocked =
+        err instanceof ApiError &&
+        (err.status === 400 || err.status === 409 || err.status === 422);
+      if (isBlocked) {
+        setIsDeleteDialogOpen(false);
+        setIsCannotDeleteDialogOpen(true);
+      } else {
+        const msg = err instanceof Error ? err.message : t("فشل حذف الباقة", "Failed to delete plan");
+        toast.error(msg);
+      }
+    } finally {
+      setActionLoading(false);
     }
-    removeLocalCustomPlan(planId);
-    setPlans((prev) => prev.filter((p) => String(p.id) !== String(planId)));
-    toast.success("تم حذف الباقة نهائياً من النظام.");
   };
 
   const handleViewPlanDetails = (plan: PricingPlanItem) => {
@@ -441,7 +469,7 @@ export function PlansView() {
   const handleViewSubscribedFirms = (plan?: PricingPlanItem) => {
     const p = plan || selectedPlan;
     if (plan) setSelectedPlan(plan);
-    navigateToView("subscribed-firms", p.id);
+    if (p) navigateToView("subscribed-firms", p.id);
   };
 
   const handleEditPlan = (plan: PricingPlanItem) => {
@@ -451,42 +479,49 @@ export function PlansView() {
 
   const handleViewFirmDetails = (firm: DetailedSubscribedFirm) => {
     setSelectedFirm(firm);
-    navigateToView("firm-details", selectedPlan.id, firm.id);
+    navigateToView("firm-details", selectedPlan?.id || plans[0]?.id || "", firm.id);
   };
 
   // Breadcrumbs path calculation
   const breadcrumbs = useMemo(() => {
+    const planName = selectedPlan?.name || t("الباقة", "Plan");
+    const planId = selectedPlan?.id || "";
     if (viewMode === "create") {
       return [
+        { label: t("الفواتير والمالية", "Invoices & Finance"), href: "/invoices" },
         { label: t("الباقات والأسعار", "Plans & Pricing"), href: "/plans" },
         { label: t("إنشاء باقة جديدة", "Create New Plan") },
       ];
     }
     if (viewMode === "edit") {
       return [
+        { label: t("الفواتير والمالية", "Invoices & Finance"), href: "/invoices" },
         { label: t("الباقات والأسعار", "Plans & Pricing"), href: "/plans" },
         { label: t("تعديل الباقة", "Edit Plan") },
-        { label: selectedPlan?.name || t("تعديل", "Edit") },
+        { label: planName },
       ];
     }
     if (viewMode === "silver-details") {
       return [
+        { label: t("الفواتير والمالية", "Invoices & Finance"), href: "/invoices" },
         { label: t("الباقات والأسعار", "Plans & Pricing"), href: "/plans" },
-        { label: selectedPlan.name },
+        { label: planName },
       ];
     }
     if (viewMode === "subscribed-firms") {
       return [
+        { label: t("الفواتير والمالية", "Invoices & Finance"), href: "/invoices" },
         { label: t("الباقات والأسعار", "Plans & Pricing"), href: "/plans" },
-        { label: selectedPlan.name, href: `/plans?view=silver-details&planId=${selectedPlan.id}` },
+        { label: planName, href: `/plans?view=silver-details&planId=${planId}` },
         { label: t("المكاتب المشتركة", "Subscribed Firms") },
       ];
     }
     if (viewMode === "firm-details") {
       return [
+        { label: t("الفواتير والمالية", "Invoices & Finance"), href: "/invoices" },
         { label: t("الباقات والأسعار", "Plans & Pricing"), href: "/plans" },
-        { label: selectedPlan.name, href: `/plans?view=silver-details&planId=${selectedPlan.id}` },
-        { label: t("المكاتب المشتركة", "Subscribed Firms"), href: `/plans?view=subscribed-firms&planId=${selectedPlan.id}` },
+        { label: planName, href: `/plans?view=silver-details&planId=${planId}` },
+        { label: t("المكاتب المشتركة", "Subscribed Firms"), href: `/plans?view=subscribed-firms&planId=${planId}` },
         { label: selectedFirm?.name || t("تفاصيل المكتب", "Office Details") },
       ];
     }
@@ -498,7 +533,7 @@ export function PlansView() {
       className="flex h-screen h-dvh overflow-hidden w-full bg-background text-foreground transition-colors duration-200 font-['Cairo',sans-serif] selection:bg-[#9c6402]/20 selection:text-[#9c6402]"
     >
       {/* 1. Global Navigation Sidebar */}
-      <DashboardSidebar activeNav="plans" />
+      <DashboardSidebar activeNav="finance" activeSubNav="plans" />
 
       {/* 2. Main Content Canvas */}
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
@@ -514,12 +549,25 @@ export function PlansView() {
           {viewMode === "list" && (
             isLoading && plans.length === 0 ? (
               <DashboardPageSkeleton />
+            ) : error && plans.length === 0 ? (
+              <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-red-200 dark:border-red-900/40 p-[48px] text-center shadow-2xs space-y-4">
+                <p className="text-[14px] text-red-600 dark:text-red-400 font-medium">
+                  {error}
+                </p>
+                <button
+                  type="button"
+                  onClick={loadData}
+                  className="px-5 py-2.5 bg-[#9c6402] hover:bg-[#855402] text-white text-[13px] font-bold rounded-[6px] transition-colors cursor-pointer"
+                >
+                  {t("إعادة المحاولة", "Retry")}
+                </button>
+              </div>
             ) : (
             <div className="space-y-6 relative z-10 animate-in fade-in duration-200">
               {/* Header (Figma 1:2463) */}
               <PlansManagementHeader
                 onCreatePlan={() => navigateToView("create")}
-                onViewSubscribedFirms={() => navigateToView("subscribed-firms", selectedPlan.id)}
+                onViewSubscribedFirms={() => navigateToView("subscribed-firms", selectedPlan?.id || plans[0]?.id || "silver")}
               />
 
               {/* KPI Metrics Summary (Figma 1:2464) */}
@@ -602,10 +650,10 @@ export function PlansView() {
           {viewMode === "silver-details" && (
             <div className="relative z-10 animate-in fade-in duration-200">
               <PlanDetailsView
-                plan={selectedPlan}
+                plan={selectedPlan || undefined}
                 onBack={() => navigateToView("list")}
-                onEdit={() => handleEditPlan(selectedPlan)}
-                onNavigateToClients={() => navigateToView("subscribed-firms", selectedPlan.id)}
+                onEdit={() => selectedPlan && handleEditPlan(selectedPlan)}
+                onNavigateToClients={() => navigateToView("subscribed-firms", selectedPlan?.id || "silver")}
               />
             </div>
           )}
@@ -613,7 +661,7 @@ export function PlansView() {
           {viewMode === "subscribed-firms" && (
             <div className="relative z-10 animate-in fade-in duration-200">
               <SubscribedFirmsView
-                plan={selectedPlan}
+                plan={selectedPlan || undefined}
                 onBack={() => navigateToView("list")}
                 onAddNewFirm={() => router.push("/accounts")}
                 onViewOfficeDetails={handleViewFirmDetails}
@@ -624,8 +672,8 @@ export function PlansView() {
           {viewMode === "firm-details" && (
             <div className="relative z-10 animate-in fade-in duration-200">
               <ClientOfficeDetailsView
-                office={firmToClientOffice(selectedFirm, selectedPlan.name)}
-                onBack={() => navigateToView("subscribed-firms", selectedPlan.id)}
+                office={firmToClientOffice(selectedFirm, selectedPlan?.name || "الباقة")}
+                onBack={() => navigateToView("subscribed-firms", selectedPlan?.id || "silver")}
                 onEdit={() => router.push(`/accounts?officeId=${selectedFirm?.id || "1"}&action=edit`)}
                 onUpgradePlan={(_office, newPlan) => {
                   toast.success(
@@ -646,12 +694,13 @@ export function PlansView() {
       {/* Dialog 1: Deactivate Plan Confirmation (Figma 1:4973) */}
       <DeactivatePlanDialog
         isOpen={isDeactivateDialogOpen}
-        onClose={() => setIsDeactivateDialogOpen(false)}
+        onClose={() => !actionLoading && setIsDeactivateDialogOpen(false)}
         plan={planForAction}
         onConfirmDeactivate={handleConfirmDeactivatePlan}
+        isLoading={actionLoading}
         onViewSubscribers={() => {
           setIsDeactivateDialogOpen(false);
-          navigateToView("subscribed-firms", planForAction?.id || selectedPlan.id);
+          navigateToView("subscribed-firms", planForAction?.id || selectedPlan?.id || "");
         }}
       />
 
@@ -662,15 +711,16 @@ export function PlansView() {
         plan={planForAction}
         onViewSubscribers={() => {
           setIsCannotDeleteDialogOpen(false);
-          navigateToView("subscribed-firms", planForAction?.id || selectedPlan.id);
+          navigateToView("subscribed-firms", planForAction?.id || selectedPlan?.id || "");
         }}
       />
 
       {/* Dialog 3: Delete Plan (0 Subscribers) (Figma 1:5203) */}
       <DeletePlanDialog
         isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
+        onClose={() => !actionLoading && setIsDeleteDialogOpen(false)}
         plan={planForAction}
+        isLoading={actionLoading}
         onConfirmDelete={handleConfirmDeletePlan}
       />
     </div>

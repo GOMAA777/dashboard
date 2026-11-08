@@ -23,6 +23,7 @@ import { Employee } from "../types/staff.types";
 import { initialStaffMembers, initialStaffKpis } from "../data/initialStaff";
 import { Plus } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 import {
   fetchStaff,
   fetchStaffStats,
@@ -31,8 +32,9 @@ import {
   impersonateStaff,
   createStaff,
 } from "@/lib/api/staff";
+import { fetchRoles } from "@/lib/api/roles";
 import { mapStaffResponse, mapStaffFromApi } from "@/lib/api/mappers";
-import { readStats, unwrapData } from "@/lib/api/helpers";
+import { readStats, unwrapData, unwrapList } from "@/lib/api/helpers";
 import { ApiError } from "@/lib/api/http";
 
 export function StaffManagementView() {
@@ -54,14 +56,16 @@ export function StaffManagementView() {
     active?: number;
     suspended?: number;
   } | null>(null);
+  const [roleOptions, setRoleOptions] = useState<{ id: string; name: string }[]>([]);
 
   const reloadStaff = async () => {
     setIsLoading(true);
     setListError(null);
     try {
-      const [payload, statsPayload] = await Promise.all([
+      const [payload, statsPayload, rolesPayload] = await Promise.all([
         fetchStaff(),
         fetchStaffStats(),
+        fetchRoles().catch(() => null),
       ]);
       const mapped = mapStaffResponse(payload);
       setEmployees(mapped);
@@ -69,6 +73,15 @@ export function StaffManagementView() {
         if (!prev) return mapped[0] || null;
         return mapped.find((e) => e.id === prev.id) || mapped[0] || null;
       });
+      if (rolesPayload) {
+        const mappedRoles = unwrapList<Record<string, unknown>>(rolesPayload).map((r) => ({
+          id: String(r.id ?? ""),
+          name: String(r.name ?? ""),
+        })).filter((r) => r.id && r.name);
+        if (mappedRoles.length > 0) {
+          setRoleOptions(mappedRoles);
+        }
+      }
       setApiStaffStats({
         total: readStats(statsPayload, ["total", "total_staff", "staff_count"], 0),
         active: readStats(statsPayload, ["active", "active_staff"], 0),
@@ -129,8 +142,12 @@ export function StaffManagementView() {
       }
 
       // Role
-      if (selectedRole !== "all" && emp.role.id !== selectedRole) {
-        return false;
+      if (selectedRole !== "all") {
+        const matchesId = String(emp.role.id) === String(selectedRole);
+        const matchesName = emp.role.name?.toLowerCase() === selectedRole.toLowerCase();
+        if (!matchesId && !matchesName) {
+          return false;
+        }
       }
 
       // Status
@@ -182,8 +199,8 @@ export function StaffManagementView() {
       email: employee.email,
       phone: employee.phone,
       password,
-      department_id: departmentId,
-      role_id: roleId,
+      department_id: departmentId && !isNaN(departmentId) ? departmentId : 1,
+      role_id: roleId && !isNaN(roleId) ? roleId : 1,
       status: "active" as const,
     };
 
@@ -371,6 +388,12 @@ export function StaffManagementView() {
                 onResetFilters={handleResetFilters}
                 isEmptyView={false}
                 onToggleEmptyView={() => setCurrentView("empty")}
+                roles={roleOptions}
+                statusCounts={{
+                  all: currentKpis.totalStaff,
+                  active: currentKpis.activeStaff,
+                  suspended: currentKpis.suspendedStaff,
+                }}
               />
 
               {/* Data Table */}

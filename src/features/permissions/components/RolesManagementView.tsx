@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
@@ -31,14 +32,52 @@ import { readStats } from "@/lib/api/helpers";
 
 export function RolesManagementView() {
   const { t, direction } = useLanguage();
-
-  // Navigation & View States
-  const [currentView, setCurrentView] = useState<"list" | "empty" | "add" | "edit">("list");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const actionParam = searchParams?.get("action");
 
   // Roles State
   const [roles, setRoles] = useState<RoleItem[]>(initialRolesList);
   const [editingRole, setEditingRole] = useState<RoleItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Navigation & View States
+  const [currentView, setCurrentView] = useState<"list" | "empty" | "add" | "edit">(
+    actionParam === "add" ? "add" : "list"
+  );
+
+  useEffect(() => {
+    if (actionParam === "add") {
+      setEditingRole(null);
+      setCurrentView("add");
+      return;
+    }
+    if (actionParam === "edit") {
+      setCurrentView("edit");
+      return;
+    }
+    setCurrentView((prev) => (prev === "add" || prev === "edit" ? "list" : prev));
+  }, [actionParam]);
+
+  const openAddRole = useCallback(() => {
+    setEditingRole(null);
+    setCurrentView("add");
+    const params = new URLSearchParams(searchParams?.toString() || "");
+    params.set("action", "add");
+    params.delete("roleId");
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [pathname, router, searchParams]);
+
+  const backToRolesList = useCallback(() => {
+    setEditingRole(null);
+    setCurrentView("list");
+    const params = new URLSearchParams(searchParams?.toString() || "");
+    params.delete("action");
+    params.delete("roleId");
+    const query = params.toString();
+    router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams]);
 
   const [apiRoleStats, setApiRoleStats] = useState<{
     totalPermissions?: number;
@@ -53,7 +92,7 @@ export function RolesManagementView() {
       .then(([payload, statsPayload]) => {
         if (cancelled) return;
         const mapped = mapRolesResponse(payload);
-        if (mapped.length > 0) setRoles(mapped);
+        setRoles(mapped);
         setApiRoleStats({
           totalPermissions: readStats(statsPayload, ["total_permissions", "permissions"], 64),
           totalAssignedStaff: readStats(
@@ -115,8 +154,9 @@ export function RolesManagementView() {
       apiRoleStats?.totalAssignedStaff ??
       roles.reduce((acc, r) => acc + r.assignedEmployeesCount, 0);
     const systemProtectedRoles =
-      apiRoleStats?.systemProtectedRoles ??
-      roles.filter((r) => r.isProtected).length;
+      (apiRoleStats?.systemProtectedRoles && apiRoleStats.systemProtectedRoles > 0)
+        ? apiRoleStats.systemProtectedRoles
+        : roles.filter((r) => r.isProtected).length;
 
     return {
       totalActiveRoles: activeRoles,
@@ -268,10 +308,7 @@ export function RolesManagementView() {
 
                 <button
                   type="button"
-                  onClick={() => {
-                    setEditingRole(null);
-                    setCurrentView("add");
-                  }}
+                  onClick={openAddRole}
                   className="bg-[#9c6402] hover:bg-[#855402] dark:bg-[#e29d38] dark:hover:bg-[#d08c2a] text-white dark:text-[#1c140f] px-5 py-2.5 rounded-[6px] font-bold text-[14px] flex items-center gap-2 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-colors shrink-0 cursor-pointer"
                   data-node-id="1:11536"
                 >
@@ -296,12 +333,7 @@ export function RolesManagementView() {
 
                 <RolesKpiMetrics kpis={currentKpis} isEmpty />
 
-                <RolesEmptyState
-                  onAddRole={() => {
-                    setEditingRole(null);
-                    setCurrentView("add");
-                  }}
-                />
+                <RolesEmptyState onAddRole={openAddRole} />
               </div>
             )}
 
@@ -343,10 +375,7 @@ export function RolesManagementView() {
             {/* VIEW: Add / Edit Role */}
             {(currentView === "add" || currentView === "edit") && (
               <AddRoleView
-                onBack={() => {
-                  setEditingRole(null);
-                  setCurrentView("list");
-                }}
+                onBack={backToRolesList}
                 onSaveRole={handleSaveRole}
                 initialRole={editingRole}
               />

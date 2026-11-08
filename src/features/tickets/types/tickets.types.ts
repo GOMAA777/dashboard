@@ -18,6 +18,7 @@ export interface TicketMessage {
   senderRole: string;
   senderInitials: string;
   isStaff: boolean;
+  isInternalNote?: boolean;
   avatar?: string;
   timestamp: string;
   content: string;

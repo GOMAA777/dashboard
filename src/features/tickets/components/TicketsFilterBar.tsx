@@ -17,6 +17,7 @@ interface TicketsFilterBarProps {
     open: number;
     in_progress: number;
     closed: number;
+    pending?: number;
   };
   isEmptyToggle?: boolean;
   onToggleEmptyState?: () => void;

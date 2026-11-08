@@ -89,4 +89,26 @@ describe("Plans Billing Cycle & Pricing Display", () => {
     expect(customData.unit).toBe("ر.س / مخصص");
     expect(customData.isCustomCycle).toBe(true);
   });
+
+  it("maps -1 limits correctly to unlimited in Arabic", () => {
+    const rawApiPlan = {
+      id: "unlimited-plan",
+      name: "باقة غير محدودة",
+      monthly_price: 1500,
+      max_lawyers: -1,
+      max_cases: -1,
+      max_power_of_attorney: -1,
+      max_assistants: -1,
+      max_clients: -1,
+      storage_limit_gb: -1,
+    };
+
+    const mapped = mapPlanFromApi(rawApiPlan);
+    expect(mapped.limits?.lawyers).toContain("غير محدود: المحامين");
+    expect(mapped.limits?.cases).toContain("غير محدود: القضايا");
+    expect(mapped.limits?.agents).toContain("غير محدود: الوكلاء");
+    expect(mapped.limits?.assistants).toContain("غير محدود: المساعدين");
+    expect(mapped.limits?.clients).toContain("غير محدود: العملاء");
+    expect(mapped.limits?.storage).toContain("غير محدود");
+  });
 });

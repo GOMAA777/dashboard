@@ -1,5 +1,5 @@
 import { DashboardRouteLoading } from "@/components/shared/DashboardRouteLoading";
 
 export default function Loading() {
-  return <DashboardRouteLoading activeNav="plans" />;
+  return <DashboardRouteLoading activeNav="finance" activeSubNav="plans" />;
 }

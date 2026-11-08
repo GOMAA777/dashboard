@@ -142,3 +142,213 @@ export interface Paginated<T> {
   total?: number;
   [key: string]: unknown;
 }
+
+export interface ApiTicketStats {
+  open?: number;
+  open_tickets?: number;
+  in_progress?: number;
+  in_progress_tickets?: number;
+  pending?: number;
+  pending_tickets?: number;
+  closed?: number;
+  closed_tickets?: number;
+  total?: number;
+  total_tickets?: number;
+  satisfaction_rate?: number;
+  avg_response_time?: string | number;
+  [key: string]: unknown;
+}
+
+export interface ApiTicketItem {
+  id: number | string;
+  ticket_number?: string;
+  code?: string;
+  number?: string;
+  subject?: string;
+  title?: string;
+  description?: string;
+  body?: string;
+  status: string;
+  priority: string;
+  channel?: string;
+  channel_label?: string;
+  category?: string;
+  created_at?: string;
+  updated_at?: string;
+  company_id?: number | string;
+  department_id?: number | string;
+  client_id?: number | string;
+  firm_id?: number | string;
+  judicial_reference?: string;
+  client?: Record<string, unknown>;
+  firm?: Record<string, unknown>;
+  company?: Record<string, unknown>;
+  department?: Record<string, unknown>;
+  assignee?: Record<string, unknown>;
+  assigned_to?: Record<string, unknown>;
+  staff?: Record<string, unknown>;
+  messages?: Array<Record<string, unknown>>;
+  replies?: Array<Record<string, unknown>>;
+  conversation?: Array<Record<string, unknown>>;
+  audit_events?: Array<Record<string, unknown>>;
+  timeline?: Array<Record<string, unknown>>;
+  activity?: Array<Record<string, unknown>>;
+  attachments?: Array<Record<string, unknown>>;
+  [key: string]: unknown;
+}
+
+export interface CreateTicketPayload {
+  company_id: number;
+  subject: string;
+  description: string;
+  department_id: number;
+  priority: "urgent" | "medium" | "low" | "high";
+  channel?: "portal" | "email" | "phone" | "whatsapp";
+}
+
+export interface ReplyTicketPayload {
+  message: string;
+  is_internal_note?: boolean;
+  notify_client_sms_email?: boolean;
+}
+
+export interface AssignTicketPayload {
+  staff_id: number;
+  reason?: string;
+}
+
+export interface UpdateTicketStatusPayload {
+  status: "open" | "in_progress" | "pending" | "closed";
+}
+
+export interface ApiPlanStats {
+  total_plans?: number;
+  total?: number;
+  plans_count?: number;
+  active_plans?: number;
+  active?: number;
+  active_count?: number;
+  subscribed_firms?: number;
+  subscribers?: number;
+  firms_count?: number;
+  mrr?: number;
+  monthly_revenue?: number;
+  revenue?: number;
+  growth_percentage?: number;
+  growth?: number;
+  [key: string]: unknown;
+}
+
+export interface ApiPlanItem {
+  id: number | string;
+  name: string;
+  code?: string;
+  description?: string;
+  badge?: string;
+  badge_color?: string;
+  type?: string;
+  monthly_price?: number;
+  yearly_price?: number;
+  yearly_discount_percent?: number;
+  max_lawyers?: number;
+  max_cases?: number;
+  max_power_of_attorney?: number;
+  max_clients?: number;
+  max_assistants?: number;
+  max_documents?: number;
+  storage_limit_gb?: number;
+  support_level?: string;
+  features?: string[] | Array<{ id?: string; title: string; isIncluded?: boolean }>;
+  is_popular?: boolean;
+  status: "active" | "disabled" | "inactive";
+  subscribed_firms_count?: number;
+  subscribers_count?: number;
+  share_percentage?: string | number;
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: unknown;
+}
+
+export interface CreatePlanPayload {
+  name: string;
+  description?: string;
+  badge?: string;
+  badge_color?: string;
+  type?: "paid" | "custom" | "trial" | string;
+  monthly_price: number;
+  yearly_price: number;
+  yearly_discount_percent?: number;
+  max_lawyers?: number;
+  max_cases?: number;
+  max_power_of_attorney?: number;
+  max_clients?: number;
+  max_assistants?: number;
+  max_documents?: number;
+  storage_limit_gb?: number;
+  support_level?: string;
+  features?: string[];
+  is_popular?: boolean;
+  status?: "active" | "disabled" | "inactive";
+  [key: string]: unknown;
+}
+
+export interface UpdatePlanPayload {
+  name?: string;
+  description?: string;
+  badge?: string;
+  badge_color?: string;
+  type?: string;
+  monthly_price?: number;
+  yearly_price?: number;
+  yearly_discount_percent?: number;
+  max_lawyers?: number;
+  max_cases?: number;
+  max_power_of_attorney?: number;
+  max_clients?: number;
+  max_assistants?: number;
+  max_documents?: number;
+  storage_limit_gb?: number;
+  support_level?: string;
+  features?: string[];
+  is_popular?: boolean;
+  status?: "active" | "disabled" | "inactive";
+  [key: string]: unknown;
+}
+
+export interface UpdatePlanStatusPayload {
+  status: "active" | "disabled" | "inactive";
+}
+
+export interface ApiPlanSubscriber {
+  id: number | string;
+  name?: string;
+  firm_name?: string;
+  owner?: string;
+  owner_name?: string;
+  license_number?: string;
+  city?: string;
+  phone?: string;
+  email?: string;
+  logo?: string;
+  tax_number?: string;
+  lawyers_used?: number;
+  lawyers_limit?: number;
+  cases_used?: number;
+  cases_limit?: number;
+  agents_used?: number;
+  agents_limit?: number;
+  active_subscription?: {
+    id?: number | string;
+    subscription_code?: string;
+    amount?: number | string;
+    billing_cycle?: string;
+    payment_method?: string;
+    status?: string;
+    start_date?: string;
+    renewal_date?: string;
+    ends_at?: string;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+

@@ -56,11 +56,15 @@ export interface ActiveSubscriptionDetails {
 export interface ClientOffice {
   id: string;
   companyId?: string | number;
+  officeId?: string;
+  slug?: string;
   initial: string;
   initialBg: string;
   initialText: string;
   themeColor?: string;
   color?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
   name: string;
   licenseNumber: string;
   city: string;

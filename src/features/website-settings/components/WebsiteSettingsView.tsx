@@ -84,7 +84,7 @@ export function WebsiteSettingsView({ initialTab = "menu" }: WebsiteSettingsView
       className="flex h-screen h-dvh bg-[#f5f3ef] dark:bg-[#1a120d] font-sans antialiased overflow-hidden selection:bg-[#ffddb6]/30 selection:text-[#643f00]"
     >
       {/* 1. Global Navigation Sidebar */}
-      <DashboardSidebar activeNav="site-settings" />
+      <DashboardSidebar activeNav="system-settings" activeSubNav="website" />
 
       {/* 2. Main Layout Area */}
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">

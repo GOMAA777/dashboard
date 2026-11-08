@@ -8,7 +8,7 @@ export const API_BASE_URL = (
 
 /** Optional company scope used by dashboard endpoints in Postman. */
 export const API_COMPANY_ID =
-  process.env.NEXT_PUBLIC_API_COMPANY_ID || "2";
+  process.env.NEXT_PUBLIC_API_COMPANY_ID || "96";
 
 /** Lawyer office app base (no trailing slash). Handoff redirects to `{url}/`. */
 export const LAWYER_APP_URL = (

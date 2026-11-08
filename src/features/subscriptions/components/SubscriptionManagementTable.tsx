@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -31,6 +31,7 @@ interface SubscriptionManagementTableProps {
   totalItems: number;
   onPageChange: (newPage: number) => void;
   onPageSizeChange?: (newSize: number) => void;
+  className?: string;
 }
 
 export function SubscriptionManagementTable({
@@ -44,10 +45,11 @@ export function SubscriptionManagementTable({
   totalItems,
   onPageChange,
   onPageSizeChange,
+  className,
 }: SubscriptionManagementTableProps) {
   const { t, isEn } = useLanguage();
 
-  const getStatusBadge = (status: SubscriptionStatus, label: string) => {
+  const getStatusBadge = useCallback((status: SubscriptionStatus, label: string) => {
     switch (status) {
       case "active":
         return (
@@ -99,7 +101,7 @@ export function SubscriptionManagementTable({
           <span className="font-['Cairo'] text-[12px] text-[#514537]">{label}</span>
         );
     }
-  };
+  }, [t]);
 
   const getSubIndicatorColor = (status: SubscriptionStatus, urgency: string) => {
     if (status === "active") {
@@ -280,7 +282,7 @@ export function SubscriptionManagementTable({
         ),
       },
     ],
-    [onViewDetails, onEdit, onRenew, onCancel, t]
+    [onViewDetails, onEdit, onRenew, onCancel, t, getStatusBadge]
   );
 
   const paginationState = useMemo<PaginationState>(
@@ -309,7 +311,10 @@ export function SubscriptionManagementTable({
 
   return (
     <div
-      className="bg-white dark:bg-[#221812] flex flex-col rounded-[8px] border border-[#f0eeea] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] w-full font-['Cairo',sans-serif]"
+      className={cn(
+        "bg-white dark:bg-[#221812] flex flex-col rounded-[8px] border border-[#f0eeea] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] w-full font-['Cairo',sans-serif]",
+        className
+      )}
       data-node-id="1:5392"
       data-name="Main Table Container"
     >

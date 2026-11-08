@@ -9,6 +9,7 @@ export interface PlanLimitsData {
   storage: string;
   support: string;
   assistants?: string;
+  documents?: string;
   integration?: string;
 }
 

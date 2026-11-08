@@ -24,7 +24,23 @@ export const CONTAINS_DIGIT_REGEX = /\d/;
 // Has at least one symbol (non-alphanumeric, non-space)
 export const CONTAINS_SYMBOL_REGEX = /[^a-zA-Z0-9\u0621-\u064A\s]/;
 
+// Office ID / Slug: alphanumeric and hyphens only (e.g. alajlan-law-101)
+export const OFFICE_ID_REGEX = /^[a-zA-Z0-9-]+$/;
+
+// Valid hex color (e.g. #9c6402 or #fff)
+export const HEX_COLOR_REGEX = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+
 export const officeSchema = z.object({
+  officeId: z
+    .string()
+    .transform((val) => (val || "").trim())
+    .refine((val) => val.length === 0 || (val.length >= 3 && val.length <= 40), {
+      message: "معرّف المكتب يجب أن يكون من 3 إلى 40 خانة",
+    })
+    .refine((val) => val.length === 0 || OFFICE_ID_REGEX.test(val), {
+      message: "معرّف المكتب يقبل حروفاً إنجليزية وأرقاماً وشرطة (-) فقط بدون مسافات أو رموز خاصة",
+    }),
+
   ownerName: z
     .string()
     .transform((val) => val.trim())
@@ -182,6 +198,20 @@ export const officeSchema = z.object({
     })
     .refine((val) => CONTAINS_SYMBOL_REGEX.test(val), {
       message: "كلمة المرور يجب أن تحتوي على رمز خاص واحد على الأقل (مثل: !@#$%^&*)",
+    }),
+
+  primaryColor: z
+    .string()
+    .optional()
+    .refine((val) => !val || HEX_COLOR_REGEX.test(val), {
+      message: "اللون الأساسي يجب أن يكون كود HEX صالح (مثال: #9c6402)",
+    }),
+
+  secondaryColor: z
+    .string()
+    .optional()
+    .refine((val) => !val || HEX_COLOR_REGEX.test(val), {
+      message: "اللون الثانوي يجب أن يكون كود HEX صالح (مثال: #d97706)",
     }),
 });
 
@@ -646,6 +676,55 @@ export function evaluateFieldRules(
           { id: "len", label: "من 9 إلى 20 خانة بدون مسافات", isValid: isFilled && noSpaces && rLen },
           { id: "char_digit", label: "تحتوي على حروف وأرقام", isValid: isFilled && rLetter && rDigit },
           { id: "symbol", label: "تحتوي على رمز خاص واحد على الأقل (@$!%*?&)", isValid: isFilled && rSymbol },
+        ],
+      };
+    }
+
+    case "officeId": {
+      const len = raw.trim().length;
+      const rLen = len >= 3 && len <= 40;
+      const rChars = OFFICE_ID_REGEX.test(raw.trim());
+      const isValid = isFilled && rLen && rChars;
+      let errorMessage: string | undefined;
+      if (isFilled && !rLen) errorMessage = "يجب أن يكون معرّف المكتب من 3 إلى 40 خانة";
+      else if (isFilled && !rChars) errorMessage = "حروف إنجليزية وأرقام وشرطة (-) فقط بدون مسافات";
+
+      const detailHeader = !isFilled
+        ? "معرّف المكتب: بانتظار الإدخال"
+        : isValid
+        ? `معرّف المكتب: مكتمل (${formatArabicCount(len, "خانة")})`
+        : `معرّف المكتب: أدخلت ${formatArabicCount(len, "خانة")}`;
+
+      return {
+        name: "officeId",
+        title: "معرّف المكتب الفريد (Office ID / Slug)",
+        shortTitle: "المعرّف",
+        detailHeader,
+        iconName: "Hash",
+        isFilled,
+        isValid,
+        errorMessage,
+        rules: [
+          { id: "len", label: "الطول بين 3 و 40 خانة", isValid: isFilled && rLen },
+          { id: "chars", label: "حروف إنجليزية وأرقام وشرطة (-) فقط", isValid: isFilled && rChars },
+        ],
+      };
+    }
+
+    case "primaryColor":
+    case "secondaryColor": {
+      const isValid = !raw || HEX_COLOR_REGEX.test(raw.trim());
+      return {
+        name: fieldName,
+        title: fieldName === "primaryColor" ? "اللون الأساسي" : "اللون الثانوي",
+        shortTitle: fieldName === "primaryColor" ? "الأساسي" : "الثانوي",
+        detailHeader: isValid ? "كود لون معتمد" : "كود لون غير صالح",
+        iconName: "Palette",
+        isFilled,
+        isValid,
+        errorMessage: isValid ? undefined : "كود Hex غير صالح (مثال: #9c6402)",
+        rules: [
+          { id: "hex", label: "كود HEX صالح (#RGB أو #RRGGBB)", isValid },
         ],
       };
     }

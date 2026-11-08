@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Search, UserCheck } from "lucide-react";
+import { X, Search, UserCheck, Loader2 } from "lucide-react";
 import { Ticket, TicketAssignee } from "../types/tickets.types";
 import { useLanguage } from "@/lib/i18n";
 
@@ -9,7 +9,8 @@ interface ChangeAssigneeModalProps {
   ticket: Ticket;
   assignees: TicketAssignee[];
   onClose: () => void;
-  onConfirm: (newAssignee: TicketAssignee, reason: string) => void;
+  onConfirm: (newAssignee: TicketAssignee, reason: string) => Promise<boolean | void> | void;
+  isSubmitting?: boolean;
 }
 
 export function ChangeAssigneeModal({
@@ -17,6 +18,7 @@ export function ChangeAssigneeModal({
   assignees,
   onClose,
   onConfirm,
+  isSubmitting = false,
 }: ChangeAssigneeModalProps) {
   const { direction, isEn } = useLanguage();
   const [selectedAssigneeId, setSelectedAssigneeId] = useState<string>(
@@ -233,17 +235,26 @@ export function ChangeAssigneeModal({
         <div className="border-t border-[#eae8e4] px-[24px] py-[16px] flex items-center justify-end gap-[10px]">
           <button
             type="button"
+            disabled={isSubmitting}
             onClick={onClose}
-            className="bg-[#f0eeea] hover:bg-[#eae8e4] text-[#1b1c1a] px-[18px] py-[9px] rounded-[4px] font-semibold text-[13px] transition-colors cursor-pointer"
+            className="bg-[#f0eeea] hover:bg-[#eae8e4] text-[#1b1c1a] px-[18px] py-[9px] rounded-[4px] font-semibold text-[13px] transition-colors cursor-pointer disabled:opacity-50"
           >
             {isEn ? "Cancel" : "إلغاء"}
           </button>
           <button
             type="button"
+            disabled={isSubmitting}
             onClick={handleConfirm}
-            className="bg-[#9c6402] hover:bg-[#855402] text-white px-[22px] py-[9px] rounded-[4px] font-semibold text-[13px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-all cursor-pointer"
+            className="bg-[#9c6402] hover:bg-[#855402] text-white px-[22px] py-[9px] rounded-[4px] font-semibold text-[13px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-all cursor-pointer flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {isEn ? "Confirm Reassignment" : "تأكيد إعادة التعيين"}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                <span>{isEn ? "Assigning..." : "جاري الإسناد..."}</span>
+              </>
+            ) : (
+              <span>{isEn ? "Confirm Reassignment" : "تأكيد إعادة التعيين"}</span>
+            )}
           </button>
         </div>
       </div>

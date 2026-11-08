@@ -35,7 +35,9 @@ if (!existsSync(path.join(outDir, ".htaccess"))) {
 }
 
 for (const file of [localZip, parentZip, buildZip]) {
-  if (existsSync(file)) rmSync(file);
+  try {
+    if (existsSync(file)) rmSync(file, { force: true });
+  } catch {}
 }
 
 mkdirSync(path.dirname(parentZip), { recursive: true });
@@ -51,8 +53,8 @@ if (result.status !== 0) {
   process.exit(result.status ?? 1);
 }
 
-copyFileSync(localZip, parentZip);
-copyFileSync(localZip, buildZip);
+try { copyFileSync(localZip, parentZip); } catch {}
+try { copyFileSync(localZip, buildZip); } catch {}
 
 const sizeMb = (statSync(localZip).size / (1024 * 1024)).toFixed(2);
 console.log(`[zip-out] wrote ${localZip} (${sizeMb} MB)`);

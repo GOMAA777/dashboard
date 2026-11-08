@@ -10,6 +10,7 @@ import {
   ChevronsRight,
   ChevronsLeft,
   DoorOpen,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ClientOffice, TabFilter } from "../types/client.types";
@@ -26,6 +27,8 @@ export { initialOffices };
 interface ClientManagementTableProps {
   offices?: ClientOffice[];
   isLoading?: boolean;
+  isEnteringOffice?: boolean;
+  enteringOfficeId?: string | number | null;
   onViewOfficeDetails: (office: ClientOffice) => void;
   onEditOffice: (office: ClientOffice) => void;
   onEnterOfficeAsAdmin?: (office: ClientOffice) => void;
@@ -38,6 +41,8 @@ interface ClientManagementTableProps {
 export function ClientManagementTable({
   offices: propOffices,
   isLoading = false,
+  isEnteringOffice = false,
+  enteringOfficeId = null,
   onViewOfficeDetails,
   onEditOffice,
   onEnterOfficeAsAdmin,
@@ -376,9 +381,7 @@ export function ClientManagementTable({
                     <div className="flex items-center gap-[12px]">
                       {(() => {
                         const localLogo = getLocalCustomLogo(office.id);
-                        const tableLogo = (!failedLogos[office.id] && office.logo && !office.logo.includes("/storage/firms/"))
-                          ? office.logo
-                          : (localLogo || (!failedLogos[office.id] ? office.logo : undefined));
+                        const tableLogo = !failedLogos[office.id] ? (office.logo || localLogo) : localLogo;
 
                         if (tableLogo) {
                           return (
@@ -419,9 +422,9 @@ export function ClientManagementTable({
                           </span>
                           <span
                             className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#f4efe6] dark:bg-[#271d15] text-[#78644f] dark:text-[#c4b3a3] border border-[#dfd7cc] dark:border-[#423122]"
-                            title={`معرف المنشأة (Company ID): #${office.companyId || office.id}`}
+                            title={`معرف المنشأة (Company ID): #${office.companyId || office.id}${office.officeId ? ` • المعرّف: ${office.officeId}` : ""}`}
                           >
-                            ID: #{office.companyId || office.id}
+                            {office.officeId ? `@${office.officeId}` : `ID: #${office.companyId || office.id}`}
                           </span>
                         </div>
                         <span className="text-[#837565] dark:text-[#8e8680] text-[11px] leading-[16px]">
@@ -541,16 +544,22 @@ export function ClientManagementTable({
                         <Eye className="size-[15px]" />
                       </button>
 
-                      {/* زر دخول المكتب كمسؤول (باب) */}
+                      {/* زر دخول المكتب كمسؤول (باب + دخول) */}
                       {onEnterOfficeAsAdmin && (
                         <button
                           type="button"
-                          aria-label={t("دخول المكتب كمسؤول", "Enter Office as Admin")}
+                          aria-label={t("دخول نظام المكتب", "Enter Office System")}
                           onClick={() => onEnterOfficeAsAdmin(office)}
-                          className="p-[6px] rounded-[4px] hover:bg-[#fff9ee] dark:hover:bg-[#342711] text-[#9c6402] dark:text-[#e29d38] hover:text-[#825200] transition-colors cursor-pointer"
-                          title={t("دخول المكتب كمسؤول", "Enter Office as Admin")}
+                          disabled={isEnteringOffice && enteringOfficeId === office.id}
+                          className="h-[30px] px-2.5 rounded-[4px] bg-[#fff9ee] dark:bg-[#342711] border border-[#eeddbb] dark:border-[#523b2c] text-[#9c6402] dark:text-[#e29d38] hover:bg-[#9c6402] hover:text-white dark:hover:bg-[#e29d38] dark:hover:text-[#1c140f] text-[12px] font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shadow-[0px_1px_2px_rgba(0,0,0,0.03)]"
+                          title={t("دخول نظام المكتب كمسؤول", "Enter office system as admin")}
                         >
-                          <DoorOpen className="size-[15px]" />
+                          {isEnteringOffice && enteringOfficeId === office.id ? (
+                            <Loader2 className="size-[13px] animate-spin" />
+                          ) : (
+                            <DoorOpen className="size-[13px]" />
+                          )}
+                          <span>{t("دخول", "Enter")}</span>
                         </button>
                       )}
 

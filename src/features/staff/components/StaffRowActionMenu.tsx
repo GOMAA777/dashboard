@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Eye, LogIn, KeyRound, UserX, UserCheck } from "lucide-react";
+import { Eye, KeyRound, UserX, UserCheck } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -10,7 +10,7 @@ interface StaffRowActionMenuProps {
   isOpen: boolean;
   onClose: () => void;
   onViewDetails: () => void;
-  onLoginAsEmployee: () => void;
+  onLoginAsEmployee?: () => void;
   onResetPassword: () => void;
   onActivate: () => void;
   onDeactivate: () => void;
@@ -128,18 +128,6 @@ export function StaffRowActionMenu({
             >
               <Eye className="size-[15px] text-[#514537] dark:text-[#a89f91] group-hover:text-[#1b1c1a] dark:group-hover:text-[#fdfbf7] shrink-0" />
               <span className="leading-[18px]">{t("عرض تفاصيل الموظف", "View Employee Details")}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onLoginAsEmployee();
-              }}
-              className="w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] hover:bg-[#fff9ee] dark:hover:bg-[#342711] text-[#9c6402] dark:text-[#e29d38] text-[13px] font-semibold transition-colors cursor-pointer group"
-            >
-              <LogIn className="size-[15px] text-[#9c6402] dark:text-[#e29d38] shrink-0" />
-              <span className="leading-[18px]">{t("الدخول كالموظف", "Login as Employee")}</span>
             </button>
 
             <button

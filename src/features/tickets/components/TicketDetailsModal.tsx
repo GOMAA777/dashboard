@@ -17,9 +17,14 @@ import {
   ShieldCheck,
   AlertTriangle,
   History,
+  Lock,
+  MessageSquare,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Ticket } from "../types/tickets.types";
+import { ConfirmCloseTicketModal } from "./ConfirmCloseTicketModal";
 import { useLanguage } from "@/lib/i18n";
 
 interface TicketDetailsModalProps {
@@ -27,8 +32,8 @@ interface TicketDetailsModalProps {
   onBack: () => void;
   onOpenAssigneeModal: () => void;
   onOpenStatusModal: () => void;
-  onCloseTicketSuccess: () => void;
-  onSendMessage: (ticketId: string, content: string) => void;
+  onCloseTicketSuccess: () => Promise<boolean | void> | void;
+  onSendMessage: (ticketId: string, content: string, isInternalNote?: boolean) => Promise<boolean | void> | void;
 }
 
 export function TicketDetailsModal({
@@ -39,19 +44,46 @@ export function TicketDetailsModal({
   onCloseTicketSuccess,
   onSendMessage,
 }: TicketDetailsModalProps) {
-  const { direction, isEn } = useLanguage();
+  const { direction, isEn, t } = useLanguage();
   const [replyText, setReplyText] = useState("");
+  const [isInternalNote, setIsInternalNote] = useState(false);
+  const [isSendingReply, setIsSendingReply] = useState(false);
+  const [replyError, setReplyError] = useState("");
+  const [isConfirmCloseOpen, setIsConfirmCloseOpen] = useState(false);
+  const [isClosingTicket, setIsClosingTicket] = useState(false);
 
-  const handleSendReply = (e: React.FormEvent) => {
+  const handleSendReply = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!replyText.trim()) return;
-    onSendMessage(ticket.id, replyText.trim());
-    setReplyText("");
-    toast.success(
-      isEn
-        ? "Reply sent and client notified successfully"
-        : "تم إرسال الرد وإشعار العميل بنجاح"
-    );
+    if (!replyText.trim()) {
+      setReplyError(isEn ? "Please enter reply message" : "يرجى كتابة نص الرسالة أو الملاحظة");
+      return;
+    }
+    setReplyError("");
+    setIsSendingReply(true);
+
+    try {
+      await onSendMessage(ticket.id, replyText.trim(), isInternalNote);
+      setReplyText("");
+      toast.success(
+        isInternalNote
+          ? (isEn ? "Internal technical note saved successfully" : "تم حفظ الملاحظة الداخلية الخاصة بنجاح")
+          : (isEn ? "Reply sent and client notified successfully" : "تم إرسال الرد وإشعار العميل بنجاح")
+      );
+    } catch {
+      // toast handled by parent or fallback
+    } finally {
+      setIsSendingReply(false);
+    }
+  };
+
+  const handleConfirmClose = async () => {
+    setIsClosingTicket(true);
+    try {
+      await onCloseTicketSuccess();
+      setIsConfirmCloseOpen(false);
+    } finally {
+      setIsClosingTicket(false);
+    }
   };
 
   const getPriorityLabel = (priority: string) => {
@@ -168,7 +200,7 @@ export function TicketDetailsModal({
           {ticket.status !== "closed" && (
             <button
               type="button"
-              onClick={onCloseTicketSuccess}
+              onClick={() => setIsConfirmCloseOpen(true)}
               className="bg-[#9c6402] hover:bg-[#855402] text-white flex items-center gap-[6px] px-[20px] py-[8px] rounded-[4px] font-semibold text-[13px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-all cursor-pointer"
             >
               <CheckCircle2 className="size-[15px]" />
@@ -333,20 +365,69 @@ export function TicketDetailsModal({
             </div>
 
             {/* Quick Reply Form */}
-            <form onSubmit={handleSendReply} className="flex flex-col gap-[10px] pt-[8px]">
+            <form onSubmit={handleSendReply} className="flex flex-col gap-[12px] pt-[8px]">
+              {/* Mode Selector: Client Reply vs Internal Note (Endpoints 05 & 06) */}
+              <div className="flex items-center gap-[8px] border-b border-[#eae8e4] pb-[10px]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsInternalNote(false);
+                    setReplyError("");
+                  }}
+                  className={`flex items-center gap-[6px] px-[12px] py-[6px] rounded-[4px] text-[12px] font-semibold transition-all cursor-pointer ${
+                    !isInternalNote
+                      ? "bg-[#9c6402] text-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)]"
+                      : "bg-[#f5f3ef] text-[#514537] hover:bg-[#eae8e4]"
+                  }`}
+                >
+                  <MessageSquare className="size-[13px]" />
+                  <span>{isEn ? "Reply to Client" : "رد موجه للعميل (مع إشعار)"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsInternalNote(true);
+                    setReplyError("");
+                  }}
+                  className={`flex items-center gap-[6px] px-[12px] py-[6px] rounded-[4px] text-[12px] font-semibold transition-all cursor-pointer ${
+                    isInternalNote
+                      ? "bg-[#514537] text-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)]"
+                      : "bg-[#f5f3ef] text-[#514537] hover:bg-[#eae8e4]"
+                  }`}
+                >
+                  <Lock className="size-[13px]" />
+                  <span>{isEn ? "Internal Note (Tech Team)" : "ملاحظة داخلية خاصة بالفريق"}</span>
+                </button>
+              </div>
+
               <div className="relative">
                 <textarea
                   rows={3}
                   value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
+                  onChange={(e) => {
+                    setReplyText(e.target.value);
+                    if (replyError) setReplyError("");
+                  }}
                   placeholder={
-                    isEn
-                      ? "Type your reply here to immediately notify the client via authorized channels..."
-                      : "اكتب ردك هنا لإرساله فورياً إلى العميل عبر قنوات التنبيه المعتمدة..."
+                    isInternalNote
+                      ? (isEn
+                          ? "Write an internal technical note visible only to the support team..."
+                          : "اكتب ملاحظة داخلية خاصة بالفريق التقني فقط (لن تظهر للعميل)...")
+                      : (isEn
+                          ? "Type your reply here to immediately notify the client via authorized channels..."
+                          : "اكتب ردك هنا لإرساله فورياً إلى العميل عبر قنوات التنبيه المعتمدة...")
                   }
                   className="w-full bg-[#faf9f6] border border-[#eae8e4] rounded-[6px] p-[12px] text-[13px] text-[#1b1c1a] placeholder:text-[#837565] focus:outline-none focus:border-[#9c6402] text-start"
                 />
               </div>
+
+              {replyError && (
+                <div className="flex items-center gap-1 text-[11px] text-[#ba1a1a]">
+                  <AlertCircle className="size-3 shrink-0" />
+                  <span>{replyError}</span>
+                </div>
+              )}
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-[8px]">
@@ -364,10 +445,24 @@ export function TicketDetailsModal({
 
                 <button
                   type="submit"
-                  className="bg-[#9c6402] hover:bg-[#855402] text-white flex items-center gap-[6px] px-[20px] py-[8px] rounded-[4px] font-semibold text-[13px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-all cursor-pointer"
+                  disabled={isSendingReply}
+                  className="bg-[#9c6402] hover:bg-[#855402] text-white flex items-center gap-[6px] px-[20px] py-[8px] rounded-[4px] font-semibold text-[13px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  <Send className="size-[13px]" />
-                  <span>{isEn ? "Send Reply" : "إرسال الرد"}</span>
+                  {isSendingReply ? (
+                    <>
+                      <Loader2 className="size-[13px] animate-spin" />
+                      <span>{isEn ? "Sending..." : "جاري الإرسال..."}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="size-[13px]" />
+                      <span>
+                        {isInternalNote
+                          ? (isEn ? "Save Internal Note" : "حفظ الملاحظة الداخلية")
+                          : (isEn ? "Send Reply" : "إرسال الرد")}
+                      </span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -518,6 +613,16 @@ export function TicketDetailsModal({
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal before closing ticket */}
+      <ConfirmCloseTicketModal
+        isOpen={isConfirmCloseOpen}
+        onClose={() => setIsConfirmCloseOpen(false)}
+        onConfirm={handleConfirmClose}
+        ticketNumber={ticket.ticketNumber}
+        ticketTitle={ticket.title}
+        isSubmitting={isClosingTicket}
+      />
     </div>
   );
 }

@@ -38,10 +38,8 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
   const { t, isEn, direction } = useLanguage();
 
   // Form fields
-  const [roleName, setRoleName] = useState(
-    initialRole?.name || (isEn ? "Compliance & Documentation Audit Specialist" : "مستشار مراجعة الامتثال والتوثيق")
-  );
-  const [roleSlug, setRoleSlug] = useState(initialRole?.slug || "compliance_audit_specialist");
+  const [roleName, setRoleName] = useState(initialRole?.name || "");
+  const [roleSlug, setRoleSlug] = useState(initialRole?.slug || "");
   const [searchFilter, setSearchFilter] = useState("");
   const [modules, setModules] = useState<PermissionModule[]>(permissionModules);
 
@@ -278,86 +276,80 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
     }
   };
 
-  return (
-    <div dir={direction} className="space-y-6 pb-2 sm:pb-3 font-['Cairo']" data-node-id="1:12201">
-      {/* Back button */}
-      <button
-        type="button"
-        onClick={onBack}
-        className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#837565] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] transition-colors cursor-pointer"
-      >
-        <ArrowLeft className={cn("size-[15px]", !isEn && "rotate-180")} />
-        <span>{t("العودة لقائمة الأدوار والصلاحيات", "Back to Roles & Permissions")}</span>
-      </button>
+  const inputBase =
+    "w-full h-[42px] pe-10 ps-3 text-[13px] bg-[#f5f3ef] dark:bg-[#160e0a] border border-[#eae8e4] dark:border-[#38271c] rounded-[6px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#8e8680] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] focus:border-[#9c6402] dark:focus:border-[#e29d38] transition-colors";
 
-      {/* Main Identity & Command Banner */}
+  return (
+    <div dir={direction} className="space-y-4 pb-2" data-node-id="1:12201">
+      {/* Header — same shape as Add Employee */}
       <div
         className="bg-white dark:bg-[#221812] rounded-[8px] p-6 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
         data-node-id="1:12204"
       >
-        <div className="text-start">
-          <h1
-            className="text-[26px] sm:text-[28px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[38px]"
-            data-node-id="1:12229"
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={onBack}
+            className="size-[40px] rounded-[8px] bg-[#f5f3ef] dark:bg-[#2d1f16] border border-transparent dark:border-[#38271c] flex items-center justify-center hover:bg-[#eae6e0] dark:hover:bg-[#38271c] transition-colors cursor-pointer"
           >
-            {initialRole
-              ? t("تعديل الدور الوظيفي", "Edit Role")
-              : t("إضافة دور جديد", "Add New Role")}
-          </h1>
-          <p
-            className="text-[14px] text-[#514537] dark:text-[#a89f91] mt-1"
-            data-node-id="1:12227"
-          >
-            {t(
-              "أنشئ دوراً وظيفياً مخصصاً وحدد صلاحيات الوصول إلى الموديولات المؤسسية بدقة.",
-              "Create a custom role and configure exact module access permissions."
-            )}
-          </p>
+            <ArrowLeft
+              className={cn(
+                "size-[18px] text-[#514537] dark:text-[#cdc5bd]",
+                !isEn && "rotate-180"
+              )}
+            />
+          </button>
+          <div>
+            <h1 className="text-[22px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+              {initialRole
+                ? t("تعديل الدور الوظيفي", "Edit Role")
+                : t("إضافة دور جديد", "Add New Role")}
+            </h1>
+            <p className="text-[13px] text-[#79716b] dark:text-[#a89f91] mt-0.5">
+              {t(
+                "أنشئ دوراً وظيفياً مخصصاً وحدد صلاحيات الوصول إلى الموديولات المؤسسية بدقة.",
+                "Create a custom role and configure exact module access permissions."
+              )}
+            </p>
+          </div>
         </div>
 
-        {/* Dynamic Indicators widget */}
-        <div
-          className="bg-[#fdfbf7] dark:bg-[#281c15] border border-[#e6e2dc] dark:border-[#38271c] rounded-[8px] p-2 flex items-center gap-3 shrink-0"
-          data-node-id="1:12207"
-        >
-          {/* Selected permissions indicator */}
-          <div
-            className="bg-white dark:bg-[#221812] border border-[#e6e2dc] dark:border-[#38271c] rounded-[6px] px-3 py-1.5 flex items-center gap-2 shadow-2xs"
-            data-node-id="1:12214"
-          >
-            <div className="text-start flex flex-col items-end">
+        <div className="bg-[#f5f3ef] dark:bg-[#281c15] border border-[#e6e2dc] dark:border-[#38271c] rounded-[8px] p-2 flex items-center gap-3 shrink-0">
+          <div className="bg-white dark:bg-[#221812] border border-[#e6e2dc] dark:border-[#38271c] rounded-[6px] px-3 py-1.5 flex items-center gap-2 shadow-2xs">
+            <div className="text-start flex flex-col">
               <span className="text-[10px] text-[#837565] dark:text-[#a89f91]">
                 {t("الصلاحيات المحددة", "Selected Permissions")}
               </span>
               <div className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-1">
-                <span className="text-[#9c6402] dark:text-[#f59e0b]">{selectedPermissions.size}</span>
+                <span className="text-[#9c6402] dark:text-[#e29d38]">
+                  {selectedPermissions.size}
+                </span>
                 <span className="text-[11px] text-[#837565] dark:text-[#a89f91]">
                   {t(`من أصل ${totalPermissionsCount}`, `of ${totalPermissionsCount}`)}
                 </span>
               </div>
             </div>
-            <div className="text-[#9c6402] dark:text-[#f59e0b] shrink-0">
-              <Key className="size-[15px]" />
-            </div>
+            <Key className="size-[15px] text-[#9c6402] dark:text-[#e29d38] shrink-0" />
           </div>
 
-          {/* Risk Level indicator */}
-          <div className="px-2.5 py-1 text-start flex flex-col items-end" data-node-id="1:12208">
+          <div className="px-2.5 py-1 text-start flex flex-col">
             <span className="text-[10px] text-[#837565] dark:text-[#a89f91]">
               {t("مستوى المخاطر", "Risk Level")}
             </span>
             <div className="flex items-center gap-1.5 mt-0.5">
               <div
-                className={`size-[7px] rounded-full ${
+                className={cn(
+                  "size-[7px] rounded-full",
                   hasSensitivePermissions ? "bg-[#d97706]" : "bg-[#1b7340]"
-                }`}
+                )}
               />
               <span
-                className={`text-[11px] font-bold ${
+                className={cn(
+                  "text-[11px] font-bold",
                   hasSensitivePermissions
                     ? "text-[#d97706] dark:text-[#fbbf24]"
                     : "text-[#1b7340] dark:text-[#34d399]"
-                }`}
+                )}
               >
                 {hasSensitivePermissions
                   ? t("صلاحيات موسعة", "Elevated Scope")
@@ -370,22 +362,26 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
 
       {/* SECTION 1: البيانات الأساسية للدور */}
       <div
-        className="bg-white dark:bg-[#221812] rounded-[8px] p-6 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] space-y-4"
+        className="bg-white dark:bg-[#221812] rounded-[8px] p-6 border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]"
         data-node-id="1:12230"
       >
-        <div className="flex items-center gap-2 pb-2 border-b border-[#f0eeea] dark:border-[#38271c]">
-          <div className="bg-[#fff8e1] dark:bg-[#342711] size-[32px] rounded-[6px] flex items-center justify-center text-[#9c6402]">
-            <UserCheck className="size-[16px]" />
+        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#f2efe9] dark:border-[#38271c]">
+          <div className="size-[42px] rounded-[8px] bg-[#f5efe6] dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 flex items-center justify-center shrink-0">
+            <UserCheck className="size-[20px] text-[#9c6402] dark:text-[#e29d38]" />
           </div>
-          <h2 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]" data-node-id="1:12235">
-            {t("البيانات الأساسية للدور", "Core Role Information")}
-          </h2>
+          <div>
+            <h2 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+              {t("البيانات الأساسية للدور", "Core Role Information")}
+            </h2>
+            <p className="text-[12px] text-[#79716b] dark:text-[#a89f91]">
+              {t("اسم الدور والمعرف البرمجي", "Role name and system slug")}
+            </p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* Role Name */}
-          <div className="space-y-1.5 text-start" data-node-id="1:12239">
-            <label className="block text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div data-node-id="1:12239">
+            <label className="block text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] mb-2">
               {t("اسم الدور الوظيفي", "Role Name")} <span className="text-red-500">*</span>
             </label>
             <div className="relative">
@@ -393,12 +389,15 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
                 type="text"
                 value={roleName}
                 onChange={(e) => setRoleName(e.target.value)}
-                placeholder={t("مثال: مسؤول العملاء، أخصائي مراجعة...", "e.g. Account Manager, Audit Specialist...")}
-                className="w-full h-[42px] px-3 pe-9 text-[13px] bg-[#fdfbf7] dark:bg-[#281c15] border border-[#d6cfc7] dark:border-[#38271c] rounded-[6px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#948b83] focus:outline-none focus:ring-1 focus:ring-[#9c6402] focus:border-[#9c6402] transition-colors text-start"
+                placeholder={t(
+                  "مثال: مسؤول العملاء، أخصائي مراجعة...",
+                  "e.g. Account Manager, Audit Specialist..."
+                )}
+                className={inputBase}
               />
-              <UserCheck className={cn("size-[15px] text-[#948b83] absolute top-1/2 -translate-y-1/2 pointer-events-none", isEn ? "right-3" : "left-3")} />
+              <UserCheck className="size-[16px] text-[#948b83] dark:text-[#a89f91] absolute top-1/2 -translate-y-1/2 end-3 pointer-events-none" />
             </div>
-            <p className="text-[11px] text-[#837565] dark:text-[#a89f91] pt-0.5">
+            <p className="text-[11px] text-[#79716b] dark:text-[#a89f91] mt-1">
               {t(
                 "يظهر هذا الاسم في بطاقات الموظفين وتقارير التدقيق الإداري.",
                 "This name appears in staff badges and administrative audit logs."
@@ -406,22 +405,23 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
             </p>
           </div>
 
-          {/* Role Slug */}
-          <div className="space-y-1.5 text-start" data-node-id="1:12251">
-            <label className="block text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-              {t("المعرّف البرمجي للنظام (Slug)", "System Identifier (Slug)")} <span className="text-red-500">*</span>
+          <div data-node-id="1:12251">
+            <label className="block text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] mb-2">
+              {t("المعرّف البرمجي للنظام (Slug)", "System Identifier (Slug)")}{" "}
+              <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <input
                 type="text"
                 value={roleSlug}
                 onChange={(e) => setRoleSlug(e.target.value)}
-                placeholder="e.g. compliance_audit_specialist"
-                className="w-full h-[42px] px-3 pe-9 text-[13px] font-mono bg-[#fdfbf7] dark:bg-[#281c15] border border-[#d6cfc7] dark:border-[#38271c] rounded-[6px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#948b83] focus:outline-none focus:ring-1 focus:ring-[#9c6402] focus:border-[#9c6402] transition-colors text-start"
+                placeholder="e.g. employee"
+                dir="ltr"
+                className={cn(inputBase, "text-left font-mono")}
               />
-              <Code className={cn("size-[15px] text-[#948b83] absolute top-1/2 -translate-y-1/2 pointer-events-none", isEn ? "right-3" : "left-3")} />
+              <Code className="size-[16px] text-[#948b83] dark:text-[#a89f91] absolute top-1/2 -translate-y-1/2 end-3 pointer-events-none" />
             </div>
-            <p className="text-[11px] text-[#837565] dark:text-[#a89f91] pt-0.5">
+            <p className="text-[11px] text-[#79716b] dark:text-[#a89f91] mt-1">
               {t(
                 "معرّف نظام فريد ومستقر يُستخدم برمجياً في محركات فحص الأذونات والسياسات، وليس اسم تسجيل دخول للموظف.",
                 "A unique stable system identifier used by permission evaluation engines, not a login username."
@@ -436,38 +436,44 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
         className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] overflow-hidden"
         data-node-id="1:12263"
       >
-        {/* Matrix Header & Filter */}
-        <div className="p-6 border-b border-[#f0eeea] dark:border-[#38271c] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-          <div className="text-start">
-            <div className="flex items-center gap-2">
-              <div className="bg-[#fff8e1] dark:bg-[#342711] size-[32px] rounded-[6px] flex items-center justify-center text-[#9c6402]">
-                <Key className="size-[16px]" />
-              </div>
-              <h2 className="text-[18px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                {t("مصفوفة صلاحيات النظام", "System Permissions Matrix")}
-              </h2>
-              <span className="bg-[#ffeed9] dark:bg-[#342711] text-[#7b4e00] dark:text-[#fbbf24] text-[11px] font-bold px-2.5 py-0.5 rounded-[4px]">
-                {t("11 موديول مفعل", "11 Active Modules")}
-              </span>
+        <div className="p-6 border-b border-[#f2efe9] dark:border-[#38271c] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="size-[42px] rounded-[8px] bg-[#f5efe6] dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 flex items-center justify-center shrink-0">
+              <Key className="size-[20px] text-[#9c6402] dark:text-[#e29d38]" />
             </div>
-            <p className="text-[12px] text-[#625d5d] dark:text-[#a89f91] mt-1">
-              {t(
-                "حدد الصلاحيات بدقة لكل موديول؛ لن يتم منح صلاحيات افتراضية دون تحديد صريح من المشرف العام.",
-                "Configure permissions precisely for each module; no permissions granted by default without supervisor selection."
-              )}
-            </p>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                  {t("مصفوفة صلاحيات النظام", "System Permissions Matrix")}
+                </h2>
+                <span className="bg-[#ffeed9] dark:bg-[#2d1f16] text-[#7b4e00] dark:text-[#f3c27e] text-[11px] font-bold px-2.5 py-0.5 rounded-[4px]">
+                  {t(
+                    `${modules.length} موديول مفعل`,
+                    `${modules.length} Active Modules`
+                  )}
+                </span>
+              </div>
+              <p className="text-[12px] text-[#79716b] dark:text-[#a89f91] mt-0.5">
+                {t(
+                  "حدد الصلاحيات بدقة لكل موديول؛ لن يتم منح صلاحيات افتراضية دون تحديد صريح من المشرف العام.",
+                  "Configure permissions precisely for each module; no permissions granted by default without supervisor selection."
+                )}
+              </p>
+            </div>
           </div>
 
-          {/* Search filter in matrix */}
           <div className="relative min-w-[280px]" data-node-id="1:12265">
             <input
               type="text"
               value={searchFilter}
               onChange={(e) => setSearchFilter(e.target.value)}
-              placeholder={t("تصفية الأقسام أو الصلاحيات...", "Filter modules or permissions...")}
-              className="w-full h-[36px] px-3 pe-9 text-[12px] bg-[#f5f3ef] dark:bg-[#281c15] border border-[#d6cfc7]/60 dark:border-[#38271c] rounded-[4px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] focus:outline-none focus:ring-1 focus:ring-[#9c6402] focus:border-[#9c6402] transition-colors text-start"
+              placeholder={t(
+                "تصفية الأقسام أو الصلاحيات...",
+                "Filter modules or permissions..."
+              )}
+              className="w-full h-[42px] pe-10 ps-3 text-[13px] bg-[#f5f3ef] dark:bg-[#160e0a] border border-[#eae8e4] dark:border-[#38271c] rounded-[6px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] transition-colors"
             />
-            <Search className={cn("size-[14px] text-[#837565] absolute top-1/2 -translate-y-1/2 pointer-events-none", isEn ? "right-3" : "left-3")} />
+            <Search className="size-[16px] text-[#948b83] dark:text-[#a89f91] absolute top-1/2 -translate-y-1/2 end-3 pointer-events-none" />
           </div>
         </div>
 
@@ -587,33 +593,22 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
         </div>
       </div>
 
-      {/* FLOATING STICKY ACTION BAR */}
       <DashboardStickyActionBar>
-        <div className="flex items-center gap-2.5 text-start">
-          <div className="size-[28px] rounded-full bg-[#f0eeea] dark:bg-[#2d1f16] flex items-center justify-center text-[#9c6402] shrink-0">
-            <ShieldCheck className="size-[16px]" />
-          </div>
-          <div className="text-[11px] text-[#514537] dark:text-[#cdc5bd]">
-            <div className="flex items-center gap-1.5 font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-              <span>{t("ضمان الامتثال والرقابة الأمنية", "Compliance & Security Guarantee")}</span>
-              <span className="bg-[#f0eeea] dark:bg-[#2d1f16] text-[#625d5d] dark:text-[#bdafa4] text-[10px] font-mono px-1.5 py-0.2 rounded-[2px]">
-                SEC-ROLE-AUDIT-v2
-              </span>
-            </div>
-            <p className="text-[#837565] dark:text-[#9e9185]">
-              {t(
-                "سيتم توثيق إنشاء هذا الدور في سجل التدقيق الأمني الجنائي فور الاعتماد.",
-                "Creation of this role will be recorded in the security audit log immediately."
-              )}
-            </p>
-          </div>
+        <div className="flex items-center gap-2 text-[13px] text-[#514537] dark:text-[#cdc5bd]">
+          <ShieldCheck className="size-[18px] text-[#10b981] shrink-0" />
+          <span>
+            {t(
+              "سيتم توثيق إنشاء هذا الدور في سجل التدقيق الأمني فور الاعتماد.",
+              "Creation of this role will be recorded in the security audit log immediately."
+            )}
+          </span>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={onBack}
-            className="px-4 py-2 bg-[#f0eeea] hover:bg-[#e6e2dc] dark:bg-[#2d1f16] dark:hover:bg-[#382a1f] text-[#514537] dark:text-[#fdfbf7] border border-transparent dark:border-[#3d2a1d] rounded-[6px] text-[13px] font-semibold transition-colors cursor-pointer"
+            className="px-4 py-2 text-[13px] font-semibold text-[#514537] dark:text-[#fdfbf7] bg-[#f5f3ef] dark:bg-[#2d1f16] hover:bg-[#eae6e0] dark:hover:bg-[#38271c] border border-transparent dark:border-[#38271c] rounded-[6px] transition-colors cursor-pointer"
           >
             {t("إلغاء", "Cancel")}
           </button>
@@ -621,7 +616,7 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
           <button
             type="button"
             onClick={() => handleSave(true)}
-            className="px-4 py-2 bg-white hover:bg-[#f5f3ef] dark:bg-[#281c15] dark:hover:bg-[#2c2017] text-[#514537] dark:text-[#fdfbf7] border border-[#d6cfc7] dark:border-[#3d2a1d] rounded-[6px] text-[13px] font-semibold transition-colors cursor-pointer"
+            className="px-4 py-2 text-[13px] font-semibold text-[#514537] dark:text-[#fdfbf7] bg-[#f5f3ef] dark:bg-[#2d1f16] hover:bg-[#eae6e0] dark:hover:bg-[#38271c] border border-transparent dark:border-[#38271c] rounded-[6px] transition-colors cursor-pointer"
           >
             {t("حفظ كمسودة", "Save as Draft")}
           </button>
@@ -629,9 +624,9 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
           <button
             type="button"
             onClick={() => handleSave(false)}
-            className="px-5 py-2 bg-[#9c6402] hover:bg-[#855402] text-white rounded-[6px] text-[13px] font-bold shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors cursor-pointer flex items-center gap-1.5"
+            className="px-5 py-2 text-[13px] font-bold text-white dark:text-[#1c140f] bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#855402] dark:hover:bg-[#f3c27e] rounded-[6px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors flex items-center gap-2 cursor-pointer"
           >
-            <Check className="size-[15px]" />
+            <Check className="size-[16px]" />
             <span>{t("حفظ وتفعيل الدور", "Save & Activate Role")}</span>
           </button>
         </div>

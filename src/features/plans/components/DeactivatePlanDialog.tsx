@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { X, Pause, AlertTriangle, ShieldCheck, ExternalLink } from "lucide-react";
+import { X, Pause, AlertTriangle, ShieldCheck, ExternalLink, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { PricingPlanItem } from "../types/plan.types";
 import { useLanguage } from "@/lib/i18n";
@@ -11,8 +11,9 @@ interface DeactivatePlanDialogProps {
   isOpen: boolean;
   onClose: () => void;
   plan?: PricingPlanItem | null;
-  onConfirmDeactivate?: (planId: string) => void;
+  onConfirmDeactivate?: (planId: string) => void | Promise<void>;
   onViewSubscribers?: () => void;
+  isLoading?: boolean;
 }
 
 export function DeactivatePlanDialog({
@@ -21,6 +22,7 @@ export function DeactivatePlanDialog({
   plan,
   onConfirmDeactivate,
   onViewSubscribers,
+  isLoading = false,
 }: DeactivatePlanDialogProps) {
   const { t } = useLanguage();
   if (!isOpen) return null;
@@ -163,7 +165,8 @@ export function DeactivatePlanDialog({
           <button
             type="button"
             onClick={onClose}
-            className="px-[18px] py-[9px] rounded-[6px] bg-white dark:bg-[#221812] border border-[#e2ded7] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] text-[13px] font-semibold transition-colors cursor-pointer"
+            disabled={isLoading}
+            className="px-[18px] py-[9px] rounded-[6px] bg-white dark:bg-[#221812] border border-[#e2ded7] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] text-[13px] font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {t("إلغاء", "Cancel")}
           </button>
@@ -171,10 +174,15 @@ export function DeactivatePlanDialog({
           <button
             type="button"
             onClick={handleConfirm}
-            className="px-[20px] py-[9px] rounded-[6px] bg-[#9c6402] hover:bg-[#855402] dark:bg-[#e29d38] dark:hover:bg-[#d08c2a] text-white dark:text-[#1c140f] text-[13px] font-bold flex items-center gap-[6px] shadow-xs transition-colors cursor-pointer"
+            disabled={isLoading}
+            className="px-[20px] py-[9px] rounded-[6px] bg-[#9c6402] hover:bg-[#855402] dark:bg-[#e29d38] dark:hover:bg-[#d08c2a] text-white dark:text-[#1c140f] text-[13px] font-bold flex items-center gap-[6px] shadow-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Pause className="size-[14px] fill-current" />
-            <span>{t("تعطيل الباقة", "Deactivate Plan")}</span>
+            {isLoading ? (
+              <Loader2 className="size-[14px] animate-spin" />
+            ) : (
+              <Pause className="size-[14px] fill-current" />
+            )}
+            <span>{isLoading ? t("جاري التعطيل...", "Deactivating...") : t("تعطيل الباقة", "Deactivate Plan")}</span>
           </button>
         </div>
       </div>

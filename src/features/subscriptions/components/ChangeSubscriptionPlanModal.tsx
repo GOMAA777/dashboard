@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Check, CheckCheck, Settings2 } from "lucide-react";
+import { X, Check, CheckCheck, Settings2, Loader2 } from "lucide-react";
 import { SubscriptionRecord } from "../types/subscription.types";
 import { toast } from "sonner";
 import { useLanguage } from "@/lib/i18n";
 import { ModalPortal } from "@/components/shared/ModalPortal";
+import { LuxuryAlertDialog } from "@/components/shared/LuxuryAlertDialog";
+import { upgradeSubscription, applyCustomOffer } from "@/lib/api/subscriptions";
 import { cn } from "@/lib/utils";
 
 type PlanId = "basic" | "silver" | "gold" | "custom";
@@ -24,16 +26,32 @@ interface ChangeSubscriptionPlanModalProps {
   onSuccess?: (planName: string, effectiveDate: string) => void;
 }
 
+function formatDisplayDate(val?: string, fallback = "—", isEn = false): string {
+  if (!val) return fallback;
+  try {
+    const d = new Date(val);
+    if (isNaN(d.getTime())) return val;
+    return d.toLocaleDateString(isEn ? "en-US" : "ar-SA-u-nu-latn", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  } catch {
+    return val;
+  }
+}
+
 export function ChangeSubscriptionPlanModal({
   isOpen,
   onClose,
   subscription,
   onSuccess,
 }: ChangeSubscriptionPlanModalProps) {
-  const { t } = useLanguage();
+  const { t, isEn } = useLanguage();
   const [selectedPlanId, setSelectedPlanId] = useState<PlanId>("gold");
   const [timingOption, setTimingOption] = useState<"immediate" | "renewal">("immediate");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [customConfig, setCustomConfig] = useState<CustomPlanConfig>({
     annualPrice: 24500,
     lawyersLimit: 30,
@@ -45,7 +63,11 @@ export function ChangeSubscriptionPlanModal({
 
   const firmName = subscription?.firm.name || t("مكتب العدل للمحاماة", "Al-Adl Law Firm");
   const currentPlan = subscription?.planName || t("الفضية", "Silver");
-  const renewalDate = subscription?.renewalDate || t("15 أكتوبر 2024", "15 Oct 2024");
+  const formattedRenewalDate = formatDisplayDate(
+    subscription?.renewalDate,
+    t("15 أكتوبر 2024", "15 Oct 2024"),
+    isEn
+  );
 
   const planTitleById: Record<PlanId, string> = {
     basic: t("الباقة الأساسية", "Basic Plan"),
@@ -54,7 +76,13 @@ export function ChangeSubscriptionPlanModal({
     custom: t("باقة مخصصة", "Custom Plan"),
   };
 
-  const handleConfirmChange = () => {
+  const planIdToNumber: Record<Exclude<PlanId, "custom">, number> = {
+    basic: 1,
+    silver: 2,
+    gold: 3,
+  };
+
+  const handleOpenConfirm = () => {
     if (selectedPlanId === "custom") {
       if (
         customConfig.annualPrice <= 0 ||
@@ -71,27 +99,54 @@ export function ChangeSubscriptionPlanModal({
         return;
       }
     }
+    setShowConfirmDialog(true);
+  };
 
+  const handleExecuteUpgrade = async () => {
+    setShowConfirmDialog(false);
     setIsSubmitting(true);
-    setTimeout(() => {
-      const planTitle =
-        selectedPlanId === "custom"
-          ? t(
-              `باقة مخصصة (${customConfig.annualPrice.toLocaleString()} ر.س)`,
-              `Custom Plan (${customConfig.annualPrice.toLocaleString()} SAR)`
-            )
-          : planTitleById[selectedPlanId];
 
-      onSuccess?.(planTitle, timingOption);
+    const planTitle =
+      selectedPlanId === "custom"
+        ? t(
+            `باقة مخصصة (${customConfig.annualPrice.toLocaleString()} ر.س)`,
+            `Custom Plan (${customConfig.annualPrice.toLocaleString()} SAR)`
+          )
+        : planTitleById[selectedPlanId];
+
+    try {
+      if (subscription?.id) {
+        if (selectedPlanId === "custom") {
+          await applyCustomOffer(subscription.id, {
+            is_custom_offer: 1,
+            offer_name: "باقة مخصصة للمكتب",
+            custom_price: customConfig.annualPrice,
+            extra_lawyers: customConfig.lawyersLimit,
+            extra_cases: customConfig.casesLimit,
+            extra_storage_gb: customConfig.storageGb,
+          });
+        } else {
+          await upgradeSubscription(subscription.id, {
+            new_plan_id: planIdToNumber[selectedPlanId] || 3,
+            billing_cycle: "yearly",
+          });
+        }
+      }
+
       toast.success(
         t(
           `تم تغيير باقة اشتراك "${firmName}" إلى "${planTitle}" بنجاح`,
           `Successfully changed subscription for "${firmName}" to "${planTitle}"`
         )
       );
-      setIsSubmitting(false);
+      onSuccess?.(planTitle, timingOption);
       onClose();
-    }, 600);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : t("حدث خطأ أثناء تغيير الباقة", "Error changing plan");
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const differenceLabel =
@@ -137,7 +192,8 @@ export function ChangeSubscriptionPlanModal({
     "w-full bg-white dark:bg-[#1a120d] text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] rounded-[4px] px-3 py-2 border border-[#e4e2de] dark:border-[#38271c] focus:border-[#9c6402] focus:outline-none";
 
   return (
-    <ModalPortal isOpen={isOpen}>
+    <>
+      <ModalPortal isOpen={isOpen}>
       <div
         className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs font-['Cairo']"
         onClick={(e) => {
@@ -179,7 +235,7 @@ export function ChangeSubscriptionPlanModal({
                 </span>
                 <span>•</span>
                 <span>
-                  {t("تجديد:", "Renewal:")} {renewalDate}
+                  {t("تجديد:", "Renewal:")} {formattedRenewalDate}
                 </span>
               </div>
             </div>
@@ -190,7 +246,7 @@ export function ChangeSubscriptionPlanModal({
             {/* Section 1: اختر الباقة المستهدفة */}
             <div className="space-y-2" data-node-id="1:6999">
               <div className="flex items-center gap-1.5 justify-start">
-                <div className="bg-[#9c6402] h-3 w-1 rounded-full shrink-0" />
+                <div className="bg-[#9c6402] dark:bg-[#e29d38] h-3 w-1 rounded-full shrink-0" />
                 <span className="font-bold text-[12px] text-[#1b1c1a] dark:text-[#fdfbf7]">
                   {t("اختر الباقة المستهدفة", "Select Target Plan")}
                 </span>
@@ -204,8 +260,8 @@ export function ChangeSubscriptionPlanModal({
                   className={cn(
                     "p-3 rounded-[4px] border transition-all cursor-pointer flex flex-col justify-between text-start",
                     selectedPlanId === "basic"
-                      ? "bg-[#fff9ee] dark:bg-[#342711] border-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-                      : "bg-[#f5f3ef]/50 dark:bg-[#281c15] border-transparent hover:border-[#eae8e4] opacity-85"
+                      ? "bg-[#fff9ee] dark:bg-[#342711] border-[#9c6402] dark:border-[#e29d38] shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
+                      : "bg-[#f5f3ef]/50 dark:bg-[#281c15] border-[#e4e2de] dark:border-[#38271c] hover:border-[#9c6402]/40 dark:hover:border-[#e29d38]/40 hover:bg-[#f5f3ef] dark:hover:bg-[#2e2018]"
                   )}
                 >
                   <div className="flex items-center justify-between pb-1 gap-1">
@@ -217,7 +273,7 @@ export function ChangeSubscriptionPlanModal({
                     </span>
                   </div>
                   <div className="flex items-baseline justify-end gap-1 my-1">
-                    <span className="text-[10px] text-[#837565]">{t("ر.س/سنة", "SAR/yr")}</span>
+                    <span className="text-[10px] text-[#837565] dark:text-[#a89f91]">{t("ر.س/سنة", "SAR/yr")}</span>
                     <span className="font-bold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7]">
                       3,500
                     </span>
@@ -234,8 +290,8 @@ export function ChangeSubscriptionPlanModal({
                   className={cn(
                     "p-3 rounded-[4px] border transition-all cursor-pointer flex flex-col justify-between text-start",
                     selectedPlanId === "silver"
-                      ? "bg-[#fff9ee] dark:bg-[#342711] border-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-                      : "bg-[#f5f3ef]/50 dark:bg-[#281c15] border-transparent hover:border-[#eae8e4] opacity-85"
+                      ? "bg-[#fff9ee] dark:bg-[#342711] border-[#9c6402] dark:border-[#e29d38] shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
+                      : "bg-[#f5f3ef]/50 dark:bg-[#281c15] border-[#e4e2de] dark:border-[#38271c] hover:border-[#9c6402]/40 dark:hover:border-[#e29d38]/40 hover:bg-[#f5f3ef] dark:hover:bg-[#2e2018]"
                   )}
                 >
                   <div className="flex items-center justify-between pb-1 gap-1">
@@ -247,7 +303,7 @@ export function ChangeSubscriptionPlanModal({
                     </span>
                   </div>
                   <div className="flex items-baseline justify-end gap-1 my-1">
-                    <span className="text-[10px] text-[#837565]">{t("ر.س/سنة", "SAR/yr")}</span>
+                    <span className="text-[10px] text-[#837565] dark:text-[#a89f91]">{t("ر.س/سنة", "SAR/yr")}</span>
                     <span className="font-semibold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7]">
                       9,200
                     </span>
@@ -264,8 +320,8 @@ export function ChangeSubscriptionPlanModal({
                   className={cn(
                     "p-3 rounded-[4px] border transition-all cursor-pointer flex flex-col justify-between text-start",
                     selectedPlanId === "gold"
-                      ? "bg-[#fff9ee] dark:bg-[#342711] border-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-                      : "bg-[#f5f3ef]/50 dark:bg-[#281c15] border-transparent hover:border-[#eae8e4] opacity-85"
+                      ? "bg-[#fff9ee] dark:bg-[#342711] border-[#9c6402] dark:border-[#e29d38] shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
+                      : "bg-[#f5f3ef]/50 dark:bg-[#281c15] border-[#e4e2de] dark:border-[#38271c] hover:border-[#9c6402]/40 dark:hover:border-[#e29d38]/40 hover:bg-[#f5f3ef] dark:hover:bg-[#2e2018]"
                   )}
                 >
                   <div className="flex items-center justify-between pb-1 gap-1">
@@ -274,11 +330,11 @@ export function ChangeSubscriptionPlanModal({
                         {t("المختارة", "Selected")}
                       </span>
                     ) : (
-                      <span className="text-[10px] text-[#837565]">&nbsp;</span>
+                      <span className="text-[10px] text-[#837565] dark:text-[#a89f91]">&nbsp;</span>
                     )}
                     <div className="flex items-center gap-1 text-[#7b4e00] dark:text-[#f59e0b]">
                       {selectedPlanId === "gold" && (
-                        <Check className="w-3 h-3 text-[#9c6402]" />
+                        <Check className="w-3 h-3 text-[#9c6402] dark:text-[#e29d38]" />
                       )}
                       <span className="font-bold text-[12px]">{t("الذهبية", "Gold")}</span>
                     </div>
@@ -303,8 +359,8 @@ export function ChangeSubscriptionPlanModal({
                   className={cn(
                     "p-3 rounded-[4px] border transition-all cursor-pointer flex flex-col justify-between text-start",
                     selectedPlanId === "custom"
-                      ? "bg-[#fff9ee] dark:bg-[#342711] border-[#9c6402] shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-                      : "bg-[#f5f3ef]/50 dark:bg-[#281c15] border-transparent hover:border-[#eae8e4] opacity-85"
+                      ? "bg-[#fff9ee] dark:bg-[#342711] border-[#9c6402] dark:border-[#e29d38] shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
+                      : "bg-[#f5f3ef]/50 dark:bg-[#281c15] border-[#e4e2de] dark:border-[#38271c] hover:border-[#9c6402]/40 dark:hover:border-[#e29d38]/40 hover:bg-[#f5f3ef] dark:hover:bg-[#2e2018]"
                   )}
                 >
                   <div className="flex items-center justify-between pb-1 gap-1">
@@ -313,7 +369,7 @@ export function ChangeSubscriptionPlanModal({
                     </span>
                     <div className="flex items-center gap-1 text-[#1d4ed8] dark:text-[#93c5fd]">
                       {selectedPlanId === "custom" && (
-                        <Check className="w-3 h-3 text-[#9c6402]" />
+                        <Check className="w-3 h-3 text-[#9c6402] dark:text-[#e29d38]" />
                       )}
                       <span className="font-bold text-[12px] text-[#1b1c1a] dark:text-[#fdfbf7]">
                         {t("مخصصة", "Custom")}
@@ -359,14 +415,14 @@ export function ChangeSubscriptionPlanModal({
                       {t("السعر السنوي (ر.س)", "Annual price (SAR)")}
                     </label>
                     <input
-                      type="number"
-                      min={1}
+                      type="text"
+                      inputMode="numeric"
                       dir="ltr"
                       value={customConfig.annualPrice}
                       onChange={(e) =>
                         setCustomConfig({
                           ...customConfig,
-                          annualPrice: Number(e.target.value) || 0,
+                          annualPrice: Number(e.target.value.replace(/\D/g, "")) || 0,
                         })
                       }
                       className={fieldClass}
@@ -377,14 +433,14 @@ export function ChangeSubscriptionPlanModal({
                       {t("عدد المحامين", "Lawyers limit")}
                     </label>
                     <input
-                      type="number"
-                      min={1}
+                      type="text"
+                      inputMode="numeric"
                       dir="ltr"
                       value={customConfig.lawyersLimit}
                       onChange={(e) =>
                         setCustomConfig({
                           ...customConfig,
-                          lawyersLimit: Number(e.target.value) || 0,
+                          lawyersLimit: Number(e.target.value.replace(/\D/g, "")) || 0,
                         })
                       }
                       className={fieldClass}
@@ -395,14 +451,14 @@ export function ChangeSubscriptionPlanModal({
                       {t("عدد القضايا", "Cases limit")}
                     </label>
                     <input
-                      type="number"
-                      min={1}
+                      type="text"
+                      inputMode="numeric"
                       dir="ltr"
                       value={customConfig.casesLimit}
                       onChange={(e) =>
                         setCustomConfig({
                           ...customConfig,
-                          casesLimit: Number(e.target.value) || 0,
+                          casesLimit: Number(e.target.value.replace(/\D/g, "")) || 0,
                         })
                       }
                       className={fieldClass}
@@ -413,14 +469,14 @@ export function ChangeSubscriptionPlanModal({
                       {t("التخزين (GB)", "Storage (GB)")}
                     </label>
                     <input
-                      type="number"
-                      min={1}
+                      type="text"
+                      inputMode="numeric"
                       dir="ltr"
                       value={customConfig.storageGb}
                       onChange={(e) =>
                         setCustomConfig({
                           ...customConfig,
-                          storageGb: Number(e.target.value) || 0,
+                          storageGb: Number(e.target.value.replace(/\D/g, "")) || 0,
                         })
                       }
                       className={fieldClass}
@@ -475,20 +531,29 @@ export function ChangeSubscriptionPlanModal({
             {/* Section 3: موعد سريان التغيير */}
             <div className="space-y-2" data-node-id="1:7050">
               <div className="flex items-center gap-1.5 justify-start">
-                <div className="bg-[#9c6402] h-3 w-1 rounded-full shrink-0" />
+                <div className="bg-[#9c6402] dark:bg-[#e29d38] h-3 w-1 rounded-full shrink-0" />
                 <span className="font-bold text-[12px] text-[#1b1c1a] dark:text-[#fdfbf7]">
                   {t("موعد سريان التغيير", "Effective Date")}
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <label
+                {/* Option 1: تطبيق فوري مع التسوية */}
+                <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setTimingOption("immediate")}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setTimingOption("immediate");
+                    }
+                  }}
                   className={cn(
                     "p-3 rounded-[4px] border flex items-center justify-between transition-all cursor-pointer",
                     timingOption === "immediate"
-                      ? "border-[#9c6402] bg-[#fff9ee]/40 dark:bg-[#342711]"
-                      : "border-[#e4e2de] dark:border-[#38271c] hover:bg-[#faf9f7]"
+                      ? "border-[#9c6402] dark:border-[#e29d38] bg-[#fff9ee] dark:bg-[#342711] shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
+                      : "border-[#e4e2de] dark:border-[#38271c] bg-[#f5f3ef]/40 dark:bg-[#281c15] hover:bg-[#f5f3ef] dark:hover:bg-[#2e2018] hover:border-[#9c6402]/40 dark:hover:border-[#e29d38]/40"
                   )}
                 >
                   <div className="text-start">
@@ -507,36 +572,59 @@ export function ChangeSubscriptionPlanModal({
                           )}
                     </div>
                   </div>
-                  <div className="size-4 rounded-full border border-[#9c6402] flex items-center justify-center p-0.5 shrink-0">
+                  <div
+                    className={cn(
+                      "size-4 rounded-full border flex items-center justify-center p-0.5 shrink-0 transition-colors",
+                      timingOption === "immediate"
+                        ? "border-[#9c6402] dark:border-[#e29d38]"
+                        : "border-[#c4b9ac] dark:border-[#5a483a]"
+                    )}
+                  >
                     {timingOption === "immediate" && (
-                      <div className="size-2 rounded-full bg-[#9c6402]" />
+                      <div className="size-2 rounded-full bg-[#9c6402] dark:bg-[#e29d38]" />
                     )}
                   </div>
-                </label>
+                </div>
 
-                <label
+                {/* Option 2: عند التجديد القادم */}
+                <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setTimingOption("renewal")}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setTimingOption("renewal");
+                    }
+                  }}
                   className={cn(
                     "p-3 rounded-[4px] border flex items-center justify-between transition-all cursor-pointer",
                     timingOption === "renewal"
-                      ? "border-[#9c6402] bg-[#fff9ee]/40 dark:bg-[#342711]"
-                      : "border-[#e4e2de] dark:border-[#38271c] hover:bg-[#faf9f7]"
+                      ? "border-[#9c6402] dark:border-[#e29d38] bg-[#fff9ee] dark:bg-[#342711] shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
+                      : "border-[#e4e2de] dark:border-[#38271c] bg-[#f5f3ef]/40 dark:bg-[#281c15] hover:bg-[#f5f3ef] dark:hover:bg-[#2e2018] hover:border-[#9c6402]/40 dark:hover:border-[#e29d38]/40"
                   )}
                 >
                   <div className="text-start">
                     <div className="font-bold text-[12px] text-[#1b1c1a] dark:text-[#fdfbf7]">
                       {t("عند التجديد القادم", "At Next Renewal")}
                     </div>
-                    <div className="text-[10px] text-[#837565] dark:text-[#a89f91] mt-0.5 font-medium">
-                      {renewalDate} ({t("0.00 ر.س الآن", "0.00 SAR now")})
+                    <div className="text-[10px] text-[#837565] dark:text-[#cdc5bd] mt-0.5 font-medium">
+                      {formattedRenewalDate} ({t("0.00 ر.س الآن", "0.00 SAR now")})
                     </div>
                   </div>
-                  <div className="size-4 rounded-full border border-[#767676] flex items-center justify-center p-0.5 shrink-0">
+                  <div
+                    className={cn(
+                      "size-4 rounded-full border flex items-center justify-center p-0.5 shrink-0 transition-colors",
+                      timingOption === "renewal"
+                        ? "border-[#9c6402] dark:border-[#e29d38]"
+                        : "border-[#c4b9ac] dark:border-[#5a483a]"
+                    )}
+                  >
                     {timingOption === "renewal" && (
-                      <div className="size-2 rounded-full bg-[#9c6402]" />
+                      <div className="size-2 rounded-full bg-[#9c6402] dark:bg-[#e29d38]" />
                     )}
                   </div>
-                </label>
+                </div>
               </div>
             </div>
           </div>
@@ -546,17 +634,22 @@ export function ChangeSubscriptionPlanModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] text-[#514537] dark:text-[#a89f91] text-[12px] font-semibold transition-colors cursor-pointer"
+              disabled={isSubmitting}
+              className="px-4 py-2 rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#34271c] text-[#514537] dark:text-[#cdc5bd] border border-[#e4e2de] dark:border-[#38271c] text-[12px] font-semibold transition-colors cursor-pointer disabled:opacity-50"
             >
               {t("إلغاء", "Cancel")}
             </button>
             <button
               type="button"
-              onClick={handleConfirmChange}
+              onClick={handleOpenConfirm}
               disabled={isSubmitting}
               className="bg-[#9c6402] hover:bg-[#825200] text-white px-5 py-2 rounded-[4px] font-bold text-[12px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
             >
-              <CheckCheck className="w-4 h-4" />
+              {isSubmitting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <CheckCheck className="w-4 h-4" />
+              )}
               <span>
                 {selectedPlanId === "custom"
                   ? t("تطبيق الباقة المخصصة", "Apply Custom Plan")
@@ -567,5 +660,24 @@ export function ChangeSubscriptionPlanModal({
         </div>
       </div>
     </ModalPortal>
+
+    <LuxuryAlertDialog
+      isOpen={showConfirmDialog}
+      onClose={() => setShowConfirmDialog(false)}
+      onConfirm={handleExecuteUpgrade}
+      variant="warning"
+      title={t("تأكيد تغيير باقة الاشتراك", "Confirm Subscription Plan Change")}
+      description={t(
+        `هل أنت متأكد من تغيير باقة اشتراك "${firmName}" إلى "${
+          selectedPlanId === "custom"
+            ? `باقة مخصصة (${customConfig.annualPrice.toLocaleString()} ر.س)`
+            : planTitleById[selectedPlanId]
+        }"؟`,
+        `Are you sure you want to change the subscription plan for "${firmName}"?`
+      )}
+      confirmLabel={t("تأكيد التغيير", "Confirm Change")}
+      cancelLabel={t("تراجع", "Cancel")}
+    />
+  </>
   );
 }

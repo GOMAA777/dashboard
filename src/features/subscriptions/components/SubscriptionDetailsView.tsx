@@ -1,16 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   SubscriptionRecord,
   SubscriptionStatus,
 } from "../types/subscription.types";
-import {
-  mockActiveSubscriptionDetails,
-  mockCancelledSubscriptionDetails,
-  mockRejectedSubscriptionDetails,
-  mockWaitingSubscriptionDetails,
-} from "../data/initialSubscriptions";
 import {
   ArrowLeft,
   Building2,
@@ -26,6 +20,10 @@ import {
   RefreshCw,
   Ban,
   Scale,
+  Loader2,
+  AlertTriangle,
+  Lock,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/lib/i18n";
@@ -34,11 +32,19 @@ import {
   approveSubscription,
   rejectSubscription,
   fetchSubscriptionById,
+  fetchSubscriptionLimitsBreakdown,
+  updateSubscriptionStatus,
+  removeCustomOffer,
 } from "@/lib/api/subscriptions";
 import { mapSubscriptionFromApi } from "@/lib/api/mappers";
 import { unwrapData } from "@/lib/api/helpers";
+import { LuxuryAlertDialog } from "@/components/shared/LuxuryAlertDialog";
+import { ModalPortal } from "@/components/shared/ModalPortal";
+import { DashboardPageSkeleton } from "@/components/shared/DashboardPageSkeleton";
+import { ApiError } from "@/lib/api/http";
 
 interface SubscriptionDetailsViewProps {
+  subscriptionId?: string;
   initialSubscription?: SubscriptionRecord;
   initialStateVariant?: SubscriptionStatus;
   onBack: () => void;
@@ -46,9 +52,11 @@ interface SubscriptionDetailsViewProps {
   onOpenRenew?: (sub: SubscriptionRecord) => void;
   onOpenChangePlan?: (sub: SubscriptionRecord) => void;
   onOpenCancel?: (sub: SubscriptionRecord) => void;
+  onRefreshList?: () => void;
 }
 
 export function SubscriptionDetailsView({
+  subscriptionId,
   initialSubscription,
   initialStateVariant = "active",
   onBack,
@@ -56,91 +64,247 @@ export function SubscriptionDetailsView({
   onOpenRenew,
   onOpenChangePlan,
   onOpenCancel,
+  onRefreshList,
 }: SubscriptionDetailsViewProps) {
   const { t, direction, isEn } = useLanguage();
 
-  // Allow toggling between the 4 Figma design states
-  const [selectedState, setSelectedState] = useState<SubscriptionStatus>(
-    initialSubscription?.status || initialStateVariant
-  );
   const [liveSubscription, setLiveSubscription] = useState<SubscriptionRecord | null>(
     initialSubscription || null
   );
+  const [selectedState, setSelectedState] = useState<SubscriptionStatus>(
+    initialSubscription?.status || initialStateVariant
+  );
+  const [isLoadingDetails, setIsLoadingDetails] = useState<boolean>(!initialSubscription);
+  const [apiError, setApiError] = useState<{ status?: number; message: string } | null>(null);
 
-  React.useEffect(() => {
-    const id = initialSubscription?.id;
-    if (!id) return;
-    let cancelled = false;
-    fetchSubscriptionById(id)
-      .then((payload) => {
-        if (cancelled) return;
-        const raw = (unwrapData<Record<string, unknown>>(payload) ||
-          payload) as Record<string, unknown>;
-        if (raw?.id || raw?.code) {
-          const mapped = mapSubscriptionFromApi(raw);
-          setLiveSubscription(mapped);
-          setSelectedState(mapped.status);
+  // Modals & Confirmation dialogs
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [rejectReasonError, setRejectReasonError] = useState("");
+  const [isSubmittingAction, setIsSubmittingAction] = useState(false);
+
+  const [confirmApproveOpen, setConfirmApproveOpen] = useState(false);
+  const [confirmReactivateOpen, setConfirmReactivateOpen] = useState(false);
+  const [confirmReReviewOpen, setConfirmReReviewOpen] = useState(false);
+  const [confirmSuspendOpen, setConfirmSuspendOpen] = useState(false);
+  const [confirmRemoveOfferOpen, setConfirmRemoveOfferOpen] = useState(false);
+
+  const effectiveId = subscriptionId || initialSubscription?.id;
+
+  const loadDetails = useCallback(async () => {
+    if (!effectiveId) return;
+    setIsLoadingDetails(true);
+    setApiError(null);
+    try {
+      const payload = await fetchSubscriptionById(effectiveId);
+      const raw = (unwrapData<Record<string, unknown>>(payload) ||
+        payload) as Record<string, unknown>;
+      if (raw && (raw.id || raw.code || raw.subscription_code)) {
+        const mapped = mapSubscriptionFromApi(raw);
+        setLiveSubscription(mapped);
+        setSelectedState(mapped.status);
+
+        // Fetch limits breakdown in background if missing
+        try {
+          const limitsPayload = await fetchSubscriptionLimitsBreakdown(effectiveId);
+          const rawLimits = unwrapData<Record<string, unknown>>(limitsPayload);
+          if (rawLimits && typeof rawLimits === "object" && !mapped.metrics) {
+            // merge metrics if server gave limits breakdown
+            const updatedRaw = { ...raw, metrics: rawLimits };
+            setLiveSubscription(mapSubscriptionFromApi(updatedRaw));
+          }
+        } catch {
+          // Non-critical auxiliary fetch
         }
-      })
-      .catch(() => {
-        // Keep initial/mock subscription.
-      });
+      }
+    } catch (err: unknown) {
+      const status = err instanceof ApiError ? err.status : undefined;
+      const message =
+        err instanceof Error
+          ? err.message
+          : t("تعذر تحميل تفاصيل الاشتراك", "Failed to load subscription details");
+      setApiError({ status, message });
+    } finally {
+      setIsLoadingDetails(false);
+    }
+  }, [effectiveId, t]);
+
+  useEffect(() => {
+    let ignore = false;
+    const timer = setTimeout(() => {
+      if (!ignore) {
+        loadDetails();
+      }
+    }, 0);
     return () => {
-      cancelled = true;
+      ignore = true;
+      clearTimeout(timer);
     };
-  }, [initialSubscription?.id]);
+  }, [loadDetails]);
 
-  // Select appropriate mock/active record corresponding to the state
-  const currentSub: SubscriptionRecord = React.useMemo(() => {
-    if (liveSubscription && liveSubscription.status === selectedState) {
-      return liveSubscription;
-    }
-    switch (selectedState) {
-      case "cancelled":
-        return mockCancelledSubscriptionDetails;
-      case "rejected":
-        return mockRejectedSubscriptionDetails;
-      case "pending":
-        return mockWaitingSubscriptionDetails;
-      case "active":
-      default:
-        return liveSubscription || initialSubscription || mockActiveSubscriptionDetails;
-    }
-  }, [selectedState, initialSubscription, liveSubscription]);
+  // Current subscription is strictly live data or initial data passed
+  const currentSub: SubscriptionRecord | null = useMemo(() => {
+    return liveSubscription || initialSubscription || null;
+  }, [liveSubscription, initialSubscription]);
 
-  const handleReactivate = () => {
-    setSelectedState("active");
-    onStatusChange?.(currentSub.id, "active");
-    toast.success(t("تم إرسال طلب إعادة تفعيل الاشتراك بنجاح", "Subscription reactivation request submitted successfully"));
-  };
-
-  const handleApprovePending = async () => {
+  const handleApprove = async () => {
+    if (!currentSub) return;
+    setConfirmApproveOpen(false);
+    setIsSubmittingAction(true);
     try {
       await approveSubscription(currentSub.id);
-    } catch {
-      // Keep local approve.
+      toast.success(t("تمت الموافقة وتفعيل الاشتراك بنجاح", "Subscription approved and activated successfully"));
+      await loadDetails();
+      onStatusChange?.(currentSub.id, "active");
+      onRefreshList?.();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : t("حدث خطأ أثناء اعتماد الاشتراك", "Error approving subscription"));
+    } finally {
+      setIsSubmittingAction(false);
     }
-    setSelectedState("active");
-    onStatusChange?.(currentSub.id, "active");
-    toast.success(t("تمت الموافقة وتفعيل الاشتراك بنجاح", "Subscription approved and activated successfully"));
   };
 
-  const handleRejectPending = async () => {
+  const handleExecuteReject = async () => {
+    if (!currentSub) return;
+    if (!rejectReason.trim()) {
+      setRejectReasonError(t("يرجى كتابة سبب رفض طلب الاشتراك", "Please enter rejection reason"));
+      return;
+    }
+    setRejectReasonError("");
+    setIsSubmittingAction(true);
     try {
-      await rejectSubscription(currentSub.id, "رفض إداري من لوحة الإدارة");
-    } catch {
-      // Keep local reject.
+      await rejectSubscription(currentSub.id, rejectReason.trim());
+      toast.success(t("تم رفض طلب الاشتراك بنجاح", "Subscription request rejected"));
+      setIsRejectModalOpen(false);
+      setRejectReason("");
+      await loadDetails();
+      onStatusChange?.(currentSub.id, "rejected");
+      onRefreshList?.();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : t("حدث خطأ أثناء رفض الاشتراك", "Error rejecting subscription"));
+    } finally {
+      setIsSubmittingAction(false);
     }
-    setSelectedState("rejected");
-    onStatusChange?.(currentSub.id, "rejected");
-    toast.error(t("تم رفض طلب الاشتراك وتحويله لحالة الرفض", "Subscription request rejected"));
   };
 
-  const handleReReview = () => {
-    setSelectedState("pending");
-    onStatusChange?.(currentSub.id, "pending");
-    toast.info(t("تم فتح طلب إعادة المراجعة ونقله لقيد الانتظار", "Re-review opened and moved to pending"));
+  const handleReactivate = async () => {
+    if (!currentSub) return;
+    setConfirmReactivateOpen(false);
+    setIsSubmittingAction(true);
+    try {
+      await updateSubscriptionStatus(currentSub.id, "active");
+      toast.success(t("تم إعادة تفعيل الاشتراك بنجاح", "Subscription reactivated successfully"));
+      await loadDetails();
+      onStatusChange?.(currentSub.id, "active");
+      onRefreshList?.();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : t("حدث خطأ أثناء تفعيل الاشتراك", "Error activating subscription"));
+    } finally {
+      setIsSubmittingAction(false);
+    }
   };
+
+  const handleReReview = async () => {
+    if (!currentSub) return;
+    setConfirmReReviewOpen(false);
+    setIsSubmittingAction(true);
+    try {
+      await updateSubscriptionStatus(currentSub.id, "pending");
+      toast.success(t("تم نقل الطلب إلى قيد الانتظار بنجاح", "Request moved to pending successfully"));
+      await loadDetails();
+      onStatusChange?.(currentSub.id, "pending");
+      onRefreshList?.();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : t("حدث خطأ أثناء نقل الطلب", "Error updating status"));
+    } finally {
+      setIsSubmittingAction(false);
+    }
+  };
+
+  const handleSuspend = async () => {
+    if (!currentSub) return;
+    setConfirmSuspendOpen(false);
+    setIsSubmittingAction(true);
+    try {
+      await updateSubscriptionStatus(currentSub.id, "suspended");
+      toast.success(t("تم تعليق الاشتراك بنجاح", "Subscription suspended successfully"));
+      await loadDetails();
+      onStatusChange?.(currentSub.id, "suspended");
+      onRefreshList?.();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : t("حدث خطأ أثناء تعليق الاشتراك", "Error suspending subscription"));
+    } finally {
+      setIsSubmittingAction(false);
+    }
+  };
+
+  const handleRemoveCustomOffer = async () => {
+    if (!currentSub) return;
+    setConfirmRemoveOfferOpen(false);
+    setIsSubmittingAction(true);
+    try {
+      await removeCustomOffer(currentSub.id);
+      toast.success(t("تم إلغاء العرض المخصص والعودة للباقة الأساسية بنجاح", "Custom offer removed successfully"));
+      await loadDetails();
+      onRefreshList?.();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : t("حدث خطأ أثناء إلغاء العرض", "Error removing custom offer"));
+    } finally {
+      setIsSubmittingAction(false);
+    }
+  };
+
+  // 1. Loading State
+  if (isLoadingDetails && !currentSub) {
+    return <DashboardPageSkeleton />;
+  }
+
+  // 2. Error State with Retry Button
+  if (apiError && !currentSub) {
+    return (
+      <div
+        dir={direction}
+        className="flex flex-col items-center justify-center p-8 bg-white dark:bg-[#221812] border border-[#f0eeea] dark:border-[#38271c] rounded-[8px] my-6 font-['Cairo'] text-center w-full"
+      >
+        <div className="size-12 rounded-full bg-[#fef2f2] dark:bg-[#311616] text-[#dc2626] flex items-center justify-center mb-3">
+          <AlertTriangle className="size-6" />
+        </div>
+        <h3 className="text-[18px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] mb-1">
+          {apiError.status === 404
+            ? t("الاشتراك المطلوب غير موجود", "Subscription Not Found")
+            : apiError.status === 403
+              ? t("غير مصرح لك بعرض تفاصيل هذا الاشتراك", "Access Denied")
+              : t("تعذر تحميل تفاصيل الاشتراك", "Failed to Load Subscription Details")}
+        </h3>
+        <p className="text-[13px] text-[#514537] dark:text-[#a89f91] mb-5 max-w-md">
+          {apiError.message || t("يرجى التحقق من اتصال الخادم وإعادة المحاولة", "Please verify server connection and retry")}
+        </p>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={loadDetails}
+            className="flex items-center gap-1.5 px-4 py-2 bg-[#9c6402] hover:bg-[#825200] text-white rounded-[4px] font-semibold text-[13px] transition-colors cursor-pointer"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span>{t("إعادة المحاولة", "Retry")}</span>
+          </button>
+          <button
+            type="button"
+            onClick={onBack}
+            className="px-4 py-2 bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] rounded-[4px] font-semibold text-[13px] hover:bg-[#eae8e4] transition-colors cursor-pointer"
+          >
+            {t("العودة إلى إدارة الاشتراكات", "Back to Subscriptions")}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentSub) {
+    return null;
+  }
+
+  const effectiveStatus = currentSub.status;
 
   return (
     <div
@@ -148,7 +312,7 @@ export function SubscriptionDetailsView({
       className="flex flex-col gap-6 w-full font-['Cairo'] pb-12"
       data-name="Subscription Details Main View"
     >
-      {/* Top Header & State Switcher Strip */}
+      {/* Top Header & State Status Strip */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white dark:bg-[#221812] p-4 rounded-[8px] border border-[#f0eeea] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]">
         <div className="flex items-center gap-3">
           <button
@@ -168,90 +332,85 @@ export function SubscriptionDetailsView({
               {currentSub.id}
             </span>
           </div>
+
+          {currentSub.isCustomOffer && (
+            <span className="bg-[#fff9ee] dark:bg-[#2d1f16] border border-[#eeddbb] dark:border-[#4d3627] text-[#9c6402] dark:text-[#e29d38] font-bold text-[11px] px-2.5 py-0.5 rounded-full">
+              {t("عرض مخصص", "Custom Offer")}
+            </span>
+          )}
         </div>
 
-        {/* State Simulator Pill Switcher */}
-        <div className="flex items-center gap-1 bg-[#f5f3ef] dark:bg-[#281c15] p-1 rounded-[8px] self-stretch md:self-auto overflow-x-auto">
-          <button
-            type="button"
-            onClick={() => setSelectedState("active")}
-            className={`px-3 py-1 rounded-[6px] text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${
-              selectedState === "active"
-                ? "bg-white dark:bg-[#1a120d] text-[#059669] shadow-xs"
-                : "text-[#514537] dark:text-[#a89f91] hover:text-[#1b1c1a]"
-            }`}
+        {/* State Status Badge */}
+        <div className="flex items-center gap-2">
+          <div
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1 rounded-[6px] text-[12px] font-bold shadow-2xs",
+              effectiveStatus === "active" && "bg-[#ecfdf5] dark:bg-[#132c21] text-[#065f46] dark:text-[#6ee7b7] border border-emerald-200 dark:border-emerald-500/40",
+              effectiveStatus === "pending" && "bg-[#fffbeb] dark:bg-[#342711] text-[#78350f] dark:text-[#fbbf24] border border-amber-200 dark:border-amber-500/40",
+              effectiveStatus === "cancelled" && "bg-[#fef2f2] dark:bg-[#311616] text-[#991b1b] dark:text-[#f87171] border border-red-200 dark:border-red-500/40",
+              effectiveStatus === "rejected" && "bg-[#fff1f2] dark:bg-[#38141b] text-[#9f1239] dark:text-[#fb7185] border border-rose-200 dark:border-rose-500/40",
+              (effectiveStatus === "expired" || effectiveStatus === "suspended") && "bg-[#f5f3ef] dark:bg-[#281c15] text-[#514537] dark:text-[#cdc5bd] border border-[#e4e2de] dark:border-[#38271c]"
+            )}
           >
-            ● {t("نشط (1:5878)", "Active (1:5878)")}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setSelectedState("pending")}
-            className={`px-3 py-1 rounded-[6px] text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${
-              selectedState === "pending"
-                ? "bg-white dark:bg-[#1a120d] text-[#b45309] shadow-xs"
-                : "text-[#514537] dark:text-[#a89f91] hover:text-[#1b1c1a]"
-            }`}
-          >
-            ● {t("قيد الانتظار (1:8149)", "Pending (1:8149)")}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setSelectedState("cancelled")}
-            className={`px-3 py-1 rounded-[6px] text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${
-              selectedState === "cancelled"
-                ? "bg-white dark:bg-[#1a120d] text-[#dc2626] shadow-xs"
-                : "text-[#514537] dark:text-[#a89f91] hover:text-[#1b1c1a]"
-            }`}
-          >
-            ● {t("ملغي (1:7196)", "Cancelled (1:7196)")}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setSelectedState("rejected")}
-            className={`px-3 py-1 rounded-[6px] text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${
-              selectedState === "rejected"
-                ? "bg-white dark:bg-[#1a120d] text-[#be123c] shadow-xs"
-                : "text-[#514537] dark:text-[#a89f91] hover:text-[#1b1c1a]"
-            }`}
-          >
-            ● {t("مرفوض (1:7769)", "Rejected (1:7769)")}
-          </button>
+            <span className="size-2 rounded-full bg-current shrink-0" />
+            <span>{currentSub.statusLabel}</span>
+          </div>
         </div>
 
-        {/* Action Commands: Renew, Change Plan, Cancel */}
-        <div className="flex items-center gap-2 self-stretch md:self-auto justify-end">
-          <button
-            type="button"
-            onClick={() => onOpenRenew?.(currentSub)}
-            className="bg-[#9c6402] hover:bg-[#825200] text-white px-3.5 py-1.5 rounded-[4px] font-semibold text-[12px] flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>{t("تجديد الاشتراك", "Renew Subscription")}</span>
-          </button>
+        {/* Action Commands: Renew, Change Plan, Cancel, Suspend */}
+        <div className="flex items-center gap-2 self-stretch md:self-auto justify-end flex-wrap">
+          {effectiveStatus === "active" && (
+            <>
+              <button
+                type="button"
+                onClick={() => onOpenRenew?.(currentSub)}
+                className="bg-[#9c6402] hover:bg-[#825200] text-white px-3.5 py-1.5 rounded-[4px] font-semibold text-[12px] flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>{t("تجديد الاشتراك", "Renew Subscription")}</span>
+              </button>
 
-          <button
-            type="button"
-            onClick={() => onOpenChangePlan?.(currentSub)}
-            className="bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] text-[#1b1c1a] dark:text-[#fdfbf7] border border-[#e4e2de] dark:border-[#38271c] px-3.5 py-1.5 rounded-[4px] font-semibold text-[12px] flex items-center gap-1.5 transition-colors cursor-pointer"
-          >
-            <span>{t("تغيير الباقة", "Change Plan")}</span>
-          </button>
+              <button
+                type="button"
+                onClick={() => onOpenChangePlan?.(currentSub)}
+                className="bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] text-[#1b1c1a] dark:text-[#fdfbf7] border border-[#e4e2de] dark:border-[#38271c] px-3.5 py-1.5 rounded-[4px] font-semibold text-[12px] flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <span>{t("تغيير الباقة", "Change Plan")}</span>
+              </button>
 
-          <button
-            type="button"
-            onClick={() => onOpenCancel?.(currentSub)}
-            className="bg-transparent hover:bg-[#fef2f2] text-[#dc2626] border border-[#fecaca] px-3.5 py-1.5 rounded-[4px] font-semibold text-[12px] flex items-center gap-1.5 transition-colors cursor-pointer"
-          >
-            <span>{t("إلغاء الاشتراك", "Cancel Subscription")}</span>
-          </button>
+              <button
+                type="button"
+                onClick={() => setConfirmSuspendOpen(true)}
+                className="bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] text-[#b45309] dark:text-[#fbbf24] border border-[#e4e2de] dark:border-[#38271c] px-3.5 py-1.5 rounded-[4px] font-semibold text-[12px] flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>{t("تعليق", "Suspend")}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onOpenCancel?.(currentSub)}
+                className="bg-transparent hover:bg-[#fef2f2] text-[#dc2626] border border-[#fecaca] px-3.5 py-1.5 rounded-[4px] font-semibold text-[12px] flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <span>{t("إلغاء الاشتراك", "Cancel Subscription")}</span>
+              </button>
+            </>
+          )}
+
+          {currentSub.isCustomOffer && (
+            <button
+              type="button"
+              onClick={() => setConfirmRemoveOfferOpen(true)}
+              className="bg-transparent hover:bg-[#fef2f2] text-[#dc2626] border border-[#fecaca] px-3.5 py-1.5 rounded-[4px] font-semibold text-[12px] flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <span>{t("إلغاء العرض المخصص", "Remove Custom Offer")}</span>
+            </button>
+          )}
         </div>
       </div>
 
       {/* State-Specific Alert Banners */}
-      {selectedState === "cancelled" && (
+      {effectiveStatus === "cancelled" && (
         <div
           className="bg-[#fef2f2] dark:bg-[#311616] border border-[#fecaca] dark:border-[#582121] p-4 rounded-[8px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
           data-node-id="1:7196-banner"
@@ -262,30 +421,35 @@ export function SubscriptionDetailsView({
             </div>
             <div>
               <h3 className="font-bold text-[14px] text-[#991b1b] dark:text-[#f87171]">
-                {t(
-                  "تنبيه: تم إلغاء هذا الاشتراك نهائياً بتاريخ 15 أكتوبر 2024 بناءً على طلب العميل",
-                  "Notice: This subscription was permanently cancelled on Oct 15, 2024 per client request"
-                )}
+                {t("تنبيه: تم إلغاء هذا الاشتراك", "Notice: This subscription is cancelled")}
+                {currentSub.cancellationDate ? ` (${currentSub.cancellationDate})` : ""}
               </h3>
               <p className="text-[12px] text-[#b91c1c] dark:text-[#fca5a5]">
-                {t(
-                  "تم تجميد الوصول لجميع الخدمات السحابية والربط الحكومي. البيانات محفوظة بصيغة القراءة فقط.",
-                  "Cloud services & gov integrations frozen. Data preserved in read-only mode."
-                )}
+                {currentSub.cancellationReason
+                  ? `${t("السبب المسجل:", "Reason:")} ${currentSub.cancellationReason}`
+                  : t(
+                      "تم تجميد الوصول لجميع الخدمات السحابية والربط الحكومي. البيانات محفوظة بصيغة القراءة فقط.",
+                      "Cloud services & gov integrations frozen. Data preserved in read-only mode."
+                    )}
               </p>
             </div>
           </div>
           <button
             type="button"
-            onClick={handleReactivate}
-            className="bg-[#dc2626] hover:bg-[#b91c1c] text-white px-4 py-2 rounded-[6px] font-bold text-[12px] shadow-xs transition-colors shrink-0 cursor-pointer"
+            onClick={() => setConfirmReactivateOpen(true)}
+            disabled={isSubmittingAction}
+            className="bg-[#dc2626] hover:bg-[#b91c1c] text-white px-4 py-2 rounded-[6px] font-bold text-[12px] shadow-xs transition-colors shrink-0 cursor-pointer disabled:opacity-50"
           >
-            {t("إعادة تفعيل الاشتراك", "Reactivate Subscription")}
+            {isSubmittingAction ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              t("إعادة تفعيل الاشتراك", "Reactivate Subscription")
+            )}
           </button>
         </div>
       )}
 
-      {selectedState === "rejected" && (
+      {effectiveStatus === "rejected" && (
         <div
           className="bg-[#fff1f2] dark:bg-[#38141b] border border-[#fecdd3] dark:border-[#5a1b26] p-4 rounded-[8px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
           data-node-id="1:7769-banner"
@@ -296,30 +460,35 @@ export function SubscriptionDetailsView({
             </div>
             <div>
               <h3 className="font-bold text-[14px] text-[#9f1239] dark:text-[#fb7185]">
-                {t(
-                  "تنبيه: تم رفض طلب الاشتراك بتاريخ 24 أكتوبر 2024",
-                  "Notice: Subscription request was rejected on Oct 24, 2024"
-                )}
+                {t("تنبيه: تم رفض طلب الاشتراك", "Notice: Subscription request was rejected")}
+                {currentSub.rejectionDate ? ` (${currentSub.rejectionDate})` : ""}
               </h3>
               <p className="text-[12px] text-[#be123c] dark:text-[#fda4af]">
-                {t(
-                  "السبب: عدم مطابقة السجل التجاري مع ترخيص وزارة العدل المرفق. تم تقييد فتح أي قضايا أو مستخدمين.",
-                  "Reason: CR does not match the attached MOJ license. Opening cases or users is restricted."
-                )}
+                {currentSub.rejectionReason
+                  ? `${t("السبب:", "Reason:")} ${currentSub.rejectionReason}`
+                  : t(
+                      "السبب: عدم مطابقة السجل التجاري مع ترخيص وزارة العدل المرفق.",
+                      "Reason: CR does not match the attached MOJ license."
+                    )}
               </p>
             </div>
           </div>
           <button
             type="button"
-            onClick={handleReReview}
-            className="bg-[#be123c] hover:bg-[#9f1239] text-white px-4 py-2 rounded-[6px] font-bold text-[12px] shadow-xs transition-colors shrink-0 cursor-pointer"
+            onClick={() => setConfirmReReviewOpen(true)}
+            disabled={isSubmittingAction}
+            className="bg-[#be123c] hover:bg-[#9f1239] text-white px-4 py-2 rounded-[6px] font-bold text-[12px] shadow-xs transition-colors shrink-0 cursor-pointer disabled:opacity-50"
           >
-            {t("إعادة المراجعة وفتح الطلب", "Re-review & Open Request")}
+            {isSubmittingAction ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              t("إعادة المراجعة وفتح الطلب", "Re-review & Open Request")
+            )}
           </button>
         </div>
       )}
 
-      {selectedState === "pending" && (
+      {effectiveStatus === "pending" && (
         <div
           className="bg-[#fffbeb] dark:bg-[#342711] border border-[#fde68a] dark:border-[#5c4217] p-4 rounded-[8px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
           data-node-id="1:8149-banner"
@@ -343,13 +512,28 @@ export function SubscriptionDetailsView({
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={handleApprovePending}
-            className="bg-[#059669] hover:bg-[#047857] text-white px-4 py-2 rounded-[6px] font-bold text-[12px] shadow-xs transition-colors shrink-0 cursor-pointer"
-          >
-            {t("مراجعة واعتماد الاشتراك", "Review & Approve")}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsRejectModalOpen(true)}
+              disabled={isSubmittingAction}
+              className="bg-transparent hover:bg-[#fef2f2] text-[#dc2626] border border-[#fecaca] px-3.5 py-1.5 rounded-[6px] font-bold text-[12px] transition-colors cursor-pointer disabled:opacity-50"
+            >
+              {t("رفض الطلب", "Reject Request")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmApproveOpen(true)}
+              disabled={isSubmittingAction}
+              className="bg-[#059669] hover:bg-[#047857] text-white px-4 py-2 rounded-[6px] font-bold text-[12px] shadow-xs transition-colors shrink-0 cursor-pointer disabled:opacity-50"
+            >
+              {isSubmittingAction ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                t("مراجعة واعتماد الطلب", "Review & Approve")
+              )}
+            </button>
+          </div>
         </div>
       )}
 
@@ -1109,15 +1293,21 @@ export function SubscriptionDetailsView({
             <div className="pt-6 border-t border-[#f0eeea] dark:border-[#38271c] flex flex-col gap-2.5 mt-6">
               <button
                 type="button"
-                onClick={handleApprovePending}
-                className="w-full bg-[#059669] hover:bg-[#047857] text-white py-2.5 rounded-[6px] font-bold text-[13px] shadow-xs transition-colors cursor-pointer"
+                onClick={() => setConfirmApproveOpen(true)}
+                disabled={isSubmittingAction}
+                className="w-full bg-[#059669] hover:bg-[#047857] text-white py-2.5 rounded-[6px] font-bold text-[13px] shadow-xs transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {t("الموافقة وتفعيل الاشتراك", "Approve & Activate")}
+                {isSubmittingAction ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <span>{t("الموافقة وتفعيل الاشتراك", "Approve & Activate")}</span>
+                )}
               </button>
               <button
                 type="button"
-                onClick={handleRejectPending}
-                className="w-full bg-transparent hover:bg-[#fef2f2] text-[#dc2626] border border-[#fecaca] py-2.5 rounded-[6px] font-bold text-[13px] transition-colors cursor-pointer"
+                onClick={() => setIsRejectModalOpen(true)}
+                disabled={isSubmittingAction}
+                className="w-full bg-transparent hover:bg-[#fef2f2] text-[#dc2626] border border-[#fecaca] py-2.5 rounded-[6px] font-bold text-[13px] transition-colors cursor-pointer disabled:opacity-50"
               >
                 {t("رفض الطلب", "Reject Request")}
               </button>
@@ -1324,6 +1514,176 @@ export function SubscriptionDetailsView({
           </div>
         </div>
       )}
+
+      {/* Reject Reason Modal */}
+      {isRejectModalOpen && (
+        <ModalPortal isOpen={isRejectModalOpen}>
+          <div
+            dir={direction}
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs font-['Cairo']"
+            onClick={(e) => {
+              if (e.target === e.currentTarget && !isSubmittingAction) setIsRejectModalOpen(false);
+            }}
+          >
+            <div
+              className="bg-white dark:bg-[#221812] border border-[#d6c4b1]/40 dark:border-[#38271c] rounded-[8px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="h-[4px] bg-[#dc2626] w-full shrink-0" />
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[#f0eeea] dark:border-[#38271c] bg-white dark:bg-[#221812]">
+                <div className="flex items-center gap-3">
+                  <div className="size-10 rounded-[12px] bg-[#fef2f2] dark:bg-[#311616] flex items-center justify-center text-[#dc2626] shrink-0">
+                    <XCircle className="w-5 h-5" />
+                  </div>
+                  <h2 className="font-bold text-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">
+                    {t("رفض طلب الاشتراك", "Reject Subscription Request")}
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsRejectModalOpen(false)}
+                  disabled={isSubmittingAction}
+                  className="size-8 rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] text-[#514537] dark:text-[#a89f91] flex items-center justify-center transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <p className="text-[13px] text-[#514537] dark:text-[#a89f91] leading-relaxed">
+                  {t(
+                    "يرجى تسجيل سبب رفض طلب الاشتراك بشكل واضح ليتم حفظه في سجل التدقيق وإبلاغ المنشأة به.",
+                    "Please record the rejection reason clearly for audit logging and firm notification."
+                  )}
+                </p>
+
+                <div className="space-y-1.5 text-start">
+                  <label className="text-[12px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
+                    <span className="text-[#dc2626] me-1">*</span>
+                    {t("سبب الرفض", "Rejection Reason")}
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={rejectReason}
+                    onChange={(e) => {
+                      setRejectReason(e.target.value);
+                      if (rejectReasonError) setRejectReasonError("");
+                    }}
+                    placeholder={t(
+                      "مثال: عدم تطابق السجل التجاري مع وثيقة ترخيص المحاماة الصادرة من وزارة العدل...",
+                      "e.g. License does not match commercial register..."
+                    )}
+                    className={cn(
+                      "w-full p-2.5 bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder-[#837565] rounded-[4px] text-[12px] border focus:outline-none focus:ring-1 focus:ring-[#9c6402] resize-none",
+                      rejectReasonError ? "border-[#dc2626]" : "border-[#e4e2de] dark:border-[#38271c]"
+                    )}
+                  />
+                  {rejectReasonError && (
+                    <p className="text-[11px] text-[#dc2626] font-semibold mt-1">
+                      {rejectReasonError}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 px-6 py-4 bg-[#faf9f7] dark:bg-[#221812] border-t border-[#f0eeea] dark:border-[#38271c]">
+                <button
+                  type="button"
+                  onClick={() => setIsRejectModalOpen(false)}
+                  disabled={isSubmittingAction}
+                  className="px-4 py-2 rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] text-[#514537] dark:text-[#a89f91] text-[12px] font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {t("إلغاء", "Cancel")}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleExecuteReject}
+                  disabled={isSubmittingAction}
+                  className="bg-[#dc2626] hover:bg-[#b91c1c] text-white px-5 py-2 rounded-[4px] font-bold text-[12px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {isSubmittingAction ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="w-4 h-4" />
+                  )}
+                  <span>{t("تأكيد رفض الطلب", "Confirm Rejection")}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
+
+      {/* Confirmation Dialogs */}
+      <LuxuryAlertDialog
+        isOpen={confirmApproveOpen}
+        onClose={() => setConfirmApproveOpen(false)}
+        onConfirm={handleApprove}
+        variant="success"
+        title={t("تأكيد اعتماد وتفعيل الاشتراك", "Confirm Subscription Approval")}
+        description={t(
+          `هل أنت متأكد من رغبتك في اعتماد طلب اشتراك "${currentSub.firm.name}" وتفعيله رسمياً؟`,
+          `Are you sure you want to approve and activate the subscription for "${currentSub.firm.name}"?`
+        )}
+        confirmLabel={t("تأكيد الاعتماد والتفعيل", "Confirm & Activate")}
+        cancelLabel={t("تراجع", "Cancel")}
+      />
+
+      <LuxuryAlertDialog
+        isOpen={confirmReactivateOpen}
+        onClose={() => setConfirmReactivateOpen(false)}
+        onConfirm={handleReactivate}
+        variant="warning"
+        title={t("تأكيد إعادة تفعيل الاشتراك", "Confirm Reactivation")}
+        description={t(
+          `هل أنت متأكد من إعادة تفعيل هذا الاشتراك الملغي لمكتب "${currentSub.firm.name}"؟`,
+          `Are you sure you want to reactivate this cancelled subscription?`
+        )}
+        confirmLabel={t("تأكيد إعادة التفعيل", "Confirm Reactivation")}
+        cancelLabel={t("تراجع", "Cancel")}
+      />
+
+      <LuxuryAlertDialog
+        isOpen={confirmReReviewOpen}
+        onClose={() => setConfirmReReviewOpen(false)}
+        onConfirm={handleReReview}
+        variant="info"
+        title={t("تأكيد فتح الطلب لإعادة المراجعة", "Confirm Re-review")}
+        description={t(
+          `هل أنت متأكد من نقل هذا الطلب المرفوض إلى قائمة قيد الانتظار لإعادة التدقيق والمراجعة؟`,
+          `Are you sure you want to move this rejected request to pending for re-review?`
+        )}
+        confirmLabel={t("تأكيد إعادة المراجعة", "Confirm Re-review")}
+        cancelLabel={t("تراجع", "Cancel")}
+      />
+
+      <LuxuryAlertDialog
+        isOpen={confirmSuspendOpen}
+        onClose={() => setConfirmSuspendOpen(false)}
+        onConfirm={handleSuspend}
+        variant="warning"
+        title={t("تأكيد تعليق الاشتراك", "Confirm Subscription Suspension")}
+        description={t(
+          `هل أنت متأكد من رغبتك في تعليق اشتراك "${currentSub.firm.name}" مؤقتاً؟`,
+          `Are you sure you want to suspend this subscription?`
+        )}
+        confirmLabel={t("تأكيد التعليق", "Confirm Suspension")}
+        cancelLabel={t("تراجع", "Cancel")}
+      />
+
+      <LuxuryAlertDialog
+        isOpen={confirmRemoveOfferOpen}
+        onClose={() => setConfirmRemoveOfferOpen(false)}
+        onConfirm={handleRemoveCustomOffer}
+        variant="danger"
+        title={t("تأكيد إلغاء العرض المخصص", "Confirm Custom Offer Removal")}
+        description={t(
+          `هل أنت متأكد من إلغاء العرض المخصص لمكتب "${currentSub.firm.name}" والعودة للباقة الأساسية الافتراضية؟`,
+          `Are you sure you want to remove the custom offer and return to the standard plan?`
+        )}
+        confirmLabel={t("تأكيد إلغاء العرض", "Confirm Removal")}
+        cancelLabel={t("تراجع", "Cancel")}
+      />
     </div>
   );
 }

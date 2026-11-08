@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { AlertTriangle, RotateCcw } from "lucide-react";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
 import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
@@ -28,6 +29,7 @@ import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { fetchInvoices, fetchInvoiceById } from "@/lib/api/payments";
 import { mapInvoicesResponse, mapInvoiceFromApi } from "@/lib/api/mappers";
 import { unwrapData } from "@/lib/api/helpers";
+import { API_COMPANY_ID } from "@/lib/api/config";
 
 export function InvoicesView() {
   const { isEn, direction, t } = useLanguage();
@@ -38,6 +40,10 @@ export function InvoicesView() {
   const searchParams = useSearchParams();
   const searchParam = searchParams?.get("search") || "";
   const invoiceIdParam = searchParams?.get("invoiceId") || "";
+  const activeCompanyId =
+    searchParams?.get("company_id") ||
+    searchParams?.get("companyId") ||
+    API_COMPANY_ID;
 
   // Filter state
   const [filterTab, setFilterTab] = useState<InvoiceFilterTab>("all");
@@ -54,26 +60,31 @@ export function InvoicesView() {
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceItem | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const loadInvoices = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      const payload = await fetchInvoices({
+        company_id: activeCompanyId,
+      });
+      const mapped = mapInvoicesResponse(payload);
+      setInvoices(mapped);
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : t("تعذر تحميل فواتير الاشتراكات من الخادم", "Failed to load invoices");
+      setErrorMessage(msg);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [activeCompanyId, t]);
 
   useEffect(() => {
-    let cancelled = false;
-    setIsLoading(true);
-    fetchInvoices()
-      .then((payload) => {
-        if (cancelled) return;
-        const mapped = mapInvoicesResponse(payload);
-        if (mapped.length > 0) setInvoices(mapped);
-      })
-      .catch(() => {
-        // Keep empty invoices if API unavailable.
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    loadInvoices();
+  }, [loadInvoices]);
 
   useEffect(() => {
     if (searchParam) {
@@ -204,11 +215,13 @@ export function InvoicesView() {
     setSelectedInvoice(invoice);
     setIsDetailsOpen(true);
     try {
-      const payload = await fetchInvoiceById(invoice.id);
+      const payload = await fetchInvoiceById(invoice.id, activeCompanyId);
       const raw = (unwrapData<Record<string, unknown>>(payload) ||
         payload) as Record<string, unknown>;
-      if (raw?.id || raw?.invoice_number) {
-        setSelectedInvoice(mapInvoiceFromApi(raw));
+      if (raw?.id || raw?.invoice_number || raw?.number) {
+        setSelectedInvoice((prev) =>
+          prev ? { ...prev, ...mapInvoiceFromApi(raw) } : mapInvoiceFromApi(raw)
+        );
       }
     } catch {
       // Keep list item details.
@@ -367,8 +380,28 @@ export function InvoicesView() {
         {/* Scrollable Page Body */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden w-full p-4 sm:p-6 lg:p-8 max-w-[1360px] mx-auto space-y-6 scrollbar-thin">
           <DashboardPageTransition>
-            {isLoading && invoices.length === 0 ? (
+            {isLoading ? (
               <DashboardPageSkeleton />
+            ) : errorMessage ? (
+              <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-red-200 dark:border-red-900/50 p-8 text-center flex flex-col items-center justify-center my-4">
+                <div className="size-14 rounded-full bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 flex items-center justify-center mb-3">
+                  <AlertTriangle className="size-7" />
+                </div>
+                <h3 className="text-[17px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] mb-1">
+                  {t("حدث خطأ أثناء تحميل الفواتير", "Error loading invoices")}
+                </h3>
+                <p className="text-[13px] text-[#514537] dark:text-[#a89f91] max-w-md mx-auto mb-5 leading-relaxed">
+                  {errorMessage}
+                </p>
+                <button
+                  type="button"
+                  onClick={loadInvoices}
+                  className="px-4 py-2 text-[13px] font-bold rounded-[6px] bg-[#9c6402] hover:bg-[#835401] text-white flex items-center gap-2 transition-all cursor-pointer shadow-sm"
+                >
+                  <RotateCcw className="size-3.5" />
+                  <span>{t("إعادة المحاولة", "Retry")}</span>
+                </button>
+              </div>
             ) : (
             <>
               {/* Header Banner */}

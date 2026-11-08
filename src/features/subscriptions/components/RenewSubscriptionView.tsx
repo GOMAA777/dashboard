@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import {
   ArrowLeft,
-  Building2,
   Calendar,
   CreditCard,
   FileText,
@@ -14,6 +13,7 @@ import {
   AlertTriangle,
   Trash2,
   RefreshCw,
+  Loader2,
 } from "lucide-react";
 import { SubscriptionRecord } from "../types/subscription.types";
 import { toast } from "sonner";
@@ -21,6 +21,8 @@ import { DashboardStickyActionBar } from "@/components/shared/DashboardStickyAct
 import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { renewSubscription } from "@/lib/api/subscriptions";
+import { LuxuryAlertDialog } from "@/components/shared/LuxuryAlertDialog";
 
 interface RenewSubscriptionViewProps {
   subscription?: SubscriptionRecord | null;
@@ -58,23 +60,39 @@ export function RenewSubscriptionView({
       : "تم الاتفاق هاتفياً مع المشرف الإداري للمكتب، وتم استلام تأكيد التحويل من الإدارة المالية واعتماد الخصم السنوي."
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
-  const handleSave = async () => {
+  const handleOpenConfirm = () => {
+    setShowConfirmDialog(true);
+  };
+
+  const handleExecuteSave = async () => {
+    setShowConfirmDialog(false);
     setIsSubmitting(true);
     try {
       if (subscription?.id) {
-        const { renewSubscription } = await import("@/lib/api/subscriptions");
-        await renewSubscription(subscription.id, { period: "year", payment_method: "mada" });
+        const mappedPaymentMethod =
+          paymentMethod === "gateway"
+            ? "mada"
+            : paymentMethod === "transfer"
+              ? "bank_transfer"
+              : "manual";
+        await renewSubscription(subscription.id, {
+          period: billingCycle === "annual" ? "year" : "month",
+          payment_method: mappedPaymentMethod,
+        });
       }
-    } catch {
-      // Keep local success flow.
-    }
-    toast.success(t("تم حفظ وتجديد الاشتراك بنجاح", "Subscription saved and renewed successfully"));
-    setIsSubmitting(false);
-    if (onSuccess) {
-      onSuccess();
-    } else {
-      onBack();
+      toast.success(t("تم حفظ وتجديد الاشتراك بنجاح", "Subscription saved and renewed successfully"));
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        onBack();
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : t("حدث خطأ أثناء تجديد الاشتراك", "Error renewing subscription");
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -257,11 +275,19 @@ export function RenewSubscriptionView({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Annual */}
                 <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setBillingCycle("annual")}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setBillingCycle("annual");
+                    }
+                  }}
                   className={`p-3.5 rounded-[4px] border flex items-center justify-between cursor-pointer transition-all ${
                     billingCycle === "annual"
-                      ? "border-[#9c6402] bg-[#fff9ee]/40 dark:bg-[#342711]"
-                      : "border-[#e4e2de] dark:border-[#38271c] hover:bg-[#faf9f7]"
+                      ? "border-[#9c6402] dark:border-[#e29d38] bg-[#fff9ee] dark:bg-[#342711]"
+                      : "border-[#e4e2de] dark:border-[#38271c] bg-[#f5f3ef]/40 dark:bg-[#281c15] hover:bg-[#f5f3ef] dark:hover:bg-[#2e2018] hover:border-[#9c6402]/40 dark:hover:border-[#e29d38]/40"
                   }`}
                 >
                   <div className="text-start">
@@ -276,9 +302,15 @@ export function RenewSubscriptionView({
                     <span className="bg-[#7b4e00]/10 text-[#7b4e00] dark:text-[#fbbf24] text-[10px] font-bold px-2 py-0.5 rounded-[2px]">
                       {t("وفّر 2,000 ر.س", "Save 2,000 SAR")}
                     </span>
-                    <div className="size-4 rounded-full border border-[#9c6402] flex items-center justify-center p-0.5">
+                    <div
+                      className={`size-4 rounded-full border flex items-center justify-center p-0.5 transition-colors ${
+                        billingCycle === "annual"
+                          ? "border-[#9c6402] dark:border-[#e29d38]"
+                          : "border-[#c4b9ac] dark:border-[#5a483a]"
+                      }`}
+                    >
                       {billingCycle === "annual" && (
-                        <div className="size-2 rounded-full bg-[#9c6402]" />
+                        <div className="size-2 rounded-full bg-[#9c6402] dark:bg-[#e29d38]" />
                       )}
                     </div>
                   </div>
@@ -286,11 +318,19 @@ export function RenewSubscriptionView({
 
                 {/* Monthly */}
                 <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setBillingCycle("monthly")}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setBillingCycle("monthly");
+                    }
+                  }}
                   className={`p-3.5 rounded-[4px] border flex items-center justify-between cursor-pointer transition-all ${
                     billingCycle === "monthly"
-                      ? "border-[#9c6402] bg-[#fff9ee]/40 dark:bg-[#342711]"
-                      : "border-[#e4e2de] dark:border-[#38271c] hover:bg-[#faf9f7]"
+                      ? "border-[#9c6402] dark:border-[#e29d38] bg-[#fff9ee] dark:bg-[#342711]"
+                      : "border-[#e4e2de] dark:border-[#38271c] bg-[#f5f3ef]/40 dark:bg-[#281c15] hover:bg-[#f5f3ef] dark:hover:bg-[#2e2018] hover:border-[#9c6402]/40 dark:hover:border-[#e29d38]/40"
                   }`}
                 >
                   <div className="text-start">
@@ -301,9 +341,15 @@ export function RenewSubscriptionView({
                       {t("فوترة متجددة شهرياً", "Monthly recurring billing")}
                     </div>
                   </div>
-                  <div className="size-4 rounded-full border border-[#767676] flex items-center justify-center p-0.5">
+                  <div
+                    className={`size-4 rounded-full border flex items-center justify-center p-0.5 transition-colors ${
+                      billingCycle === "monthly"
+                        ? "border-[#9c6402] dark:border-[#e29d38]"
+                        : "border-[#c4b9ac] dark:border-[#5a483a]"
+                    }`}
+                  >
                     {billingCycle === "monthly" && (
-                      <div className="size-2 rounded-full bg-[#9c6402]" />
+                      <div className="size-2 rounded-full bg-[#9c6402] dark:bg-[#e29d38]" />
                     )}
                   </div>
                 </div>
@@ -374,17 +420,31 @@ export function RenewSubscriptionView({
 
             {/* Option 1: قيد الانتظار */}
             <div
+              role="button"
+              tabIndex={0}
               onClick={() => setActivationState("pending")}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setActivationState("pending");
+                }
+              }}
               className={`p-3.5 rounded-[4px] border cursor-pointer transition-all flex items-start gap-3 ${
                 activationState === "pending"
-                  ? "border-[#9c6402] bg-[#fff9ee]/30 dark:bg-[#342711]/40"
-                  : "border-[#e4e2de] dark:border-[#38271c] hover:bg-[#faf9f7]"
+                  ? "border-[#9c6402] dark:border-[#e29d38] bg-[#fff9ee] dark:bg-[#342711]"
+                  : "border-[#e4e2de] dark:border-[#38271c] bg-[#f5f3ef]/40 dark:bg-[#281c15] hover:bg-[#f5f3ef] dark:hover:bg-[#2e2018] hover:border-[#9c6402]/40 dark:hover:border-[#e29d38]/40"
               }`}
             >
               <div className="pt-0.5">
-                <div className="size-4 rounded-full border border-[#9c6402] flex items-center justify-center p-0.5">
+                <div
+                  className={`size-4 rounded-full border flex items-center justify-center p-0.5 transition-colors ${
+                    activationState === "pending"
+                      ? "border-[#9c6402] dark:border-[#e29d38]"
+                      : "border-[#c4b9ac] dark:border-[#5a483a]"
+                  }`}
+                >
                   {activationState === "pending" && (
-                    <div className="size-2 rounded-full bg-[#9c6402]" />
+                    <div className="size-2 rounded-full bg-[#9c6402] dark:bg-[#e29d38]" />
                   )}
                 </div>
               </div>
@@ -411,17 +471,31 @@ export function RenewSubscriptionView({
 
             {/* Option 2: نشط */}
             <div
+              role="button"
+              tabIndex={0}
               onClick={() => setActivationState("active")}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setActivationState("active");
+                }
+              }}
               className={`p-3.5 rounded-[4px] border cursor-pointer transition-all flex items-start gap-3 ${
                 activationState === "active"
-                  ? "border-[#9c6402] bg-[#fff9ee]/30 dark:bg-[#342711]/40"
-                  : "border-[#e4e2de] dark:border-[#38271c] hover:bg-[#faf9f7]"
+                  ? "border-[#9c6402] dark:border-[#e29d38] bg-[#fff9ee] dark:bg-[#342711]"
+                  : "border-[#e4e2de] dark:border-[#38271c] bg-[#f5f3ef]/40 dark:bg-[#281c15] hover:bg-[#f5f3ef] dark:hover:bg-[#2e2018] hover:border-[#9c6402]/40 dark:hover:border-[#e29d38]/40"
               }`}
             >
               <div className="pt-0.5">
-                <div className="size-4 rounded-full border border-[#767676] flex items-center justify-center p-0.5">
+                <div
+                  className={`size-4 rounded-full border flex items-center justify-center p-0.5 transition-colors ${
+                    activationState === "active"
+                      ? "border-[#9c6402] dark:border-[#e29d38]"
+                      : "border-[#c4b9ac] dark:border-[#5a483a]"
+                  }`}
+                >
                   {activationState === "active" && (
-                    <div className="size-2 rounded-full bg-[#9c6402]" />
+                    <div className="size-2 rounded-full bg-[#9c6402] dark:bg-[#e29d38]" />
                   )}
                 </div>
               </div>
@@ -721,22 +795,40 @@ export function RenewSubscriptionView({
           </button>
           <button
             type="button"
-            onClick={handleSave}
+            onClick={handleOpenConfirm}
             className="px-4 py-2 rounded-[6px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] font-semibold transition-colors cursor-pointer"
           >
             {t("حفظ كمسودة", "Save as Draft")}
           </button>
           <button
             type="button"
-            onClick={handleSave}
+            onClick={handleOpenConfirm}
             disabled={isSubmitting}
             className="bg-[#9c6402] hover:bg-[#825200] text-white px-6 py-2 rounded-[6px] font-bold text-[13px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
           >
-            <Check className="w-4 h-4" />
-            <span>{t("حفظ الاشتراك", "Save Subscription")}</span>
+            {isSubmitting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Check className="w-4 h-4" />
+            )}
+            <span>{t("حفظ وتجديد الاشتراك", "Save & Renew Subscription")}</span>
           </button>
         </div>
       </DashboardStickyActionBar>
+
+      <LuxuryAlertDialog
+        isOpen={showConfirmDialog}
+        onClose={() => setShowConfirmDialog(false)}
+        onConfirm={handleExecuteSave}
+        variant="info"
+        title={t("تأكيد حفظ وتجديد الاشتراك", "Confirm Subscription Renewal")}
+        description={t(
+          `هل أنت متأكد من حفظ وتجديد اشتراك "${selectedOffice}" وإصدار الفاتورة؟`,
+          `Are you sure you want to save and renew subscription for "${selectedOffice}"?`
+        )}
+        confirmLabel={t("تأكيد الحفظ والتجديد", "Confirm Renewal")}
+        cancelLabel={t("تراجع", "Cancel")}
+      />
     </div>
   );
 }

@@ -263,9 +263,7 @@ export function ClientOfficeDetailsView({
   const licenseNum = office.licenseNumber && office.licenseNumber !== "—" ? office.licenseNumber.replace("ترخيص عدلي: ", "") : "—";
   const taxNumber = office.taxNumber || (office.id ? getLocalCustomTaxNumber(office.id) : undefined) || "—";
   const localLogo = office?.id ? getLocalCustomLogo(office.id) : undefined;
-  const officeLogo = (!logoFailed && office.logo && !office.logo.includes("/storage/firms/"))
-    ? office.logo
-    : (localLogo || (!logoFailed ? office.logo : undefined));
+  const officeLogo = !logoFailed ? (office.logo || localLogo) : localLogo;
   const officeColor =
     office.color ||
     office.themeColor ||

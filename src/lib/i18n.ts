@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useSyncExternalStore, useCallback } from "react";
 import { useUIStore, AppLanguage, TextDirection } from "@/stores/use-ui-store";
 
 export type Language = "ar" | "en";
@@ -22,7 +22,7 @@ export function useLanguage() {
   const isAr = currentLang === "ar";
   const currentDir: TextDirection = isMounted ? direction : (currentLang === "ar" ? "rtl" : "ltr");
 
-  const t = (ar: string, en: string) => (isEn ? en : ar);
+  const t = useCallback((ar: string, en: string) => (isEn ? en : ar), [isEn]);
 
   return {
     language: currentLang,

@@ -7,13 +7,10 @@ import { usePathname } from "next/navigation";
 import { toast } from "sonner";
 import userAvatarImg from "../../../../public/figma/user-avatar.png";
 import {
-  AppWindow,
   Bell,
   CreditCard,
-  Globe,
   Headphones,
   LayoutGrid,
-  Mail,
   Receipt,
   Settings,
   Tag,
@@ -26,7 +23,9 @@ import {
   LogOut,
   Ticket,
   FileText,
-  ClipboardList,
+  RefreshCw,
+  SlidersHorizontal,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/use-ui-store";
@@ -47,18 +46,12 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { id: "home", labelAr: "الرئيسية", labelEn: "Dashboard", href: "/", icon: LayoutGrid, sizeClass: "size-[16px]" },
-  { id: "clients", labelAr: "إدارة العملاء", labelEn: "Client Management", href: "/accounts", icon: Users, sizeClass: "size-[18px]" },
-  { id: "impersonation-logs", labelAr: "سجل الدخول", labelEn: "Access Log", href: "/impersonation-logs", icon: ClipboardList, sizeClass: "size-[17px]" },
-  { id: "plans", labelAr: "الباقات والأسعار", labelEn: "Plans & Pricing", href: "/plans", icon: Tag, sizeClass: "size-[17px]" },
-  { id: "subscriptions", labelAr: "الاشتراكات", labelEn: "Subscriptions", href: "/subscriptions", icon: CreditCard, sizeClass: "size-[17px]" },
-  { id: "staff", labelAr: "طاقم العمل", labelEn: "Staff", href: "/permissions", icon: UserCheck, sizeClass: "size-[19px]" },
+  { id: "clients", labelAr: "مكاتب المحاماة", labelEn: "Law Firms", href: "/accounts", icon: Users, sizeClass: "size-[18px]" },
   { id: "notifications", labelAr: "الإشعارات", labelEn: "Notifications", href: "/notifications", icon: Bell, sizeClass: "size-[16px]" },
+  { id: "staff", labelAr: "طاقم العمل", labelEn: "Staff", href: "/permissions", icon: UserCheck, sizeClass: "size-[19px]" },
   { id: "finance", labelAr: "الفواتير والمالية", labelEn: "Invoices & Finance", href: "/invoices", icon: Receipt, sizeClass: "size-[16px]" },
   { id: "support", labelAr: "الدعم الفني", labelEn: "Technical Support", href: "/tickets", icon: Headphones, sizeClass: "size-[17px]" },
-  { id: "site-settings", labelAr: "إعدادات الموقع", labelEn: "Site Settings", href: "/website-settings", icon: Globe, sizeClass: "size-[17px]" },
-  { id: "mail-settings", labelAr: "إعدادات البريد", labelEn: "Mail Settings", href: "/settings/mail", icon: Mail, sizeClass: "size-[17px]" },
   { id: "system-settings", labelAr: "إعدادات النظام", labelEn: "System Settings", href: "/settings/general", icon: Settings, sizeClass: "size-[17px]" },
-  { id: "utility", labelAr: "خدمات النظام", labelEn: "System Utility", href: "/utility/update", icon: AppWindow, sizeClass: "size-[19px]" },
 ];
 
 interface DashboardSidebarProps {
@@ -81,8 +74,12 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
 
   const isFinanceActive =
     activeNav === "finance" ||
+    (pathname?.startsWith("/plans") ?? false) ||
+    (pathname?.startsWith("/subscriptions") ?? false) ||
     (pathname?.startsWith("/invoices") ?? false) ||
     (pathname?.startsWith("/payment-gateways") ?? false);
+  const isPlansActive = isFinanceActive && (activeSubNav === "plans" || (pathname?.startsWith("/plans") ?? false));
+  const isSubscriptionsActive = isFinanceActive && (activeSubNav === "subscriptions" || (pathname?.startsWith("/subscriptions") ?? false));
   const isInvoicesActive = isFinanceActive && (activeSubNav === "invoices" || pathname === "/invoices");
   const isGatewaysActive = isFinanceActive && (activeSubNav === "gateways" || pathname === "/payment-gateways");
 
@@ -101,18 +98,15 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
   const isMailSettingsActive =
     activeNav === "mail-settings" ||
     (pathname?.startsWith("/settings/mail") ?? false);
+  const isWebsiteSettingsPath =
+    (pathname?.startsWith("/website-settings") ?? false) || pathname === "/settings/website";
   const isSystemSettingsActive =
     activeNav === "system-settings" ||
+    isWebsiteSettingsPath ||
     ((pathname?.startsWith("/settings") ?? false) && !isMailSettingsActive);
   const isGeneralActive = isSystemSettingsActive && (activeSubNav === "general" || pathname === "/settings/general");
-  const isCurrencyActive = isSystemSettingsActive && (activeSubNav === "currency" || pathname === "/settings/currency");
-  const isLanguageActive = isSystemSettingsActive && (activeSubNav === "language" || pathname === "/settings/language");
-
-  const isUtilityActive =
-    activeNav === "utility" ||
-    (pathname?.startsWith("/utility") ?? false);
-  const isUpdateActive = isUtilityActive && (activeSubNav === "update" || pathname === "/utility/update");
-  const isServerInfoActive = isUtilityActive && (activeSubNav === "server-info" || pathname === "/utility/server-info");
+  const isWebsiteActive =
+    isSystemSettingsActive && (activeSubNav === "website" || isWebsiteSettingsPath);
 
   const direction = useUIStore((state) => state.direction);
   const language = useUIStore((state) => state.language);
@@ -262,8 +256,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
               item.id === "staff" ||
               item.id === "finance" ||
               item.id === "support" ||
-              item.id === "system-settings" ||
-              item.id === "utility";
+              item.id === "system-settings";
 
             if (isCollapsed) {
               const targetHref =
@@ -275,9 +268,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       ? "/tickets?tab=tickets"
                       : item.id === "system-settings"
                         ? "/settings/general"
-                        : item.id === "utility"
-                          ? "/utility/update"
-                          : item.href;
+                        : item.href;
 
               return (
                 <Link
@@ -432,9 +423,69 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   </div>
                 )}
 
-                {/* Sub-items for Finance & Invoices (سجل الفواتير وبوابات الدفع) */}
+                {/* Sub-items for Finance & Invoices (الباقات والأسعار، الاشتراكات، سجل الفواتير، بوابات الدفع) */}
                 {item.id === "finance" && (
                   <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#eae8e4] dark:border-[#38271c] my-1">
+                    <Link
+                      href="/plans"
+                      prefetch={true}
+                      onClick={() => handleNavClick("/plans")}
+                      className={cn(
+                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
+                        isPlansActive
+                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
+                      )}
+                    >
+                      {/* Connecting dot */}
+                      <span
+                        className={cn(
+                          "size-[6px] rounded-full shrink-0 transition-all",
+                          isPlansActive
+                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                        )}
+                      />
+                      <Tag
+                        className={cn(
+                          "size-[15px] shrink-0",
+                          isPlansActive
+                            ? "text-[#9c6402] dark:text-[#e29d38]"
+                            : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
+                        )}
+                      />
+                      <span className="truncate">{currentLang === "en" ? "Plans & Pricing" : "الباقات والأسعار"}</span>
+                    </Link>
+                    <Link
+                      href="/subscriptions"
+                      prefetch={true}
+                      onClick={() => handleNavClick("/subscriptions")}
+                      className={cn(
+                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
+                        isSubscriptionsActive
+                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
+                      )}
+                    >
+                      {/* Connecting dot */}
+                      <span
+                        className={cn(
+                          "size-[6px] rounded-full shrink-0 transition-all",
+                          isSubscriptionsActive
+                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                        )}
+                      />
+                      <RefreshCw
+                        className={cn(
+                          "size-[15px] shrink-0",
+                          isSubscriptionsActive
+                            ? "text-[#9c6402] dark:text-[#e29d38]"
+                            : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
+                        )}
+                      />
+                      <span className="truncate">{currentLang === "en" ? "Subscriptions" : "الاشتراكات"}</span>
+                    </Link>
                     <Link
                       href="/invoices"
                       prefetch={true}
@@ -564,7 +615,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   </div>
                 )}
 
-                {/* Sub-items for System Settings (اعدادت عامة، العملة، اللغة) */}
+                {/* Sub-items for System Settings (اعدادت عامة، إعدادات الموقع) */}
                 {item.id === "system-settings" && (
                   <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#eae8e4] dark:border-[#38271c] my-1">
                     <Link
@@ -586,16 +637,24 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                             : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
                         )}
                       />
-                      <span className="truncate">{currentLang === "en" ? "General Settings" : "اعدادت عامة"}</span>
+                      <SlidersHorizontal
+                        className={cn(
+                          "size-[15px] shrink-0",
+                          isGeneralActive
+                            ? "text-[#9c6402] dark:text-[#e29d38]"
+                            : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
+                        )}
+                      />
+                      <span className="truncate">{currentLang === "en" ? "General Settings" : "اعدادات عامة"}</span>
                     </Link>
 
                     <Link
-                      href="/settings/currency"
+                      href="/website-settings"
                       prefetch={true}
-                      onClick={() => handleNavClick("/settings/currency")}
+                      onClick={() => handleNavClick("/website-settings")}
                       className={cn(
                         "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
-                        isCurrencyActive
+                        isWebsiteActive
                           ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
                           : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                       )}
@@ -603,83 +662,20 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       <span
                         className={cn(
                           "size-[6px] rounded-full shrink-0 transition-all",
-                          isCurrencyActive
+                          isWebsiteActive
                             ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
                             : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
                         )}
                       />
-                      <span className="truncate">{currentLang === "en" ? "Currencies" : "العملة"}</span>
-                    </Link>
-
-                    <Link
-                      href="/settings/language"
-                      prefetch={true}
-                      onClick={() => handleNavClick("/settings/language")}
-                      className={cn(
-                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
-                        isLanguageActive
-                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
-                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
-                      )}
-                    >
-                      <span
+                      <Globe
                         className={cn(
-                          "size-[6px] rounded-full shrink-0 transition-all",
-                          isLanguageActive
-                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
-                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                          "size-[15px] shrink-0",
+                          isWebsiteActive
+                            ? "text-[#9c6402] dark:text-[#e29d38]"
+                            : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
                         )}
                       />
-                      <span className="truncate">{currentLang === "en" ? "Languages" : "اللغة"}</span>
-                    </Link>
-                  </div>
-                )}
-
-                {/* Sub-items for Utility (تحديث النظام، معلومات السيرفر) */}
-                {item.id === "utility" && (
-                  <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#eae8e4] dark:border-[#38271c] my-1">
-                    <Link
-                      href="/utility/update"
-                      prefetch={true}
-                      onClick={() => handleNavClick("/utility/update")}
-                      className={cn(
-                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
-                        isUpdateActive
-                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
-                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
-                      )}
-                    >
-                      <span
-                        className={cn(
-                          "size-[6px] rounded-full shrink-0 transition-all",
-                          isUpdateActive
-                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
-                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
-                        )}
-                      />
-                      <span className="truncate">{currentLang === "en" ? "System Update" : "تحديث النظام"}</span>
-                    </Link>
-
-                    <Link
-                      href="/utility/server-info"
-                      prefetch={true}
-                      onClick={() => handleNavClick("/utility/server-info")}
-                      className={cn(
-                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
-                        isServerInfoActive
-                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
-                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
-                      )}
-                    >
-                      <span
-                        className={cn(
-                          "size-[6px] rounded-full shrink-0 transition-all",
-                          isServerInfoActive
-                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
-                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
-                        )}
-                      />
-                      <span className="truncate">{currentLang === "en" ? "Server Info" : "معلومات السيرفر"}</span>
+                      <span className="truncate">{currentLang === "en" ? "Site Settings" : "إعدادات الموقع"}</span>
                     </Link>
                   </div>
                 )}

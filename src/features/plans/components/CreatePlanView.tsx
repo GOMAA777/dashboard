@@ -8,14 +8,15 @@ import {
   Check,
   CheckCircle2,
   Sparkles,
-  Info,
   Edit,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { PricingPlanItem } from "../types/plan.types";
+import { PricingPlanItem, PlanLimitsData } from "../types/plan.types";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { DashboardSelect } from "@/components/shared/DashboardSelect";
+import { LuxuryAlertDialog } from "@/components/shared/LuxuryAlertDialog";
 import {
   createPlan,
   updatePlan,
@@ -23,6 +24,8 @@ import {
   saveLocalCustomPlan,
 } from "@/lib/api/plans";
 import { mapPlanFromApi } from "@/lib/api/mappers";
+import { extractFieldErrors } from "@/lib/api/field-errors";
+import { ApiError } from "@/lib/api/http";
 
 interface CreatePlanViewProps {
   onBack: () => void;
@@ -40,11 +43,16 @@ function inferPlanCategory(plan?: PricingPlanItem | null): string {
   return "growth";
 }
 
-function extractLimitValue(str?: string): number | string {
-  if (!str) return "";
-  if (str.includes("غير محدود") || str.toLowerCase().includes("unlimited")) return -1;
-  const match = str.replace(/,/g, "").match(/\d+/);
-  return match ? Number(match[0]) : "";
+function extractLimitValue(str?: unknown): number | string {
+  if (str === undefined || str === null || str === "") return "";
+  if (typeof str === "number") return str >= 0 ? str : 0;
+  const s = String(str);
+  const match = s.replace(/,/g, "").match(/\d+/);
+  if (match) {
+    const num = Number(match[0]);
+    return Number.isFinite(num) && num >= 0 ? num : "";
+  }
+  return "";
 }
 
 function inferSupportSla(plan?: PricingPlanItem | null): string {
@@ -142,41 +150,24 @@ export function CreatePlanView({
   );
   const [isPopular, setIsPopular] = useState(() => Boolean(planToEdit?.isPopular));
 
-  const resolvePricingModel = (plan?: PricingPlanItem | null): "paid" | "trial" => {
-    if (!plan) return "paid";
-    const type = String(plan.type || "").toLowerCase();
-    if (type === "trial" || type === "free") return "trial";
-    if (Number(plan.monthlyPrice) === 0 && Number(plan.annualPrice || 0) === 0) {
-      return "trial";
-    }
-    return "paid";
-  };
-
-  // 2. Pricing & Cycles
-  const [pricingModel, setPricingModel] = useState<"paid" | "trial">(() =>
-    resolvePricingModel(planToEdit)
-  );
+  // 2. Pricing & Cycles (All created plans are paid commercial plans)
   const [billingCycle, setBillingCycle] = useState(() =>
     planToEdit ? (planToEdit.annualPrice ? "annual" : "monthly") : ""
   );
   const [vatOption, setVatOption] = useState(() => (planToEdit ? "inclusive" : ""));
   const [monthlyPrice, setMonthlyPrice] = useState<number | string>(() => {
     if (!planToEdit) return "";
-    return resolvePricingModel(planToEdit) === "trial" ? 0 : planToEdit.monthlyPrice;
+    return planToEdit.monthlyPrice ?? "";
   });
   const [annualPrice, setAnnualPrice] = useState<number | string>(() => {
     if (!planToEdit) return "";
-    return resolvePricingModel(planToEdit) === "trial"
-      ? 0
-      : planToEdit.annualPrice || "";
+    return planToEdit.annualPrice ?? "";
   });
   const [yearlyDiscountPercent, setYearlyDiscountPercent] = useState<number | string>(() => {
     if (!planToEdit) return "";
-    return resolvePricingModel(planToEdit) === "trial"
-      ? 0
-      : planToEdit.yearlyDiscountPercent !== undefined
-        ? planToEdit.yearlyDiscountPercent
-        : "";
+    return planToEdit.yearlyDiscountPercent !== undefined
+      ? planToEdit.yearlyDiscountPercent
+      : "";
   });
 
   // 3. Limits & Quotas
@@ -196,12 +187,20 @@ export function CreatePlanView({
     planToEdit ? extractLimitValue(planToEdit.limits?.storage) : ""
   );
   const [assistantsLimit, setAssistantsLimit] = useState<number | string>(() =>
-    planToEdit ? extractLimitValue(planToEdit.limits?.assistants) || 15 : 15
+    planToEdit ? extractLimitValue(planToEdit.limits?.assistants) : ""
+  );
+  const [documentsLimit, setDocumentsLimit] = useState<number | string>(() =>
+    planToEdit ? extractLimitValue(planToEdit.limits?.documents) : ""
   );
 
   // 4. SLA & Features
   const [supportSla, setSupportSla] = useState(() => inferSupportSla(planToEdit));
   const [features, setFeatures] = useState(() => inferFeatures(planToEdit));
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const [pendingIsDraft, setPendingIsDraft] = useState(false);
 
   // Sync state if planToEdit changes
   useEffect(() => {
@@ -223,29 +222,22 @@ export function CreatePlanView({
             : "#9c6402")
       );
       setIsPopular(Boolean(planToEdit.isPopular));
-      const nextModel = resolvePricingModel(planToEdit);
-      setPricingModel(nextModel);
       setBillingCycle(planToEdit.annualPrice ? "annual" : "monthly");
       setVatOption("inclusive");
-      if (nextModel === "trial") {
-        setMonthlyPrice(0);
-        setAnnualPrice(0);
-        setYearlyDiscountPercent(0);
-      } else {
-        setMonthlyPrice(planToEdit.monthlyPrice);
-        setAnnualPrice(planToEdit.annualPrice || "");
-        setYearlyDiscountPercent(
-          planToEdit.yearlyDiscountPercent !== undefined
-            ? planToEdit.yearlyDiscountPercent
-            : ""
-        );
-      }
+      setMonthlyPrice(planToEdit.monthlyPrice);
+      setAnnualPrice(planToEdit.annualPrice || "");
+      setYearlyDiscountPercent(
+        planToEdit.yearlyDiscountPercent !== undefined
+          ? planToEdit.yearlyDiscountPercent
+          : ""
+      );
       setLawyersLimit(extractLimitValue(planToEdit.limits?.lawyers));
       setCasesLimit(extractLimitValue(planToEdit.limits?.cases));
       setAgentsLimit(extractLimitValue(planToEdit.limits?.agents));
       setClientsLimit(extractLimitValue(planToEdit.limits?.clients));
       setStorageLimit(extractLimitValue(planToEdit.limits?.storage));
-      setAssistantsLimit(extractLimitValue(planToEdit.limits?.assistants) || 15);
+      setAssistantsLimit(extractLimitValue(planToEdit.limits?.assistants));
+      setDocumentsLimit(extractLimitValue(planToEdit.limits?.documents));
       setSupportSla(inferSupportSla(planToEdit));
       setFeatures(inferFeatures(planToEdit));
     }
@@ -255,14 +247,132 @@ export function CreatePlanView({
     setFeatures((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const applyPricingModel = (model: "paid" | "trial") => {
-    setPricingModel(model);
-    if (model === "trial") {
-      setMonthlyPrice(0);
-      setAnnualPrice(0);
-      setYearlyDiscountPercent(0);
+  const handleStrictNumberChange = (
+    setter: React.Dispatch<React.SetStateAction<number | string>>,
+    maxVal?: number
+  ) => {
+    return (e: React.ChangeEvent<HTMLInputElement>) => {
+      let raw = e.target.value;
+      // Convert Arabic-Indic numerals (٠-٩) and strip all letters, symbols, minuses, spaces
+      const arabicDigits = "٠١٢٣٤٥٦٧٨٩";
+      raw = raw
+        .replace(/[٠-٩]/g, (d) => String(arabicDigits.indexOf(d)))
+        .replace(/\D/g, "")
+        .trim();
+
+      if (raw === "") {
+        setter("");
+        return;
+      }
+
+      const num = Number(raw);
+      if (Number.isFinite(num) && num >= 0) {
+        if (maxVal !== undefined && num > maxVal) {
+          setter(maxVal);
+        } else {
+          setter(num);
+        }
+      }
+    };
+  };
+
+  const handleMonthlyPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let raw = e.target.value;
+    const arabicDigits = "٠١٢٣٤٥٦٧٨٩";
+    raw = raw
+      .replace(/[٠-٩]/g, (d) => String(arabicDigits.indexOf(d)))
+      .replace(/\D/g, "")
+      .trim();
+
+    if (raw === "") {
+      setMonthlyPrice("");
+      return;
+    }
+
+    const num = Number(raw);
+    if (Number.isFinite(num) && num >= 0) {
+      setMonthlyPrice(num);
+      const disc = yearlyDiscountPercent !== "" ? Number(yearlyDiscountPercent) : 0;
+      if (disc > 0 && disc < 100) {
+        setAnnualPrice(Math.round(num * 12 * (1 - disc / 100)));
+      }
     }
   };
+
+  const handleAnnualPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let raw = e.target.value;
+    const arabicDigits = "٠١٢٣٤٥٦٧٨٩";
+    raw = raw
+      .replace(/[٠-٩]/g, (d) => String(arabicDigits.indexOf(d)))
+      .replace(/\D/g, "")
+      .trim();
+
+    if (raw === "") {
+      setAnnualPrice("");
+      return;
+    }
+
+    const num = Number(raw);
+    if (Number.isFinite(num) && num >= 0) {
+      setAnnualPrice(num);
+    }
+  };
+
+  const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let raw = e.target.value;
+    const arabicDigits = "٠١٢٣٤٥٦٧٨٩";
+    raw = raw
+      .replace(/[٠-٩]/g, (d) => String(arabicDigits.indexOf(d)))
+      .replace(/\D/g, "")
+      .trim();
+
+    if (raw === "") {
+      setYearlyDiscountPercent("");
+      return;
+    }
+
+    let num = Number(raw);
+    if (Number.isFinite(num) && num >= 0) {
+      if (num > 100) num = 100;
+      setYearlyDiscountPercent(num);
+
+      const m = monthlyPrice !== "" ? Number(monthlyPrice) : 0;
+      if (m > 0 && num < 100) {
+        setAnnualPrice(Math.round(m * 12 * (1 - num / 100)));
+      }
+    }
+  };
+
+  const hasDiscount = (() => {
+    if (yearlyDiscountPercent !== "" && Number(yearlyDiscountPercent) > 0) {
+      return true;
+    }
+    const m = monthlyPrice !== "" ? Number(monthlyPrice) : 0;
+    const a = annualPrice !== "" ? Number(annualPrice) : 0;
+    return m > 0 && a > 0 && a < m * 12;
+  })();
+
+  const previewAnnualPrice = (() => {
+    if (annualPrice !== "" && Number(annualPrice) > 0) {
+      return Number(annualPrice);
+    }
+    const m = monthlyPrice !== "" ? Number(monthlyPrice) : 0;
+    const disc = yearlyDiscountPercent !== "" ? Number(yearlyDiscountPercent) : 0;
+    if (m > 0 && disc > 0) {
+      return Math.round(m * 12 * (1 - disc / 100));
+    }
+    if (m > 0) return m * 12;
+    return 0;
+  })();
+
+  const previewMonthlyPrice = (() => {
+    if (monthlyPrice !== "" && Number(monthlyPrice) > 0) {
+      return Number(monthlyPrice);
+    }
+    const a = annualPrice !== "" ? Number(annualPrice) : 0;
+    if (a > 0) return Math.round(a / 12);
+    return null;
+  })();
 
   const getLimitText = (
     val: number | string,
@@ -274,37 +384,55 @@ export function CreatePlanView({
       return fallbackText || t("غير محدد بعد", "Not specified yet");
     }
     const num = Number(val);
-    if (num === -1) {
-      return t("غير محدود", "Unlimited");
+    if (!Number.isFinite(num) || num < 0) {
+      return fallbackText || t("غير محدد بعد", "Not specified yet");
     }
-    return `${num} ${t(unitAr, unitEn)}`;
+    return `${num.toLocaleString()} ${t(unitAr, unitEn)}`;
   };
 
-  const handleSubmit = async (e: React.FormEvent, isDraft = false) => {
-    e.preventDefault();
-
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
     if (!name.trim()) {
-      toast.error(t("يرجى إدخال اسم الباقة أولاً", "Please enter a plan name first"));
+      newErrors.name = t("اسم الباقة مطلوب", "Plan name is required");
+    }
+    if (!description.trim()) {
+      newErrors.description = t("الوصف التعريفي مطلوب", "Description is required");
+    }
+    const numMonthly = monthlyPrice === "" ? NaN : Number(monthlyPrice);
+    if (isNaN(numMonthly) || numMonthly <= 0) {
+      newErrors.monthly_price = t("السعر الشهري مطلوب ويجب أن يكون أكبر من 0", "Monthly price is required and must be greater than 0");
+    }
+    const numAnnual = annualPrice === "" ? NaN : Number(annualPrice);
+    if (isNaN(numAnnual) || numAnnual <= 0) {
+      newErrors.yearly_price = t("السعر السنوي مطلوب ويجب أن يكون أكبر من 0", "Annual price is required and must be greater than 0");
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleInitiateSubmit = (e: React.FormEvent, isDraft = false) => {
+    e.preventDefault();
+    if (!validateForm()) {
+      toast.error(t("يرجى ملء الحقول الإلزامية بشكل صحيح", "Please fill required fields properly"));
       return;
     }
+    setPendingIsDraft(isDraft);
+    setIsConfirmDialogOpen(true);
+  };
 
-    const isTrial = pricingModel === "trial";
-    const numMonthly = isTrial
-      ? 0
-      : monthlyPrice === ""
-        ? 0
-        : Number(monthlyPrice) || 0;
-    const numAnnual = isTrial
-      ? 0
-      : annualPrice === ""
-        ? 0
-        : Number(annualPrice) || 0;
-    const numLawyers = lawyersLimit === "" ? 0 : Number(lawyersLimit);
-    const numCases = casesLimit === "" ? 0 : Number(casesLimit);
-    const numAgents = agentsLimit === "" ? 0 : Number(agentsLimit);
-    const numAssistants = assistantsLimit === "" ? 0 : Number(assistantsLimit);
-    const numClients = clientsLimit === "" ? 0 : Number(clientsLimit);
-    const numStorage = storageLimit === "" ? 0 : Number(storageLimit);
+  const executeSave = async () => {
+    setIsSubmitting(true);
+    const isDraft = pendingIsDraft;
+
+    const numMonthly = monthlyPrice === "" ? 0 : Number(monthlyPrice) || 0;
+    const numAnnual = annualPrice === "" ? 0 : Number(annualPrice) || 0;
+    const numLawyers = lawyersLimit === "" ? 0 : Math.max(0, Number(lawyersLimit) || 0);
+    const numCases = casesLimit === "" ? 0 : Math.max(0, Number(casesLimit) || 0);
+    const numAgents = agentsLimit === "" ? 0 : Math.max(0, Number(agentsLimit) || 0);
+    const numAssistants = assistantsLimit === "" ? 0 : Math.max(0, Number(assistantsLimit) || 0);
+    const numClients = clientsLimit === "" ? 0 : Math.max(0, Number(clientsLimit) || 0);
+    const numDocuments = documentsLimit === "" ? 0 : Math.max(0, Number(documentsLimit) || 0);
+    const numStorage = storageLimit === "" ? 0 : Math.max(0, Number(storageLimit) || 0);
 
     const activeFeatures: string[] = [];
     if (features.accountManager) activeFeatures.push("مدير حساب قانوني معتمد شخصي");
@@ -313,9 +441,8 @@ export function CreatePlanView({
     activeFeatures.push("ربط تكاملي فوري مع بوابة ناجز ومساند");
     if (features.vipSla) activeFeatures.push("دعم مباشر ذو أولوية فائقة (VIP)");
 
-    const calculatedDiscount = isTrial
-      ? 0
-      : yearlyDiscountPercent !== ""
+    const calculatedDiscount =
+      yearlyDiscountPercent !== ""
         ? Number(yearlyDiscountPercent)
         : numMonthly > 0 && numAnnual > 0
           ? Math.max(
@@ -327,7 +454,7 @@ export function CreatePlanView({
     const payload: Record<string, unknown> = {
       name: name.trim(),
       description: description.trim(),
-      type: pricingModel,
+      type: "paid",
       monthly_price: numMonthly,
       yearly_price: numAnnual,
       yearly_discount_percent: calculatedDiscount,
@@ -336,6 +463,7 @@ export function CreatePlanView({
       max_power_of_attorney: numAgents,
       max_assistants: numAssistants,
       max_clients: numClients,
+      max_documents: numDocuments,
       storage_limit_gb: numStorage,
       support_level: supportLevelForApi(supportSla),
       features: activeFeatures,
@@ -356,7 +484,7 @@ export function CreatePlanView({
       description: description.trim(),
       badge: badge.trim() || undefined,
       badgeColor: badgeColor || undefined,
-      type: pricingModel,
+      type: "paid",
       monthlyPrice: numMonthly,
       annualPrice: numAnnual,
       yearlyDiscountPercent: calculatedDiscount || undefined,
@@ -375,29 +503,33 @@ export function CreatePlanView({
       colorTheme,
       limits: {
         lawyers:
-          numLawyers === -1
-            ? t("غير محدود: المحامين", "Unlimited: Lawyers")
-            : `${numLawyers} ${t("محامين ومستشارين", "lawyers & consultants")}`,
+          lawyersLimit !== "" && Number(lawyersLimit) >= 0
+            ? `${Number(lawyersLimit).toLocaleString()} ${t("محامين ومستشارين", "lawyers & consultants")}`
+            : t("غير محدد", "Not specified"),
         cases:
-          numCases === -1
-            ? t("غير محدود: القضايا", "Unlimited: Cases")
-            : `${numCases} ${t("قضية نشطة", "active cases")}`,
+          casesLimit !== "" && Number(casesLimit) >= 0
+            ? `${Number(casesLimit).toLocaleString()} ${t("قضية نشطة", "active cases")}`
+            : t("غير محدد", "Not specified"),
         agents:
-          numAgents === -1
-            ? t("غير محدود: الوكلاء", "Unlimited: Agents")
-            : `${numAgents} ${t("وكلاء شرعيين", "legal agents")}`,
+          agentsLimit !== "" && Number(agentsLimit) >= 0
+            ? `${Number(agentsLimit).toLocaleString()} ${t("وكلاء شرعيين", "legal agents")}`
+            : t("غير محدد", "Not specified"),
         assistants:
-          numAssistants === -1
-            ? t("غير محدود: المساعدين", "Unlimited: Assistants")
-            : `${numAssistants} ${t("مساعدين إداريين", "assistants")}`,
+          assistantsLimit !== "" && Number(assistantsLimit) >= 0
+            ? `${Number(assistantsLimit).toLocaleString()} ${t("مساعدين ومحاسبين", "assistants & accountants")}`
+            : t("غير محدد", "Not specified"),
         clients:
-          numClients === -1
-            ? t("غير محدود: العملاء", "Unlimited: Clients")
-            : `${numClients.toLocaleString()} ${t("عميل وموكل", "clients")}`,
+          clientsLimit !== "" && Number(clientsLimit) >= 0
+            ? `${Number(clientsLimit).toLocaleString()} ${t("عميل وموكل", "clients")}`
+            : t("غير محدد", "Not specified"),
+        documents:
+          documentsLimit !== "" && Number(documentsLimit) >= 0
+            ? `${Number(documentsLimit).toLocaleString()} ${t("مستند ووثيقة", "documents")}`
+            : t("غير محدد", "Not specified"),
         storage:
-          numStorage === -1
-            ? t("غير محدود: التخزين", "Unlimited: Storage")
-            : `${numStorage} GB ${t("مساحة تخزين سحابية", "cloud storage")}`,
+          storageLimit !== "" && Number(storageLimit) >= 0
+            ? `${Number(storageLimit).toLocaleString()} GB ${t("مساحة تخزين سحابية", "cloud storage")}`
+            : t("غير محدد", "Not specified"),
         support:
           supportSla === "vip" || features.vipSla
             ? t("دعم مباشر ذو أولوية فائقة (VIP)", "Direct VIP Priority Support")
@@ -440,58 +572,87 @@ export function CreatePlanView({
       }
 
       if (mapped?.id || persistedId) {
+        const mergedLimits: PlanLimitsData = {
+          ...savedPlan.limits,
+          ...(mapped.limits || {}),
+          lawyers: mapped.limits?.lawyers && mapped.limits.lawyers !== "—" ? mapped.limits.lawyers : savedPlan.limits.lawyers,
+          cases: mapped.limits?.cases && mapped.limits.cases !== "—" ? mapped.limits.cases : savedPlan.limits.cases,
+          agents: mapped.limits?.agents && mapped.limits.agents !== "—" ? mapped.limits.agents : savedPlan.limits.agents,
+          assistants: mapped.limits?.assistants && mapped.limits.assistants !== "—" ? mapped.limits.assistants : savedPlan.limits.assistants,
+          clients: mapped.limits?.clients && mapped.limits.clients !== "—" ? mapped.limits.clients : savedPlan.limits.clients,
+          documents: mapped.limits?.documents && mapped.limits.documents !== "—" ? mapped.limits.documents : savedPlan.limits.documents,
+          storage: mapped.limits?.storage && mapped.limits.storage !== "—" ? mapped.limits.storage : savedPlan.limits.storage,
+          support: mapped.limits?.support && mapped.limits.support !== "—" ? mapped.limits.support : savedPlan.limits.support,
+        };
         savedPlan = {
           ...savedPlan,
           ...mapped,
+          limits: mergedLimits,
           id: String(persistedId || mapped.id),
-          // Enforce the submitted commercial model from this save.
-          type: String(mapped.type || pricingModel),
-          monthlyPrice:
-            mapped.type === "trial" || pricingModel === "trial"
-              ? 0
-              : Number(mapped.monthlyPrice ?? numMonthly),
-          annualPrice:
-            mapped.type === "trial" || pricingModel === "trial"
-              ? 0
-              : Number(mapped.annualPrice ?? numAnnual),
+          type: "paid",
+          monthlyPrice: Number(mapped.monthlyPrice ?? numMonthly),
+          annualPrice: Number(mapped.annualPrice ?? numAnnual),
+          yearlyDiscountPercent:
+            calculatedDiscount > 0
+              ? calculatedDiscount
+              : mapped.yearlyDiscountPercent ?? savedPlan.yearlyDiscountPercent,
           colorTheme,
         };
       }
-    } catch (err: unknown) {
-      const message =
-        err && typeof err === "object" && "message" in err
-          ? String((err as { message: unknown }).message)
+
+      if (calculatedDiscount > 0) {
+        savedPlan.yearlyDiscountPercent = calculatedDiscount;
+      }
+
+      if (isEditMode && planToEdit) {
+        savedPlan.id = planToEdit.id;
+        if (planToEdit.code) savedPlan.code = planToEdit.code;
+      }
+
+      saveLocalCustomPlan(savedPlan, planToEdit?.id, planToEdit?.name);
+      setIsConfirmDialogOpen(false);
+      onSuccess(savedPlan);
+      toast.success(
+        isEditMode
+          ? t(
+              `تم تحديث بيانات باقة "${name.trim()}" بنجاح.`,
+              `Plan "${name.trim()}" updated successfully.`
+            )
+          : isDraft
+          ? t(
+              `تم حفظ مسودة الباقة "${name.trim()}" بنجاح.`,
+              `Draft plan "${name.trim()}" saved successfully.`
+            )
           : t(
-              "تعذر حفظ الباقة على الخادم. تحقق من البيانات وحاول مرة أخرى.",
-              "Failed to save the plan on the server. Check the data and try again."
-            );
-      toast.error(message);
-      return;
+              `تم إنشاء باقة "${name.trim()}" وإتاحتها للاشتراك بنجاح!`,
+              `Plan "${name.trim()}" created and published successfully!`
+            )
+      );
+    } catch (err: unknown) {
+      if (err instanceof ApiError && (err.status === 400 || err.status === 422)) {
+        const fieldErrs = extractFieldErrors(err.body);
+        setErrors((prev) => ({ ...prev, ...fieldErrs }));
+        toast.error(
+          err.message ||
+            t(
+              "يرجى مراجعة بيانات الباقة وتصحيح الأخطاء الموضحة",
+              "Please review inputs and fix errors"
+            )
+        );
+      } else {
+        const message =
+          err instanceof Error
+            ? err.message
+            : t(
+                "تعذر حفظ الباقة على الخادم. تحقق من البيانات وحاول مرة أخرى.",
+                "Failed to save the plan on the server. Check the data and try again."
+              );
+        toast.error(message);
+      }
+      setIsConfirmDialogOpen(false);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    if (isEditMode && planToEdit) {
-      savedPlan.id = planToEdit.id;
-      if (planToEdit.code) savedPlan.code = planToEdit.code;
-    }
-
-    saveLocalCustomPlan(savedPlan, planToEdit?.id, planToEdit?.name);
-    onSuccess(savedPlan);
-    toast.success(
-      isEditMode
-        ? t(
-            `تم تحديث بيانات باقة "${name.trim()}" بنجاح.`,
-            `Plan "${name.trim()}" updated successfully.`
-          )
-        : isDraft
-        ? t(
-            `تم حفظ مسودة الباقة "${name.trim()}" بنجاح.`,
-            `Draft plan "${name.trim()}" saved successfully.`
-          )
-        : t(
-            `تم إنشاء باقة "${name.trim()}" وإتاحتها للاشتراك بنجاح!`,
-            `Plan "${name.trim()}" created and published successfully!`
-          )
-    );
   };
 
   return (
@@ -545,7 +706,7 @@ export function CreatePlanView({
         {/* RIGHT COLUMN: 4-Step Configuration Form (8 Cols) */}
         {/* ======================================================== */}
         <form
-          onSubmit={(e) => handleSubmit(e, false)}
+          onSubmit={(e) => handleInitiateSubmit(e, false)}
           className="lg:col-span-8 flex flex-col gap-6 w-full"
         >
           {/* STEP 1: البيانات الأساسية للباقة */}
@@ -560,12 +721,6 @@ export function CreatePlanView({
                   <h2 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                     {t("البيانات الأساسية للباقة", "Basic Plan Details")}
                   </h2>
-                  <p className="text-[11px] text-[#514537] dark:text-[#cdc5bd]">
-                    {t(
-                      "تعريف هوية الباقة ومسماها القانوني ومستوى تموضعها في السوق العدلي",
-                      "Define plan identity, naming, and legal market positioning"
-                    )}
-                  </p>
                 </div>
               </div>
               <span className="bg-[#eae8e4] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px] shrink-0">
@@ -583,13 +738,24 @@ export function CreatePlanView({
                 type="text"
                 required
                 value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full h-[44px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] px-[14px] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none"
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (errors.name) setErrors((prev) => ({ ...prev, name: "" }));
+                }}
+                className={cn(
+                  "w-full h-[44px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] px-[14px] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none",
+                  errors.name && "border-red-500 focus:border-red-500"
+                )}
                 placeholder={t(
                   "أدخل مسمى الباقة القانونية (مثال: الباقة الفضية، باقة الشركات المتقدمة، باقة الممارس القانوني)",
                   "Enter legal plan name (e.g. Silver Plan, Enterprise Legal, Solo Practitioner)"
                 )}
               />
+              {errors.name && (
+                <p className="text-[12px] text-red-600 dark:text-red-400 font-medium">
+                  {errors.name}
+                </p>
+              )}
             </div>
 
             {/* Dropdown: تصنيف وشريحة الباقة (DROP MENU) */}
@@ -655,16 +821,27 @@ export function CreatePlanView({
                 rows={3}
                 required
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] p-[12px] text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none resize-none"
+                onChange={(e) => {
+                  setDescription(e.target.value);
+                  if (errors.description) setErrors((prev) => ({ ...prev, description: "" }));
+                }}
+                className={cn(
+                  "w-full bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] p-[12px] text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none resize-none",
+                  errors.description && "border-red-500 focus:border-red-500"
+                )}
                 placeholder={t(
                   "اكتب وصفاً مفصلاً يوضح الفئة المستهدفة من مكاتب المحاماة، ونطاق العمل القضائي، وأبرز المزايا التنافسية المشمولة في هذه الباقة...",
                   "Write a detailed description explaining the target legal offices, judicial scope, and key competitive features included in this plan..."
                 )}
               />
+              {errors.description && (
+                <p className="text-[12px] text-red-600 dark:text-red-400 font-medium">
+                  {errors.description}
+                </p>
+              )}
             </div>
 
-            {/* Status Dropdown & Color Selection */}
+            {/* Status Dropdown & Plan Badge */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px] pt-[2px]">
               {/* Dropdown: حالة الباقة والظهور للمشتركين (DROP MENU) */}
               <div className="flex flex-col gap-[6px] text-start">
@@ -702,41 +879,7 @@ export function CreatePlanView({
                 </DashboardSelect>
               </div>
 
-              {/* لون وتمييز هوية الباقة */}
-              <div className="flex flex-col gap-[8px] text-start">
-                <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                  {t("لون وتمييز هوية الباقة", "Plan Color & Identity Theme")}
-                </label>
-                <div className="flex items-center gap-[10px] h-[42px]">
-                  {[
-                    { color: "#9c6402", label: "ذهبي" },
-                    { color: "#1b7340", label: "أخضر" },
-                    { color: "#1e40af", label: "أزرق" },
-                    { color: "#475569", label: "رمادي" },
-                  ].map((item) => (
-                    <button
-                      key={item.color}
-                      type="button"
-                      onClick={() => setColorTheme(item.color)}
-                      title={item.label}
-                      className={`size-[28px] rounded-full transition-transform cursor-pointer flex items-center justify-center ${
-                        colorTheme === item.color
-                          ? "scale-115 ring-2 ring-offset-2 ring-[#9c6402] dark:ring-[#e29d38]"
-                          : "opacity-80 hover:opacity-100"
-                      }`}
-                      style={{ backgroundColor: item.color }}
-                    >
-                      {colorTheme === item.color && (
-                        <Check className="size-[14px] text-white stroke-[3]" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* وسام وتمييز الباقة الترويجي (Badge & Badge Color) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px] pt-[2px]">
+              {/* وسام الباقة الترويجي (Badge) */}
               <div className="flex flex-col gap-[6px] text-start">
                 <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
                   {t("وسام الباقة الترويجي (Badge)", "Plan Badge")}
@@ -748,27 +891,6 @@ export function CreatePlanView({
                   className="w-full h-[44px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] px-[14px] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none"
                   placeholder={t("مثال: فئة التميز الذهبية، الأكثر اختياراً", "e.g. Gold Excellence, Most Popular")}
                 />
-              </div>
-
-              <div className="flex flex-col gap-[6px] text-start">
-                <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                  {t("لون الوسام (Badge Color)", "Badge Color")}
-                </label>
-                <div className="flex items-center gap-[8px]">
-                  <input
-                    type="color"
-                    value={badgeColor}
-                    onChange={(e) => setBadgeColor(e.target.value)}
-                    className="size-[44px] rounded-[4px] border border-[#e2ded7] dark:border-[#38271c] cursor-pointer bg-transparent p-1 shrink-0"
-                  />
-                  <input
-                    type="text"
-                    value={badgeColor}
-                    onChange={(e) => setBadgeColor(e.target.value)}
-                    className="flex-1 h-[44px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] px-[14px] text-[14px] font-mono text-[#1b1c1a] dark:text-[#fdfbf7] focus:outline-none"
-                    placeholder="#d97706"
-                  />
-                </div>
               </div>
             </div>
 
@@ -785,8 +907,8 @@ export function CreatePlanView({
                   </span>
                   <span className="text-[11px] text-[#514537] dark:text-[#cdc5bd]">
                     {t(
-                      "سيظهر وسم ذهبي بارز أعلى بطاقة الباقة في بوابة العملاء والموقع التسويقي.",
-                      "A prominent golden badge will appear on top of the plan card across portals."
+                      "سيظهر وسم ذهبي بارز أعلى بطاقة الباقة، وتكون هي الخيار المقترح افتراضياً في الفترة التجريبية مع إمكانية تجربة أي باقة أخرى أو تخصيص باقة للمكتب.",
+                      "A prominent golden badge will appear on top of the plan card, recommended by default for trials while allowing any other plan or custom plan."
                     )}
                   </span>
                 </div>
@@ -830,8 +952,8 @@ export function CreatePlanView({
                   </h2>
                   <p className="text-[11px] text-[#514537] dark:text-[#cdc5bd]">
                     {t(
-                      "تحديد نوع التسعير، الدورات المتاحة، والخصومات المعتمدة لضمان التدفق النقدي",
-                      "Define pricing model, billing cycles, and approved discounts"
+                      "تحديد دورات الفوترة، الأسعار الشهرية والسنوية، والخصومات المعتمدة للباقة المدفوعة",
+                      "Define billing cycles, monthly & annual pricing, and approved discounts for the paid plan"
                     )}
                   </p>
                 </div>
@@ -839,65 +961,6 @@ export function CreatePlanView({
               <span className="bg-[#eae8e4] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px] shrink-0">
                 {t("خطوة 2 من 4", "Step 2 of 4")}
               </span>
-            </div>
-
-            {/* نوع النموذج المالي */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px]">
-              <label
-                onClick={() => applyPricingModel("paid")}
-                className={`p-[14px] rounded-[6px] border flex items-center justify-between cursor-pointer transition-all ${
-                  pricingModel === "paid"
-                    ? "border-[#9c6402] dark:border-[#e29d38] bg-[#f5f3ef] dark:bg-[#281c15] ring-1 ring-[#9c6402] dark:ring-[#e29d38]"
-                    : "border-[#eae8e4] dark:border-[#38271c] hover:bg-[#faf9f7] dark:hover:bg-[#281c15]/50"
-                }`}
-              >
-                <div className="flex flex-col text-start">
-                  <span className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                    {t("باقة تجارية مدفوعة", "Paid Commercial Plan")}
-                  </span>
-                  <span className="text-[11px] text-[#514537] dark:text-[#cdc5bd]">
-                    {t(
-                      "تتطلب اشتراكاً دورياً ودفعات مؤتمتة عبر مدى وسداد وفيزا",
-                      "Periodic subscription with automated Mada, Sadad, and Visa checkout"
-                    )}
-                  </span>
-                </div>
-                <input
-                  type="radio"
-                  name="model"
-                  checked={pricingModel === "paid"}
-                  onChange={() => applyPricingModel("paid")}
-                  className="accent-[#9c6402]"
-                />
-              </label>
-
-              <label
-                onClick={() => applyPricingModel("trial")}
-                className={`p-[14px] rounded-[6px] border flex items-center justify-between cursor-pointer transition-all ${
-                  pricingModel === "trial"
-                    ? "border-[#9c6402] dark:border-[#e29d38] bg-[#f5f3ef] dark:bg-[#281c15] ring-1 ring-[#9c6402] dark:ring-[#e29d38]"
-                    : "border-[#eae8e4] dark:border-[#38271c] hover:bg-[#faf9f7] dark:hover:bg-[#281c15]/50"
-                }`}
-              >
-                <div className="flex flex-col text-start">
-                  <span className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                    {t("باقة تجريبية / مجانية (0 ر.س)", "Trial / Free Plan (0 SAR)")}
-                  </span>
-                  <span className="text-[11px] text-[#514537] dark:text-[#cdc5bd]">
-                    {t(
-                      "فترة استكشافية محدودة الأجل للمحامين الجدد والناشئين",
-                      "Time-limited exploratory access for emerging legal practices"
-                    )}
-                  </span>
-                </div>
-                <input
-                  type="radio"
-                  name="model"
-                  checked={pricingModel === "trial"}
-                  onChange={() => applyPricingModel("trial")}
-                  className="accent-[#9c6402]"
-                />
-              </label>
             </div>
 
             {/* Dropdown: دورة الفوترة المعتمدة (DROP MENU) */}
@@ -977,85 +1040,72 @@ export function CreatePlanView({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px] pt-[2px]">
               {/* شهري */}
               <div className="flex flex-col gap-[6px] text-start">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-[#837565] dark:text-[#cdc5bd] bg-[#eae8e4] dark:bg-[#38271c] px-[6px] py-[2px] rounded-[2px]">
-                    {t("الدورة الأساسية", "Base Cycle")}
-                  </span>
-                  <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                    {t("السعر الشهري", "Monthly Price")}{" "}
-                    <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
-                  </label>
-                </div>
+                <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                  {t("السعر الشهري", "Monthly Price")}{" "}
+                  <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
+                </label>
                 <div className="relative">
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={monthlyPrice}
-                    disabled={pricingModel === "trial"}
-                    onChange={(e) =>
-                      setMonthlyPrice(e.target.value === "" ? "" : Number(e.target.value))
-                    }
+                    onChange={(e) => {
+                      handleMonthlyPriceChange(e);
+                      if (errors.monthly_price) setErrors((prev) => ({ ...prev, monthly_price: "" }));
+                    }}
                     placeholder={t(
                       "أدخل قيمة الاشتراك الشهري بالريال السعودي (مثال: 499)",
                       "Enter monthly subscription fee in SAR (e.g. 499)"
                     )}
-                    className="w-full h-[44px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] ps-[44px] pe-[14px] text-[14px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
+                    className={cn(
+                      "w-full h-[44px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] ps-[44px] pe-[14px] text-[14px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed",
+                      errors.monthly_price && "border-red-500 focus:border-red-500"
+                    )}
                   />
                   <span className="text-[11px] font-bold text-[#837565] dark:text-[#cdc5bd] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none">
                     {t("ر.س", "SAR")}
                   </span>
                 </div>
-                <span className="text-[11px] text-[#837565] dark:text-[#cdc5bd]">
-                  {t(
-                    "فاتورة تجدد كل 30 يوماً ويتم إصدار إشعار السداد آلياً",
-                    "Renews automatically every 30 days with automated invoice"
-                  )}
-                </span>
+                {errors.monthly_price && (
+                  <p className="text-[12px] text-red-600 dark:text-red-400 font-medium">
+                    {errors.monthly_price}
+                  </p>
+                )}
               </div>
 
               {/* سنوي */}
               <div className="flex flex-col gap-[6px] text-start">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-[#047857] dark:text-[#6ee7b7] bg-[#ecfdf5] dark:bg-[#132c1c] px-[6px] py-[2px] rounded-[2px]">
-                    {t("شهران مجاناً", "2 Months Free")}
-                  </span>
-                  <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                    {t("السعر السنوي (موصى به)", "Annual Price (Recommended)")}{" "}
-                    <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
-                  </label>
-                </div>
+                <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                  {t("السعر السنوي (موصى به)", "Annual Price (Recommended)")}{" "}
+                  <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
+                </label>
                 <div className="relative">
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={annualPrice}
-                    disabled={pricingModel === "trial"}
-                    onChange={(e) =>
-                      setAnnualPrice(e.target.value === "" ? "" : Number(e.target.value))
-                    }
+                    onChange={(e) => {
+                      handleAnnualPriceChange(e);
+                      if (errors.yearly_price) setErrors((prev) => ({ ...prev, yearly_price: "" }));
+                    }}
                     placeholder={t(
                       "أدخل قيمة الاشتراك السنوي الإجمالي بعد الخصم التشجيعي (مثال: 4990)",
                       "Enter total annual fee after discount (e.g. 4990)"
                     )}
-                    className="w-full h-[44px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] ps-[44px] pe-[14px] text-[14px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
+                    className={cn(
+                      "w-full h-[44px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] ps-[44px] pe-[14px] text-[14px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed",
+                      errors.yearly_price && "border-red-500 focus:border-red-500"
+                    )}
                   />
                   <span className="text-[11px] font-bold text-[#837565] dark:text-[#cdc5bd] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none">
                     {t("ر.س", "SAR")}
                   </span>
                 </div>
-                <span className="text-[11px] text-[#047857] dark:text-[#6ee7b7] font-semibold">
-                  {annualPrice !== "" && Number(annualPrice) > 0
-                    ? t(
-                        `ما يعادل ${Math.round(
-                          Number(annualPrice) / 12
-                        )} ر.س / شهرياً عند الدفع السنوي`,
-                        `Equivalent to ${Math.round(
-                          Number(annualPrice) / 12
-                        )} SAR / month with savings`
-                      )
-                    : t(
-                        "يتم احتساب التوفير السنوي تلقائياً فور كتابة السعر في الحقل",
-                        "Annual savings will calculate automatically once price is entered"
-                      )}
-                </span>
+                {errors.yearly_price && (
+                  <p className="text-[12px] text-red-600 dark:text-red-400 font-medium">
+                    {errors.yearly_price}
+                  </p>
+                )}
               </div>
 
               {/* نسبة الخصم السنوي */}
@@ -1065,30 +1115,17 @@ export function CreatePlanView({
                 </label>
                 <div className="relative max-w-[280px]">
                   <input
-                    type="number"
-                    min="0"
-                    max="100"
+                    type="text"
+                    inputMode="numeric"
                     value={yearlyDiscountPercent}
-                    disabled={pricingModel === "trial"}
-                    onChange={(e) =>
-                      setYearlyDiscountPercent(e.target.value === "" ? "" : Number(e.target.value))
-                    }
-                    placeholder={t(
-                      "أدخل نسبة الخصم السنوي (مثال: 19)",
-                      "Enter annual discount % (e.g. 19)"
-                    )}
+                    onChange={handleDiscountChange}
+                    placeholder={t("خصم", "Discount")}
                     className="w-full h-[44px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] ps-[44px] pe-[14px] text-[14px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
                   />
                   <span className="text-[11px] font-bold text-[#837565] dark:text-[#cdc5bd] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none">
                     %
                   </span>
                 </div>
-                <span className="text-[11px] text-[#837565] dark:text-[#cdc5bd]">
-                  {t(
-                    "تظهر كشارة ترويجية ديناميكية في كارت الباقة لحث المكاتب على السداد السنوي",
-                    "Appears as a dynamic badge on the plan card to encourage annual billing"
-                  )}
-                </span>
               </div>
             </div>
           </div>
@@ -1107,25 +1144,14 @@ export function CreatePlanView({
                   </h2>
                   <p className="text-[11px] text-[#514537] dark:text-[#cdc5bd]">
                     {t(
-                      "الضوابط التشغيلية لكل مكتب: أدخل القيمة العددية، أو أدخل (-1) لتعيين استخدام غير محدود",
-                      "Operational quotas per office: enter number or (-1) for unlimited"
+                      "الضوابط التشغيلية لكل مكتب: أدخل القيمة العددية المصرح بها (أرقام فقط تبدأ من صفر)",
+                      "Operational quotas per office: enter allowed numeric count (numbers only starting from 0)"
                     )}
                   </p>
                 </div>
               </div>
               <span className="bg-[#eae8e4] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px] shrink-0">
                 {t("خطوة 3 من 4", "Step 3 of 4")}
-              </span>
-            </div>
-
-            {/* Note banner */}
-            <div className="bg-[#fff8e1] dark:bg-[#2d1f16] border-r-3 rtl:border-r-3 ltr:border-l-3 border-[#9c6402] dark:border-[#e29d38] rounded-[4px] p-[10px] flex items-center gap-[8px] text-[11px] text-[#7b4e00] dark:text-[#f3c27e] font-semibold">
-              <Info className="size-[14px] shrink-0" />
-              <span>
-                {t(
-                  "ملاحظة نظامية: تعيين القيمة (-1) يمنح \"غير محدود\" لكافة الموارد المحددة ويتم التمييز بدقة في تراخيص الهيئة السعودية للمحامين.",
-                  "Regulatory Note: Setting (-1) designates \"Unlimited\" for resources per Saudi Bar Association licensing guidelines."
-                )}
               </span>
             </div>
 
@@ -1138,27 +1164,20 @@ export function CreatePlanView({
                 </label>
                 <div className="relative">
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={lawyersLimit}
-                    onChange={(e) =>
-                      setLawyersLimit(e.target.value === "" ? "" : Number(e.target.value))
-                    }
+                    onChange={handleStrictNumberChange(setLawyersLimit)}
                     placeholder={t(
-                      "أدخل العدد المسموح به (مثال: 10 أو -1)",
-                      "Allowed count (e.g. 10 or -1)"
+                      "أدخل العدد المسموح به (مثال: 10)",
+                      "Allowed count (e.g. 10)"
                     )}
-                    className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] ps-[44px] pe-[12px] text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none"
+                    className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] ps-[12px] pe-[54px] text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none transition-colors"
                   />
-                  <span className="text-[11px] text-[#837565] dark:text-[#cdc5bd] absolute start-[12px] top-1/2 -translate-y-1/2 pointer-events-none">
+                  <span className="text-[11px] text-[#837565] dark:text-[#cdc5bd] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none">
                     {t("محامٍ", "seats")}
                   </span>
                 </div>
-                <span className="text-[10px] text-[#837565] dark:text-[#cdc5bd]">
-                  {t(
-                    "عدد حسابات المحامين والمستشارين المتاحين",
-                    "Licensed attorney accounts"
-                  )}
-                </span>
               </div>
 
               {/* 2. القضايا والمعاملات النشطة */}
@@ -1168,24 +1187,20 @@ export function CreatePlanView({
                 </label>
                 <div className="relative">
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={casesLimit}
-                    onChange={(e) =>
-                      setCasesLimit(e.target.value === "" ? "" : Number(e.target.value))
-                    }
+                    onChange={handleStrictNumberChange(setCasesLimit)}
                     placeholder={t(
-                      "الحد الأقصى للقضايا (مثال: 500 أو -1)",
-                      "Max active cases (e.g. 500 or -1)"
+                      "الحد الأقصى للقضايا (مثال: 500)",
+                      "Max active cases (e.g. 500)"
                     )}
-                    className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] ps-[44px] pe-[12px] text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none"
+                    className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] ps-[12px] pe-[54px] text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none transition-colors"
                   />
-                  <span className="text-[11px] text-[#837565] dark:text-[#cdc5bd] absolute start-[12px] top-1/2 -translate-y-1/2 pointer-events-none">
+                  <span className="text-[11px] text-[#837565] dark:text-[#cdc5bd] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none">
                     {t("قضية", "cases")}
                   </span>
                 </div>
-                <span className="text-[10px] text-[#837565] dark:text-[#cdc5bd]">
-                  {t("مفتوحة وقيد الترافع في ناجز والمحاكم", "Active open court litigation")}
-                </span>
               </div>
 
               {/* 3. الوكلاء والمفوضون */}
@@ -1195,24 +1210,20 @@ export function CreatePlanView({
                 </label>
                 <div className="relative">
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={agentsLimit}
-                    onChange={(e) =>
-                      setAgentsLimit(e.target.value === "" ? "" : Number(e.target.value))
-                    }
+                    onChange={handleStrictNumberChange(setAgentsLimit)}
                     placeholder={t(
-                      "حد الوكلاء الشرعيين (مثال: 15 أو -1)",
-                      "Max POA agents (e.g. 15 or -1)"
+                      "حد الوكلاء الشرعيين (مثال: 15)",
+                      "Max POA agents (e.g. 15)"
                     )}
-                    className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] ps-[44px] pe-[12px] text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none"
+                    className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] ps-[12px] pe-[54px] text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none transition-colors"
                   />
-                  <span className="text-[11px] text-[#837565] dark:text-[#cdc5bd] absolute start-[12px] top-1/2 -translate-y-1/2 pointer-events-none">
+                  <span className="text-[11px] text-[#837565] dark:text-[#cdc5bd] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none">
                     {t("وكيل", "agents")}
                   </span>
                 </div>
-                <span className="text-[10px] text-[#837565] dark:text-[#cdc5bd]">
-                  {t("وكالات شرعية مرتبطة بقضايا المكتب", "Linked power of attorney")}
-                </span>
               </div>
 
               {/* 4. الموكلون والشركات */}
@@ -1222,24 +1233,20 @@ export function CreatePlanView({
                 </label>
                 <div className="relative">
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={clientsLimit}
-                    onChange={(e) =>
-                      setClientsLimit(e.target.value === "" ? "" : Number(e.target.value))
-                    }
+                    onChange={handleStrictNumberChange(setClientsLimit)}
                     placeholder={t(
-                      "سجلات الموكلين (مثال: 2000 أو -1)",
-                      "Max clients (e.g. 2000 or -1)"
+                      "سجلات الموكلين (مثال: 2000)",
+                      "Max clients (e.g. 2000)"
                     )}
-                    className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] ps-[44px] pe-[12px] text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none"
+                    className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] ps-[12px] pe-[54px] text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none transition-colors"
                   />
-                  <span className="text-[11px] text-[#837565] dark:text-[#cdc5bd] absolute start-[12px] top-1/2 -translate-y-1/2 pointer-events-none">
+                  <span className="text-[11px] text-[#837565] dark:text-[#cdc5bd] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none">
                     {t("عميل", "clients")}
                   </span>
                 </div>
-                <span className="text-[10px] text-[#837565] dark:text-[#cdc5bd]">
-                  {t("سجلات وملفات الموكلين الرقمية", "Digital client dossier records")}
-                </span>
               </div>
 
               {/* 5. المساحة السحابية */}
@@ -1249,24 +1256,20 @@ export function CreatePlanView({
                 </label>
                 <div className="relative">
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={storageLimit}
-                    onChange={(e) =>
-                      setStorageLimit(e.target.value === "" ? "" : Number(e.target.value))
-                    }
+                    onChange={handleStrictNumberChange(setStorageLimit)}
                     placeholder={t(
                       "سعة التخزين بالجيجابايت (مثال: 100)",
-                      "Storage in GB (e.g. 100 or -1)"
+                      "Storage in GB (e.g. 100)"
                     )}
-                    className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] ps-[44px] pe-[12px] text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none"
+                    className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] ps-[12px] pe-[54px] text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none transition-colors"
                   />
-                  <span className="text-[11px] text-[#837565] dark:text-[#cdc5bd] absolute start-[12px] top-1/2 -translate-y-1/2 pointer-events-none">
+                  <span className="text-[11px] text-[#837565] dark:text-[#cdc5bd] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none">
                     GB
                   </span>
                 </div>
-                <span className="text-[10px] text-[#837565] dark:text-[#cdc5bd]">
-                  {t("تخزين مشفر آمن للوثائق والمستندات", "Secure encrypted in-kingdom storage")}
-                </span>
               </div>
 
               {/* 6. المساعدون والمحاسبون */}
@@ -1276,24 +1279,43 @@ export function CreatePlanView({
                 </label>
                 <div className="relative">
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={assistantsLimit}
-                    onChange={(e) =>
-                      setAssistantsLimit(e.target.value === "" ? "" : Number(e.target.value))
-                    }
+                    onChange={handleStrictNumberChange(setAssistantsLimit)}
                     placeholder={t(
-                      "حسابات المساعدين (مثال: 20 أو -1)",
-                      "Assistants count (e.g. 20 or -1)"
+                      "حسابات المساعدين (مثال: 20)",
+                      "Assistants count (e.g. 20)"
                     )}
-                    className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] ps-[44px] pe-[12px] text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none"
+                    className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] ps-[12px] pe-[54px] text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none transition-colors"
                   />
-                  <span className="text-[11px] text-[#837565] dark:text-[#cdc5bd] absolute start-[12px] top-1/2 -translate-y-1/2 pointer-events-none">
+                  <span className="text-[11px] text-[#837565] dark:text-[#cdc5bd] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none">
                     {t("مستخدم", "users")}
                   </span>
                 </div>
-                <span className="text-[10px] text-[#837565] dark:text-[#cdc5bd]">
-                  {t("طاقم السكرتارية والدعم المالي والإداري", "Administrative and finance staff")}
-                </span>
+              </div>
+
+              {/* 7. المستندات والوثائق */}
+              <div className="flex flex-col gap-[4px] text-start">
+                <label className="text-[12px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                  {t("المستندات والوثائق", "Documents & Files")}
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={documentsLimit}
+                    onChange={handleStrictNumberChange(setDocumentsLimit)}
+                    placeholder={t(
+                      "سجلات المستندات (مثال: 5000)",
+                      "Max documents (e.g. 5000)"
+                    )}
+                    className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] ps-[12px] pe-[54px] text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#a89f91] placeholder:font-normal focus:outline-none transition-colors"
+                  />
+                  <span className="text-[11px] text-[#837565] dark:text-[#cdc5bd] absolute end-[12px] top-1/2 -translate-y-1/2 pointer-events-none">
+                    {t("مستند", "docs")}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -1556,26 +1578,35 @@ export function CreatePlanView({
               <button
                 type="button"
                 onClick={onBack}
-                className="bg-[#f0eeea] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] px-5 py-2.5 rounded-[4px] text-[13px] font-semibold transition-colors cursor-pointer"
+                disabled={isSubmitting}
+                className="bg-[#f0eeea] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] px-5 py-2.5 rounded-[4px] text-[13px] font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {t("إلغاء", "Cancel")}
               </button>
 
               <button
                 type="button"
-                onClick={(e) => handleSubmit(e, true)}
-                className="bg-white dark:bg-[#2d1f16] hover:bg-[#f5f3ef] dark:hover:bg-[#38271c] border border-[#eae8e4] dark:border-[#4d3627] text-[#514537] dark:text-[#cdc5bd] px-5 py-2.5 rounded-[4px] text-[13px] font-semibold transition-colors cursor-pointer"
+                onClick={(e) => handleInitiateSubmit(e, true)}
+                disabled={isSubmitting}
+                className="bg-white dark:bg-[#2d1f16] hover:bg-[#f5f3ef] dark:hover:bg-[#38271c] border border-[#eae8e4] dark:border-[#4d3627] text-[#514537] dark:text-[#cdc5bd] px-5 py-2.5 rounded-[4px] text-[13px] font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {t("حفظ كمسودة", "Save as Draft")}
               </button>
 
               <button
                 type="submit"
-                className="bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#855402] dark:hover:bg-[#c9862b] text-white dark:text-[#1c140f] px-7 py-2.5 rounded-[4px] text-[13px] font-semibold shadow-xs transition-colors cursor-pointer flex items-center gap-2"
+                disabled={isSubmitting}
+                className="bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#855402] dark:hover:bg-[#c9862b] text-white dark:text-[#1c140f] px-7 py-2.5 rounded-[4px] text-[13px] font-semibold shadow-xs transition-colors cursor-pointer flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Check className="size-[14px] stroke-[2.5]" />
+                {isSubmitting ? (
+                  <Loader2 className="size-[14px] animate-spin" />
+                ) : (
+                  <Check className="size-[14px] stroke-[2.5]" />
+                )}
                 <span>
-                  {isEditMode
+                  {isSubmitting
+                    ? t("جاري الحفظ...", "Saving...")
+                    : isEditMode
                     ? t("حفظ التعديلات", "Save Changes")
                     : t("حفظ وتفعيل الباقة", "Save & Publish Plan")}
                 </span>
@@ -1632,20 +1663,32 @@ export function CreatePlanView({
 
             {/* Price Box */}
             <div className="bg-[#f5f3ef] dark:bg-[#281c15] rounded-[6px] p-[16px] flex flex-col">
-              <div className="flex items-baseline gap-[6px]">
-                <span className="text-[34px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7] leading-none">
-                  {monthlyPrice !== "" ? monthlyPrice : "--"}
-                </span>
-                <span className="text-[12px] font-bold text-[#514537] dark:text-[#cdc5bd]">
-                  {t("ر.س / شهرياً", "SAR / month")}
-                </span>
+              <div className="flex items-baseline gap-[6px] justify-between">
+                <div className="flex items-baseline gap-[6px]">
+                  <span className="text-[34px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7] leading-none">
+                    {previewMonthlyPrice !== null ? previewMonthlyPrice.toLocaleString() : "--"}
+                  </span>
+                  <span className="text-[12px] font-bold text-[#514537] dark:text-[#cdc5bd]">
+                    {t("ر.س / شهرياً", "SAR / month")}
+                  </span>
+                </div>
+                {hasDiscount && (
+                  <span className="bg-[#ecfdf5] border border-emerald-300 dark:bg-[#132c1c] dark:border-emerald-500/40 text-[#047857] dark:text-[#6ee7b7] text-[11px] font-bold px-[8px] py-[2px] rounded-full shadow-2xs">
+                    {t("خصم", "Discount")}
+                  </span>
+                )}
               </div>
-              <span className="text-[10px] text-[#837565] dark:text-[#cdc5bd] mt-[4px]">
-                {annualPrice !== "" && Number(annualPrice) > 0
-                  ? t(
-                      `أو ${annualPrice} ر.س عند السداد السنوي (وفر 16%)`,
-                      `or ${annualPrice} SAR billed annually (save 16%)`
-                    )
+              <span className="text-[11px] text-[#837565] dark:text-[#cdc5bd] mt-[6px]">
+                {previewAnnualPrice > 0
+                  ? hasDiscount
+                    ? t(
+                        `أو ${previewAnnualPrice.toLocaleString()} ر.س عند السداد السنوي (خصم)`,
+                        `or ${previewAnnualPrice.toLocaleString()} SAR billed annually (discount)`
+                      )
+                    : t(
+                        `أو ${previewAnnualPrice.toLocaleString()} ر.س عند السداد السنوي`,
+                        `or ${previewAnnualPrice.toLocaleString()} SAR billed annually`
+                      )
                   : t("أو -- ر.س عند السداد السنوي", "or -- SAR billed annually")}
               </span>
             </div>
@@ -1654,12 +1697,12 @@ export function CreatePlanView({
             <div className="flex flex-col gap-[8px] text-[12px] text-[#1b1c1a] dark:text-[#fdfbf7] border-t border-[#f0eeea] dark:border-[#38271c] pt-[12px]">
               <div className="flex items-center justify-between">
                 <span className="text-[#837565] dark:text-[#cdc5bd]">
-                  {t("المحامون المرخصون:", "Licensed Lawyers:")}
+                  {t("المحامون والمستشارون:", "Lawyers & Consultants:")}
                 </span>
                 <span className="font-bold">
                   {getLimitText(
                     lawyersLimit,
-                    "محامين",
+                    "محامٍ",
                     "lawyers",
                     t("غير محدد بعد", "Not specified yet")
                   )}
@@ -1667,7 +1710,7 @@ export function CreatePlanView({
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[#837565] dark:text-[#cdc5bd]">
-                  {t("القضايا النشطة:", "Active Cases:")}
+                  {t("القضايا والمعاملات النشطة:", "Active Cases & Matters:")}
                 </span>
                 <span className="font-bold">
                   {getLimitText(
@@ -1680,25 +1723,12 @@ export function CreatePlanView({
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[#837565] dark:text-[#cdc5bd]">
-                  {t("التخزين السحابي:", "Cloud Storage:")}
-                </span>
-                <span className="font-bold">
-                  {getLimitText(
-                    storageLimit,
-                    "جيجابايت",
-                    "GB",
-                    t("غير محدد بعد", "Not specified yet")
-                  )}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[#837565] dark:text-[#cdc5bd]">
-                  {t("الوكلاء الشرعيين:", "Legal Agents:")}
+                  {t("الوكلاء والمفوضون:", "Agents & POA:")}
                 </span>
                 <span className="font-bold">
                   {getLimitText(
                     agentsLimit,
-                    "وكلاء",
+                    "وكيل",
                     "agents",
                     t("غير محدد بعد", "Not specified yet")
                   )}
@@ -1706,13 +1736,52 @@ export function CreatePlanView({
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[#837565] dark:text-[#cdc5bd]">
-                  {t("الموكلون المضافون:", "Clients:")}
+                  {t("الموكلون والشركات:", "Clients & Companies:")}
                 </span>
                 <span className="font-bold">
                   {getLimitText(
                     clientsLimit,
                     "عميل",
                     "clients",
+                    t("غير محدد بعد", "Not specified yet")
+                  )}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[#837565] dark:text-[#cdc5bd]">
+                  {t("المساحة السحابية (GB):", "Cloud Storage (GB):")}
+                </span>
+                <span className="font-bold">
+                  {getLimitText(
+                    storageLimit,
+                    "GB",
+                    "GB",
+                    t("غير محدد بعد", "Not specified yet")
+                  )}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[#837565] dark:text-[#cdc5bd]">
+                  {t("المساعدون والمحاسبون:", "Assistants & Accountants:")}
+                </span>
+                <span className="font-bold">
+                  {getLimitText(
+                    assistantsLimit,
+                    "مستخدم",
+                    "users",
+                    t("غير محدد بعد", "Not specified yet")
+                  )}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[#837565] dark:text-[#cdc5bd]">
+                  {t("المستندات والوثائق:", "Documents & Files:")}
+                </span>
+                <span className="font-bold">
+                  {getLimitText(
+                    documentsLimit,
+                    "مستند",
+                    "docs",
                     t("غير محدد بعد", "Not specified yet")
                   )}
                 </span>
@@ -1783,6 +1852,42 @@ export function CreatePlanView({
           </div>
         </div>
       </div>
+
+      <LuxuryAlertDialog
+        isOpen={isConfirmDialogOpen}
+        onClose={() => !isSubmitting && setIsConfirmDialogOpen(false)}
+        onConfirm={executeSave}
+        isLoading={isSubmitting}
+        variant="info"
+        title={
+          isEditMode
+            ? t("تأكيد تعديل بيانات الباقة والأسعار", "Confirm Plan & Pricing Update")
+            : t("تأكيد إنشاء باقة الاشتراك", "Confirm Subscription Plan Creation")
+        }
+        description={
+          isEditMode
+            ? t(
+                `هل أنت متأكد من حفظ التعديلات على باقة "${name.trim()}"؟ سيتم تحديث أسعارها وحدودها التشغيلية في النظام فوراً.`,
+                `Are you sure you want to update "${name.trim()}"? Pricing and resource limits will be updated immediately.`
+              )
+            : t(
+                `هل أنت متأكد من إنشاء وحفظ الباقة "${name.trim()}" في النظام وإتاحتها للاشتراك؟`,
+                `Are you sure you want to create and publish "${name.trim()}" in the system?`
+              )
+        }
+        confirmLabel={
+          isSubmitting
+            ? t("جاري الحفظ...", "Saving...")
+            : isEditMode
+            ? t("تأكيد التعديل", "Confirm Edit")
+            : t("تأكيد الإنشاء", "Confirm Create")
+        }
+        cancelLabel={t("تراجع", "Cancel")}
+        itemDetails={{
+          name: name.trim(),
+          email: `${monthlyPrice || 0} ر.س / شهرياً - ${annualPrice || 0} ر.س / سنوياً`,
+        }}
+      />
     </div>
   );
 }

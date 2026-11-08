@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { X, Trash2, Tag } from "lucide-react";
+import { X, Trash2, Tag, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { PricingPlanItem } from "../types/plan.types";
 import { useLanguage } from "@/lib/i18n";
@@ -11,7 +11,8 @@ interface DeletePlanDialogProps {
   isOpen: boolean;
   onClose: () => void;
   plan?: PricingPlanItem | null;
-  onConfirmDelete?: (planId: string) => void;
+  onConfirmDelete?: (planId: string) => void | Promise<void>;
+  isLoading?: boolean;
 }
 
 export function DeletePlanDialog({
@@ -19,6 +20,7 @@ export function DeletePlanDialog({
   onClose,
   plan,
   onConfirmDelete,
+  isLoading = false,
 }: DeletePlanDialogProps) {
   const { t } = useLanguage();
   if (!isOpen) return null;
@@ -116,7 +118,8 @@ export function DeletePlanDialog({
           <button
             type="button"
             onClick={onClose}
-            className="px-[18px] py-[9px] rounded-[6px] bg-white dark:bg-[#221812] border border-[#e2ded7] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] text-[13px] font-semibold transition-colors cursor-pointer"
+            disabled={isLoading}
+            className="px-[18px] py-[9px] rounded-[6px] bg-white dark:bg-[#221812] border border-[#e2ded7] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] text-[13px] font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {t("إلغاء", "Cancel")}
           </button>
@@ -124,10 +127,15 @@ export function DeletePlanDialog({
           <button
             type="button"
             onClick={handleConfirm}
-            className="px-[20px] py-[9px] rounded-[6px] bg-[#b91c1c] hover:bg-[#991b1b] text-white text-[13px] font-bold flex items-center gap-[6px] shadow-xs transition-colors cursor-pointer"
+            disabled={isLoading}
+            className="px-[20px] py-[9px] rounded-[6px] bg-[#b91c1c] hover:bg-[#991b1b] text-white text-[13px] font-bold flex items-center gap-[6px] shadow-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Trash2 className="size-[15px]" />
-            <span>{t("حذف الباقة", "Delete Plan")}</span>
+            {isLoading ? (
+              <Loader2 className="size-[15px] animate-spin" />
+            ) : (
+              <Trash2 className="size-[15px]" />
+            )}
+            <span>{isLoading ? t("جاري الحذف...", "Deleting...") : t("حذف الباقة", "Delete Plan")}</span>
           </button>
         </div>
       </div>

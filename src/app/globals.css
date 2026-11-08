@@ -70,6 +70,17 @@ main {
   max-width: 100%;
 }
 
+/* Remove native up/down number spin buttons everywhere */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+}
+input[type="number"] {
+  -moz-appearance: textfield !important;
+  appearance: textfield !important;
+}
+
 :root {
   --background: #fcfbfa;
   --foreground: #1c1917;
@@ -189,6 +200,12 @@ html:not(.dark) [class*="border-border"] {
 
 /* Muted ivory / cream surfaces → clients muted (#281c15) */
 .dark .bg-\[\#f5f3ef\],
+.dark .bg-\[\#f5f3ef\]\/30,
+.dark .bg-\[\#f5f3ef\]\/40,
+.dark .bg-\[\#f5f3ef\]\/50,
+.dark .bg-\[\#f5f3ef\]\/60,
+.dark .bg-\[\#f5f3ef\]\/70,
+.dark .bg-\[\#f5f3ef\]\/80,
 .dark .bg-\[\#f6f3ed\],
 .dark .bg-\[\#faf8f5\],
 .dark .bg-\[\#faf8f4\],
@@ -354,10 +371,21 @@ html:not(.dark) [class*="border-border"] {
 
 /* Badges and tags in Dark Mode: Zero bright pastel/white */
 .dark .bg-\[\#fff9ee\],
+.dark .bg-\[\#fff9ee\]\/40,
+.dark .bg-\[\#fff9ee\]\/30,
+.dark .bg-\[\#fff9ee\]\/20,
 .dark .bg-\[\#ffeed9\],
 .dark .bg-\[\#fff5ea\],
 .dark .bg-\[\#f4efe6\] {
   background-color: #2d1f16 !important;
+}
+
+/* Prevent cream/white hover surfaces from blinding in Dark Mode */
+.dark .hover\:bg-\[\#faf9f7\]:hover,
+.dark .hover\:bg-\[\#faf8f5\]:hover,
+.dark .hover\:bg-\[\#f5f3ef\]:hover,
+.dark .hover\:bg-\[\#eae8e4\]:hover {
+  background-color: #2e2018 !important;
 }
 .dark .text-\[\#9c6402\],
 .dark .text-\[\#7b4e00\],
