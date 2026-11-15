@@ -24,20 +24,63 @@ export type {
 
 const LOCAL_PLANS_KEY = "aljudy_custom_plans_registry_v1";
 
+export const UNLIMITED_VIP_PLAN: PricingPlanItem = {
+  id: "unlimited",
+  name: "غير محدود",
+  code: "PLAN-VIP-UNLIMITED",
+  description: "باقة مخصصة لكبار العملاء والمكاتب الخاصة بصلاحيات كاملة وغير محدودة للنظام وبدون أي قيود أو فترات انتهاء.",
+  badge: "صلاحيات كاملة",
+  badgeColor: "#9c6402",
+  type: "unlimited",
+  monthlyPrice: 0,
+  annualPrice: 0,
+  yearlyDiscountPercent: 0,
+  subscribedFirmsCount: 0,
+  sharePercentage: "",
+  isActive: true,
+  isPopular: false,
+  isEnterprise: true,
+  colorTheme: "#9c6402",
+  limits: {
+    lawyers: "غير محدود: المحامين والمستشارين",
+    cases: "غير محدود: القضايا والمعاملات النشطة",
+    agents: "غير محدود: الوكلاء والمفوضين",
+    assistants: "غير محدود: المساعدين والمحاسبين",
+    clients: "غير محدود: العملاء والشركات",
+    documents: "غير محدود: المستندات والوثائق",
+    storage: "غير محدود: المساحة السحابية",
+    support: "دعم فني استشاري فوري VIP شامل",
+    integration: "ربط حكومي شامل (ناجز، زاتكا) و API مخصص",
+  },
+  features: [
+    { id: "1", title: "صلاحيات كاملة وغير محدودة للنظام", isIncluded: true },
+    { id: "2", title: "ربط مباشر فوري مع منصة ناجز ووزارة العدل", isIncluded: true },
+    { id: "3", title: "الفوترة الإلكترونية ZATCA المرحلة 2 المتقدمة", isIncluded: true },
+    { id: "4", title: "ذكاء قضائي وتحليلات متقدمة غير محدودة", isIncluded: true },
+    { id: "5", title: "مدير حساب استشاري مخصص VIP على مدار الساعة", isIncluded: true },
+    { id: "6", title: "تكامل API كامل بدون أي قيود استخدام", isIncluded: true },
+  ],
+};
+
 export function getLocalCustomPlans(): PricingPlanItem[] {
-  if (typeof window === "undefined") return [];
+  if (typeof window === "undefined") return [UNLIMITED_VIP_PLAN];
   try {
     const raw = localStorage.getItem(LOCAL_PLANS_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
+    const parsed = raw ? JSON.parse(raw) : [];
+    const list = Array.isArray(parsed) ? parsed : [];
 
     // Deduplicate by ID and name to clean up any past test artifacts
     const seenIds = new Set<string>();
     const seenNames = new Set<string>();
     const deduplicated: PricingPlanItem[] = [];
 
-    for (const item of parsed as PricingPlanItem[]) {
+    // Ensure UNLIMITED_VIP_PLAN is included
+    const combined = [...list];
+    if (!combined.some((p) => p.id === "unlimited" || p.name === "غير محدود")) {
+      combined.push(UNLIMITED_VIP_PLAN);
+    }
+
+    for (const item of combined as PricingPlanItem[]) {
       if (!item || !item.id) continue;
       const idKey = String(item.id);
       const nameKey = (item.name || "").trim();
@@ -51,7 +94,7 @@ export function getLocalCustomPlans(): PricingPlanItem[] {
 
     return deduplicated;
   } catch {
-    return [];
+    return [UNLIMITED_VIP_PLAN];
   }
 }
 
@@ -165,11 +208,12 @@ export async function updatePlanStatus(
   planId: string | number,
   status: "active" | "disabled" | "inactive" | string
 ) {
+  const safeStatus = status === "inactive" || status === "suspended" ? "disabled" : status;
   return apiRequest<ApiEnvelope<unknown> | unknown>(
     `/admin/plans/${planId}/status`,
     {
       method: "PATCH",
-      body: { status },
+      body: { status: safeStatus },
     }
   );
 }

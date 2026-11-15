@@ -3,7 +3,6 @@
 import React from "react";
 import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
 import { DashboardSelect } from "@/components/shared/DashboardSelect";
-import { Sparkles } from "lucide-react";
 import { TicketFilterStatus } from "../types/tickets.types";
 import { useLanguage } from "@/lib/i18n";
 
@@ -19,8 +18,6 @@ interface TicketsFilterBarProps {
     closed: number;
     pending?: number;
   };
-  isEmptyToggle?: boolean;
-  onToggleEmptyState?: () => void;
 }
 
 export function TicketsFilterBar({
@@ -29,8 +26,6 @@ export function TicketsFilterBar({
   searchQuery,
   onSearchChange,
   counts,
-  isEmptyToggle = false,
-  onToggleEmptyState,
 }: TicketsFilterBarProps) {
   const { t } = useLanguage();
   const hasActiveFilters = filterStatus !== "all" || Boolean(searchQuery);
@@ -86,27 +81,6 @@ export function TicketsFilterBar({
       }}
       drawerTitle={t("تصفية تذاكر الدعم الفني", "Filter Support Tickets")}
       drawerContent={drawerContent}
-      actionButton={
-        onToggleEmptyState && (
-          <button
-            type="button"
-            onClick={onToggleEmptyState}
-            title={t("معاينة شاشة الحالة الفارغة", "Preview empty state")}
-            className={`flex items-center gap-[6px] px-[12px] py-[8px] rounded-[4px] text-[11px] font-semibold border transition-all cursor-pointer ${
-              isEmptyToggle
-                ? "bg-[#9c6402]/10 border-[#9c6402] text-[#9c6402]"
-                : "bg-white border-[#eae8e4] text-[#837565] hover:border-[#9c6402]/40"
-            }`}
-          >
-            <Sparkles className="size-[13px] text-[#9c6402]" />
-            <span>
-              {isEmptyToggle
-                ? t("عرض التذاكر النشطة", "Show Active Tickets")
-                : t("معاينة شاشة لا توجد تذاكر", "Preview Empty State")}
-            </span>
-          </button>
-        )
-      }
     />
   );
 }

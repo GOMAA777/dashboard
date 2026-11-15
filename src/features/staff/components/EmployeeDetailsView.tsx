@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Edit3,
+  Trash2,
   UserX,
   UserCheck,
   RotateCcw,
@@ -21,7 +22,7 @@ import {
   Clock,
   KeyRound,
 } from "lucide-react";
-import { Employee } from "../types/staff.types";
+import { Employee, isEmployeeAdmin } from "../types/staff.types";
 import { sampleSaraAuditLogs } from "../data/initialStaff";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -30,6 +31,7 @@ interface EmployeeDetailsViewProps {
   employee: Employee;
   onBack: () => void;
   onEdit: () => void;
+  onDelete?: () => void;
   onLoginAsEmployee?: () => void;
   onDeactivate: () => void;
   onActivate: () => void;
@@ -40,6 +42,7 @@ export function EmployeeDetailsView({
   employee,
   onBack,
   onEdit,
+  onDelete,
   onLoginAsEmployee,
   onDeactivate,
   onActivate,
@@ -47,6 +50,7 @@ export function EmployeeDetailsView({
 }: EmployeeDetailsViewProps) {
   const { t, isEn, direction } = useLanguage();
   const isSuspended = employee.status === "suspended";
+  const isAdmin = isEmployeeAdmin(employee);
 
   return (
     <div dir={direction} className="space-y-6 pb-20" data-node-id="1:9815">
@@ -160,11 +164,23 @@ export function EmployeeDetailsView({
           <button
             type="button"
             onClick={onResetPassword}
-            className="px-3.5 py-2 rounded-[6px] bg-white hover:bg-[#f5f3ef] text-[#514537] border border-[#d6cfc7] text-[13px] font-semibold flex items-center gap-2 transition-colors"
+            className="px-3.5 py-2 rounded-[6px] bg-white hover:bg-[#f5f3ef] text-[#514537] border border-[#d6cfc7] text-[13px] font-semibold flex items-center gap-2 transition-colors cursor-pointer"
           >
             <RotateCcw className="size-[15px]" />
             <span>{t("إعادة تعيين كلمة المرور", "Reset Password")}</span>
           </button>
+
+          {/* Delete Employee (Only if not admin) */}
+          {!isAdmin && onDelete && (
+            <button
+              type="button"
+              onClick={onDelete}
+              className="px-3.5 py-2 rounded-[6px] bg-white hover:bg-[#fee2e2] text-[#dc2626] border border-[#fca5a5] text-[13px] font-semibold flex items-center gap-2 transition-colors cursor-pointer"
+            >
+              <Trash2 className="size-[15px]" />
+              <span>{t("حذف الموظف", "Delete Employee")}</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -279,28 +295,49 @@ export function EmployeeDetailsView({
 
               {/* Field 7 */}
               <div className="bg-[#fcfaf7] dark:bg-[#160e0a] p-3.5 rounded-[6px] border border-[#f0ece5] dark:border-[#38271c]">
-                <span className="text-[11px] text-[#79716b] block mb-1">
+                <span className="text-[11px] text-[#79716b] dark:text-[#a89f91] block mb-1">
                   {t("تاريخ وتوقيت إنشاء الحساب", "Account Creation Date & Time")}
                 </span>
-                <span className="text-[13px] font-bold text-[#1b1c1a]">
-                  {employee.createdAt || (isEn ? "14 Jan 2024 - 10:30 AM" : "14 يناير 2024 - 10:30 ص")}
+                <span className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                  {employee.createdAt || "—"}
                 </span>
-                <span className="text-[11px] text-[#79716b] block mt-0.5">
+                <span className="text-[11px] text-[#79716b] dark:text-[#a89f91] block mt-0.5">
                   {t("بواسطة: الإدارة العليا للنظام", "By: Senior Administration")}
                 </span>
               </div>
 
               {/* Field 8 */}
               <div className="bg-[#fcfaf7] dark:bg-[#160e0a] p-3.5 rounded-[6px] border border-[#f0ece5] dark:border-[#38271c]">
-                <span className="text-[11px] text-[#79716b] block mb-1">
+                <span className="text-[11px] text-[#79716b] dark:text-[#a89f91] block mb-1">
                   {t("آخر نشاط ومصادقة ناجحة", "Last Active & Authenticated")}
                 </span>
-                <span className="text-[13px] font-bold text-[#1b1c1a]">
-                  {employee.lastLogin.time}
-                </span>
-                <span className="text-[11px] text-[#1b7340] font-semibold block mt-0.5">
-                  {t("● جلسة نشطة حالياً", "● Active Session")}
-                </span>
+                {employee.lastLogin?.time && employee.lastLogin.time !== "—" ? (
+                  <>
+                    <span className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block font-mono">
+                      {employee.lastLogin.time}
+                    </span>
+                    <span className="text-[11px] text-[#1b7340] dark:text-[#6ee7b7] font-semibold block mt-0.5">
+                      {employee.lastLogin.city || employee.lastLogin.ip ? (
+                        <>
+                          {employee.lastLogin.city ? `${employee.lastLogin.city}` : ""}
+                          {employee.lastLogin.city && employee.lastLogin.ip ? " • " : ""}
+                          {employee.lastLogin.ip ? `IP: ${employee.lastLogin.ip}` : ""}
+                        </>
+                      ) : (
+                        t("● جلسة مسجلة", "● Authenticated Session")
+                      )}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-[13px] font-semibold text-[#837565] dark:text-[#a89f91] block">
+                      {t("لم يسجل الدخول بعد", "Never logged in")}
+                    </span>
+                    <span className="text-[11px] text-[#837565] dark:text-[#a89f91] block mt-0.5">
+                      {t("○ لا توجد جلسات مسجلة حتى الآن", "○ No sessions recorded yet")}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           </div>

@@ -23,15 +23,20 @@ import {
   SubscriptionTabFilter,
 } from "../types/subscription.types";
 import { useLanguage } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 import {
   fetchSubscriptions,
   fetchSubscriptionsStats,
   updateSubscriptionStatus,
+  approveSubscription,
+  rejectSubscription,
 } from "@/lib/api/subscriptions";
-import { mapSubscriptionsResponse } from "@/lib/api/mappers";
+import { fetchFirms } from "@/lib/api/firms";
+import { mapSubscriptionsResponse, mapSubscriptionFromApi, getLocalCustomFirmPlan } from "@/lib/api/mappers";
 import { readStats } from "@/lib/api/helpers";
 import { toast } from "sonner";
-import { AlertTriangle, RefreshCw } from "lucide-react";
+import { AlertTriangle, RefreshCw, CheckCircle2, XCircle, X, Loader2 } from "lucide-react";
+import { ModalPortal } from "@/components/shared/ModalPortal";
 
 export function SubscriptionManagementView() {
   const { direction, t } = useLanguage();
@@ -83,24 +88,97 @@ export function SubscriptionManagementView() {
     newStatus: SubscriptionStatus;
   } | null>(null);
 
+  // Quick approve and reject dialog states
+  const [subToApprove, setSubToApprove] = useState<SubscriptionRecord | null>(null);
+  const [subToReject, setSubToReject] = useState<SubscriptionRecord | null>(null);
+  const [quickRejectReason, setQuickRejectReason] = useState("");
+  const [quickRejectError, setQuickRejectError] = useState("");
+  const [isSubmittingQuickAction, setIsSubmittingQuickAction] = useState(false);
+
   // Data fetching logic
   const loadSubscriptions = useCallback(async () => {
     setIsLoading(true);
     setApiError(null);
     try {
-      const [subsPayload, statsPayload] = await Promise.all([
+      const [subsPayload, statsPayload, firmsPayload] = await Promise.all([
         fetchSubscriptions({
           tab: tab || "all",
           page: pageIndex + 1,
           per_page: pageSize,
           search: search.trim() || undefined,
-          plan: plan !== "all" ? plan : undefined,
+          plan: plan !== "all" && plan !== "unlimited" ? plan : undefined,
           status: status !== "all" ? status : undefined,
         }),
         fetchSubscriptionsStats().catch(() => null),
+        fetchFirms({ per_page: 100 }).catch(() => null),
       ]);
 
       const mapped = mapSubscriptionsResponse(subsPayload);
+
+      if (firmsPayload) {
+        const payloadObj = firmsPayload as Record<string, unknown>;
+        const rawFirmsList = Array.isArray(firmsPayload)
+          ? firmsPayload
+          : Array.isArray(payloadObj.data)
+          ? (payloadObj.data as unknown[])
+          : Array.isArray(payloadObj.items)
+          ? (payloadObj.items as unknown[])
+          : [];
+
+        rawFirmsList.forEach((fUnknown) => {
+          const f = (fUnknown || {}) as Record<string, unknown>;
+          const fid = f.id ? String(f.id) : "";
+          const localPlan = fid ? getLocalCustomFirmPlan(fid) : undefined;
+          const planStr = String(
+            localPlan?.planType ||
+              localPlan?.plan ||
+              f.plan_type ||
+              f.planType ||
+              f.subscription_plan ||
+              f.subscriptionPlan ||
+              (f.plan as Record<string, unknown> | undefined)?.type ||
+              (f.plan as Record<string, unknown> | undefined)?.name ||
+              f.plan ||
+              ""
+          ).toLowerCase();
+
+          const isUnlim = planStr.includes("unlimited") || planStr.includes("غير محدود");
+          if (isUnlim) {
+            const alreadyExists = mapped.some(
+              (m) => (fid && String(m.firm.id) === fid) || m.firm.name === f.name
+            );
+            if (!alreadyExists) {
+              const unlimitedSub = mapSubscriptionFromApi({
+                id: `SUB-UNL-${fid || Math.floor(Math.random() * 10000)}`,
+                code: `SUB-UNL-${fid || "0"}`,
+                firm: {
+                  id: fid || "0",
+                  name: String(f.name || f.firm_name || "مكتب محاماة"),
+                  license_number: String(f.license_number || f.licenseNumber || "—"),
+                  city: String(f.city || "—"),
+                  address: String(f.address || "—"),
+                  owner_name: String(f.owner_name || f.director_name || f.owner || "—"),
+                  email: String(f.email || ""),
+                  phone: String(f.phone || ""),
+                },
+                plan_name: "غير محدود",
+                plan_type: "unlimited",
+                subscription_plan: "unlimited",
+                plan_price: "بدون سعر (مجاني)",
+                billing_cycle: "دائم",
+                start_date: f.created_at ? new Date(String(f.created_at)).toLocaleDateString("ar-SA") : "—",
+                renewal_date: "دائم (بدون انتهاء)",
+                remaining_days: "∞",
+                remaining_days_text: "∞",
+                status: "active",
+                status_label: "صلاحيات كاملة",
+              });
+              mapped.unshift(unlimitedSub);
+            }
+          }
+        });
+      }
+
       setSubscriptions(mapped);
 
       const metaTotal =
@@ -192,13 +270,21 @@ export function SubscriptionManagementView() {
   // Filtered subscriptions (client-side safety check)
   const filteredSubscriptions = useMemo(() => {
     return subscriptions.filter((sub) => {
+      // Plan filter for unlimited
+      if (plan === "unlimited") {
+        const isUnlim =
+          sub.planName?.includes("غير محدود") ||
+          (sub.billingCycle as string) === "دائم" ||
+          sub.statusLabel === "صلاحيات كاملة";
+        if (!isUnlim) return false;
+      }
       // Payment method filter (if not supported on backend)
       if (paymentMethod !== "all" && sub.paymentMethod?.type !== paymentMethod) {
         return false;
       }
       return true;
     });
-  }, [subscriptions, paymentMethod]);
+  }, [subscriptions, plan, paymentMethod]);
 
   // Paginated records
   const displayedSubscriptions = useMemo(() => {
@@ -264,6 +350,44 @@ export function SubscriptionManagementView() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : t("حدث خطأ أثناء تحديث حالة الاشتراك", "Error updating subscription status");
       toast.error(msg);
+    }
+  };
+
+  const handleConfirmApprove = async () => {
+    if (!subToApprove) return;
+    setIsSubmittingQuickAction(true);
+    try {
+      await approveSubscription(subToApprove.id);
+      toast.success(t("تمت الموافقة وتفعيل الاشتراك بنجاح", "Subscription approved and activated successfully"));
+      setSubToApprove(null);
+      await loadSubscriptions();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : t("حدث خطأ أثناء اعتماد الاشتراك", "Error approving subscription");
+      toast.error(msg);
+    } finally {
+      setIsSubmittingQuickAction(false);
+    }
+  };
+
+  const handleConfirmReject = async () => {
+    if (!subToReject) return;
+    if (!quickRejectReason.trim()) {
+      setQuickRejectError(t("يرجى كتابة سبب رفض طلب الاشتراك", "Please enter rejection reason"));
+      return;
+    }
+    setQuickRejectError("");
+    setIsSubmittingQuickAction(true);
+    try {
+      await rejectSubscription(subToReject.id, quickRejectReason.trim());
+      toast.success(t("تم رفض طلب الاشتراك بنجاح", "Subscription request rejected"));
+      setSubToReject(null);
+      setQuickRejectReason("");
+      await loadSubscriptions();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : t("حدث خطأ أثناء رفض الاشتراك", "Error rejecting subscription");
+      toast.error(msg);
+    } finally {
+      setIsSubmittingQuickAction(false);
     }
   };
 
@@ -395,6 +519,12 @@ export function SubscriptionManagementView() {
                     onEdit={handleStartChangePlan}
                     onRenew={handleStartRenew}
                     onCancel={handleStartCancel}
+                    onApprove={(sub) => setSubToApprove(sub)}
+                    onReject={(sub) => {
+                      setSubToReject(sub);
+                      setQuickRejectReason("");
+                      setQuickRejectError("");
+                    }}
                     pageIndex={pageIndex}
                     pageSize={pageSize}
                     totalItems={totalItems || filteredSubscriptions.length}
@@ -457,6 +587,111 @@ export function SubscriptionManagementView() {
               cancelLabel={t("إلغاء", "Cancel")}
               variant="info"
             />
+
+            {/* Confirm Quick Approve Dialog */}
+            <LuxuryAlertDialog
+              isOpen={!!subToApprove}
+              onClose={() => setSubToApprove(null)}
+              onConfirm={handleConfirmApprove}
+              title={t("اعتماد وتفعيل طلب الاشتراك", "Approve & Activate Subscription")}
+              description={t(
+                `هل أنت متأكد من رغبتك في اعتماد وتفعيل اشتراك "${subToApprove?.firm.name}"؟ سيتم تفعيل حساب المكتب فوراً وإتاحة كافة صلاحيات الباقة.`,
+                `Are you sure you want to approve and activate the subscription for "${subToApprove?.firm.name}"? The firm will be activated immediately.`
+              )}
+              confirmLabel={t("اعتماد وتفعيل", "Approve & Activate")}
+              cancelLabel={t("إلغاء", "Cancel")}
+              variant="success"
+              isLoading={isSubmittingQuickAction}
+            />
+
+            {/* Quick Reject Modal */}
+            {subToReject && (
+              <ModalPortal>
+                <div
+                  className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs font-['Cairo',sans-serif] animate-in fade-in duration-200"
+                  dir={direction}
+                >
+                  <div className="bg-white dark:bg-[#1a120c] border border-[#f0eeea] dark:border-[#38271c] rounded-[10px] w-full max-w-[500px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-[#f0eeea] dark:border-[#2f2218]">
+                      <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
+                        <XCircle className="w-5 h-5" />
+                        <h3 className="font-bold text-[15px] text-[#1b1c1a] dark:text-[#fdfbf7]">
+                          {t("رفض طلب الاشتراك", "Reject Subscription Request")}
+                        </h3>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSubToReject(null)}
+                        disabled={isSubmittingQuickAction}
+                        className="size-8 rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] text-[#514537] dark:text-[#a89f91] flex items-center justify-center transition-colors cursor-pointer"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="p-6 space-y-4">
+                      <p className="text-[13px] text-[#514537] dark:text-[#a89f91]">
+                        {t(
+                          `يرجى تسجيل سبب رفض طلب اشتراك "${subToReject.firm.name}" بشكل واضح لحفظه في السجلات وإبلاغ المنشأة.`,
+                          `Please record the rejection reason for "${subToReject.firm.name}" clearly.`
+                        )}
+                      </p>
+
+                      <div className="space-y-1.5">
+                        <label className="text-[12px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                          {t("سبب الرفض الرسمي", "Official Rejection Reason")} <span className="text-red-500">*</span>
+                        </label>
+                        <textarea
+                          rows={4}
+                          value={quickRejectReason}
+                          onChange={(e) => {
+                            setQuickRejectReason(e.target.value);
+                            if (quickRejectError) setQuickRejectError("");
+                          }}
+                          placeholder={t(
+                            "مثال: عدم تطابق السجل التجاري مع وثيقة الترخيص، أو وجود تعارض في الرقم الضريبي...",
+                            "E.g., Mismatch in commercial register or licensing document..."
+                          )}
+                          className={cn(
+                            "w-full bg-[#f5f3ef] dark:bg-[#221812] border rounded-[6px] p-3 text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder-[#837565] dark:placeholder-[#6e6355] focus:outline-none transition-colors resize-none",
+                            quickRejectError
+                              ? "border-red-400 focus:border-red-500"
+                              : "border-[#ded5c6] dark:border-[#422e20] focus:border-[#9c6402] dark:focus:border-[#e29d38]"
+                          )}
+                        />
+                        {quickRejectError && (
+                          <p className="text-red-500 text-[11px] font-medium">{quickRejectError}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2.5 px-6 py-4 bg-[#faf9f7] dark:bg-[#20150e] border-t border-[#f0eeea] dark:border-[#2f2218]">
+                      <button
+                        type="button"
+                        onClick={() => setSubToReject(null)}
+                        disabled={isSubmittingQuickAction}
+                        className="px-4 py-2 rounded-[6px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] text-[#514537] dark:text-[#a89f91] text-[12px] font-bold transition-colors cursor-pointer"
+                      >
+                        {t("إلغاء", "Cancel")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleConfirmReject}
+                        disabled={isSubmittingQuickAction}
+                        className="bg-rose-600 hover:bg-rose-700 text-white px-5 py-2 rounded-[6px] font-bold text-[12px] flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                      >
+                        {isSubmittingQuickAction ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <CheckCircle2 className="w-4 h-4" />
+                        )}
+                        <span>{t("تأكيد الرفض", "Confirm Rejection")}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </ModalPortal>
+            )}
           </DashboardPageTransition>
         </main>
       </div>

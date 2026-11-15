@@ -70,6 +70,76 @@ export const SAUDI_CITIES: string[] = Array.from(new Set(RAW_SAUDI_CITIES)).sort
   (a, b) => a.localeCompare(b, "ar")
 );
 
+export const SAUDI_CITIES_EN: Record<string, string> = {
+  "أبها": "Abha",
+  "أبو عريش": "Abu Arish",
+  "أحد المسارحة": "Ahad Al-Masarihah",
+  "أحد رفيدة": "Ahad Rafidah",
+  "الأحساء": "Al-Ahsa",
+  "الأفلاج": "Al-Aflaj",
+  "الباحة": "Al-Baha",
+  "البدائع": "Al-Badayea",
+  "البكيرية": "Al-Bukayriyah",
+  "بيشة": "Bisha",
+  "تبوك": "Tabuk",
+  "تثليث": "Tathleeth",
+  "تربة": "Turbah",
+  "تيماء": "Tayma",
+  "ثادق": "Thadiq",
+  "جازان": "Jazan",
+  "جدة": "Jeddah",
+  "حائل": "Hail",
+  "حفر الباطن": "Hafar Al-Batin",
+  "حوطة بني تميم": "Hotat Bani Tamim",
+  "الخرج": "Al-Kharj",
+  "الخرمة": "Al-Khurmah",
+  "الخفجي": "Khafji",
+  "الخبر": "Khobar",
+  "خميس مشيط": "Khamis Mushait",
+  "الدرعية": "Diriyah",
+  "الدلم": "Al-Dilam",
+  "الدمام": "Dammam",
+  "دوامة الجندل": "Dumat Al-Jandal",
+  "دومة الجندل": "Dumat Al-Jandal",
+  "رابغ": "Rabigh",
+  "رأس تنورة": "Ras Tanura",
+  "رفحاء": "Rafha",
+  "الرياض": "Riyadh",
+  "الزلفي": "Al-Zulfi",
+  "سراة عبيدة": "Sarat Abidah",
+  "سكاكا": "Sakaka",
+  "شرورة": "Sharurah",
+  "شقراء": "Shaqra",
+  "صامطة": "Samtah",
+  "صبيا": "Sabya",
+  "طبرجل": "Tubarjal",
+  "طريف": "Turaif",
+  "الطائف": "Taif",
+  "الظهران": "Dhahran",
+  "الغاط": "Al-Ghat",
+  "القريات": "Al-Qurayyat",
+  "القطيف": "Qatif",
+  "القنفذة": "Al-Qunfudhah",
+  "القويعية": "Al-Quway'iyah",
+  "المجمعة": "Al-Majma'ah",
+  "محايل عسير": "Muhayil Asir",
+  "المدينة المنورة": "Madinah",
+  "المذنب": "Al-Midhnab",
+  "مكة المكرمة": "Makkah",
+  "النماص": "Al-Namas",
+  "نجران": "Najran",
+  "الهفوف": "Hofuf",
+  "وادي الدواسر": "Wadi Al-Dawasir",
+  "ينبع": "Yanbu",
+};
+
+export function getLocalizedCityName(city: string, isEn: boolean): string {
+  if (!city) return "";
+  const cleaned = city.replace("المملكة العربية السعودية - ", "").trim();
+  if (!isEn) return cleaned;
+  return SAUDI_CITIES_EN[cleaned] || cleaned;
+}
+
 /**
  * Normalizes Eastern Arabic (٠-٩) and Persian (۰-۹) numerals to standard Western digits (0-9)
  */

@@ -63,14 +63,10 @@ export function SubscriptionTableToolbar({
   const primaryFilterOptions = [
     { label: `${t("الكل", "All")} (${counts.all})`, value: "all" },
     { label: `${t("النشطة", "Active")} (${counts.active})`, value: "active" },
-    ...(counts.pending > 0
-      ? [
-          {
-            label: `${t("معلقة", "Pending")} (${counts.pending})`,
-            value: "pending" as SubscriptionTabFilter,
-          },
-        ]
-      : []),
+    {
+      label: `${t("قيد الانتظار", "Pending")} (${counts.pending})`,
+      value: "pending" as SubscriptionTabFilter,
+    },
     {
       label: `${t("منتهية وملغاة", "Expired & Cancelled")} (${counts.cancelled_expired})`,
       value: "cancelled_expired",
@@ -113,6 +109,12 @@ export function SubscriptionTableToolbar({
                 className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]"
               >
                 {t("جميع الباقات", "All Plans")}
+              </option>
+              <option
+                value="unlimited"
+                className="bg-white dark:bg-[#221812] text-[#9c6402] dark:text-[#e29d38] font-bold"
+              >
+                {t("غير محدود (صلاحيات كاملة)", "Unlimited (Full Access)")}
               </option>
               <option
                 value="custom"

@@ -115,7 +115,7 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
           <div className="relative">
             <button
               type="button"
-              aria-label="الإشعارات"
+              aria-label={currentLanguage === "en" ? "Notifications" : "الإشعارات"}
               onClick={() => setIsNotificationsOpen((prev) => !prev)}
               className={cn(
                 "relative size-[36px] rounded-[6px] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] border border-transparent hover:border-[#eae8e4] dark:hover:border-[#38271c] transition-colors flex items-center justify-center shrink-0 cursor-pointer",
@@ -145,11 +145,11 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
           <Link
             href="/profile"
             title={currentLanguage === "en" ? "View Profile" : "عرض الملف الشخصي"}
-            className="flex items-center gap-[8px] ps-[4px] hover:opacity-85 transition-opacity cursor-pointer"
+            className="flex items-center gap-[8px] px-2 py-1 -ms-1 rounded-[8px] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] transition-all cursor-pointer group active:scale-[0.98]"
             data-node-id="1:643"
           >
             <div className="flex flex-col text-start">
-              <span className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[17.5px] font-sans">
+              <span className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] group-hover:text-[#9c6402] dark:group-hover:text-[#e29d38] leading-[17.5px] font-sans transition-colors">
                 {currentLanguage === "en" ? "Eng. Abdulaziz Bin Fahad" : "م. عبد العزيز بن فهد"}
               </span>
               <span className="text-[10px] font-semibold text-[#514537] dark:text-[#8e8680] leading-[12.5px]">
@@ -158,7 +158,7 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
             </div>
 
             <div
-              className="size-[32px] rounded-full overflow-hidden shrink-0 border border-[#eae8e4] dark:border-[#38271c]"
+              className="size-[32px] rounded-full overflow-hidden shrink-0 border border-[#eae8e4] dark:border-[#38271c] group-hover:border-[#9c6402] dark:group-hover:border-[#e29d38] group-hover:ring-2 group-hover:ring-[#9c6402]/30 dark:group-hover:ring-[#e29d38]/30 group-hover:scale-105 transition-all"
               data-node-id="1:644"
             >
               <Image
@@ -166,7 +166,7 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
                 alt={currentLanguage === "en" ? "Eng. Abdulaziz Bin Fahad" : "م. عبد العزيز بن فهد"}
                 width={32}
                 height={32}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-200"
                 priority
               />
             </div>

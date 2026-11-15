@@ -49,6 +49,21 @@
   --color-figma-body: #514537;
   --color-figma-muted: #625d5d;
   --color-figma-submuted: #837565;
+  --color-bg-page: var(--bg-page);
+  --color-bg-card: var(--bg-card);
+  --color-bg-header: var(--bg-header);
+  --color-bg-sidebar: var(--bg-sidebar);
+  --color-bg-input: var(--bg-input);
+  --color-bg-button: var(--bg-button);
+  --color-bg-button-hover: var(--bg-button-hover);
+  --color-bg-button-sub: var(--bg-button-sub);
+  --color-border-default: var(--border-default);
+  --color-border-subtle: var(--border-subtle);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-on-button: var(--text-on-button);
+  --color-text-link: var(--text-link);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -57,12 +72,16 @@
 }
 
 /* Zero horizontal scroll across all screens and viewports - Vertical only */
+/* Always render numbers as Western Arabic / Latin digits (0-9) regardless of language */
 html,
 body {
   max-width: 100vw;
   overflow-x: hidden !important;
   margin: 0;
   padding: 0;
+  font-variant-numeric: lining-nums tabular-nums;
+  -webkit-font-feature-settings: "locl" 0;
+  font-feature-settings: "locl" 0;
 }
 
 main {
@@ -81,65 +100,581 @@ input[type="number"] {
   appearance: textfield !important;
 }
 
-:root {
-  --background: #fcfbfa;
-  --foreground: #1c1917;
-  --card: #ffffff;
-  --card-foreground: #1c1917;
-  --popover: #ffffff;
-  --popover-foreground: #1c1917;
-  --primary: #c29547;
-  --primary-foreground: #ffffff;
-  --secondary: #fbf6ec;
-  --secondary-foreground: #9a6f29;
+:root,
+[data-palette="royal-gold"] {
+  /* =========================================================================
+     Palette 1: الهوية الملكية الدافئة (Royal Gold & Espresso) - Default Light
+     ========================================================================= */
+  --bg-page: #f8f6f2;
+  --bg-card: #ffffff;
+  --bg-header: #ffffff;
+  --bg-sidebar: #1c140f;
+  --bg-input: #ffffff;
+  --bg-button: #9c6402;
+  --bg-button-hover: #b47818;
+  --bg-button-sub: #f3efea;
+  --border-default: #d8cebf;
+  --border-subtle: #eae6df;
+
+  --text-primary: #1b1c1a;
+  --text-secondary: #514537;
+  --text-muted: #786d61;
+  --text-on-button: #ffffff;
+  --text-link: #9c6402;
+  --accent: #9c6402;
+
+  --status-success-bg: #ecfdf5;
+  --status-success-text: #065f46;
+  --status-success-border: #a7f3d0;
+  --status-danger-bg: #fef2f2;
+  --status-danger-text: #991b1b;
+  --status-danger-border: #fecaca;
+  --status-warning-bg: #fffbeb;
+  --status-warning-text: #92400e;
+  --status-warning-border: #fde68a;
+
+  /* shadcn mapping */
+  --background: var(--bg-page);
+  --foreground: var(--text-primary);
+  --card: var(--bg-card);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-card);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--bg-button);
+  --primary-foreground: var(--text-on-button);
+  --secondary: var(--bg-button-sub);
+  --secondary-foreground: var(--text-secondary);
   --muted: #f6f3ed;
-  --muted-foreground: #78716c;
-  --accent: #fbf6ec;
+  --muted-foreground: var(--text-muted);
   --accent-foreground: #9a6f29;
   --destructive: #ef4444;
-  --border: #c4b5a0;
-  --input: #c4b5a0;
-  --ring: #c29547;
+  --border: var(--border-default);
+  --input: var(--border-default);
+  --ring: var(--accent);
   --radius: 0.75rem;
   --sidebar: #ffffff;
   --sidebar-foreground: #292524;
-  --sidebar-primary: #c29547;
+  --sidebar-primary: var(--accent);
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #fbf6ec;
   --sidebar-accent-foreground: #9a6f29;
-  --sidebar-border: #c4b5a0;
-  --sidebar-ring: #c29547;
+  --sidebar-border: var(--border-default);
+  --sidebar-ring: var(--accent);
 }
 
-.dark {
-  color-scheme: dark;
-  /* Canonical warm-brown palette (matches إدارة العملاء) */
-  --background: #150f0b;
-  --foreground: #fdfbf7;
-  --card: #221812;
-  --card-foreground: #fdfbf7;
-  --popover: #221812;
-  --popover-foreground: #fdfbf7;
-  --primary: #e29d38;
-  --primary-foreground: #1c140f;
-  --secondary: #281c15;
-  --secondary-foreground: #e29d38;
+.dark,
+[data-palette="royal-gold"].dark {
+  /* =========================================================================
+     Palette 1: الهوية الملكية الدافئة - Dark
+     ========================================================================= */
+  --bg-page: #120d0a;
+  --bg-card: #1e1612;
+  --bg-header: #17100c;
+  --bg-sidebar: #17100c;
+  --bg-input: #17100c;
+  --bg-button: #e29d38;
+  --bg-button-hover: #f0aa44;
+  --bg-button-sub: #2a1f19;
+  --border-default: #4a3528;
+  --border-subtle: #38271c;
+
+  --text-primary: #fdfbf7;
+  --text-secondary: #c9bfb5;
+  --text-muted: #87796d;
+  --text-on-button: #140e0a;
+  --text-link: #e29d38;
+  --accent: #e29d38;
+
+  --status-success-bg: #064e3b;
+  --status-success-text: #6ee7b7;
+  --status-success-border: #047857;
+  --status-danger-bg: #450a0a;
+  --status-danger-text: #fca5a5;
+  --status-danger-border: #991b1b;
+  --status-warning-bg: #451a03;
+  --status-warning-text: #fcd34d;
+  --status-warning-border: #b45309;
+
+  --background: var(--bg-page);
+  --foreground: var(--text-primary);
+  --card: var(--bg-card);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-card);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--bg-button);
+  --primary-foreground: var(--text-on-button);
+  --secondary: var(--bg-button-sub);
+  --secondary-foreground: var(--accent);
   --muted: #281c15;
-  --muted-foreground: #a89f91;
-  --accent: #281c15;
-  --accent-foreground: #e29d38;
+  --muted-foreground: var(--text-muted);
+  --accent-foreground: var(--accent);
   --destructive: #f87171;
-  --border: #5c4433;
-  --input: #5c4433;
-  --ring: #e29d38;
+  --border: var(--border-default);
+  --input: var(--border-default);
+  --ring: var(--accent);
   --sidebar: #1c140f;
   --sidebar-foreground: #fdfbf7;
-  --sidebar-primary: #e29d38;
+  --sidebar-primary: var(--accent);
   --sidebar-primary-foreground: #1c140f;
   --sidebar-accent: #281c15;
-  --sidebar-accent-foreground: #e29d38;
-  --sidebar-border: #5c4433;
-  --sidebar-ring: #e29d38;
+  --sidebar-accent-foreground: var(--accent);
+  --sidebar-border: var(--border-default);
+  --sidebar-ring: var(--accent);
+}
+
+/* =========================================================================
+   Palette 2: الوقار القانوني النيلي (Midnight Navy & Platinum)
+   ========================================================================= */
+[data-palette="midnight-navy"] {
+  --bg-page: #f4f6f9;
+  --bg-card: #ffffff;
+  --bg-header: #ffffff;
+  --bg-sidebar: #0f172a;
+  --bg-input: #ffffff;
+  --bg-button: #1e3a8a;
+  --bg-button-hover: #1e40af;
+  --bg-button-sub: #eef2f6;
+  --border-default: #cbd5e1;
+  --border-subtle: #e2e8f0;
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-on-button: #ffffff;
+  --text-link: #1d4ed8;
+  --accent: #b48234;
+
+  --status-success-bg: #f0fdf4;
+  --status-success-text: #166534;
+  --status-success-border: #bbf7d0;
+  --status-danger-bg: #fef2f2;
+  --status-danger-text: #991b1b;
+  --status-danger-border: #fecaca;
+  --status-warning-bg: #fffbeb;
+  --status-warning-text: #92400e;
+  --status-warning-border: #fde68a;
+
+  --background: var(--bg-page);
+  --foreground: var(--text-primary);
+  --card: var(--bg-card);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-card);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--bg-button);
+  --primary-foreground: var(--text-on-button);
+  --secondary: var(--bg-button-sub);
+  --secondary-foreground: #1e3a8a;
+  --border: var(--border-default);
+  --input: var(--border-default);
+  --ring: var(--accent);
+}
+
+[data-palette="midnight-navy"].dark {
+  --bg-page: #090d16;
+  --bg-card: #111827;
+  --bg-header: #0d1320;
+  --bg-sidebar: #0d1320;
+  --bg-input: #0f172a;
+  --bg-button: #d4a359;
+  --bg-button-hover: #e0b46d;
+  --bg-button-sub: #1e293b;
+  --border-default: #334155;
+  --border-subtle: #1e293b;
+
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-on-button: #0a0f1d;
+  --text-link: #60a5fa;
+  --accent: #d4a359;
+
+  --status-success-bg: #052e16;
+  --status-success-text: #4ade80;
+  --status-success-border: #166534;
+  --status-danger-bg: #450a0a;
+  --status-danger-text: #f87171;
+  --status-danger-border: #991b1b;
+  --status-warning-bg: #451a03;
+  --status-warning-text: #fbbf24;
+  --status-warning-border: #b45309;
+
+  --background: var(--bg-page);
+  --foreground: var(--text-primary);
+  --card: var(--bg-card);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-card);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--bg-button);
+  --primary-foreground: var(--text-on-button);
+  --secondary: var(--bg-button-sub);
+  --secondary-foreground: var(--accent);
+  --border: var(--border-default);
+  --input: var(--border-default);
+  --ring: var(--accent);
+}
+
+/* =========================================================================
+   Palette 3: الفخامة الحيادية المعاصرة (Onyx & Bronze Desert)
+   ========================================================================= */
+[data-palette="onyx-bronze"] {
+  --bg-page: #f9f9f8;
+  --bg-card: #ffffff;
+  --bg-header: #ffffff;
+  --bg-sidebar: #18181b;
+  --bg-input: #ffffff;
+  --bg-button: #a36b28;
+  --bg-button-hover: #b87a32;
+  --bg-button-sub: #f4f4f5;
+  --border-default: #e4e4e7;
+  --border-subtle: #f4f4f5;
+
+  --text-primary: #18181b;
+  --text-secondary: #52525b;
+  --text-muted: #71717a;
+  --text-on-button: #ffffff;
+  --text-link: #a36b28;
+  --accent: #a36b28;
+
+  --status-success-bg: #f0fdf4;
+  --status-success-text: #15803d;
+  --status-success-border: #bbf7d0;
+  --status-danger-bg: #fef2f2;
+  --status-danger-text: #b91c1c;
+  --status-danger-border: #fecaca;
+  --status-warning-bg: #fffbeb;
+  --status-warning-text: #b45309;
+  --status-warning-border: #fde68a;
+
+  --background: var(--bg-page);
+  --foreground: var(--text-primary);
+  --card: var(--bg-card);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-card);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--bg-button);
+  --primary-foreground: var(--text-on-button);
+  --secondary: var(--bg-button-sub);
+  --secondary-foreground: var(--accent);
+  --border: var(--border-default);
+  --input: var(--border-default);
+  --ring: var(--accent);
+}
+
+[data-palette="onyx-bronze"].dark {
+  --bg-page: #0c0c0e;
+  --bg-card: #18181b;
+  --bg-header: #121215;
+  --bg-sidebar: #121215;
+  --bg-input: #121215;
+  --bg-button: #e4c087;
+  --bg-button-hover: #f0ce96;
+  --bg-button-sub: #27272a;
+  --border-default: #27272a;
+  --border-subtle: #18181b;
+
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --text-on-button: #18181b;
+  --text-link: #e4c087;
+  --accent: #e4c087;
+
+  --status-success-bg: #052e16;
+  --status-success-text: #86efac;
+  --status-success-border: #166534;
+  --status-danger-bg: #450a0a;
+  --status-danger-text: #fca5a5;
+  --status-danger-border: #991b1b;
+  --status-warning-bg: #451a03;
+  --status-warning-text: #fde047;
+  --status-warning-border: #b45309;
+
+  --background: var(--bg-page);
+  --foreground: var(--text-primary);
+  --card: var(--bg-card);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-card);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--bg-button);
+  --primary-foreground: var(--text-on-button);
+  --secondary: var(--bg-button-sub);
+  --secondary-foreground: var(--accent);
+  --border: var(--border-default);
+  --input: var(--border-default);
+  --ring: var(--accent);
+}
+
+/* =========================================================================
+   Palette 4: عدالة الزمرد (Emerald Justice)
+   ========================================================================= */
+[data-palette="emerald-justice"] {
+  --bg-page: #f6f8f6;
+  --bg-card: #ffffff;
+  --bg-header: #ffffff;
+  --bg-sidebar: #064e3b;
+  --bg-input: #ffffff;
+  --bg-button: #065f46;
+  --bg-button-hover: #047857;
+  --bg-button-sub: #ecfdf5;
+  --border-default: #cbd5e1;
+  --border-subtle: #e2e8f0;
+
+  --text-primary: #064e3b;
+  --text-secondary: #047857;
+  --text-muted: #64748b;
+  --text-on-button: #ffffff;
+  --text-link: #059669;
+  --accent: #059669;
+
+  --status-success-bg: #ecfdf5;
+  --status-success-text: #065f46;
+  --status-success-border: #a7f3d0;
+  --status-danger-bg: #fef2f2;
+  --status-danger-text: #991b1b;
+  --status-danger-border: #fecaca;
+  --status-warning-bg: #fffbeb;
+  --status-warning-text: #92400e;
+  --status-warning-border: #fde68a;
+
+  --background: var(--bg-page);
+  --foreground: var(--text-primary);
+  --card: var(--bg-card);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-card);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--bg-button);
+  --primary-foreground: var(--text-on-button);
+  --secondary: var(--bg-button-sub);
+  --secondary-foreground: var(--accent);
+  --border: var(--border-default);
+  --input: var(--border-default);
+  --ring: var(--accent);
+}
+
+[data-palette="emerald-justice"].dark {
+  --bg-page: #041b14;
+  --bg-card: #08281e;
+  --bg-header: #062018;
+  --bg-sidebar: #062018;
+  --bg-input: #062018;
+  --bg-button: #10b981;
+  --bg-button-hover: #34d399;
+  --bg-button-sub: #0f3d2f;
+  --border-default: #14532d;
+  --border-subtle: #0f3d2f;
+
+  --text-primary: #f0fdf4;
+  --text-secondary: #a7f3d0;
+  --text-muted: #6ee7b7;
+  --text-on-button: #022c22;
+  --text-link: #34d399;
+  --accent: #34d399;
+
+  --status-success-bg: #064e3b;
+  --status-success-text: #6ee7b7;
+  --status-success-border: #047857;
+  --status-danger-bg: #450a0a;
+  --status-danger-text: #fca5a5;
+  --status-danger-border: #991b1b;
+  --status-warning-bg: #451a03;
+  --status-warning-text: #fcd34d;
+  --status-warning-border: #b45309;
+
+  --background: var(--bg-page);
+  --foreground: var(--text-primary);
+  --card: var(--bg-card);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-card);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--bg-button);
+  --primary-foreground: var(--text-on-button);
+  --secondary: var(--bg-button-sub);
+  --secondary-foreground: var(--accent);
+  --border: var(--border-default);
+  --input: var(--border-default);
+  --ring: var(--accent);
+}
+
+/* =========================================================================
+   Palette 5: العنابي الدبلوماسي (Ruby Burgundy)
+   ========================================================================= */
+[data-palette="ruby-burgundy"] {
+  --bg-page: #faf6f7;
+  --bg-card: #ffffff;
+  --bg-header: #ffffff;
+  --bg-sidebar: #4c0519;
+  --bg-input: #ffffff;
+  --bg-button: #881337;
+  --bg-button-hover: #9f1239;
+  --bg-button-sub: #ffe4e6;
+  --border-default: #fecdd3;
+  --border-subtle: #ffe4e6;
+
+  --text-primary: #4c0519;
+  --text-secondary: #881337;
+  --text-muted: #9f1239;
+  --text-on-button: #ffffff;
+  --text-link: #be123c;
+  --accent: #be123c;
+
+  --status-success-bg: #ecfdf5;
+  --status-success-text: #065f46;
+  --status-success-border: #a7f3d0;
+  --status-danger-bg: #fef2f2;
+  --status-danger-text: #991b1b;
+  --status-danger-border: #fecaca;
+  --status-warning-bg: #fffbeb;
+  --status-warning-text: #92400e;
+  --status-warning-border: #fde68a;
+
+  --background: var(--bg-page);
+  --foreground: var(--text-primary);
+  --card: var(--bg-card);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-card);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--bg-button);
+  --primary-foreground: var(--text-on-button);
+  --secondary: var(--bg-button-sub);
+  --secondary-foreground: var(--accent);
+  --border: var(--border-default);
+  --input: var(--border-default);
+  --ring: var(--accent);
+}
+
+[data-palette="ruby-burgundy"].dark {
+  --bg-page: #1f040b;
+  --bg-card: #2e0813;
+  --bg-header: #26060f;
+  --bg-sidebar: #26060f;
+  --bg-input: #26060f;
+  --bg-button: #f43f5e;
+  --bg-button-hover: #fb7185;
+  --bg-button-sub: #4c0519;
+  --border-default: #881337;
+  --border-subtle: #4c0519;
+
+  --text-primary: #fff1f2;
+  --text-secondary: #fecdd3;
+  --text-muted: #fda4af;
+  --text-on-button: #4c0519;
+  --text-link: #fb7185;
+  --accent: #fb7185;
+
+  --status-success-bg: #064e3b;
+  --status-success-text: #6ee7b7;
+  --status-success-border: #047857;
+  --status-danger-bg: #450a0a;
+  --status-danger-text: #fca5a5;
+  --status-danger-border: #991b1b;
+  --status-warning-bg: #451a03;
+  --status-warning-text: #fcd34d;
+  --status-warning-border: #b45309;
+
+  --background: var(--bg-page);
+  --foreground: var(--text-primary);
+  --card: var(--bg-card);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-card);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--bg-button);
+  --primary-foreground: var(--text-on-button);
+  --secondary: var(--bg-button-sub);
+  --secondary-foreground: var(--accent);
+  --border: var(--border-default);
+  --input: var(--border-default);
+  --ring: var(--accent);
+}
+
+/* =========================================================================
+   Palette 6: الفحمي الكلاسيكي (Charcoal Executive)
+   ========================================================================= */
+[data-palette="charcoal-executive"] {
+  --bg-page: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-header: #ffffff;
+  --bg-sidebar: #0f172a;
+  --bg-input: #ffffff;
+  --bg-button: #334155;
+  --bg-button-hover: #1e293b;
+  --bg-button-sub: #f1f5f9;
+  --border-default: #cbd5e1;
+  --border-subtle: #f1f5f9;
+
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-on-button: #ffffff;
+  --text-link: #2563eb;
+  --accent: #3b82f6;
+
+  --status-success-bg: #f0fdf4;
+  --status-success-text: #166534;
+  --status-success-border: #bbf7d0;
+  --status-danger-bg: #fef2f2;
+  --status-danger-text: #991b1b;
+  --status-danger-border: #fecaca;
+  --status-warning-bg: #fffbeb;
+  --status-warning-text: #92400e;
+  --status-warning-border: #fde68a;
+
+  --background: var(--bg-page);
+  --foreground: var(--text-primary);
+  --card: var(--bg-card);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-card);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--bg-button);
+  --primary-foreground: var(--text-on-button);
+  --secondary: var(--bg-button-sub);
+  --secondary-foreground: var(--accent);
+  --border: var(--border-default);
+  --input: var(--border-default);
+  --ring: var(--accent);
+}
+
+[data-palette="charcoal-executive"].dark {
+  --bg-page: #0b0f17;
+  --bg-card: #151d2a;
+  --bg-header: #0f1622;
+  --bg-sidebar: #0f1622;
+  --bg-input: #0f1622;
+  --bg-button: #64748b;
+  --bg-button-hover: #94a3b8;
+  --bg-button-sub: #1e293b;
+  --border-default: #334155;
+  --border-subtle: #1e293b;
+
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-on-button: #0f172a;
+  --text-link: #60a5fa;
+  --accent: #60a5fa;
+
+  --status-success-bg: #052e16;
+  --status-success-text: #4ade80;
+  --status-success-border: #166534;
+  --status-danger-bg: #450a0a;
+  --status-danger-text: #f87171;
+  --status-danger-border: #991b1b;
+  --status-warning-bg: #451a03;
+  --status-warning-text: #fbbf24;
+  --status-warning-border: #b45309;
+
+  --background: var(--bg-page);
+  --foreground: var(--text-primary);
+  --card: var(--bg-card);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-card);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--bg-button);
+  --primary-foreground: var(--text-on-button);
+  --secondary: var(--bg-button-sub);
+  --secondary-foreground: var(--accent);
+  --border: var(--border-default);
+  --input: var(--border-default);
+  --ring: var(--accent);
 }
 
 /* Light mode: darker borders so cards/inputs/dividers stay visible */

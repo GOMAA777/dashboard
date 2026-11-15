@@ -91,7 +91,7 @@ export function AlJoudyLogo({
     <div className={`relative overflow-hidden shrink-0 flex items-center justify-center ${className}`}>
       <Image
         src={logoMarkImg}
-        alt="شعار الجودي"
+        alt="Al-Joudi Logo"
         width={34}
         height={34}
         className="w-full h-full object-contain"

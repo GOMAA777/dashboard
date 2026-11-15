@@ -61,7 +61,7 @@ export interface SubscriptionRecord {
   firm: LawFirmOffice;
   planName: string;
   planPrice: string;
-  billingCycle: "سنوية" | "شهرية";
+  billingCycle: "سنوية" | "شهرية" | "دائم";
   startDate: string;
   renewalDate: string;
   remainingDaysText: string;

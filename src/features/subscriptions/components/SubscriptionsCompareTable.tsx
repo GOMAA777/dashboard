@@ -3,6 +3,7 @@
 import React from "react";
 import { Check, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
 
 interface SubscriptionsCompareTableProps {
   billingCycle: "monthly" | "annual";
@@ -25,51 +26,147 @@ export function SubscriptionsCompareTable({
   billingCycle,
   onSelectPlan,
 }: SubscriptionsCompareTableProps) {
+  const { t } = useLanguage();
   const isAnnual = billingCycle === "annual";
 
   const categories: TableCategory[] = [
     {
-      category: "السعة وإدارة الفريق",
+      category: t("السعة وإدارة الفريق", "Capacity & Team Management"),
       items: [
-        { feature: "عدد حسابات المحامين والمستشارين", free: "1 مستخدم", starter: "5 مستخدمين", growth: "غير محدود" },
-        { feature: "القضايا والجلسات النشطة شهرياً", free: "50 قضية", starter: "1,500 قضية", growth: "غير محدود" },
-        { feature: "سعة التخزين السحابي للمستندات", free: "1 GB", starter: "25 GB", growth: "سعة مفتوحة" },
-        { feature: "تحديد صلاحيات وأدوار الموظفين", free: false, starter: true, growth: true },
+        {
+          feature: t("عدد حسابات المحامين والمستشارين", "Lawyer & consultant accounts"),
+          free: t("1 مستخدم", "1 user"),
+          starter: t("5 مستخدمين", "5 users"),
+          growth: t("غير محدود", "Unlimited"),
+        },
+        {
+          feature: t("القضايا والجلسات النشطة شهرياً", "Active cases & hearings / mo"),
+          free: t("50 قضية", "50 cases"),
+          starter: t("1,500 قضية", "1,500 cases"),
+          growth: t("غير محدود", "Unlimited"),
+        },
+        {
+          feature: t("سعة التخزين السحابي للمستندات", "Cloud document storage"),
+          free: "1 GB",
+          starter: "25 GB",
+          growth: t("سعة مفتوحة", "Unlimited"),
+        },
+        {
+          feature: t("تحديد صلاحيات وأدوار الموظفين", "Role-based staff permissions"),
+          free: false,
+          starter: true,
+          growth: true,
+        },
       ],
     },
     {
-      category: "إدارة القضايا والملفات",
+      category: t("إدارة القضايا والملفات", "Case & File Management"),
       items: [
-        { feature: "تقويم الجلسات والمواعيد القضائية", free: true, starter: true, growth: true },
-        { feature: "أرشفة وتصنيف وثائق القضايا", free: true, starter: true, growth: true },
-        { feature: "سجل متابعة الإجراءات والقرارات", free: true, starter: true, growth: true },
-        { feature: "بوابة دخول ومتابعة للموكلين", free: false, starter: true, growth: true },
-        { feature: "تخصيص الهوية وشعار المكتب على التقارير", free: false, starter: false, growth: true },
+        {
+          feature: t("تقويم الجلسات والمواعيد القضائية", "Court hearings & calendar"),
+          free: true,
+          starter: true,
+          growth: true,
+        },
+        {
+          feature: t("أرشفة وتصنيف وثائق القضايا", "Case document indexing & archiving"),
+          free: true,
+          starter: true,
+          growth: true,
+        },
+        {
+          feature: t("سجل متابعة الإجراءات والقرارات", "Proceedings & judgment audit log"),
+          free: true,
+          starter: true,
+          growth: true,
+        },
+        {
+          feature: t("بوابة دخول ومتابعة للموكلين", "Client portal access & tracking"),
+          free: false,
+          starter: true,
+          growth: true,
+        },
+        {
+          feature: t("تخصيص الهوية وشعار المكتب على التقارير", "Custom branding & firm logo on reports"),
+          free: false,
+          starter: false,
+          growth: true,
+        },
       ],
     },
     {
-      category: "المساعد الذكي والأتمتة",
+      category: t("المساعد الذكي والأتمتة", "AI Assistant & Automation"),
       items: [
-        { feature: "المساعد القانوني الذكي للبحث والاستنباط", free: false, starter: true, growth: true },
-        { feature: "صياغة المذكرات والعقود بالذكاء الاصطناعي", free: false, starter: "50 شهرياً", growth: "غير محدود" },
-        { feature: "إشعارات وتنبيهات الواتساب التلقائية", free: false, starter: true, growth: true },
-        { feature: "استخراج وتلخيص نصوص الأحكام إلكترونياً", free: false, starter: true, growth: true },
+        {
+          feature: t("المساعد القانوني الذكي للبحث والاستنباط", "AI legal research & insights assistant"),
+          free: false,
+          starter: true,
+          growth: true,
+        },
+        {
+          feature: t("صياغة المذكرات والعقود بالذكاء الاصطناعي", "AI drafting for legal briefs & contracts"),
+          free: false,
+          starter: t("50 شهرياً", "50 / mo"),
+          growth: t("غير محدود", "Unlimited"),
+        },
+        {
+          feature: t("إشعارات وتنبيهات الواتساب التلقائية", "Automated WhatsApp notifications"),
+          free: false,
+          starter: true,
+          growth: true,
+        },
+        {
+          feature: t("استخراج وتلخيص نصوص الأحكام إلكترونياً", "Judgment text extraction & summary"),
+          free: false,
+          starter: true,
+          growth: true,
+        },
       ],
     },
     {
-      category: "المالية والفوترة",
+      category: t("المالية والفوترة", "Finance & Invoicing"),
       items: [
-        { feature: "إصدار الفاتورة الإلكترونية المعتمدة (ZATCA)", free: false, starter: true, growth: true },
-        { feature: "إدارة الأتعاب والدفعات المالية للموكلين", free: "أساسية", starter: "متقدمة", growth: "شاملة مع تقارير" },
-        { feature: "ربط بوابات الدفع الإلكتروني المباشر", free: false, starter: false, growth: true },
+        {
+          feature: t("إصدار الفاتورة الإلكترونية المعتمدة (ZATCA)", "ZATCA-compliant electronic invoices"),
+          free: false,
+          starter: true,
+          growth: true,
+        },
+        {
+          feature: t("إدارة الأتعاب والدفعات المالية للموكلين", "Legal fees & client installment management"),
+          free: t("أساسية", "Basic"),
+          starter: t("متقدمة", "Advanced"),
+          growth: t("شاملة مع تقارير", "Comprehensive with reports"),
+        },
+        {
+          feature: t("ربط بوابات الدفع الإلكتروني المباشر", "Online payment gateway integrations"),
+          free: false,
+          starter: false,
+          growth: true,
+        },
       ],
     },
     {
-      category: "الدعم الفني والأمان",
+      category: t("الدعم الفني والأمان", "Support & Security"),
       items: [
-        { feature: "التشفير المصرفي والنسخ الاحتياطي اليومي", free: true, starter: true, growth: true },
-        { feature: "قنوات الدعم الفني", free: "بريد إلكتروني", starter: "شات وهاتف 24/7", growth: "مدير حساب VIP" },
-        { feature: "اتفاقية مستوى الخدمة واستمرارية الأعمال", free: false, starter: "99.5%", growth: "99.9% مخصصة" },
+        {
+          feature: t("التشفير المصرفي والنسخ الاحتياطي اليومي", "Banking encryption & daily backups"),
+          free: true,
+          starter: true,
+          growth: true,
+        },
+        {
+          feature: t("قنوات الدعم الفني", "Technical support channels"),
+          free: t("بريد إلكتروني", "Email"),
+          starter: t("شات وهاتف 24/7", "24/7 Chat & Phone"),
+          growth: t("مدير حساب VIP", "VIP Account Manager"),
+        },
+        {
+          feature: t("اتفاقية مستوى الخدمة واستمرارية الأعمال", "SLA & business continuity agreement"),
+          free: false,
+          starter: "99.5%",
+          growth: t("99.9% مخصصة", "99.9% Custom"),
+        },
       ],
     },
   ];
@@ -101,10 +198,13 @@ export function SubscriptionsCompareTable({
       {/* Header */}
       <div className="text-center mb-10">
         <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1c1917] dark:text-[#fdfbf7] mb-2 tracking-tight">
-          مقارنة تفصيلية بين كافة الباقات
+          {t("مقارنة تفصيلية بين كافة الباقات", "Detailed Comparison Across All Plans")}
         </h2>
         <p className="text-xs sm:text-sm text-[#7d7367] dark:text-[#9e968a]">
-          نظرة دقيقة وشاملة توضح الميزات المتاحة لمساعدتك في اختيار الباقة الأنسب لاحتياجاتك
+          {t(
+            "نظرة دقيقة وشاملة توضح الميزات المتاحة لمساعدتك في اختيار الباقة الأنسب لاحتياجاتك",
+            "A comprehensive breakdown of features to help you choose the best plan for your needs"
+          )}
         </p>
       </div>
 
@@ -116,16 +216,16 @@ export function SubscriptionsCompareTable({
             <thead>
               <tr className="border-b border-[#ded5c6] dark:border-[#38271c] bg-[#faf8f4] dark:bg-[#281c15]">
                 <th className="py-4 px-6 text-start text-xs font-extrabold text-[#756c60] dark:text-[#9e968a] w-2/5">
-                  الميزات والأقسام
+                  {t("الميزات والأقسام", "Features & Categories")}
                 </th>
                 <th className="py-4 px-4 text-center text-xs font-extrabold text-[#1c1917] dark:text-[#fdfbf7] w-1/5">
-                  مجاني
+                  {t("مجاني", "Free")}
                 </th>
                 <th className="py-4 px-4 text-center text-xs font-extrabold text-[#c29547] dark:text-[#d4a759] w-1/5 bg-[#faf5eb]/80 dark:bg-[#281c15]/80">
-                  المحترف (الأكثر طلباً)
+                  {t("المحترف (الأكثر طلباً)", "Professional (Most Popular)")}
                 </th>
                 <th className="py-4 px-4 text-center text-xs font-extrabold text-[#1c1917] dark:text-[#fdfbf7] w-1/5">
-                  المؤسسات والشركات
+                  {t("المؤسسات والشركات", "Enterprise & Corporate")}
                 </th>
               </tr>
             </thead>
@@ -173,20 +273,20 @@ export function SubscriptionsCompareTable({
               {/* Bottom Summary Action Row */}
               <tr className="border-t-2 border-[#ded5c6] dark:border-[#383126] bg-[#faf8f4] dark:bg-[#281c15]">
                 <td className="py-5 px-6 text-xs font-extrabold text-[#1c1917] dark:text-[#fdfbf7]">
-                  الأسعار وبدء الاستخدام
+                  {t("الأسعار وبدء الاستخدام", "Pricing & Getting Started")}
                 </td>
                 {/* Free Column CTA */}
                 <td className="py-5 px-4 text-center">
                   <div className="flex flex-col items-center gap-2">
                     <span className="text-sm font-extrabold text-[#1c1917] dark:text-[#fdfbf7]">
-                      0 ر.س
+                      0 {t("ر.س", "SAR")}
                     </span>
                     <button
                       type="button"
                       onClick={() => onSelectPlan?.("free")}
                       className="px-4 py-2 rounded-xl text-xs font-bold text-[#1c1917] dark:text-[#fdfbf7] bg-white dark:bg-[#281c15] border border-[#ded5c6] dark:border-[#383126] hover:border-[#c29547] shadow-2xs transition-all cursor-pointer"
                     >
-                      ابدأ مجاناً
+                      {t("ابدأ مجاناً", "Start Free")}
                     </button>
                   </div>
                 </td>
@@ -194,14 +294,14 @@ export function SubscriptionsCompareTable({
                 <td className="py-5 px-4 text-center bg-[#faf5eb]/80 dark:bg-[#281c15]/80">
                   <div className="flex flex-col items-center gap-2">
                     <span className="text-sm font-extrabold text-[#c29547] dark:text-[#d4a759]">
-                      {isAnnual ? "120" : "150"} ر.س
+                      {isAnnual ? "120" : "150"} {t("ر.س", "SAR")}
                     </span>
                     <button
                       type="button"
                       onClick={() => onSelectPlan?.("starter")}
                       className="px-5 py-2 rounded-xl text-xs font-bold text-white dark:text-[#171513] bg-[#1c1917] dark:bg-[#c29547] hover:bg-[#c29547] dark:hover:bg-[#d4a759] shadow-sm transition-all cursor-pointer"
                     >
-                      اشترك الآن
+                      {t("اشترك الآن", "Subscribe Now")}
                     </button>
                   </div>
                 </td>
@@ -209,14 +309,14 @@ export function SubscriptionsCompareTable({
                 <td className="py-5 px-4 text-center">
                   <div className="flex flex-col items-center gap-2">
                     <span className="text-sm font-extrabold text-[#1c1917] dark:text-[#fdfbf7]">
-                      {isAnnual ? "360" : "450"} ر.س
+                      {isAnnual ? "360" : "450"} {t("ر.س", "SAR")}
                     </span>
                     <button
                       type="button"
                       onClick={() => onSelectPlan?.("growth")}
                       className="px-4 py-2 rounded-xl text-xs font-bold text-[#1c1917] dark:text-[#fdfbf7] bg-white dark:bg-[#281c15] border border-[#ded5c6] dark:border-[#383126] hover:border-[#c29547] shadow-2xs transition-all cursor-pointer"
                     >
-                      ترقية الحساب
+                      {t("ترقية الحساب", "Upgrade Account")}
                     </button>
                   </div>
                 </td>

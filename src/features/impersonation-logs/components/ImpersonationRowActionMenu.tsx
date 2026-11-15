@@ -10,6 +10,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from "@/lib/i18n";
 import type { ExtendedImpersonationLog } from "./ImpersonationLogsView";
 
 interface ImpersonationRowActionMenuProps {
@@ -29,6 +30,7 @@ export function ImpersonationRowActionMenu({
   onViewDetails,
   onEnterOfficeAsAdmin,
 }: ImpersonationRowActionMenuProps) {
+  const { t } = useLanguage();
   const menuRef = useRef<HTMLDivElement>(null);
   const anchorRef = useRef<HTMLSpanElement>(null);
   const [coords, setCoords] = useState<{
@@ -133,7 +135,7 @@ export function ImpersonationRowActionMenu({
               className="w-full px-3 py-2 text-[12px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#faf8f5] dark:hover:bg-[#281c15] flex items-center gap-2 cursor-pointer transition-colors"
             >
               <Eye className="size-4 text-[#9c6402] dark:text-[#e29d38]" />
-              <span>عرض تفاصيل الجلسة</span>
+              <span>{t("عرض تفاصيل الجلسة", "View Session Details")}</span>
             </button>
 
             {/* 2. دخول المكتب كمسؤول */}
@@ -146,7 +148,7 @@ export function ImpersonationRowActionMenu({
               className="w-full px-3 py-2 text-[12px] font-bold text-[#9c6402] dark:text-[#e29d38] hover:bg-[#fff9ee] dark:hover:bg-[#342711] flex items-center gap-2 cursor-pointer transition-colors"
             >
               <DoorOpen className="size-4" />
-              <span>دخول المكتب كمسؤول</span>
+              <span>{t("دخول المكتب كمسؤول", "Enter Office as Admin")}</span>
             </button>
 
             {/* 3. نسخ عنوان IP */}
@@ -156,12 +158,12 @@ export function ImpersonationRowActionMenu({
                 onClick={() => {
                   onClose();
                   navigator.clipboard.writeText(log.ip || "");
-                  toast.success(`تم نسخ عنوان IP (${log.ip})`);
+                  toast.success(t(`تم نسخ عنوان IP (${log.ip})`, `IP address (${log.ip}) copied`));
                 }}
                 className="w-full px-3 py-2 text-[12px] font-semibold text-[#514537] dark:text-[#cdc5bd] hover:bg-[#faf8f5] dark:hover:bg-[#281c15] flex items-center gap-2 cursor-pointer transition-colors border-t border-[#f0eeea] dark:border-[#38271c]"
               >
                 <Copy className="size-3.5 text-[#837565] dark:text-[#a89f91]" />
-                <span>نسخ عنوان IP</span>
+                <span>{t("نسخ عنوان IP", "Copy IP Address")}</span>
               </button>
             )}
 
@@ -172,7 +174,7 @@ export function ImpersonationRowActionMenu({
               className="w-full px-3 py-2 text-[12px] font-semibold text-[#514537] dark:text-[#cdc5bd] hover:bg-[#faf8f5] dark:hover:bg-[#281c15] flex items-center gap-2 transition-colors border-t border-[#f0eeea] dark:border-[#38271c]"
             >
               <ExternalLink className="size-3.5 text-[#837565] dark:text-[#a89f91]" />
-              <span>الانتقال لملف المكتب</span>
+              <span>{t("الانتقال لملف المكتب", "Go to Office Profile")}</span>
             </Link>
           </div>,
           document.body

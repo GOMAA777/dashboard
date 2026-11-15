@@ -77,6 +77,7 @@ export function DashboardHomeView() {
 
         {/* Section 3: Visual Analytics Section (Revenue Area Chart & Plan Donut) */}
         <DashboardAnalyticsSection
+          revenueInfo={data?.revenueInfo}
           revenueData={data?.revenueData}
           planData={data?.planDistribution}
         />

@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import Image from "next/image";
 import {
   Eye,
+  Pencil,
+  Trash2,
   Shield,
   Headphones,
   Calculator,
@@ -17,7 +19,7 @@ import {
   ChevronsRight,
   ChevronsLeft,
 } from "lucide-react";
-import { Employee, IconType } from "../types/staff.types";
+import { Employee, IconType, isEmployeeAdmin } from "../types/staff.types";
 import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -25,6 +27,8 @@ import { cn } from "@/lib/utils";
 interface StaffTableProps {
   employees: Employee[];
   onViewDetails: (employee: Employee) => void;
+  onEdit?: (employee: Employee) => void;
+  onDelete?: (employee: Employee) => void;
   onLoginAsEmployee?: (employee: Employee) => void;
   onDeactivate: (employee: Employee) => void;
   onActivate: (employee: Employee) => void;
@@ -34,6 +38,8 @@ interface StaffTableProps {
 export function StaffTable({
   employees,
   onViewDetails,
+  onEdit,
+  onDelete,
   onLoginAsEmployee,
   onDeactivate,
   onActivate,
@@ -103,6 +109,9 @@ export function StaffTable({
               <th className="py-3 px-4 font-semibold min-w-[110px] text-center whitespace-nowrap">
                 {t("حالة الحساب", "Status")}
               </th>
+              <th className="py-3 px-4 font-semibold min-w-[170px] text-center whitespace-nowrap">
+                {t("آخر تسجيل دخول", "Last Login")}
+              </th>
               <th className="py-3 px-4 font-semibold text-center whitespace-nowrap w-[100px]">
                 {t("الإجراءات", "Actions")}
               </th>
@@ -113,7 +122,7 @@ export function StaffTable({
           <tbody className="divide-y divide-[#f0eeea] dark:divide-[#38271c]" data-node-id="1:9010">
             {employees.length === 0 ? (
               <tr>
-                <td colSpan={6} className="py-12 text-center text-[#79716b] dark:text-[#8e8680]">
+                <td colSpan={7} className="py-12 text-center text-[#79716b] dark:text-[#8e8680]">
                   {t("لا توجد نتائج مطابقة لخيارات البحث المحددة.", "No matching results found for search filters.")}
                 </td>
               </tr>
@@ -201,9 +210,33 @@ export function StaffTable({
                       </div>
                     </td>
 
-                    {/* Actions — Eye icon only */}
+                    {/* Last Login */}
                     <td className="py-3.5 px-4 text-center">
-                      <div className="flex items-center justify-center">
+                      <div className="flex flex-col items-center justify-center">
+                        {emp.lastLogin?.time && emp.lastLogin.time !== "—" ? (
+                          <>
+                            <span className="text-[12px] font-medium text-[#1b1c1a] dark:text-[#fdfbf7] font-mono leading-[18px]">
+                              {emp.lastLogin.time}
+                            </span>
+                            {(emp.lastLogin.city || emp.lastLogin.ip) && (
+                              <span className="text-[10px] text-[#79716b] dark:text-[#a89f91] leading-[14px] mt-0.5" dir="ltr">
+                                {[emp.lastLogin.city, emp.lastLogin.ip ? `IP: ${emp.lastLogin.ip}` : null]
+                                  .filter(Boolean)
+                                  .join(" • ")}
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-[11px] text-[#837565] dark:text-[#a89f91]">
+                            {t("لم يسجل بعد", "Never logged in")}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+
+                    {/* Actions */}
+                    <td className="py-3.5 px-4 text-center">
+                      <div className="flex items-center justify-center gap-1">
                         <button
                           type="button"
                           aria-label={t("عرض تفاصيل الموظف", "View Employee Details")}
@@ -213,6 +246,28 @@ export function StaffTable({
                         >
                           <Eye className="size-[16px]" />
                         </button>
+                        {onEdit && (
+                          <button
+                            type="button"
+                            aria-label={t("تعديل بيانات الموظف", "Edit Employee")}
+                            title={t("تعديل بيانات الموظف", "Edit Employee")}
+                            onClick={() => onEdit(emp)}
+                            className="p-[6px] rounded-[4px] border border-transparent hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:text-[#9c6402] dark:hover:text-[#e29d38] transition-colors cursor-pointer outline-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[#9c6402]/50 dark:focus-visible:ring-[#e29d38]/40"
+                          >
+                            <Pencil className="size-[16px]" />
+                          </button>
+                        )}
+                        {!isEmployeeAdmin(emp) && onDelete && (
+                          <button
+                            type="button"
+                            aria-label={t("حذف حساب الموظف", "Delete Employee")}
+                            title={t("حذف حساب الموظف", "Delete Employee")}
+                            onClick={() => onDelete(emp)}
+                            className="p-[6px] rounded-[4px] border border-transparent hover:bg-[#fee2e2] dark:hover:bg-[#381a1a] text-[#514537] dark:text-[#cdc5bd] hover:text-[#dc2626] dark:hover:text-[#f87171] transition-colors cursor-pointer outline-none focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500/40"
+                          >
+                            <Trash2 className="size-[16px]" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

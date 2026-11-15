@@ -30,18 +30,19 @@ interface OfficeColorPalettePickerProps {
 export function OfficeColorPalettePicker({
   value,
   onChange,
-  firmName = "مكتب المحاماة",
+  firmName,
   className,
   defaultColor = DEFAULT_OFFICE_THEME_COLOR,
   label,
 }: OfficeColorPalettePickerProps) {
-  const { t } = useLanguage();
+  const { t, isEn } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const defaultFallback = defaultColor || DEFAULT_OFFICE_THEME_COLOR;
   const currentColor = isValidHexColor(value) ? value : defaultFallback;
-  const colorName = getOfficeColorName(currentColor);
+  const colorName = getOfficeColorName(currentColor, isEn);
+  const resolvedFirmName = firmName || t("مكتب المحاماة", "Law Office");
   const isLight = isLightColor(currentColor);
 
   const [hexInput, setHexInput] = useState(currentColor);
@@ -124,7 +125,12 @@ export function OfficeColorPalettePicker({
           />
 
           {/* Color Label */}
-          <span className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] truncate">
+          <span
+            className={cn(
+              "text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] truncate",
+              colorName.startsWith("#") ? "font-mono font-bold tracking-wider" : "font-semibold"
+            )}
+          >
             {colorName}
           </span>
         </div>
@@ -167,8 +173,8 @@ export function OfficeColorPalettePicker({
               {t("الألوان المقترحة:", "Suggested Colors:")}
             </span>
 
-            {/* 5x2 Compact Swatches Grid */}
-            <div className="grid grid-cols-5 gap-2">
+            {/* 6 Harmonious Brand Swatches */}
+            <div className="grid grid-cols-6 gap-2">
               {OFFICE_COLOR_PALETTE.map((swatch) => {
                 const isSelected = currentColor.toLowerCase() === swatch.hex.toLowerCase();
                 const lightSwatch = isLightColor(swatch.hex);
@@ -177,7 +183,7 @@ export function OfficeColorPalettePicker({
                     key={swatch.hex}
                     type="button"
                     onClick={() => handleSelectPreset(swatch.hex)}
-                    title={`${swatch.nameAr} (${swatch.hex})`}
+                    title={`${isEn ? swatch.nameEn : swatch.nameAr} (${swatch.hex})`}
                     className={cn(
                       "size-[32px] rounded-[6px] border border-black/10 dark:border-white/10 flex items-center justify-center cursor-pointer transition-all hover:scale-110 shadow-xs relative",
                       isSelected
@@ -194,7 +200,7 @@ export function OfficeColorPalettePicker({
                         )}
                       />
                     )}
-                    <span className="sr-only">{swatch.nameAr}</span>
+                    <span className="sr-only">{isEn ? swatch.nameEn : swatch.nameAr}</span>
                   </button>
                 );
               })}
@@ -204,7 +210,7 @@ export function OfficeColorPalettePicker({
           {/* Custom Color Picker & Hex Input */}
           <div className="flex items-center gap-2 pt-2 border-t border-[#eae8e4] dark:border-[#2f2218]">
             <span className="text-[11px] font-semibold text-[#514537] dark:text-[#cdc5bd] shrink-0">
-              {t("لون مخصص:", "Custom:")}
+              {t("رمز اللون:", "Color Code:")}
             </span>
 
             <div className="flex items-center gap-1.5 flex-1">
@@ -278,7 +284,7 @@ export function OfficeColorPalettePicker({
                 style={{ backgroundColor: currentColor }}
               />
               <span className="truncate font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                {firmName}
+                {resolvedFirmName}
               </span>
             </div>
             <span

@@ -26,6 +26,8 @@ interface SubscriptionManagementTableProps {
   onEdit?: (sub: SubscriptionRecord) => void;
   onRenew?: (sub: SubscriptionRecord) => void;
   onCancel?: (sub: SubscriptionRecord) => void;
+  onApprove?: (sub: SubscriptionRecord) => void;
+  onReject?: (sub: SubscriptionRecord) => void;
   pageIndex: number;
   pageSize: number;
   totalItems: number;
@@ -40,6 +42,8 @@ export function SubscriptionManagementTable({
   onEdit,
   onRenew,
   onCancel,
+  onApprove,
+  onReject,
   pageIndex,
   pageSize,
   totalItems,
@@ -52,6 +56,16 @@ export function SubscriptionManagementTable({
   const getStatusBadge = useCallback((status: SubscriptionStatus, label: string) => {
     switch (status) {
       case "active":
+        if (label === "صلاحيات كاملة" || label === "غير محدود") {
+          return (
+            <div className="bg-[#fef3c7] border border-amber-300 dark:bg-[#342711] dark:border-amber-500/50 flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit shadow-xs">
+              <span className="font-['Cairo'] font-bold text-[11px] text-[#92400e] dark:text-[#fde68a]">
+                {t(label, "Full Privileges")}
+              </span>
+              <div className="bg-[#d97706] shadow-[0_0_8px_#d97706] ring-1 ring-amber-400/60 rounded-full size-[7px] shrink-0" />
+            </div>
+          );
+        }
         return (
           <div className="bg-[#ecfdf5] border border-emerald-200 dark:bg-[#132c21] dark:border-emerald-500/40 dark:shadow-[0_0_10px_rgba(16,185,129,0.15)] flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit">
             <span className="font-['Cairo'] font-bold text-[11px] text-[#065f46] dark:text-[#6ee7b7]">
@@ -170,13 +184,19 @@ export function SubscriptionManagementTable({
         ),
         cell: ({ row }) => {
           const sub = row.original;
+          const isUnlim = sub.planName === "غير محدود" || sub.billingCycle === "دائم" || sub.statusLabel === "صلاحيات كاملة";
           return (
             <div className="flex flex-col items-start text-start">
-              <span className="font-['Cairo'] font-semibold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7]">
+              <span className="font-['Cairo'] font-semibold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-1.5">
                 {sub.planName}
+                {isUnlim && (
+                  <span className="text-[10px] font-bold text-[#9c6402] dark:text-[#e29d38] bg-[#9c6402]/10 dark:bg-[#e29d38]/15 px-1.5 py-0.5 rounded-[3px] border border-[#9c6402]/20">
+                    VIP
+                  </span>
+                )}
               </span>
               <span className="font-['Cairo'] font-bold text-[10px] text-[#837565] dark:text-[#a89f91] pt-0.5">
-                {sub.planPrice}
+                {isUnlim ? t("بدون سعر (مجاني)", "Free (0 SAR)") : sub.planPrice}
               </span>
             </div>
           );
@@ -204,22 +224,25 @@ export function SubscriptionManagementTable({
         ),
         cell: ({ row }) => {
           const sub = row.original;
+          const isUnlim = sub.planName === "غير محدود" || sub.billingCycle === "دائم" || sub.statusLabel === "صلاحيات كاملة";
           const isUrgent = sub.daysUrgency === "urgent";
           return (
             <div className="flex flex-col items-start text-start">
               <span className="font-['Cairo'] text-[13px] text-[#514537] dark:text-[#cdc5bd]">
-                {sub.renewalDate}
+                {isUnlim ? t("دائم (بدون انتهاء)", "Permanent") : sub.renewalDate}
               </span>
               <span
-                className={`font-['Cairo'] font-bold text-[10px] pt-0.5 ${
-                  isUrgent
-                    ? "text-[#b45309] dark:text-[#fbbf24]"
+                className={`font-['Cairo'] font-bold pt-0.5 ${
+                  isUnlim
+                    ? "text-[#9c6402] dark:text-[#e29d38] text-[13px] font-black"
+                    : isUrgent
+                    ? "text-[#b45309] dark:text-[#fbbf24] text-[10px]"
                     : sub.daysUrgency === "cancelled" || sub.daysUrgency === "expired"
-                    ? "text-[#837565] dark:text-[#a89f91]"
-                    : "text-[#514537] dark:text-[#a89f91]"
+                    ? "text-[#837565] dark:text-[#a89f91] text-[10px]"
+                    : "text-[#514537] dark:text-[#a89f91] text-[10px]"
                 }`}
               >
-                {sub.remainingDaysText}
+                {isUnlim ? "∞" : sub.remainingDaysText}
               </span>
             </div>
           );
@@ -277,12 +300,14 @@ export function SubscriptionManagementTable({
               onEdit={onEdit}
               onRenew={onRenew}
               onCancel={onCancel}
+              onApprove={onApprove}
+              onReject={onReject}
             />
           </div>
         ),
       },
     ],
-    [onViewDetails, onEdit, onRenew, onCancel, t, getStatusBadge]
+    [onViewDetails, onEdit, onRenew, onCancel, onApprove, onReject, t, getStatusBadge]
   );
 
   const paginationState = useMemo<PaginationState>(

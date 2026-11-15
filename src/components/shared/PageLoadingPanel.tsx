@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Scale } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
 
 interface PageLoadingPanelProps {
   title?: string;
@@ -15,10 +16,19 @@ interface PageLoadingPanelProps {
  * across the whole dashboard (warm brown / gold clients palette).
  */
 export function PageLoadingPanel({
-  title = "جاري التحميل",
-  statusText = "نجهّز مساحة العمل والبيانات...",
+  title,
+  statusText,
   className,
 }: PageLoadingPanelProps) {
+  const { t, isEn } = useLanguage();
+  const resolvedTitle =
+    title && !(isEn && title === "جاري التحميل")
+      ? title
+      : t("جاري التحميل", "Loading...");
+  const resolvedStatus =
+    statusText && !(isEn && (statusText === "نجهّز مساحة العمل والبيانات..." || statusText === "معاينة شاشة التحميل الموحدة..."))
+      ? statusText
+      : t("نجهّز مساحة العمل والبيانات...", "Preparing workspace & data...");
   const [progress, setProgress] = useState(18);
 
   useEffect(() => {
@@ -36,7 +46,7 @@ export function PageLoadingPanel({
     <div
       role="status"
       aria-live="polite"
-      aria-label={title}
+      aria-label={resolvedTitle}
       className={cn(
         "w-full min-h-[min(62vh,560px)] flex items-center justify-center select-none animate-in fade-in duration-300",
         className
@@ -56,7 +66,7 @@ export function PageLoadingPanel({
               className="absolute inset-0 rounded-full border border-dashed border-[#c29547]/35 dark:border-[#e29d38]/35 animate-spin"
               style={{ animationDuration: "14s" }}
             />
-            <div className="absolute inset-2 rounded-full border border-[#c29547]/15 dark:border-[#e29d38]/20" />
+            <div className="absolute inset-2 rounded-full border border-[#c29d38]/15 dark:border-[#e29d38]/20" />
             <div className="absolute inset-1.5 animate-spin" style={{ animationDuration: "2.8s" }}>
               <div className="absolute -top-1 left-1/2 -translate-x-1/2 size-[10px] rounded-full bg-gradient-to-tr from-[#c29547] to-[#e8bf72] dark:from-[#e29d38] dark:to-[#f3c27e] shadow-[0_0_10px_rgba(226,157,56,0.7)] border border-white dark:border-[#221812]" />
             </div>
@@ -83,10 +93,10 @@ export function PageLoadingPanel({
           </div>
 
           <h2 className="text-[18px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7] tracking-tight">
-            {title}
+            {resolvedTitle}
           </h2>
           <p className="text-[12px] font-medium text-[#837565] dark:text-[#a89f91] mt-1.5">
-            منصة الجودي
+            {t("منصة الجودي", "Al-Joudi Platform")}
           </p>
 
           {/* Dots */}
@@ -106,7 +116,7 @@ export function PageLoadingPanel({
 
           <div className="flex items-center gap-2 mt-3.5 text-[12px] text-[#837565] dark:text-[#a89f91] font-medium">
             <span className="size-1.5 rounded-full bg-[#c29547] dark:bg-[#e29d38] animate-pulse" />
-            <span>{statusText}</span>
+            <span>{resolvedStatus}</span>
           </div>
         </div>
       </div>

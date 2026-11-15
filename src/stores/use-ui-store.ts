@@ -2,6 +2,13 @@ import { create } from "zustand";
 
 export type TableDensity = "compact" | "normal" | "comfortable";
 export type ThemePreference = "light" | "dark";
+export type ColorPalette =
+  | "royal-gold"
+  | "midnight-navy"
+  | "onyx-bronze"
+  | "emerald-justice"
+  | "ruby-burgundy"
+  | "charcoal-executive";
 export type AppLanguage = "ar" | "en";
 export type TextDirection = "rtl" | "ltr";
 
@@ -10,6 +17,7 @@ interface UIState {
   sidebarCollapsed: boolean;
   tableDensity: TableDensity;
   theme: ThemePreference;
+  palette: ColorPalette;
   language: AppLanguage;
   direction: TextDirection;
   isPageNavigating: boolean;
@@ -20,11 +28,23 @@ interface UIState {
   setTableDensity: (density: TableDensity) => void;
   setTheme: (theme: ThemePreference) => void;
   toggleTheme: () => void;
+  setPalette: (palette: ColorPalette) => void;
   setLanguage: (lang: AppLanguage) => void;
   toggleLanguage: () => void;
   setDirection: (dir: TextDirection) => void;
   toggleDirection: () => void;
   setPageNavigating: (navigating: boolean) => void;
+}
+
+function applyPaletteToDOM(palette: ColorPalette) {
+  if (typeof document !== "undefined") {
+    document.documentElement.setAttribute("data-palette", palette);
+    try {
+      localStorage.setItem("app-palette", palette);
+    } catch {
+      // Ignore in private browsing
+    }
+  }
 }
 
 function applyThemeToDOM(theme: ThemePreference) {
@@ -69,6 +89,7 @@ export const useUIStore = create<UIState>((set, get) => ({
   sidebarCollapsed: false,
   tableDensity: "normal",
   theme: "light",
+  palette: "royal-gold",
   language: "ar",
   direction: "rtl",
   isPageNavigating: false,
@@ -110,6 +131,11 @@ export const useUIStore = create<UIState>((set, get) => ({
     set({ theme: nextTheme });
   },
 
+  setPalette: (palette: ColorPalette) => {
+    applyPaletteToDOM(palette);
+    set({ palette });
+  },
+
   setLanguage: (lang: AppLanguage) => {
     const nextDir: TextDirection = lang === "ar" ? "rtl" : "ltr";
     applyLanguageToDOM(lang);
@@ -144,6 +170,20 @@ if (typeof window !== "undefined") {
     if (savedTheme === "light" || savedTheme === "dark") {
       applyThemeToDOM(savedTheme);
       useUIStore.setState({ theme: savedTheme });
+    }
+    const savedPalette = localStorage.getItem("app-palette") as ColorPalette | null;
+    if (
+      savedPalette === "royal-gold" ||
+      savedPalette === "midnight-navy" ||
+      savedPalette === "onyx-bronze" ||
+      savedPalette === "emerald-justice" ||
+      savedPalette === "ruby-burgundy" ||
+      savedPalette === "charcoal-executive"
+    ) {
+      applyPaletteToDOM(savedPalette);
+      useUIStore.setState({ palette: savedPalette });
+    } else {
+      applyPaletteToDOM("royal-gold");
     }
     const savedLang = localStorage.getItem("app-language") as AppLanguage | null;
     const savedDir = localStorage.getItem("app-direction") as TextDirection | null;

@@ -30,6 +30,7 @@ import {
   extractFieldErrors,
   mapStaffFormFieldErrors,
 } from "@/lib/api/field-errors";
+import { saveUnifiedDraft } from "@/stores/use-drafts-store";
 
 const initialDefaultRoles: RoleOption[] = [
   { id: "1", name: "Super Admin", category: "الإدارة العليا" },
@@ -238,10 +239,23 @@ export function AddEmployeeView({
 
   const handleSubmit = (isDraft = false) => {
     if (isDraft) {
-      toast.info(
+      const draftId = `draft_staff_${Date.now()}`;
+      saveUnifiedDraft({
+        id: draftId,
+        type: "staff",
+        typeLabelAr: "موظف وطاقم",
+        typeLabelEn: "Staff Member",
+        title: formData.name?.trim() || t("مسودة موظف جديد", "New Draft Employee"),
+        summary: formData.email?.trim() || t("بيانات الموظف وقسم التعيين", "Employee credentials & department"),
+        targetUrl: `/permissions?tab=staff&action=new-employee&draftId=${draftId}`,
+        badge: t("مسودة", "Draft"),
+        data: { ...formData },
+      });
+
+      toast.success(
         t(
-          "تم حفظ بيانات الموظف كمسودة مؤقتة في المتصفح.",
-          "Employee data saved as temporary draft in browser."
+          "تم حفظ بيانات الموظف كمسودة بنجاح وإضافتها إلى قسم المسودات.",
+          "Employee data saved to Drafts successfully."
         )
       );
       return;

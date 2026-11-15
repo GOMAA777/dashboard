@@ -28,6 +28,7 @@ import { GeneralSettings } from "../types/general-settings.types";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { DashboardSelect } from "@/components/shared/DashboardSelect";
+import { saveUnifiedDraft } from "@/stores/use-drafts-store";
 import { fetchGeneralSettings, updateGeneralSettings } from "@/lib/api/settings";
 import { mapGeneralSettingsFromApi } from "@/lib/api/mappers";
 
@@ -109,7 +110,23 @@ export function GeneralSettingsView() {
   };
 
   const handleSaveDraft = () => {
-    toast.info(isEn ? "Settings saved as draft" : "تم حفظ الإعدادات كمسودة");
+    const draftId = `draft_settings_${Date.now()}`;
+    saveUnifiedDraft({
+      id: draftId,
+      type: "settings",
+      typeLabelAr: "إعدادات النظام",
+      typeLabelEn: "System Settings",
+      title: formData.systemTitle ? `مسودة إعدادات ${formData.systemTitle}` : (isEn ? "General Settings Draft" : "مسودة الإعدادات العامة"),
+      summary: `${formData.email || "البريد الرسمي"} • ${formData.phone || "هاتف الدعم"}`,
+      targetUrl: `/settings/general/edit?draftId=${draftId}`,
+      badge: isEn ? "Draft" : "مسودة",
+      data: { ...formData },
+    });
+    toast.success(
+      isEn
+        ? "General settings saved to Drafts successfully"
+        : "تم حفظ الإعدادات كمسودة بنجاح ونقلها إلى قسم المسودات"
+    );
   };
 
   const handleCancel = () => {

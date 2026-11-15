@@ -435,14 +435,14 @@ export async function fetchImpersonationSessionReport(sessionId: string | number
 المنشأة المستهدفة: ${log.company_name || log.firm_name || "مكتب المحاماة"}
 المشرف المنفذ: ${log.admin_name || "مشرف عام النظام"} (معرف: ${log.admin_id || 1})
 عنوان IP المسجل: ${log.ip || "154.183.141.231"}
-توقيت بدء الجلسة: ${log.started_at ? new Date(log.started_at).toLocaleString("ar-SA") : "غير محدد"}
-توقيت إنهاء الجلسة: ${log.ended_at ? new Date(log.ended_at).toLocaleString("ar-SA") : "جلسة نشطة حالياً"}
+توقيت بدء الجلسة: ${log.started_at ? new Date(log.started_at).toLocaleString("ar-SA-u-nu-latn") : "غير محدد"}
+توقيت إنهاء الجلسة: ${log.ended_at ? new Date(log.ended_at).toLocaleString("ar-SA-u-nu-latn") : "جلسة نشطة حالياً"}
 حالة الجلسة: ${!log.ended_at ? "نشطة ومصرحة" : "منتهية ومغلقة"}
 بصمة المتصفح: ${log.user_agent || "Chrome / Windows 10 (إشراف آمن)"}
 -----------------------------------------------------
 بيان الامتثال: تمت هذه المعاينة الإشرافية بموجب الصلاحيات المخولة للإدارة الفنية،
 وتم تسجيل وتوثيق كافة العمليات تلقائياً في السجل الأمني الموحد (Audit Trail).
-تاريخ استخراج التقرير: ${new Date().toLocaleString("ar-SA")}`;
+تاريخ استخراج التقرير: ${new Date().toLocaleString("ar-SA-u-nu-latn")}`;
         return { status: true, message: "تم استخراج تقرير التدقيق بنجاح", data: { report } };
       } catch {
         // Continue to error throw

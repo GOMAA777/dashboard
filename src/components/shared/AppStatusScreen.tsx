@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Home, LogIn, RotateCcw, Scale } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { withBasePath } from "@/lib/base-path";
+import { useLanguage } from "@/lib/i18n";
 
 type StatusKind = "error" | "not-found";
 
@@ -12,6 +13,8 @@ interface AppStatusScreenProps {
   kind: StatusKind;
   title: string;
   description: string;
+  titleEn?: string;
+  descriptionEn?: string;
   digest?: string;
   onRetry?: () => void;
   /** Auto-navigate home after N ms (soft recovery so users don't stay stuck). */
@@ -26,10 +29,13 @@ export function AppStatusScreen({
   kind,
   title,
   description,
+  titleEn,
+  descriptionEn,
   digest,
   onRetry,
   autoRedirectMs = 0,
 }: AppStatusScreenProps) {
+  const { t, isEn } = useLanguage();
   const [countdown, setCountdown] = useState(
     autoRedirectMs > 0 ? Math.ceil(autoRedirectMs / 1000) : 0
   );
@@ -52,8 +58,11 @@ export function AppStatusScreen({
 
   const badge =
     kind === "not-found"
-      ? "الصفحة غير موجودة"
-      : "تعذر إتمام العملية مؤقتاً";
+      ? t("الصفحة غير موجودة", "Page Not Found")
+      : t("تعذر إتمام العملية مؤقتاً", "Temporary Error");
+
+  const displayTitle = isEn ? (titleEn || title) : title;
+  const displayDesc = isEn ? (descriptionEn || description) : description;
 
   return (
     <main className="min-h-screen w-full bg-[#fcfbfa] dark:bg-[#150f0b] text-[#1c1917] dark:text-[#fdfbf7] flex flex-col items-center justify-center p-4 sm:p-8 relative overflow-hidden select-none">
@@ -79,15 +88,15 @@ export function AppStatusScreen({
           </div>
 
           <h1 className="text-[20px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7] tracking-tight">
-            {title}
+            {displayTitle}
           </h1>
           <p className="text-[13px] text-[#837565] dark:text-[#a89f91] mt-2 leading-relaxed">
-            {description}
+            {displayDesc}
           </p>
 
           {countdown > 0 && (
             <p className="mt-3 text-[12px] font-medium text-[#c29547] dark:text-[#e29d38]">
-              سيتم التوجيه خلال {countdown} ث...
+              {t(`سيتم التوجيه خلال ${countdown} ث...`, `Redirecting in ${countdown}s...`)}
             </p>
           )}
 
@@ -109,7 +118,7 @@ export function AppStatusScreen({
                 )}
               >
                 <RotateCcw className="size-4" />
-                إعادة المحاولة
+                {t("إعادة المحاولة", "Retry")}
               </button>
             )}
             <Link
@@ -117,14 +126,14 @@ export function AppStatusScreen({
               className="flex-1 h-11 rounded-[10px] border border-[#eae8e4] dark:border-[#38271c] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-bold flex items-center justify-center gap-2 hover:border-[#9c6402] dark:hover:border-[#e29d38] transition-colors"
             >
               <Home className="size-4" />
-              الرئيسية
+              {t("الرئيسية", "Home")}
             </Link>
             <Link
               href="/login"
               className="flex-1 h-11 rounded-[10px] border border-[#eae8e4] dark:border-[#38271c] bg-white dark:bg-[#1a120d] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-bold flex items-center justify-center gap-2 hover:border-[#9c6402] dark:hover:border-[#e29d38] transition-colors"
             >
               <LogIn className="size-4" />
-              تسجيل الدخول
+              {t("تسجيل الدخول", "Sign In")}
             </Link>
           </div>
         </div>

@@ -4,7 +4,6 @@ import React, { useState, useMemo } from "react";
 import Image from "next/image";
 import {
   Bell,
-  Search,
   Trash2,
   Eye,
   Copy,
@@ -131,7 +130,7 @@ export function NotificationsListView({
         <DashboardSelect
           value={activeTab}
           onChange={(e) => {
-            setActiveTab(e.target.value as any);
+            setActiveTab(e.target.value as "all" | "active" | "scheduled" | "draft");
             setCurrentPage(1);
           }}
         >
@@ -150,7 +149,7 @@ export function NotificationsListView({
         <DashboardSelect
           value={audienceFilter}
           onChange={(e) => {
-            setAudienceFilter(e.target.value as any);
+            setAudienceFilter(e.target.value as "all" | "all_firms" | "specific");
             setCurrentPage(1);
           }}
         >
@@ -168,7 +167,7 @@ export function NotificationsListView({
         <DashboardSelect
           value={sortOrder}
           onChange={(e) => {
-            setSortOrder(e.target.value as any);
+            setSortOrder(e.target.value as "newest" | "oldest");
             setCurrentPage(1);
           }}
         >
@@ -200,6 +199,31 @@ export function NotificationsListView({
 
   const getCleanUrlText = (url: string) => {
     return url.replace(/^https?:\/\//, "");
+  };
+
+  const formatNotificationDate = (dateStr?: string) => {
+    if (!dateStr || dateStr === "—") return "—";
+    if (
+      dateStr.includes("اليوم") ||
+      dateStr.includes("الآن") ||
+      dateStr.includes("Today") ||
+      dateStr.includes("Now")
+    ) {
+      return dateStr;
+    }
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    try {
+      return new Intl.DateTimeFormat(isEn ? "en-US" : "ar-SA-u-nu-latn", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(d);
+    } catch {
+      return dateStr;
+    }
   };
 
   const renderStatusBadge = (status: NotificationStatus, label: string) => {
@@ -236,7 +260,7 @@ export function NotificationsListView({
   };
 
   return (
-    <div dir={direction} className="space-y-6">
+    <div dir={direction} className="flex flex-col gap-6">
       {/* Main Identity & Command Banner */}
       <div
         className="bg-white dark:bg-[#1a120d] rounded-[8px] p-5 sm:p-6 border border-[#e6e2dc] dark:border-[#2e231b] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col sm:flex-row sm:items-center justify-between gap-4"
@@ -262,56 +286,55 @@ export function NotificationsListView({
         </button>
       </div>
 
-      {/* Unified Table Card: Filter Bar + Table + Pagination Footer */}
+      {/* 1. Filter Bar (Standalone Card) */}
+      <UnifiedFilterBar
+        searchQuery={searchQuery}
+        onSearchChange={(val) => {
+          setSearchQuery(val);
+          setCurrentPage(1);
+        }}
+        searchPlaceholder={
+          isEn
+            ? "Search by notification title or action URL..."
+            : "ابحث بعنوان الإشعار أو نص الرابط..."
+        }
+        primaryFilterValue={activeTab}
+        onPrimaryFilterChange={(v) => {
+          setActiveTab(v as "all" | "active" | "scheduled" | "draft");
+          setCurrentPage(1);
+        }}
+        primaryFilterMode="pills"
+        primaryFilterOptions={[
+          { label: `${isEn ? "All" : "الكل"} (${tabCounts.all})`, value: "all" },
+          { label: `${isEn ? "Active & Received" : "نشطة ومستلمة"} (${tabCounts.activeAndReceived})`, value: "active" },
+          { label: `${isEn ? "Scheduled" : "مجدولة"} (${tabCounts.scheduled})`, value: "scheduled" },
+          { label: `${isEn ? "Drafts" : "مسودة"} (${tabCounts.drafts})`, value: "draft" },
+        ]}
+        hasActiveFilters={hasActiveFilters}
+        onReset={handleResetFilters}
+        drawerTitle={t("تصفية الإشعارات", "Filter Notifications")}
+        drawerDescription={t(
+          "خيارات تصفية وفلترة متقدمة للوصول الدقيق للإشعارات",
+          "Advanced filter options for broadcast notifications"
+        )}
+        drawerContent={drawerContent}
+      />
+
+      {/* 2. Main Content Table & Pagination Footer (Unified Card) */}
       <div
         className="bg-white dark:bg-[#221812] rounded-[8px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] overflow-hidden w-full shrink-0 font-['Cairo',sans-serif]"
       >
-        <UnifiedFilterBar
-          searchQuery={searchQuery}
-          onSearchChange={(val) => {
-            setSearchQuery(val);
-            setCurrentPage(1);
-          }}
-          searchPlaceholder={
-            isEn
-              ? "Search by notification title or action URL..."
-              : "ابحث بعنوان الإشعار أو نص الرابط..."
-          }
-          primaryFilterValue={activeTab}
-          onPrimaryFilterChange={(v) => {
-            setActiveTab(v as any);
-            setCurrentPage(1);
-          }}
-          primaryFilterMode="pills"
-          primaryFilterOptions={[
-            { label: `${isEn ? "All" : "الكل"} (${tabCounts.all})`, value: "all" },
-            { label: `${isEn ? "Active & Received" : "نشطة ومستلمة"} (${tabCounts.activeAndReceived})`, value: "active" },
-            { label: `${isEn ? "Scheduled" : "مجدولة"} (${tabCounts.scheduled})`, value: "scheduled" },
-            { label: `${isEn ? "Drafts" : "مسودة"} (${tabCounts.drafts})`, value: "draft" },
-          ]}
-          hasActiveFilters={hasActiveFilters}
-          onReset={handleResetFilters}
-          drawerTitle={t("تصفية الإشعارات", "Filter Notifications")}
-          drawerDescription={t(
-            "خيارات تصفية وفلترة متقدمة للوصول الدقيق للإشعارات",
-            "Advanced filter options for broadcast notifications"
-          )}
-          drawerContent={drawerContent}
-          className="rounded-b-none border-0 border-b border-[#f0eeea] dark:border-[#38271c]"
-        />
-
-        {/* Main Content Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-start border-collapse">
+        <div className="overflow-x-auto overflow-y-hidden">
+          <table className="w-full text-start border-collapse min-w-[900px]">
             {/* Table Header Row */}
             <thead>
               <tr
                 className="bg-[#fcfaf7] dark:bg-[#1a120d] h-[52px] text-[#514537] dark:text-[#cdc5bd] font-bold text-[12px] border-b border-[#f0eeea] dark:border-[#38271c]"
               >
-                <th className="px-4 py-3 text-start font-bold w-[540px]">
+                <th className="px-5 py-3 text-start font-bold">
                   {isEn ? "Notification Title" : "عنوان الإشعار"}
                 </th>
-                <th className="px-2 py-3 text-center font-bold w-[90px]">
+                <th className="px-3 py-3 text-center font-bold w-[100px]">
                   {isEn ? "Image" : "صورة الإشعار"}
                 </th>
                 <th className="px-4 py-3 text-start font-bold w-[260px]">
@@ -343,7 +366,7 @@ export function NotificationsListView({
                     className="hover:bg-[#faf9f7] dark:hover:bg-[#281c15] transition-colors"
                   >
                     {/* Column 1: Notification Title & Meta */}
-                    <td className="px-4 py-4 align-top">
+                    <td className="px-5 py-4 align-middle">
                       <div className="space-y-1.5">
                         {/* Status + Schedule / Sent Meta */}
                         <div className="flex flex-wrap items-center gap-2">
@@ -353,27 +376,28 @@ export function NotificationsListView({
                               <Calendar className="size-3" />
                               <span>{isEn ? "Schedule:" : "جدول الإرسال:"}</span>
                               <span className="font-mono">
-                                {item.scheduledFor || item.sentAt}
+                                {formatNotificationDate(item.scheduledFor || item.sentAt)}
                               </span>
                             </span>
                           ) : (
-                            <span className="text-[#837565] dark:text-[#a89f91] text-[11px] font-medium">
-                              {item.sentAt}
+                            <span className="text-[#837565] dark:text-[#a89f91] text-[11px] font-medium inline-flex items-center gap-1.5">
+                              <Calendar className="size-3.5 opacity-70" />
+                              <span>{formatNotificationDate(item.sentAt)}</span>
                             </span>
                           )}
                         </div>
 
                         {/* Title */}
-                        <h3 className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[15px] sm:text-[16px] font-semibold leading-[24px]">
+                        <h3 className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[15px] font-bold leading-[22px]">
                           {item.title}
                         </h3>
 
                         {/* Audience */}
-                        <div className="text-[12px] flex items-center gap-1 text-start">
+                        <div className="text-[12px] flex items-center gap-1.5 text-start">
                           <span className="text-[#514537] dark:text-[#cdc5bd]">
                             {isEn ? "Target Audience:" : "الجمهور المستهدف:"}
                           </span>
-                          <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                          <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] bg-[#f5f3ef] dark:bg-[#281c15] px-2 py-0.5 rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[11px]">
                             {item.targetAudienceLabel}
                           </span>
                         </div>
@@ -381,9 +405,9 @@ export function NotificationsListView({
                     </td>
 
                     {/* Column 2: Notification Image Preview */}
-                    <td className="px-2 py-4 align-middle text-center">
+                    <td className="px-3 py-4 align-middle text-center">
                       <div className="flex items-center justify-center">
-                        <div className="bg-[#f0eeea] size-[48px] rounded-[4px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#e4e2de]/60 overflow-hidden shrink-0 relative flex items-center justify-center">
+                        <div className="bg-[#f5f3ef] dark:bg-[#1a120d] size-[48px] rounded-[6px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#e4e2de] dark:border-[#38271c] overflow-hidden shrink-0 relative flex items-center justify-center">
                           {item.imageUrl ? (
                             <Image
                               src={item.imageUrl}
@@ -393,7 +417,7 @@ export function NotificationsListView({
                               className="object-cover size-full"
                             />
                           ) : (
-                            <ImageIcon className="size-5 text-[#837565]" />
+                            <ImageIcon className="size-5 text-[#837565] dark:text-[#a89f91]" />
                           )}
                         </div>
                       </div>
@@ -401,63 +425,65 @@ export function NotificationsListView({
 
                     {/* Column 3: Action Link Capsule */}
                     <td className="px-4 py-4 align-middle">
-                      <div className="bg-[#f5f3ef] dark:bg-[#281c15] rounded-[4px] px-2.5 py-1.5 flex items-center justify-between gap-1.5 border border-[#eae8e4] dark:border-[#38271c] max-w-[250px]">
-                        {/* Action buttons (Copy + Open) */}
-                        <div className="flex items-center gap-1 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => handleCopyLink(item.actionUrl, item.id)}
-                            className="p-1 text-[#514537] dark:text-[#a89f91] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] rounded transition-colors cursor-pointer"
-                            title={isEn ? "Copy link" : "نسخ الرابط"}
+                      {item.actionUrl ? (
+                        <div className="bg-[#f5f3ef] dark:bg-[#281c15] rounded-[6px] px-2.5 py-1.5 flex items-center justify-between gap-2 border border-[#eae8e4] dark:border-[#38271c] max-w-[260px]">
+                          <span
+                            dir="ltr"
+                            className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] font-mono truncate flex-1 text-left"
+                            title={item.actionUrl}
                           >
-                            {copiedId === item.id ? (
-                              <CheckCheck className="size-3.5 text-emerald-600 dark:text-emerald-400" />
-                            ) : (
-                              <Copy className="size-3.5" />
-                            )}
-                          </button>
-                          <a
-                            href={item.actionUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-1 text-[#514537] dark:text-[#a89f91] hover:text-[#9c6402] dark:hover:text-[#f59e0b] rounded transition-colors"
-                            title={isEn ? "Open link" : "فتح الرابط"}
-                          >
-                            <ExternalLink className="size-3.5" />
-                          </a>
+                            {getCleanUrlText(item.actionUrl)}
+                          </span>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => handleCopyLink(item.actionUrl, item.id)}
+                              className="p-1 text-[#514537] dark:text-[#a89f91] hover:text-[#9c6402] dark:hover:text-[#e29d38] hover:bg-white dark:hover:bg-[#1a120d] rounded transition-colors cursor-pointer"
+                              title={isEn ? "Copy link" : "نسخ الرابط"}
+                            >
+                              {copiedId === item.id ? (
+                                <CheckCheck className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                              ) : (
+                                <Copy className="size-3.5" />
+                              )}
+                            </button>
+                            <a
+                              href={item.actionUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-1 text-[#514537] dark:text-[#a89f91] hover:text-[#9c6402] dark:hover:text-[#e29d38] hover:bg-white dark:hover:bg-[#1a120d] rounded transition-colors"
+                              title={isEn ? "Open link" : "فتح الرابط"}
+                            >
+                              <ExternalLink className="size-3.5" />
+                            </a>
+                          </div>
                         </div>
-
-                        {/* Truncated clean URL */}
-                        <span
-                          className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] font-normal dir-ltr text-left truncate flex-1"
-                          title={item.actionUrl}
-                        >
-                          {getCleanUrlText(item.actionUrl)}
-                        </span>
-                      </div>
+                      ) : (
+                        <span className="text-[#837565] dark:text-[#a89f91] text-[13px]">—</span>
+                      )}
                     </td>
 
                     {/* Column 4: Row Actions (Trash & View) */}
                     <td className="px-4 py-4 align-middle text-center">
                       <div className="flex items-center justify-center">
-                        <div className="bg-[#f5f3ef] dark:bg-[#281c15] rounded-[4px] p-1 flex items-center gap-1 border border-[#eae8e4] dark:border-[#38271c]">
+                        <div className="bg-[#f5f3ef] dark:bg-[#281c15] rounded-[6px] p-1 flex items-center gap-1 border border-[#eae8e4] dark:border-[#38271c]">
                           {/* Trash button */}
                           <button
                             type="button"
                             onClick={() => onInitiateDelete(item)}
-                            className="p-1.5 text-[#514537] dark:text-[#a89f91] hover:text-[#ba1a1a] dark:hover:text-[#f87171] hover:bg-[#ffdad6]/50 dark:hover:bg-[rgba(186,26,26,0.2)] rounded-[2px] transition-colors cursor-pointer"
+                            className="p-1.5 text-[#514537] dark:text-[#a89f91] hover:text-[#ba1a1a] dark:hover:text-[#f87171] hover:bg-[#ffdad6]/50 dark:hover:bg-[rgba(186,26,26,0.2)] rounded-[4px] transition-colors cursor-pointer"
                             title={isEn ? "Delete notification" : "حذف الإشعار"}
                           >
-                            <Trash2 className="size-3.5" />
+                            <Trash2 className="size-4" />
                           </button>
                           {/* View details button */}
                           <button
                             type="button"
                             onClick={() => onViewDetails(item)}
-                            className="p-1.5 text-[#514537] dark:text-[#a89f91] hover:text-[#9c6402] dark:hover:text-[#f59e0b] hover:bg-white dark:hover:bg-[#1a120d] rounded-[2px] transition-colors cursor-pointer"
+                            className="p-1.5 text-[#514537] dark:text-[#a89f91] hover:text-[#9c6402] dark:hover:text-[#f59e0b] hover:bg-white dark:hover:bg-[#1a120d] rounded-[4px] transition-colors cursor-pointer"
                             title={isEn ? "View details" : "معاينة تفاصيل الإشعار"}
                           >
-                            <Eye className="size-3.5" />
+                            <Eye className="size-4" />
                           </button>
                         </div>
                       </div>

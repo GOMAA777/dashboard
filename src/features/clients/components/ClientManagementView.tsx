@@ -14,9 +14,13 @@ import { ClientSubscriptionsInvoicesView } from "./ClientSubscriptionsInvoicesVi
 import { EnterOfficeConfirmModal } from "./EnterOfficeConfirmModal";
 import { DeactivateOfficeModal } from "./DeactivateOfficeModal";
 import { DeleteOfficeModal } from "./DeleteOfficeModal";
+import { OfficeCredentialsCreatedModal } from "./OfficeCredentialsCreatedModal";
+import { ResetFirmPasswordModal } from "./ResetFirmPasswordModal";
+import { syncFirmOwnerPassword, uploadCompanyBranding } from "@/lib/api/users";
 import { ClientOffice, OfficeInternalNote } from "../types/client.types";
 import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 import { DashboardPageSkeleton } from "@/components/shared/DashboardPageSkeleton";
+import { useLanguage } from "@/lib/i18n";
 import {
   fetchFirms,
   fetchFirmById,
@@ -26,9 +30,12 @@ import {
   deleteFirm,
   addFirmNote,
 } from "@/lib/api/firms";
+import { getLocalCustomPlans } from "@/lib/api/plans";
 import {
   mapFirmToClientOffice,
   normalizeLogoUrl,
+  isDummyLogo,
+  resolveOfficeLogo,
   saveLocalCustomLogo,
   removeLocalCustomLogo,
   getLocalCustomLogo,
@@ -40,14 +47,23 @@ import {
   getLocalCustomStatus,
   saveLocalCustomThemeColor,
   getLocalCustomThemeColor,
+  saveLocalCustomBackgroundColor,
+  getLocalCustomBackgroundColor,
   saveLocalCustomOfficeId,
   getLocalCustomOfficeId,
   saveLocalCustomSecondaryColor,
   getLocalCustomSecondaryColor,
+  getLocalCustomFirmPlan,
+  saveLocalCustomFirmPlan,
 } from "@/lib/api/mappers";
+import {
+  upgradeSubscription,
+  updateSubscriptionStatus,
+} from "@/lib/api/subscriptions";
 import { unwrapData } from "@/lib/api/helpers";
 import { ApiError } from "@/lib/api/http";
 import { enterOfficeAsAdmin } from "@/lib/api/enter-office";
+import { buildInitialHandoffUrl, openInstantHandoffTab } from "@/lib/api/lawyer-session";
 
 function dataUrlToFile(dataUrl: string, filename = "firm-logo.png"): File | null {
   try {
@@ -67,6 +83,7 @@ function dataUrlToFile(dataUrl: string, filename = "firm-logo.png"): File | null
 }
 
 export function ClientManagementView() {
+  const { t, isEn } = useLanguage();
   const searchParams = useSearchParams();
   const router = useRouter();
   const officeIdParam = searchParams?.get("officeId");
@@ -125,6 +142,13 @@ export function ClientManagementView() {
   // Modals state
   const [officeToDeactivate, setOfficeToDeactivate] = useState<ClientOffice | null>(null);
   const [officeToDelete, setOfficeToDelete] = useState<ClientOffice | null>(null);
+  const [officeToResetPassword, setOfficeToResetPassword] = useState<ClientOffice | null>(null);
+  const [createdCredentials, setCreatedCredentials] = useState<{
+    officeName: string;
+    ownerName: string;
+    email: string;
+    password: string;
+  } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -203,13 +227,13 @@ export function ClientManagementView() {
                 ? { ...o.activeSubscriptionDetails, autoRenew: effectiveRenew }
                 : undefined,
               taxNumber: mapped.taxNumber || o.taxNumber || getLocalCustomTaxNumber(String(o.id)),
-              logo: mapped.logo || o.logo || getLocalCustomLogo(String(o.id)),
+              logo: mapped.logo || resolveOfficeLogo(o.logo, o.id),
             };
           });
         });
       })
       .catch((err) => {
-        console.error("Failed to fetch firm details:", err);
+        console.warn("Failed to fetch firm details:", err);
       });
     return () => {
       cancelled = true;
@@ -233,6 +257,7 @@ export function ClientManagementView() {
     if (!officeToEnter || isEnteringOffice) return;
     setIsEnteringOffice(true);
     const office = officeToEnter;
+
     try {
       const handoffUrl = await enterOfficeAsAdmin({
         id: office.id,
@@ -246,25 +271,29 @@ export function ClientManagementView() {
         logo: office.logo,
         officeId: office.officeId,
       });
-      toast.success(`جاري الربط والانتقال إلى لوحة مكتب «${office.name}»...`);
+      toast.success(t(`جاري الربط وفتح لوحة مكتب «${office.name}»...`, `Connecting and opening "${office.name}" dashboard...`));
       setOfficeToEnter(null);
-      window.location.assign(handoffUrl);
+
+      // Open in the EXACT SAME TAB as requested by user
+      window.location.href = handoffUrl;
     } catch (err: unknown) {
-      console.error("Failed to enter office as admin:", err);
-      let message = "تعذر فتح بوابة الدخول للمكتب. حاول مرة أخرى.";
+      console.warn("Failed to enter office as admin:", err);
+      let message = t("تعذر فتح بوابة الدخول للمكتب. حاول مرة أخرى.", "Unable to open office portal. Please try again.");
       if (err instanceof ApiError) {
         if (err.status === 401) {
-          message = "انتهت صلاحية جلسة الأدمن (401). يرجى تسجيل الدخول بحساب أدمن مصرح.";
+          message = t("انتهت صلاحية جلسة الأدمن (401). يرجى تسجيل الدخول بحساب أدمن مصرح.", "Admin session expired (401). Please sign in with an authorized admin account.");
         } else if (err.status === 404) {
-          message = `المكتب المطلوب غير موجود على الخادم (404: مكتب #${office.companyId || office.id}).`;
+          message = t(`المكتب المطلوب غير موجود على الخادم (404: مكتب #${office.companyId || office.id}).`, `Office not found on server (404: Office #${office.companyId || office.id}).`);
+        } else if (err.status === 0) {
+          message = t("تعذر الاتصال بالخادم. يرجى التحقق من اتصال الإنترنت أو إعدادات CORS.", "Unable to connect to server. Please check internet connection or CORS settings.");
         } else if (String(err.message || "").includes("SaasImpersonationLog")) {
-          message = "تعذر الدخول للمكتب: خطأ في خادم الـ API (الموديل SaasImpersonationLog غير معرف في الـ Backend على السيرفر).";
+          message = t("تعذر الدخول للمكتب: خطأ في خادم الـ API (الموديل SaasImpersonationLog غير معرف في الـ Backend على السيرفر).", "Unable to enter office: API Server error (SaasImpersonationLog model undefined on backend).");
         } else if (err.message) {
           message = err.message;
         }
       } else if (err instanceof Error && err.message) {
         if (err.message.includes("SaasImpersonationLog")) {
-          message = "تعذر الدخول للمكتب: خطأ في خادم الـ API (الموديل SaasImpersonationLog غير معرف في الـ Backend على السيرفر).";
+          message = t("تعذر الدخول للمكتب: خطأ في خادم الـ API (الموديل SaasImpersonationLog غير معرف في الـ Backend على السيرفر).", "Unable to enter office: API Server error (SaasImpersonationLog model undefined on backend).");
         } else {
           message = err.message;
         }
@@ -294,24 +323,31 @@ export function ClientManagementView() {
     const cleanLicense = data.licenseNumber
       ? data.licenseNumber.replace("ترخيص عدلي: ", "").trim()
       : "";
+    const isUnlimited =
+      data.planType === "unlimited" ||
+      data.plan === "غير محدود" ||
+      String(data.plan || "").includes("غير محدود");
     const isTrial =
-      data.planType === "trial" ||
-      data.planType === "free_trial" ||
-      Boolean(data.plan?.includes("تجرب"));
+      !isUnlimited &&
+      (data.planType === "trial" ||
+      data.planType === "free_trial");
+    const cleanPlan = isUnlimited
+      ? "غير محدود"
+      : data.plan
+      ? data.plan.replace(/\s*-\s*تجربة\s*مجانية/gi, "").replace(/\s*\(تجربة\s*مجانية\)/gi, "").trim()
+      : (data.plan || "باقة المحاماة");
     const trialDays = Number((data as any).trialDays) || 14;
 
-    const targetPlanType = isTrial ? "trial" : (data.planType || "paid");
-    // Trial has no priced plan. Never fall back to plan_id=1 — the API rejects missing/stale ids
-    // with "The selected plan id is invalid". Send plan_type=trial and omit plan_id instead.
-    // companies.status is ENUM('active','inactive'), so always send an allowed status in the body.
-    const safePlanType = isTrial ? "trial" : "paid";
-    const targetSubscriptionPlan = isTrial ? "trial" : (data.planType || "paid");
+    const targetPlanType = isUnlimited ? "unlimited" : isTrial ? "trial" : "paid";
+    const safePlanType = isUnlimited ? "unlimited" : isTrial ? "trial" : "paid";
+    const targetSubscriptionPlan = isUnlimited ? "unlimited" : isTrial ? "trial" : cleanPlan;
     const isCycleAnnual = Boolean(
       data.billingCycle?.includes("سنو") ||
       data.billingCycle?.includes("year") ||
       data.billingCycle?.includes("annu")
     );
-    const cleanBilling = isTrial ? "monthly" : isCycleAnnual ? "yearly" : "monthly";
+    const cleanBilling = isUnlimited ? "unlimited" : isCycleAnnual ? "yearly" : "monthly";
+    const isAutoRenew = data.autoRenew !== false;
     const initialPassword =
       data.password && data.password !== "••••••••••••"
         ? data.password
@@ -322,16 +358,26 @@ export function ClientManagementView() {
     const targetApiStatus: "active" | "inactive" = isOfficeInactive ? "inactive" : "active";
     const firmDbStatus = targetApiStatus;
     const resolvedPlanId = (() => {
-      const candidates = [data.planId, officeToEdit?.planId];
-      for (const raw of candidates) {
-        if (raw === undefined || raw === null || raw === "") continue;
+      if (isUnlimited) return undefined;
+      const raw = data.planId;
+      if (raw !== undefined && raw !== null && raw !== "" && raw !== "unlimited" && raw !== "custom" && raw !== -1) {
         const asStr = String(raw).trim();
         if (/^\d+$/.test(asStr)) {
           const n = Number(asStr);
           if (n > 0) return n;
         }
       }
-      return isTrial ? null : 1;
+      try {
+        const localCustomPlans = getLocalCustomPlans();
+        const matched = localCustomPlans.find((p) => p.name === cleanPlan || (cleanPlan && cleanPlan.includes(p.name)));
+        if (matched && /^\d+$/.test(String(matched.id))) {
+          return Number(matched.id);
+        }
+      } catch {}
+      if (officeToEdit?.planId && /^\d+$/.test(String(officeToEdit.planId))) {
+        return Number(officeToEdit.planId);
+      }
+      return undefined;
     })();
     const targetAccountStatus: ClientOffice["accountStatus"] = isOfficeInactive
       ? {
@@ -349,19 +395,30 @@ export function ClientManagementView() {
           dotClass: "bg-[#1b7340] dark:bg-[#10b981]",
         };
 
-    if (!isTrial && resolvedPlanId == null) {
-      toast.error("يلزم اختيار باقة اشتراك صالحة قبل الحفظ");
+    if (!isTrial && !isUnlimited && !cleanPlan && resolvedPlanId == null) {
+      toast.error(t("يلزم اختيار باقة اشتراك صالحة قبل الحفظ", "A valid subscription plan must be selected before saving"));
       return;
     }
 
     let payload: Record<string, unknown> | FormData;
 
-    const effectiveLogoFile: File | null =
-      data.logoFile instanceof File
-        ? data.logoFile
-        : data.logoUrl?.startsWith("data:")
-        ? dataUrlToFile(data.logoUrl)
-        : null;
+    const isFileObject = (obj: unknown): obj is File => {
+      if (!obj) return false;
+      if (typeof File !== "undefined" && obj instanceof File) return true;
+      if (typeof Blob !== "undefined" && obj instanceof Blob && typeof (obj as { name?: unknown }).name === "string") return true;
+      return Boolean(
+        typeof obj === "object" &&
+        typeof (obj as File).name === "string" &&
+        typeof (obj as File).size === "number" &&
+        typeof (obj as File).slice === "function"
+      );
+    };
+
+    const effectiveLogoFile: File | null = isFileObject(data.logoFile) ? data.logoFile : null;
+
+    const finalColor = data.accentColor || data.themeColor || data.primaryColor || "#d5a058";
+    const finalFontColor = data.fontColor || data.secondaryColor || "#FFFFFF";
+    const finalBgColor = data.backgroundColor || "#203b3c";
 
     if (effectiveLogoFile) {
       const fd = new FormData();
@@ -374,25 +431,26 @@ export function ClientManagementView() {
       fd.append("city", data.city);
       if (data.address) fd.append("address", data.address);
       if (data.taxNumber) fd.append("tax_number", data.taxNumber);
+      fd.append("plan_name", cleanPlan);
+      fd.append("plan", cleanPlan);
       fd.append("plan_type", safePlanType);
-      fd.append("subscription_plan", targetSubscriptionPlan);
+      fd.append("subscription_plan", isUnlimited ? "unlimited" : isTrial ? "trial" : cleanPlan);
       fd.append("status", firmDbStatus);
       if (resolvedPlanId != null) {
         fd.append("plan_id", String(resolvedPlanId));
       }
-      fd.append("billing_cycle", cleanBilling || "yearly");
-      fd.append("auto_renew", isTrial ? "0" : (data.autoRenew !== false ? "1" : "0"));
+      fd.append("billing_cycle", cleanBilling);
+      fd.append("auto_renew", isAutoRenew ? "1" : "0");
       if (!isEdit || (data.password && data.password !== "••••••••••••")) {
         fd.append("password", data.password || initialPassword);
       }
-      if (data.themeColor) {
-        fd.append("color", data.themeColor);
-        fd.append("theme_color", data.themeColor);
-        fd.append("primary_color", data.themeColor);
-      }
-      if (data.secondaryColor) {
-        fd.append("secondary_color", data.secondaryColor);
-      }
+
+      fd.append("color", finalColor);
+      fd.append("theme_color", finalColor);
+      fd.append("primary_color", finalColor);
+      fd.append("font_color", finalFontColor);
+      fd.append("secondary_color", finalFontColor);
+      fd.append("background_color", finalBgColor);
       if (data.officeId) {
         fd.append("office_id", data.officeId);
         fd.append("slug", data.officeId);
@@ -412,16 +470,20 @@ export function ClientManagementView() {
         tax_number: data.taxNumber || null,
         office_id: data.officeId || null,
         slug: data.officeId || null,
-        color: data.themeColor || "#9c6402",
-        theme_color: data.themeColor || "#9c6402",
-        primary_color: data.themeColor || "#9c6402",
-        secondary_color: data.secondaryColor || undefined,
+        color: finalColor,
+        theme_color: finalColor,
+        primary_color: finalColor,
+        secondary_color: finalFontColor,
+        font_color: finalFontColor,
+        background_color: finalBgColor,
+        plan_name: cleanPlan,
+        plan: cleanPlan,
         plan_type: safePlanType,
-        subscription_plan: targetSubscriptionPlan,
+        subscription_plan: isUnlimited ? "unlimited" : isTrial ? "trial" : cleanPlan,
         status: firmDbStatus,
-        plan_id: isTrial ? null : (resolvedPlanId ?? 1),
+        plan_id: resolvedPlanId,
         billing_cycle: cleanBilling,
-        auto_renew: isTrial ? false : (data.autoRenew !== false),
+        auto_renew: isAutoRenew,
         password: isEdit
           ? (data.password && data.password !== "••••••••••••" ? data.password : undefined)
           : initialPassword,
@@ -429,17 +491,23 @@ export function ClientManagementView() {
     }
 
     if (isEdit && officeToEdit) {
-      const isAutoRenew = isTrial ? false : (data.autoRenew !== false);
       saveLocalCustomAutoRenew(officeToEdit.id, isAutoRenew);
+      if (officeToEdit.companyId) {
+        saveLocalCustomAutoRenew(officeToEdit.companyId, isAutoRenew);
+      }
+      if (data.backgroundColor) {
+        saveLocalCustomBackgroundColor(officeToEdit.id, data.backgroundColor);
+        if (officeToEdit.companyId) {
+          saveLocalCustomBackgroundColor(officeToEdit.companyId, data.backgroundColor);
+        }
+      }
       if (data.themeColor) {
         saveLocalCustomThemeColor(officeToEdit.id, data.themeColor);
         if (officeToEdit.companyId) {
           saveLocalCustomThemeColor(officeToEdit.companyId, data.themeColor);
         }
       }
-      if (data.logoUrl) {
-        saveLocalCustomLogo(officeToEdit.id, data.logoUrl);
-      } else if (data.logoFile === null && !data.logoUrl) {
+      if (data.logoFile === null && !data.logoUrl) {
         removeLocalCustomLogo(officeToEdit.id);
       }
       if (data.taxNumber) {
@@ -457,8 +525,50 @@ export function ClientManagementView() {
           saveLocalCustomSecondaryColor(officeToEdit.companyId, data.secondaryColor);
         }
       }
+      if (effectiveLogoFile && typeof FileReader !== "undefined") {
+        try {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const res = reader.result;
+            if (typeof res === "string" && res.startsWith("data:image/")) {
+              saveLocalCustomLogo(officeToEdit.id, res);
+              if (officeToEdit.companyId) {
+                saveLocalCustomLogo(officeToEdit.companyId, res);
+              }
+            }
+          };
+          reader.readAsDataURL(effectiveLogoFile);
+        } catch {}
+      }
+      saveLocalCustomFirmPlan(officeToEdit.id, {
+        plan: isUnlimited ? "غير محدود" : isTrial ? `${cleanPlan} (تجربة مجانية)` : cleanPlan,
+        planId: isUnlimited ? undefined : resolvedPlanId ? Number(resolvedPlanId) : undefined,
+        planType: targetPlanType,
+        billingCycle: cleanBilling,
+      });
+      if (officeToEdit.companyId) {
+        saveLocalCustomFirmPlan(officeToEdit.companyId, {
+          plan: isUnlimited ? "غير محدود" : isTrial ? `${cleanPlan} (تجربة مجانية)` : cleanPlan,
+          planId: isUnlimited ? undefined : resolvedPlanId ? Number(resolvedPlanId) : undefined,
+          planType: targetPlanType,
+          billingCycle: cleanBilling,
+        });
+      }
+      let returnedEditLogo = officeToEdit.logo;
       try {
-        await updateFirm(officeToEdit.id, payload);
+        const updateRes = await updateFirm(officeToEdit.id, payload);
+        const unwrapped = (unwrapData<Record<string, unknown>>(updateRes) || updateRes) as Record<string, unknown>;
+        const updatedFirm = (unwrapped?.firm || unwrapped?.data || unwrapped) as Record<string, unknown>;
+        if (updatedFirm?.logo && typeof updatedFirm.logo === "string" && !isDummyLogo(updatedFirm.logo)) {
+          const normLogo = normalizeLogoUrl(updatedFirm.logo);
+          if (normLogo) {
+            returnedEditLogo = normLogo;
+            saveLocalCustomLogo(officeToEdit.id, normLogo);
+            if (officeToEdit.companyId) {
+              saveLocalCustomLogo(officeToEdit.companyId, normLogo);
+            }
+          }
+        }
         // Always synchronize status endpoint so API reflects whether active or inactive
         try {
           await updateFirmStatus(
@@ -469,13 +579,66 @@ export function ClientManagementView() {
         } catch {
           // Status endpoint error handled gracefully
         }
+
+        // Synchronize subscription if firm has an active subscription and not unlimited
+        if (officeToEdit.activeSubscriptionDetails?.id && !isUnlimited && resolvedPlanId) {
+          try {
+            await upgradeSubscription(officeToEdit.activeSubscriptionDetails.id, {
+              new_plan_id: Number(resolvedPlanId),
+              billing_cycle: cleanBilling,
+            });
+            if (!isTrial) {
+              await updateSubscriptionStatus(officeToEdit.activeSubscriptionDetails.id, "active");
+            }
+          } catch (subErr) {
+            console.warn("Could not sync subscription details:", subErr);
+          }
+        }
+
+        // Synchronize password if updated
+        if (data.password && data.password !== "••••••••••••") {
+          try {
+            await syncFirmOwnerPassword(officeToEdit.id, data.password);
+          } catch (pwdErr) {
+            console.warn("Could not sync password for office owner:", pwdErr);
+          }
+        }
+
+        // Synchronize branding (logo file + color) via company endpoint
+        if (effectiveLogoFile || data.themeColor) {
+          try {
+            const brandRes = await uploadCompanyBranding(officeToEdit.id, {
+              color: data.themeColor,
+              logoFile: effectiveLogoFile,
+            });
+            if (brandRes?.logo) {
+              const normLogo = normalizeLogoUrl(brandRes.logo);
+              if (normLogo) {
+                returnedEditLogo = normLogo;
+                saveLocalCustomLogo(officeToEdit.id, normLogo);
+                if (officeToEdit.companyId) {
+                  saveLocalCustomLogo(officeToEdit.companyId, normLogo);
+                }
+              }
+            }
+          } catch (brandErr) {
+            console.warn("Could not sync branding for office:", brandErr);
+          }
+        }
+
         saveLocalCustomStatus(officeToEdit.id, isOfficeInactive ? "suspended" : "active");
-        const statusLabel = isOfficeInactive ? "غير نشط" : "نشط";
-        toast.success(`تم حفظ تعديلات مكتب "${data.name}" بنجاح (${statusLabel})`);
+        const statusLabel = isOfficeInactive ? t("غير نشط", "Inactive") : t("نشط", "Active");
+        toast.success(t(`تم حفظ تعديلات مكتب "${data.name}" بنجاح (${statusLabel})`, `Saved updates for "${data.name}" (${statusLabel})`));
+
+        if (data.logoUrl?.startsWith("blob:")) {
+          try {
+            URL.revokeObjectURL(data.logoUrl);
+          } catch {}
+        }
       } catch (err: unknown) {
-        const msg = (err as { message?: string })?.message || "فشل تحديث بيانات المكتب";
+        const msg = (err as { message?: string })?.message || t("فشل تحديث بيانات المكتب", "Failed to update office data");
         toast.error(msg);
-        return;
+        throw err;
       }
 
       setOffices((prev) =>
@@ -497,31 +660,42 @@ export function ClientManagementView() {
             taxNumber: data.taxNumber || o.taxNumber || getLocalCustomTaxNumber(o.id),
             city: data.city || o.city,
             country: "المملكة العربية السعودية",
-            plan: data.plan,
-            planId: isTrial
-              ? undefined
-              : resolvedPlanId != null
-              ? resolvedPlanId
-              : o.planId,
+            plan: isUnlimited ? "غير محدود" : isTrial ? `${cleanPlan} (تجربة مجانية)` : cleanPlan,
+            planId: isUnlimited ? undefined : resolvedPlanId != null ? resolvedPlanId : o.planId,
             planType: targetPlanType,
             subscriptionPlan: targetSubscriptionPlan,
-            billingCycle: isTrial ? (data.billingCycle || `فترة تجريبية (${trialDays} يوماً)`) : cleanBilling === "yearly" ? "سنوي" : "شهري",
+            billingCycle: isUnlimited ? "غير محدود" : cleanBilling === "yearly" ? "سنوي" : "شهري",
             autoRenew: isAutoRenew,
             planDetails: data.planDetails || o.planDetails,
             activeSubscriptionDetails: o.activeSubscriptionDetails
-              ? { ...o.activeSubscriptionDetails, autoRenew: isAutoRenew }
+              ? {
+                  ...o.activeSubscriptionDetails,
+                  planId: isUnlimited ? undefined : resolvedPlanId,
+                  billingCycle: isUnlimited ? "غير محدود" : cleanBilling === "yearly" ? "سنوي" : "شهري",
+                  autoRenew: isAutoRenew,
+                  status: isOfficeInactive ? "inactive" : isUnlimited ? "unlimited" : isTrial ? "trial" : "active",
+                }
               : undefined,
-            logo: data.logoUrl || o.logo || getLocalCustomLogo(o.id),
+            logo: returnedEditLogo || (o.logo && !o.logo.startsWith("blob:") ? o.logo : undefined) || resolveOfficeLogo(o.logo, o.id),
             officeId: data.officeId || o.officeId,
             slug: data.officeId || o.slug,
-            themeColor: data.themeColor || o.themeColor || "#9c6402",
-            color: data.themeColor || o.themeColor || "#9c6402",
-            primaryColor: data.themeColor || o.primaryColor || o.themeColor || "#9c6402",
-            secondaryColor: data.secondaryColor || o.secondaryColor,
+            backgroundColor: finalBgColor,
+            fontColor: finalFontColor,
+            themeColor: finalColor,
+            color: finalColor,
+            primaryColor: finalColor,
+            secondaryColor: finalFontColor,
             initialPassword: data.password || o.initialPassword,
             accountStatus: targetAccountStatus,
             subscriptionStatus: isOfficeInactive
               ? o.subscriptionStatus
+              : isUnlimited
+              ? {
+                  label: "غير محدود",
+                  type: "unlimited",
+                  bgClass: "bg-[#f5f3ef] dark:bg-[#281c15] border border-[#d8c29d] dark:border-[#5a4321]",
+                  textClass: "text-[#9c6402] dark:text-[#e29d38]",
+                }
               : {
                   label: isTrial ? "تجربة مجانية" : "اشتراك نشط",
                   type: isTrial ? "trial" : "active",
@@ -533,13 +707,32 @@ export function ClientManagementView() {
       );
     } else {
       let createdOfficeId = `firm-${Date.now()}`;
-      let returnedLogo = data.logoUrl;
+      let returnedLogo: string | undefined = undefined;
       try {
         const res = await createFirm(payload);
         const unwrapped = (unwrapData<Record<string, unknown>>(res) || res) as Record<string, unknown>;
         const createdFirm = (unwrapped?.firm || unwrapped?.data || unwrapped) as Record<string, unknown>;
         const newId = String(createdFirm?.id || "");
         if (newId) createdOfficeId = newId;
+
+        if (createdFirm?.logo && typeof createdFirm.logo === "string" && !isDummyLogo(createdFirm.logo)) {
+          const normLogo = normalizeLogoUrl(createdFirm.logo);
+          if (normLogo) {
+            returnedLogo = normLogo;
+            saveLocalCustomLogo(newId, normLogo);
+          }
+        }
+
+        if (data.logoUrl?.startsWith("blob:")) {
+          try {
+            URL.revokeObjectURL(data.logoUrl);
+          } catch {}
+        }
+
+        const effectivePassword =
+          data.password && data.password !== "••••••••••••"
+            ? data.password
+            : initialPassword;
 
         // 1. Sync tax number, color, and status via PUT immediately because backend POST ignores tax_number and creation status/color
         if (newId) {
@@ -582,26 +775,85 @@ export function ClientManagementView() {
           } catch (statusErr) {
             console.warn("Secondary updateFirmStatus failed:", statusErr);
           }
+
+          // Single-hash password sync via user API so login works cleanly
+          try {
+            await syncFirmOwnerPassword(newId, effectivePassword);
+          } catch (pwdErr) {
+            console.warn("syncFirmOwnerPassword on create:", pwdErr);
+          }
+
+          // Upload company branding (logo file + color)
+          if (effectiveLogoFile || data.themeColor) {
+            try {
+              const brandRes = await uploadCompanyBranding(newId, {
+                color: data.themeColor,
+                logoFile: effectiveLogoFile,
+              });
+              if (brandRes?.logo) {
+                const normLogo = normalizeLogoUrl(brandRes.logo);
+                if (normLogo) {
+                  returnedLogo = normLogo;
+                  saveLocalCustomLogo(newId, normLogo);
+                }
+              }
+            } catch (brandErr) {
+              console.warn("uploadCompanyBranding on create:", brandErr);
+            }
+          }
         }
 
-        // 2. Cache local custom logo so it's always available even if backend storage returns 403
-        if (createdFirm?.logo) {
-          returnedLogo = normalizeLogoUrl(String(createdFirm.logo)) || data.logoUrl;
-          if (returnedLogo) saveLocalCustomLogo(newId, returnedLogo);
-        } else if (data.logoUrl && newId) {
-          saveLocalCustomLogo(newId, data.logoUrl);
-          returnedLogo = data.logoUrl;
+        // Display credentials modal once
+        setCreatedCredentials({
+          officeName: data.name,
+          ownerName: data.owner,
+          email: data.email,
+          password: effectivePassword,
+        });
+
+        if (createdFirm?.logo && !isDummyLogo(String(createdFirm.logo))) {
+          const normLogo = normalizeLogoUrl(String(createdFirm.logo));
+          if (normLogo) {
+            returnedLogo = normLogo;
+            saveLocalCustomLogo(newId, normLogo);
+          }
         }
 
         if (newId) {
+          if (data.backgroundColor) {
+            saveLocalCustomBackgroundColor(newId, data.backgroundColor);
+            if (createdFirm?.company_id) {
+              saveLocalCustomBackgroundColor(String(createdFirm.company_id), data.backgroundColor);
+            }
+          }
           if (data.themeColor) {
             saveLocalCustomThemeColor(newId, data.themeColor);
             if (createdFirm?.company_id) {
               saveLocalCustomThemeColor(String(createdFirm.company_id), data.themeColor);
             }
           }
-          saveLocalCustomAutoRenew(newId, isTrial ? false : (data.autoRenew !== false));
+          saveLocalCustomAutoRenew(newId, isAutoRenew);
+          if (createdFirm?.company_id) {
+            saveLocalCustomAutoRenew(String(createdFirm.company_id), isAutoRenew);
+          }
+          saveLocalCustomFirmPlan(newId, {
+            plan: isTrial ? `${cleanPlan} (تجربة مجانية)` : cleanPlan,
+            planId: resolvedPlanId ? Number(resolvedPlanId) : undefined,
+            planType: targetPlanType,
+            billingCycle: cleanBilling,
+          });
+          if (createdFirm?.company_id) {
+            saveLocalCustomFirmPlan(String(createdFirm.company_id), {
+              plan: isTrial ? `${cleanPlan} (تجربة مجانية)` : cleanPlan,
+              planId: resolvedPlanId ? Number(resolvedPlanId) : undefined,
+              planType: targetPlanType,
+              billingCycle: cleanBilling,
+            });
+          }
           saveLocalCustomStatus(newId, isOfficeInactive ? "suspended" : "active");
+        }
+        if (data.backgroundColor) {
+          saveLocalCustomBackgroundColor(createdOfficeId, data.backgroundColor);
         }
         if (data.themeColor) {
           saveLocalCustomThemeColor(createdOfficeId, data.themeColor);
@@ -612,21 +864,28 @@ export function ClientManagementView() {
         if (data.officeId) {
           saveLocalCustomOfficeId(createdOfficeId, data.officeId);
         }
+        saveLocalCustomAutoRenew(createdOfficeId, isAutoRenew);
+        saveLocalCustomFirmPlan(createdOfficeId, {
+          plan: isTrial ? `${cleanPlan} (تجربة مجانية)` : cleanPlan,
+          planId: resolvedPlanId ? Number(resolvedPlanId) : undefined,
+          planType: targetPlanType,
+          billingCycle: cleanBilling,
+        });
         saveLocalCustomStatus(createdOfficeId, isOfficeInactive ? "suspended" : "active");
-        const statusLabel = isOfficeInactive ? "حساب غير نشط" : "حساب نشط";
-        toast.success(`تمت إضافة مكتب "${data.name}" بنجاح (${statusLabel})`);
+        const statusLabel = isOfficeInactive ? t("حساب غير نشط", "Inactive") : t("حساب نشط", "Active");
+        toast.success(t(`تمت إضافة مكتب "${data.name}" بنجاح (${statusLabel})`, `Office "${data.name}" added successfully (${statusLabel})`));
       } catch (err: unknown) {
-        let msg = (err as { message?: string })?.message || "فشل إضافة مكتب المحاماة";
+        let msg = (err as { message?: string })?.message || t("فشل إضافة مكتب المحاماة", "Failed to add law office");
         if (
           (err as { status?: number })?.status === 422 ||
           msg.includes("validation") ||
           msg.includes("required") ||
           msg.includes("بيانات")
         ) {
-          msg = "يرجى إكمال البيانات لمواصلة التسجيل";
+          msg = t("يرجى إكمال البيانات لمواصلة التسجيل", "Please complete required fields to proceed");
         }
         toast.error(msg);
-        return;
+        throw err;
       }
 
       const newlyCreatedOffice: ClientOffice = {
@@ -636,10 +895,12 @@ export function ClientManagementView() {
         initial: (data.name.trim().charAt(0) || "م").toUpperCase(),
         initialBg: "bg-[#fff9ee] dark:bg-[#2d1f16]",
         initialText: "text-[#9c6402] dark:text-[#e29d38]",
-        themeColor: data.themeColor || "#9c6402",
-        color: data.themeColor || "#9c6402",
-        primaryColor: data.themeColor || "#9c6402",
-        secondaryColor: data.secondaryColor,
+        backgroundColor: data.backgroundColor || "#203b3c",
+        fontColor: data.fontColor || data.secondaryColor || "#ffffff",
+        themeColor: data.accentColor || data.themeColor || "#d5a058",
+        color: data.accentColor || data.themeColor || "#d5a058",
+        primaryColor: data.accentColor || data.themeColor || "#d5a058",
+        secondaryColor: data.fontColor || data.secondaryColor,
         name: data.name,
         owner: data.owner,
         licenseNumber: cleanLicense
@@ -656,48 +917,54 @@ export function ClientManagementView() {
         country: "المملكة العربية السعودية",
         password: initialPassword,
         initialPassword: initialPassword,
-        plan: isTrial ? (data.plan ? (data.plan.includes("تجرب") ? data.plan : `${data.plan} (تجربة مجانية)`) : "الباقة الفضية (تجربة مجانية)") : data.plan,
-        planId:
-          typeof data.planId === "number"
-            ? data.planId
-            : typeof data.planId === "string" && /^\d+$/.test(data.planId)
-              ? Number(data.planId)
-              : isTrial
-                ? undefined
-                : (resolvedPlanId ?? undefined),
+        plan: isUnlimited ? "غير محدود" : isTrial ? `${cleanPlan} (تجربة مجانية)` : cleanPlan,
+        planId: isUnlimited ? undefined : resolvedPlanId,
         planType: targetPlanType,
         subscriptionPlan: targetSubscriptionPlan,
-        billingCycle: isTrial ? (data.billingCycle || `فترة تجريبية (${trialDays} يوماً)`) : cleanBilling === "yearly" ? "سنوي" : "شهري",
-        autoRenew: isTrial ? false : (data.autoRenew !== false),
+        billingCycle: isUnlimited ? "غير محدود" : cleanBilling === "yearly" ? "سنوي" : "شهري",
+        autoRenew: isAutoRenew,
         planDetails: data.planDetails,
         activeSubscriptionDetails: {
-          billingCycle: isTrial ? (data.billingCycle || `فترة تجريبية (${trialDays} يوماً)`) : cleanBilling === "yearly" ? "سنوي" : "شهري",
-          autoRenew: isTrial ? false : (data.autoRenew !== false),
+          billingCycle: isUnlimited ? "غير محدود" : cleanBilling === "yearly" ? "سنوي" : "شهري",
+          autoRenew: isAutoRenew,
           startDate: new Date().toISOString().split("T")[0],
-          renewalDate: new Date(Date.now() + (isTrial ? trialDays : cleanBilling === "yearly" ? 365 : 30) * 86400000).toISOString().split("T")[0],
-          status: isOfficeInactive ? "inactive" : isTrial ? "trial" : "active",
+          renewalDate: isUnlimited ? "" : new Date(Date.now() + (isTrial ? trialDays : cleanBilling === "yearly" ? 365 : 30) * 86400000).toISOString().split("T")[0],
+          status: isOfficeInactive ? "inactive" : isUnlimited ? "unlimited" : isTrial ? "trial" : "active",
         },
         registrationDate: new Date().toISOString().split("T")[0],
         subscriptionStart: new Date().toISOString().split("T")[0],
-        subscriptionEnd: new Date(Date.now() + (isTrial ? trialDays : cleanBilling === "yearly" ? 365 : 30) * 86400000).toISOString().split("T")[0],
-        logo: returnedLogo,
+        subscriptionEnd: isUnlimited ? undefined : new Date(Date.now() + (isTrial ? trialDays : cleanBilling === "yearly" ? 365 : 30) * 86400000).toISOString().split("T")[0],
+        logo: returnedLogo || resolveOfficeLogo(undefined, createdOfficeId),
         planBadgeClass:
           "bg-[#ffddb6]/40 text-[#7b4e00] border border-[#ffddb6] dark:bg-[rgba(226,157,56,0.18)] dark:text-[#f3c27e] dark:border-[#e29d38]/50",
         accountStatus: targetAccountStatus,
-        subscriptionStatus: {
-          label: isOfficeInactive ? "غير نشط" : isTrial ? "تجربة مجانية" : "اشتراك نشط",
-          type: isOfficeInactive ? "expired" : isTrial ? "trial" : "active",
-          bgClass: isOfficeInactive
-            ? "bg-[#fef2f2] dark:bg-[#2c1313]"
-            : isTrial
-            ? "bg-[#fffbeb] dark:bg-[rgba(226,157,56,0.18)]"
-            : "bg-[#ecfdf5] dark:bg-[#132c1c]",
-          textClass: isOfficeInactive
-            ? "text-[#dc2626] dark:text-[#f87171]"
-            : isTrial
-            ? "text-[#92400e] dark:text-[#f3c27e]"
-            : "text-[#10b981] dark:text-[#6ee7b7]",
-        },
+        subscriptionStatus: isOfficeInactive
+          ? {
+              label: "غير نشط",
+              type: "expired",
+              bgClass: "bg-[#fef2f2] dark:bg-[#2c1313]",
+              textClass: "text-[#dc2626] dark:text-[#f87171]",
+            }
+          : isUnlimited
+          ? {
+              label: "غير محدود",
+              type: "unlimited",
+              bgClass: "bg-[#f5f3ef] dark:bg-[#281c15] border border-[#d8c29d] dark:border-[#5a4321]",
+              textClass: "text-[#9c6402] dark:text-[#e29d38]",
+            }
+          : isTrial
+          ? {
+              label: "تجربة مجانية",
+              type: "trial",
+              bgClass: "bg-[#fffbeb] dark:bg-[rgba(226,157,56,0.18)]",
+              textClass: "text-[#92400e] dark:text-[#f3c27e]",
+            }
+          : {
+              label: "اشتراك نشط",
+              type: "active",
+              bgClass: "bg-[#ecfdf5] dark:bg-[#132c1c]",
+              textClass: "text-[#10b981] dark:text-[#6ee7b7]",
+            },
         resourceUsage: {
           lawyersUsed: 0,
           lawyersLimit: 0,
@@ -721,46 +988,149 @@ export function ClientManagementView() {
           // Merge to preserve local initialPassword or details
           return fetchedOffices.map((fetched) => {
             const local = prev.find((p) => String(p.id) === String(fetched.id));
-            const localRenew = getLocalCustomAutoRenew(String(fetched.id));
+            const localRenew =
+              getLocalCustomAutoRenew(String(fetched.id)) ??
+              (fetched.companyId ? getLocalCustomAutoRenew(String(fetched.companyId)) : undefined);
+            const localPlan =
+              getLocalCustomFirmPlan(String(fetched.id)) ||
+              (fetched.companyId ? getLocalCustomFirmPlan(String(fetched.companyId)) : undefined);
             const effectiveRenew =
               localRenew !== undefined
                 ? localRenew
                 : local?.autoRenew !== undefined
                 ? local.autoRenew
                 : fetched.autoRenew;
+            const effectivePlan = localPlan?.plan || local?.plan || fetched.plan;
+            const effectivePlanId = localPlan?.planId ?? local?.planId ?? fetched.planId;
+            const effectivePlanType = localPlan?.planType || local?.planType || fetched.planType;
+            const effectiveBillingCycle =
+              localPlan?.billingCycle
+                ? (localPlan.billingCycle === "yearly" || localPlan.billingCycle === "سنوي" ? "سنوي" : "شهري")
+                : local?.billingCycle || fetched.billingCycle;
             if (!local) {
+              const fetchedBgColor =
+                getLocalCustomBackgroundColor(String(fetched.id)) ||
+                fetched.backgroundColor ||
+                "#203b3c";
               const fetchedThemeColor =
                 getLocalCustomThemeColor(String(fetched.id)) ||
                 fetched.themeColor ||
-                "#9c6402";
+                "#d5a058";
+              const fetchedSecondaryColor =
+                getLocalCustomSecondaryColor(String(fetched.id)) ||
+                fetched.secondaryColor ||
+                "#ffffff";
               return {
                 ...fetched,
+                backgroundColor: fetchedBgColor,
+                fontColor: fetchedSecondaryColor,
                 themeColor: fetchedThemeColor,
+                color: fetchedThemeColor,
+                primaryColor: fetchedThemeColor,
+                secondaryColor: fetchedSecondaryColor,
                 autoRenew: effectiveRenew,
+                plan: effectivePlan,
+                planId: effectivePlanId,
+                planType: effectivePlanType,
+                subscriptionPlan: effectivePlanType,
+                billingCycle: effectiveBillingCycle,
                 activeSubscriptionDetails: fetched.activeSubscriptionDetails
-                  ? { ...fetched.activeSubscriptionDetails, autoRenew: effectiveRenew }
+                  ? {
+                      ...fetched.activeSubscriptionDetails,
+                      planId: effectivePlanId,
+                      billingCycle: effectiveBillingCycle,
+                      autoRenew: effectiveRenew,
+                    }
                   : undefined,
+                subscriptionStatus:
+                  effectivePlanType === "unlimited"
+                    ? {
+                        label: "غير محدود",
+                        type: "unlimited" as const,
+                        bgClass: "bg-[#f5f3ef] dark:bg-[#281c15] border border-[#d8c29d] dark:border-[#5a4321]",
+                        textClass: "text-[#9c6402] dark:text-[#e29d38]",
+                      }
+                    : effectivePlanType === "trial"
+                    ? {
+                        label: "تجربة مجانية",
+                        type: "trial" as const,
+                        bgClass: "bg-[#fffbeb] dark:bg-[rgba(226,157,56,0.18)]",
+                        textClass: "text-[#92400e] dark:text-[#f3c27e]",
+                      }
+                    : {
+                        label: "اشتراك نشط",
+                        type: "active" as const,
+                        bgClass: "bg-[#ecfdf5] dark:bg-[#132c1c]",
+                        textClass: "text-[#10b981] dark:text-[#6ee7b7]",
+                      },
               };
             }
+            const mergedBgColor =
+              (local?.backgroundColor ? local.backgroundColor : undefined) ||
+              (local?.id ? getLocalCustomBackgroundColor(local.id) : undefined) ||
+              (fetched.id ? getLocalCustomBackgroundColor(fetched.id) : undefined) ||
+              fetched.backgroundColor ||
+              "#203b3c";
             const mergedThemeColor =
+              (local.themeColor && local.themeColor !== "#9c6402" ? local.themeColor : undefined) ||
               (fetched.color ? String(fetched.color) : undefined) ||
               (local.id ? getLocalCustomThemeColor(local.id) : undefined) ||
               local.themeColor ||
               (fetched.id ? getLocalCustomThemeColor(fetched.id) : undefined) ||
               fetched.themeColor ||
-              "#9c6402";
+              "#d5a058";
+            const mergedSecondaryColor =
+              (local.secondaryColor && local.secondaryColor !== "#ffffff" ? local.secondaryColor : undefined) ||
+              (fetched.secondaryColor ? String(fetched.secondaryColor) : undefined) ||
+              (local.id ? getLocalCustomSecondaryColor(local.id) : undefined) ||
+              local.secondaryColor ||
+              (fetched.id ? getLocalCustomSecondaryColor(fetched.id) : undefined) ||
+              "#ffffff";
             return {
               ...local,
               ...fetched,
+              backgroundColor: mergedBgColor,
+              fontColor: mergedSecondaryColor,
               themeColor: mergedThemeColor,
+              color: mergedThemeColor,
+              primaryColor: mergedThemeColor,
+              secondaryColor: mergedSecondaryColor,
               autoRenew: effectiveRenew,
-              activeSubscriptionDetails: fetched.activeSubscriptionDetails || local.activeSubscriptionDetails,
-              plan: fetched.plan,
-              planType: fetched.planType,
-              subscriptionPlan: fetched.subscriptionPlan,
-              subscriptionStatus: fetched.subscriptionStatus,
+              plan: effectivePlan,
+              planId: effectivePlanId,
+              planType: effectivePlanType,
+              subscriptionPlan: effectivePlanType,
+              billingCycle: effectiveBillingCycle,
+              activeSubscriptionDetails: fetched.activeSubscriptionDetails
+                ? {
+                    ...fetched.activeSubscriptionDetails,
+                    planId: effectivePlanId,
+                    billingCycle: effectiveBillingCycle,
+                    autoRenew: effectiveRenew,
+                  }
+                : local.activeSubscriptionDetails,
+              subscriptionStatus:
+                effectivePlanType === "unlimited"
+                  ? {
+                      label: "غير محدود",
+                      type: "unlimited" as const,
+                      bgClass: "bg-[#f5f3ef] dark:bg-[#281c15] border border-[#d8c29d] dark:border-[#5a4321]",
+                      textClass: "text-[#9c6402] dark:text-[#e29d38]",
+                    }
+                  : effectivePlanType === "trial"
+                  ? {
+                      label: "تجربة مجانية",
+                      type: "trial" as const,
+                      bgClass: "bg-[#fffbeb] dark:bg-[rgba(226,157,56,0.18)]",
+                      textClass: "text-[#92400e] dark:text-[#f3c27e]",
+                    }
+                  : {
+                      label: "اشتراك نشط",
+                      type: "active" as const,
+                      bgClass: "bg-[#ecfdf5] dark:bg-[#132c1c]",
+                      textClass: "text-[#10b981] dark:text-[#6ee7b7]",
+                    },
               accountStatus: fetched.accountStatus,
-              billingCycle: fetched.billingCycle || local.billingCycle,
               planDetails: fetched.planDetails || local.planDetails,
               initialPassword: local.initialPassword || fetched.initialPassword,
               password: local.password || fetched.password,
@@ -769,13 +1139,13 @@ export function ClientManagementView() {
               taxNumber: fetched.taxNumber || local.taxNumber || getLocalCustomTaxNumber(local.id),
               owner: fetched.owner && fetched.owner !== "—" ? fetched.owner : local.owner,
               city: fetched.city || local.city,
-              logo: fetched.logo || local.logo || getLocalCustomLogo(local.id),
+              logo: fetched.logo || getLocalCustomLogo(fetched.id) || (local?.logo && !local.logo.startsWith("blob:") ? local.logo : undefined) || resolveOfficeLogo(undefined, fetched.id),
             };
           });
         });
       }
     } catch (err) {
-      console.error("Failed to reload firms:", err);
+      console.warn("Failed to reload firms:", err);
     }
 
     setOfficesRetryKey((value) => value + 1);
@@ -796,11 +1166,11 @@ export function ClientManagementView() {
         reason && reason.trim() ? reason.trim() : "تعطيل مؤقت من لوحة الإدارة"
       );
       saveLocalCustomStatus(targetId, "suspended");
-      toast.success(`تم تعطيل حساب ${targetName} مؤقتاً بنجاح.`);
+      toast.success(t(`تم تعطيل حساب ${targetName} مؤقتاً بنجاح.`, `Temporarily deactivated ${targetName}.`));
       setOfficesRetryKey((value) => value + 1);
     } catch {
       saveLocalCustomStatus(targetId, "suspended");
-      toast.error(`تعذر تعطيل حساب ${targetName}`);
+      toast.error(t(`تعذر تعطيل حساب ${targetName}`, `Failed to deactivate ${targetName}`));
     }
 
     setOffices((prev) =>
@@ -830,7 +1200,7 @@ export function ClientManagementView() {
 
     try {
       await deleteFirm(targetId);
-      toast.success(`تم حذف مكتب "${targetName}" نهائياً من النظام.`);
+      toast.success(t(`تم حذف مكتب "${targetName}" نهائياً من النظام.`, `Permanently deleted "${targetName}".`));
       setOffices((prev) => prev.filter((o) => String(o.id) !== String(targetId)));
       setOfficesRetryKey((value) => value + 1);
 
@@ -850,10 +1220,13 @@ export function ClientManagementView() {
 
       if (isConstraint) {
         toast.error(
-          `لا يمكن حذف مكتب "${targetName}" نهائياً لوجود قضايا أو اشتراكات مسجلة عليه في النظام. يمكنك استخدام خيار "تعطيل الحساب" بدلاً من الحذف.`
+          t(
+            `لا يمكن حذف مكتب "${targetName}" نهائياً لوجود قضايا أو اشتراكات مسجلة عليه في النظام. يمكنك استخدام خيار "تعطيل الحساب" بدلاً من الحذف.`,
+            `Cannot permanently delete "${targetName}" because it has linked cases or subscriptions. You can deactivate it instead.`
+          )
         );
       } else {
-        toast.error(`تعذر حذف مكتب "${targetName}"`);
+        toast.error(t(`تعذر حذف مكتب "${targetName}"`, `Failed to delete "${targetName}"`));
       }
     }
 
@@ -864,11 +1237,11 @@ export function ClientManagementView() {
     try {
       await updateFirmStatus(office.id, "active");
       saveLocalCustomStatus(office.id, "active");
-      toast.success(`تم تنشيط حساب ${office.name} بنجاح`);
+      toast.success(t(`تم تنشيط حساب ${office.name} بنجاح`, `Activated ${office.name} successfully`));
       setOfficesRetryKey((value) => value + 1);
     } catch {
       saveLocalCustomStatus(office.id, "active");
-      toast.error(`تعذر تنشيط حساب ${office.name}`);
+      toast.error(t(`تعذر تنشيط حساب ${office.name}`, `Failed to activate ${office.name}`));
     }
 
     setOffices((prev) =>
@@ -907,19 +1280,19 @@ export function ClientManagementView() {
   const breadcrumbs =
     currentView === "billing"
       ? [
-          { label: "إدارة العملاء", href: "/accounts" },
-          { label: billingOffice?.name || "المكتب", href: billingOffice ? `/accounts?officeId=${billingOffice.id}` : undefined },
-          { label: "الاشتراكات والفواتير" },
+          { label: t("إدارة العملاء", "Client Management"), href: "/accounts" },
+          { label: billingOffice?.name || t("المكتب", "Office"), href: billingOffice ? `/accounts?officeId=${billingOffice.id}` : undefined },
+          { label: t("الاشتراكات والفواتير", "Subscriptions & Invoices") },
         ]
       : currentView === "details"
       ? [
-          { label: "إدارة العملاء", href: "/accounts" },
-          { label: selectedOffice?.name || "تفاصيل المكتب" },
+          { label: t("إدارة العملاء", "Client Management"), href: "/accounts" },
+          { label: selectedOffice?.name || t("تفاصيل المكتب", "Office Details") },
         ]
       : currentView === "add"
       ? [
-          { label: "إدارة العملاء", href: "/accounts" },
-          { label: officeToEdit ? "تعديل بيانات المكتب" : "إضافة مكتب محاماة جديد" },
+          { label: t("إدارة العملاء", "Client Management"), href: "/accounts" },
+          { label: officeToEdit ? t("تعديل بيانات المكتب", "Edit Office Details") : t("إضافة مكتب محاماة جديد", "Add New Law Office") },
         ]
       : undefined;
 
@@ -945,7 +1318,7 @@ export function ClientManagementView() {
                   className="bg-white dark:bg-[#221812] rounded-[8px] border border-red-200 dark:border-red-900/50 p-10 text-center"
                 >
                   <h2 className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                    تعذر تحميل المكاتب
+                    {t("تعذر تحميل المكاتب", "Unable to Load Offices")}
                   </h2>
                   <p className="mt-2 text-[13px] text-[#737067] dark:text-[#a89f91]">
                     {officesError}
@@ -955,7 +1328,7 @@ export function ClientManagementView() {
                     onClick={() => setOfficesRetryKey((value) => value + 1)}
                     className="mt-5 px-4 py-2 rounded-[6px] bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] text-[13px] font-bold"
                   >
-                    إعادة المحاولة
+                    {t("إعادة المحاولة", "Retry")}
                   </button>
                 </section>
               ) : (
@@ -994,6 +1367,7 @@ export function ClientManagementView() {
                   }}
                   onOpenDeactivateModal={(office) => setOfficeToDeactivate(office)}
                   onOpenDeleteModal={(office) => setOfficeToDelete(office)}
+                  onResetPassword={(office) => setOfficeToResetPassword(office)}
                   onReactivate={handleReactivate}
                 />
               </>
@@ -1026,6 +1400,11 @@ export function ClientManagementView() {
                     handleStartEditOffice(selectedOffice);
                   }
                 }}
+                onResetPassword={() => {
+                  if (selectedOffice) {
+                    setOfficeToResetPassword(selectedOffice);
+                  }
+                }}
                 onEnterOfficeAsAdmin={
                   selectedOffice
                     ? () => handleEnterOfficeAsAdmin(selectedOffice)
@@ -1034,8 +1413,40 @@ export function ClientManagementView() {
                 onOpenDeactivateModal={(office) => setOfficeToDeactivate(office)}
                 onReactivate={handleReactivate}
                 onUpgradePlan={(office, newPlan) => {
+                  const isUnlim = newPlan === "غير محدود" || newPlan.includes("غير محدود");
+                  const targetPlanType = isUnlim ? "unlimited" : "paid";
+                  saveLocalCustomFirmPlan(office.id, {
+                    plan: newPlan,
+                    planType: targetPlanType,
+                    billingCycle: isUnlim ? "غير محدود" : "yearly",
+                  });
+                  if (office.companyId) {
+                    saveLocalCustomFirmPlan(office.companyId, {
+                      plan: newPlan,
+                      planType: targetPlanType,
+                      billingCycle: isUnlim ? "غير محدود" : "yearly",
+                    });
+                  }
                   setOffices((prev) =>
-                    prev.map((o) => (String(o.id) === String(office.id) ? { ...o, plan: newPlan } : o))
+                    prev.map((o) =>
+                      String(o.id) === String(office.id)
+                        ? {
+                            ...o,
+                            plan: newPlan,
+                            planType: targetPlanType,
+                            subscriptionPlan: isUnlim ? "unlimited" : newPlan,
+                            billingCycle: isUnlim ? "غير محدود" : o.billingCycle,
+                            subscriptionStatus: isUnlim
+                              ? {
+                                  label: "غير محدود",
+                                  type: "unlimited" as const,
+                                  bgClass: "bg-[#f5f3ef] dark:bg-[#281c15] border border-[#d8c29d] dark:border-[#5a4321]",
+                                  textClass: "text-[#9c6402] dark:text-[#e29d38]",
+                                }
+                              : o.subscriptionStatus,
+                          }
+                        : o
+                    )
                   );
                 }}
                 onNoteAdded={handleNoteAdded}
@@ -1067,6 +1478,35 @@ export function ClientManagementView() {
         isLoading={isEnteringOffice}
         onClose={() => setOfficeToEnter(null)}
         onConfirm={handleConfirmEnterOffice}
+      />
+
+      {/* 5. Show Password / Credentials Once Modal */}
+      {createdCredentials && (
+        <OfficeCredentialsCreatedModal
+          isOpen={!!createdCredentials}
+          officeName={createdCredentials.officeName}
+          ownerName={createdCredentials.ownerName}
+          email={createdCredentials.email}
+          password={createdCredentials.password}
+          onClose={() => setCreatedCredentials(null)}
+        />
+      )}
+
+      {/* 6. Reset Office Password Modal */}
+      <ResetFirmPasswordModal
+        isOpen={!!officeToResetPassword}
+        office={officeToResetPassword}
+        onClose={() => setOfficeToResetPassword(null)}
+        onSuccess={() => {
+          if (officeToResetPassword) {
+            toast.success(
+              t(
+                `تم تغيير كلمة مرور «${officeToResetPassword.name}» بنجاح وتفعيلها فوراً`,
+                `Password updated for "${officeToResetPassword.name}" successfully`
+              )
+            );
+          }
+        }}
       />
     </div>
   );

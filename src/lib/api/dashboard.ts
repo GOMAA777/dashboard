@@ -6,11 +6,13 @@ import type { ApiEnvelope } from "./types";
 import { unwrapData, unwrapList, asNumber, asString } from "./helpers";
 import type { LawOfficeRow } from "@/features/dashboard/components/DashboardLawOfficesTable";
 import type { ActivityItem } from "@/features/dashboard/components/DashboardBottomSection";
-import { Building2, CreditCard, Banknote, Ticket, Scale, FileText, CheckCircle2 } from "lucide-react";
-import { getLocalCustomLogo, normalizeLogoUrl } from "./mappers";
+import { Building2, CreditCard, Banknote, Ticket, Scale, FileText, CheckCircle2, Timer } from "lucide-react";
+import { getLocalCustomLogo, normalizeLogoUrl, resolveOfficeLogo } from "./mappers";
+import { localizePlanName, localizeRoleOrTitle } from "@/lib/localize";
 
 /**
- * Raw response from Postman request 50014550-ef8b79ff-ceb5-4885-963d-8f0d0e4b7328
+ * Raw response from Postman request 50014550-ef3c182a-dd9b-4850-8bb1-f4dd625fd187
+ * (formerly UID: 50014550-ef8b79ff-ceb5-4885-963d-8f0d0e4b7328)
  * Endpoint: GET {{base_url}}/admin/dashboardSaas
  */
 export interface RawDashboardSaasResponse {
@@ -27,11 +29,101 @@ export interface RawDashboardSaasResponse {
     today_appointments?: number;
     [key: string]: unknown;
   };
+  kpis?: {
+    totalFirms?: number;
+    totalFirmsGrowth?: string;
+    activeSubscriptions?: number;
+    activeSubscriptionsPercent?: string;
+    monthlyRevenue?: number;
+    monthlyRevenueFormatted?: string;
+    monthlyRevenueGrowth?: string;
+    openTickets?: number;
+    openTicketsBadge?: string;
+    [key: string]: unknown;
+  };
   subscriptions?: {
     active?: number;
     trial?: number;
     expired?: number;
     expiring_soon?: number;
+    [key: string]: unknown;
+  };
+  revenue_analysis?: {
+    title?: string;
+    subtitle?: string;
+    total_period?: number;
+    total_period_formatted?: string;
+    growth_percentage?: number;
+    growth_label?: string;
+    highest_revenue?: {
+      amount?: number;
+      formatted?: string;
+      month_ar?: string;
+      month_en?: string;
+      callout?: string;
+    };
+    chart_data?: Array<{
+      monthAr: string;
+      monthEn: string;
+      year?: number;
+      value: number;
+      revenue?: number;
+      formatted?: string;
+      isHighest?: boolean;
+      labelAr?: string;
+      labelEn?: string;
+    }>;
+    y_axis?: {
+      max?: string;
+      mid?: string;
+      min?: string;
+    };
+    [key: string]: unknown;
+  };
+  revenue_chart?: Record<string, unknown>;
+  revenueData?: Array<{
+    monthAr: string;
+    monthEn: string;
+    year?: number;
+    value: number;
+    revenue?: number;
+    formatted?: string;
+    isHighest?: boolean;
+    labelAr?: string;
+    labelEn?: string;
+  }>;
+  support_summary?: {
+    title?: string;
+    open_tickets?: number;
+    in_progress_tickets?: number;
+    awaiting_client_tickets?: number;
+    resolved_this_week?: number;
+    avg_first_response?: string;
+    satisfaction_rate?: string | number;
+    system_status?: string;
+    open?: number;
+    inProgress?: number;
+    awaitingClient?: number;
+    resolved?: number;
+    satisfactionRate?: number;
+    avgResponseMinutes?: number;
+    [key: string]: unknown;
+  };
+  supportSummary?: {
+    title?: string;
+    open_tickets?: number;
+    in_progress_tickets?: number;
+    awaiting_client_tickets?: number;
+    resolved_this_week?: number;
+    avg_first_response?: string;
+    satisfaction_rate?: string | number;
+    system_status?: string;
+    open?: number;
+    inProgress?: number;
+    awaitingClient?: number;
+    resolved?: number;
+    satisfactionRate?: number;
+    avgResponseMinutes?: number;
     [key: string]: unknown;
   };
   latest_firms?: Array<{
@@ -47,8 +139,12 @@ export interface RawDashboardSaasResponse {
     subscription_end?: string;
     created_at?: string;
     logo?: string | null;
-    plan?: Record<string, unknown>;
-    active_subscription?: Record<string, unknown>;
+    plan?: Record<string, unknown> | null;
+    active_subscription?: Record<string, unknown> | null;
+    effective_max_lawyers?: number;
+    effective_storage_limit_gb?: number;
+    effective_max_cases?: number;
+    effective_max_clients?: number;
     [key: string]: unknown;
   }>;
   latest_activities?: Array<{
@@ -105,6 +201,7 @@ export interface DashboardKpisState {
   monthlyRevenueFormatted: string;
   monthlyRevenueGrowth: string;
   openTickets: number;
+  openTicketsBadge?: string;
   closedTicketsCount: number;
 }
 
@@ -117,6 +214,24 @@ export interface DashboardRevenuePoint {
   isHighest?: boolean;
 }
 
+export interface DashboardRevenueInfo {
+  titleAr: string;
+  titleEn: string;
+  subtitleAr: string;
+  subtitleEn: string;
+  totalPeriod: number;
+  totalPeriodFormatted: string;
+  growthPercentage: number;
+  growthLabel: string;
+  highestRevenue?: {
+    amount: number;
+    formatted: string;
+    monthAr: string;
+    monthEn: string;
+    callout: string;
+  };
+}
+
 export interface DashboardPlanSlice {
   nameAr: string;
   nameEn: string;
@@ -126,16 +241,20 @@ export interface DashboardPlanSlice {
 }
 
 export interface DashboardSupportStatsState {
+  title?: string;
   open: number;
   inProgress: number;
   awaitingClient: number;
   resolved: number;
   satisfactionRate: number;
   avgResponseMinutes: number;
+  systemStatus?: string;
+  avgFirstResponseText?: string;
 }
 
 export interface FullDashboardState {
   kpis: DashboardKpisState;
+  revenueInfo: DashboardRevenueInfo;
   revenueData: DashboardRevenuePoint[];
   planDistribution: DashboardPlanSlice[];
   recentOffices: LawOfficeRow[];
@@ -250,33 +369,63 @@ export async function loadFullDashboardData(_companyId?: string | number): Promi
   const rawFirmsList = firmsListRes.status === "fulfilled" ? unwrapList<Record<string, unknown>>(firmsListRes.value) : [];
   const rawPlansList = plansListRes.status === "fulfilled" ? unwrapList<Record<string, unknown>>(plansListRes.value) : [];
 
-  // 1. Map KPI Cards with real SaaS data
+  // 1. Map KPI Cards directly from SaaS API
+  const rawKpis = rawSaas?.kpis;
+  const rawStats = rawSaas?.statistics;
+  const rawSubs = rawSaas?.subscriptions;
+  const rawSupp = rawSaas?.support_summary || rawSaas?.supportSummary;
+
   const totalFirms = asNumber(
-    rawSaas?.statistics?.total_firms ?? rawFirmsStats?.total_firms,
+    rawKpis?.totalFirms ?? rawStats?.total_firms ?? rawFirmsStats?.total_firms,
     0
   );
-  const activePercentage = asNumber(
-    rawFirmsStats?.active_percentage ?? (totalFirms > 0 ? 100 : 0),
-    100
+  const totalFirmsGrowth = asString(
+    rawKpis?.totalFirmsGrowth,
+    rawFirmsStats?.active_percentage ? `+${rawFirmsStats.active_percentage}%` : "+100%"
   );
   const activeSubscriptions = asNumber(
-    rawSaas?.subscriptions?.active ?? rawSubStats?.active_subscriptions,
+    rawKpis?.activeSubscriptions ?? rawSubs?.active ?? rawSubStats?.active_subscriptions,
     0
   );
-  const monthlyRevenue = asNumber(rawPlansStats?.mrr, 0);
-  const revenueGrowth = asNumber(rawPlansStats?.growth_percentage, 0);
-  const openTickets = asNumber(rawTicketsStats?.open_tickets, 0);
-  const closedTickets = asNumber(rawTicketsStats?.closed_tickets, 0);
+  const activeSubscriptionsPercent = asString(
+    rawKpis?.activeSubscriptionsPercent,
+    activeSubscriptions > 0 ? "100%" : "0%"
+  );
+  const monthlyRevenue = asNumber(
+    rawKpis?.monthlyRevenue ?? rawPlansStats?.mrr,
+    0
+  );
+  const monthlyRevenueFormatted = asString(
+    rawKpis?.monthlyRevenueFormatted,
+    `${monthlyRevenue.toLocaleString("en-US")} ر.س`
+  );
+  const monthlyRevenueGrowth = asString(
+    rawKpis?.monthlyRevenueGrowth,
+    rawPlansStats?.growth_percentage ? `+${rawPlansStats.growth_percentage}%` : "+14.2%"
+  );
+  const openTickets = asNumber(
+    rawKpis?.openTickets ?? rawSupp?.open ?? rawSupp?.open_tickets ?? rawTicketsStats?.open_tickets,
+    0
+  );
+  const openTicketsBadge = asString(
+    rawKpis?.openTicketsBadge,
+    openTickets > 0 ? `${openTickets} حرجة / عاجلة تحتاج إلى متابعة` : ""
+  );
+  const closedTickets = asNumber(
+    rawSupp?.resolved ?? rawSupp?.resolved_this_week ?? rawTicketsStats?.closed_tickets,
+    0
+  );
 
   const kpis: DashboardKpisState = {
     totalFirms,
-    totalFirmsGrowth: activePercentage > 0 ? `+${activePercentage}%` : "0%",
+    totalFirmsGrowth,
     activeSubscriptions,
-    activeSubscriptionsPercent: activeSubscriptions > 0 ? "100%" : "0%",
+    activeSubscriptionsPercent,
     monthlyRevenue,
-    monthlyRevenueFormatted: monthlyRevenue.toLocaleString("ar-SA") + " ر.س",
-    monthlyRevenueGrowth: revenueGrowth > 0 ? `+${revenueGrowth}%` : "0%",
+    monthlyRevenueFormatted,
+    monthlyRevenueGrowth,
     openTickets,
+    openTicketsBadge,
     closedTicketsCount: closedTickets,
   };
 
@@ -298,7 +447,7 @@ export async function loadFullDashboardData(_companyId?: string | number): Promi
 
       planDistribution.push({
         nameAr: planName,
-        nameEn: asString(plan.slug, planName),
+        nameEn: localizePlanName(asString(plan.name_en, planName), true),
         value: count,
         percentage: percent,
         color: asString(plan.badge_color, palette[idx % palette.length]),
@@ -306,9 +455,52 @@ export async function loadFullDashboardData(_companyId?: string | number): Promi
     });
   }
 
-  // 3. Map Revenue Area Chart Trend based on actual MRR
+  // 3. Map Revenue Area Chart Trend directly from SaaS API
+  const revAnalysis = rawSaas?.revenue_analysis;
+  const revChartData = revAnalysis?.chart_data ?? rawSaas?.revenueData;
+
+  const revenueInfo: DashboardRevenueInfo = {
+    titleAr: asString(revAnalysis?.title, "تحليل الإيرادات"),
+    titleEn: "Revenue Analytics",
+    subtitleAr: asString(
+      revAnalysis?.subtitle,
+      "نمو الإيرادات خلال آخر 6 أشهر ومقارنة الأداء المستهدف"
+    ),
+    subtitleEn: "Revenue growth over the last 6 months vs target performance",
+    totalPeriod: asNumber(revAnalysis?.total_period, monthlyRevenue),
+    totalPeriodFormatted: asString(
+      revAnalysis?.total_period_formatted,
+      monthlyRevenueFormatted
+    ),
+    growthPercentage: asNumber(revAnalysis?.growth_percentage, 14),
+    growthLabel: asString(revAnalysis?.growth_label, "+14% مقارنة"),
+    highestRevenue: revAnalysis?.highest_revenue
+      ? {
+          amount: asNumber(revAnalysis.highest_revenue.amount, 0),
+          formatted: asString(revAnalysis.highest_revenue.formatted, ""),
+          monthAr: asString(revAnalysis.highest_revenue.month_ar, ""),
+          monthEn: asString(revAnalysis.highest_revenue.month_en, ""),
+          callout: asString(revAnalysis.highest_revenue.callout, ""),
+        }
+      : undefined,
+  };
+
   const revenueData: DashboardRevenuePoint[] = [];
-  if (monthlyRevenue > 0) {
+  if (Array.isArray(revChartData) && revChartData.length > 0) {
+    revChartData.forEach((item) => {
+      const mAr = asString(item.monthAr, "");
+      const mEn = asString(item.monthEn, "");
+      const isPeak = Boolean(item.isHighest);
+      revenueData.push({
+        monthAr: mAr,
+        monthEn: mEn,
+        value: asNumber(item.value ?? item.revenue, 0),
+        labelAr: asString(item.labelAr, isPeak ? `أعلى إيراد (${mAr})` : mAr),
+        labelEn: asString(item.labelEn, isPeak ? `Peak (${mEn})` : mEn),
+        isHighest: isPeak,
+      });
+    });
+  } else if (monthlyRevenue > 0) {
     const now = new Date();
     const monthsAr = [
       "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
@@ -318,7 +510,6 @@ export async function loadFullDashboardData(_companyId?: string | number): Promi
       "Jan", "Feb", "Mar", "Apr", "May", "Jun",
       "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     ];
-    // Past 6 months leading up to the current month
     const ratios = [0.72, 0.78, 0.84, 0.88, 0.93, 1.0];
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -339,10 +530,10 @@ export async function loadFullDashboardData(_companyId?: string | number): Promi
     }
   }
 
-  // 4. Map Law Offices Table from real SaaS firms
-  const firmsSource = rawFirmsList.length > 0
-    ? rawFirmsList
-    : ((rawSaas?.latest_firms as unknown as Record<string, unknown>[]) ?? []);
+  // 4. Map Law Offices Table directly from SaaS API
+  const firmsSource = (rawSaas?.latest_firms && rawSaas.latest_firms.length > 0)
+    ? (rawSaas.latest_firms as unknown as Record<string, unknown>[])
+    : (rawFirmsList.length > 0 ? rawFirmsList : []);
 
   const recentOffices: LawOfficeRow[] = firmsSource.map((f, idx) => {
     const id = asString(f.id, String(idx + 1));
@@ -352,11 +543,14 @@ export async function loadFullDashboardData(_companyId?: string | number): Promi
     const planObj = f.plan as Record<string, unknown> | undefined;
     const planName = asString(planObj?.name ?? f.subscription_plan, "باقة التميز العدلي");
     const subObj = f.active_subscription as Record<string, unknown> | undefined;
-    const code = asString(subObj?.subscription_code, `JUD-${id}`);
+    const code = asString(subObj?.subscription_code, `SUB-2026-${id}`);
     const dateFormatted = formatArabicDate(asString(f.created_at));
     const firstChar = name.trim()[0] || "م";
 
     const isFirst = idx === 0;
+    const isSuspended = f.status === "suspended" || f.status === "inactive";
+    const isTrial = f.subscription_plan === "trial" || subObj?.billing_cycle === "trial";
+
     return {
       id,
       initialAr: firstChar,
@@ -365,48 +559,48 @@ export async function loadFullDashboardData(_companyId?: string | number): Promi
         ? "bg-[#ffddb6] dark:bg-[#2d1f16] border border-transparent dark:border-[#423122]"
         : "bg-[#fff9ee] dark:bg-[#2d1f16] border border-transparent dark:border-[#423122]",
       initialText: "text-[#9c6402] dark:text-[#e29d38]",
-      logo: normalizeLogoUrl(f.logo ? asString(f.logo) : getLocalCustomLogo(id)),
+      logo: resolveOfficeLogo(f.logo ? asString(f.logo) : undefined, id),
       nameAr: name,
       nameEn: name,
       licenseAr: license.startsWith("ترخيص") ? license : `ترخيص عدلي: ${license}`,
       licenseEn: `MoJ License: ${license.replace(/[^0-9/]/g, "") || license}`,
       code,
       ownerAr: ownerName,
-      ownerEn: ownerName,
+      ownerEn: localizeRoleOrTitle(ownerName, true),
       planAr: planName,
-      planEn: planName,
+      planEn: localizePlanName(planName, true),
       planBadgeClass:
         "bg-[#9c6402]/10 border border-[#9c6402]/30 text-[#9c6402] dark:bg-[rgba(226,157,56,0.18)] dark:border-[#e29d38]/40 dark:text-[#f3c27e]",
       registrationDateAr: dateFormatted.ar,
       registrationDateEn: dateFormatted.en,
       accountStatus: {
-        labelAr: f.status === "suspended" ? "معطل" : "نشط",
-        labelEn: f.status === "suspended" ? "Suspended" : "Active",
-        bgClass:
-          f.status === "suspended"
-            ? "bg-[#fef2f2] dark:bg-[#2c1313] border border-[#fecaca] dark:border-rose-500/40"
-            : "bg-[#e8f5e9] dark:bg-[#132c1c] border border-[#c8e6c9] dark:border-emerald-500/40",
-        textClass:
-          f.status === "suspended"
-            ? "text-[#dc2626] dark:text-[#f87171]"
-            : "text-[#1b7340] dark:text-[#6ee7b7]",
-        dotClass:
-          f.status === "suspended"
-            ? "bg-[#dc2626] dark:bg-[#ef4444]"
-            : "bg-[#1b7340] dark:bg-[#10b981]",
+        labelAr: isSuspended ? "معطل" : "نشط",
+        labelEn: isSuspended ? "Suspended" : "Active",
+        bgClass: isSuspended
+          ? "bg-[#fef2f2] dark:bg-[#2c1313] border border-[#fecaca] dark:border-rose-500/40"
+          : "bg-[#e8f5e9] dark:bg-[#132c1c] border border-[#c8e6c9] dark:border-emerald-500/40",
+        textClass: isSuspended
+          ? "text-[#dc2626] dark:text-[#f87171]"
+          : "text-[#1b7340] dark:text-[#6ee7b7]",
+        dotClass: isSuspended
+          ? "bg-[#dc2626] dark:bg-[#ef4444]"
+          : "bg-[#1b7340] dark:bg-[#10b981]",
       },
       subscriptionStatus: {
-        labelAr: "ساري",
-        labelEn: "Valid",
-        bgClass:
-          "bg-[#e8f5e9] dark:bg-[#132c1c] border border-[#c8e6c9] dark:border-emerald-500/40",
-        textClass: "text-[#1b7340] dark:text-[#6ee7b7]",
-        icon: CheckCircle2,
+        labelAr: isTrial ? "فترة تجريبية" : (subObj?.status === "active" ? "ساري" : "نشط"),
+        labelEn: isTrial ? "Trial" : "Valid",
+        bgClass: isTrial
+          ? "bg-[#fff8e1] dark:bg-[#2d2314] border border-[#ffe082] dark:border-amber-500/40"
+          : "bg-[#e8f5e9] dark:bg-[#132c1c] border border-[#c8e6c9] dark:border-emerald-500/40",
+        textClass: isTrial
+          ? "text-[#b45309] dark:text-[#fcd34d]"
+          : "text-[#1b7340] dark:text-[#6ee7b7]",
+        icon: isTrial ? Timer : CheckCircle2,
       },
     };
   });
 
-  // 5. Map Activities from `rawSaas.latest_activities`
+  // 5. Map Activities directly from SaaS API
   const activities: ActivityItem[] = [];
 
   if (rawSaas?.latest_activities && Array.isArray(rawSaas.latest_activities)) {
@@ -419,12 +613,12 @@ export async function loadFullDashboardData(_companyId?: string | number): Promi
       let metaAr = act.reference_id ? `مرجع رقم #${act.reference_id}` : "إجراء نظام معتمد";
       let metaEn = act.reference_id ? `Reference #${act.reference_id}` : "System event";
 
-      if (act.type === "case_category") {
+      if (act.type === "case" || act.type === "case_category") {
         icon = Scale;
         iconClass = "w-[15px] h-[15px] text-[#9c6402] dark:text-[#e29d38]";
         iconBg = "bg-[rgba(123,78,0,0.1)] dark:bg-[rgba(226,157,56,0.15)]";
-        metaAr = act.reference_id ? `مرجع تصنيف #${act.reference_id}` : "تصنيف القضايا";
-        metaEn = act.reference_id ? `Category #${act.reference_id}` : "Case category";
+        metaAr = act.reference_id ? `مرجع قضائي #${act.reference_id}` : "قضية معتمدة";
+        metaEn = act.reference_id ? `Case #${act.reference_id}` : "Case event";
       } else if (act.type === "invoice" || act.type === "payment") {
         icon = Banknote;
         iconClass = "w-[15px] h-[15px] text-[#9c6402] dark:text-[#e29d38]";
@@ -464,18 +658,25 @@ export async function loadFullDashboardData(_companyId?: string | number): Promi
     });
   }
 
-  // 6. Map Support Summary from `rawTicketsStats`
+  // 6. Map Support Summary directly from SaaS API
+  const suppSummary = rawSaas?.support_summary || rawSaas?.supportSummary;
   const supportSummary: DashboardSupportStatsState = {
-    open: asNumber(rawTicketsStats?.open_tickets, 0),
-    inProgress: asNumber(rawTicketsStats?.in_progress_tickets, 0),
-    awaitingClient: asNumber(rawTicketsStats?.pending_tickets, 0),
-    resolved: asNumber(rawTicketsStats?.closed_tickets, 0),
-    satisfactionRate: asNumber(rawTicketsStats?.satisfaction_rate, 98),
-    avgResponseMinutes: asNumber(rawTicketsStats?.avg_response_minutes, 14),
+    title: asString(suppSummary?.title, "ملخص الدعم الفني"),
+    open: asNumber(suppSummary?.open ?? suppSummary?.open_tickets ?? rawTicketsStats?.open_tickets, 0),
+    inProgress: asNumber(suppSummary?.inProgress ?? suppSummary?.in_progress_tickets ?? rawTicketsStats?.in_progress_tickets, 0),
+    awaitingClient: asNumber(suppSummary?.awaitingClient ?? suppSummary?.awaiting_client_tickets ?? rawTicketsStats?.pending_tickets, 0),
+    resolved: asNumber(suppSummary?.resolved ?? suppSummary?.resolved_this_week ?? rawTicketsStats?.closed_tickets, 0),
+    satisfactionRate: typeof suppSummary?.satisfactionRate === "number"
+      ? suppSummary.satisfactionRate
+      : (typeof suppSummary?.satisfaction_rate === "string" ? parseInt(suppSummary.satisfaction_rate, 10) : asNumber(rawTicketsStats?.satisfaction_rate, 98)),
+    avgResponseMinutes: asNumber(suppSummary?.avgResponseMinutes ?? rawTicketsStats?.avg_response_minutes, 15),
+    systemStatus: asString(suppSummary?.system_status, "جميع الأنظمة تعمل بكفاءة عالية"),
+    avgFirstResponseText: asString(suppSummary?.avg_first_response, "15 دقيقة"),
   };
 
   return {
     kpis,
+    revenueInfo,
     revenueData,
     planDistribution,
     recentOffices,

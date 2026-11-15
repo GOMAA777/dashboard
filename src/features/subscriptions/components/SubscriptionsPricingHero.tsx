@@ -3,6 +3,7 @@
 import React from "react";
 import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
 
 interface SubscriptionsPricingHeroProps {
   billingCycle: "monthly" | "annual";
@@ -13,22 +14,27 @@ export function SubscriptionsPricingHero({
   billingCycle,
   onBillingCycleChange,
 }: SubscriptionsPricingHeroProps) {
+  const { t } = useLanguage();
+
   return (
     <section className="text-center max-w-3xl mx-auto pt-6 pb-8 px-4 relative z-10">
       {/* Top Pill Tag */}
       <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#faf5eb] dark:bg-[#281c15] border border-[#eeddbb] dark:border-[#4d3a1f] text-[#c29547] dark:text-[#d4a759] text-xs font-bold shadow-2xs mb-5">
         <Sparkles className="w-3.5 h-3.5 text-[#c29547] dark:text-[#d4a759]" />
-        <span>باقات واشتراكات المحامين ومكاتب المحاماة</span>
+        <span>{t("باقات واشتراكات المحامين ومكاتب المحاماة", "Lawyer & Law Firm Plans & Subscriptions")}</span>
       </div>
 
       {/* Main Heading */}
       <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#1c1917] dark:text-[#fdfbf7] tracking-tight leading-tight mb-4">
-        ابدأ مجاناً، وبدون أي تكاليف خفية
+        {t("ابدأ مجاناً، وبدون أي تكاليف خفية", "Start Free, with Zero Hidden Fees")}
       </h1>
 
       {/* Subtitle Paragraph */}
       <p className="text-sm sm:text-base text-[#6f675c] dark:text-[#a8a195] leading-relaxed max-w-2xl mx-auto mb-8 font-normal">
-        خطط تسعير واضحة ومرنة صُممت خصيصاً لتلائم احتياجات المحامي المستقل، مكاتب المحاماة الصاعدة، والشركات القانونية الكبرى مع حرية الترقية أو الإلغاء في أي وقت.
+        {t(
+          "خطط تسعير واضحة ومرنة صُممت خصيصاً لتلائم احتياجات المحامي المستقل، مكاتب المحاماة الصاعدة، والشركات القانونية الكبرى مع حرية الترقية أو الإلغاء في أي وقت.",
+          "Clear, flexible pricing plans designed specifically for solo lawyers, growing law offices, and corporate legal firms with the freedom to upgrade or cancel anytime."
+        )}
       </p>
 
       {/* Segmented Monthly / Annual Billing Switch Pill */}
@@ -43,7 +49,7 @@ export function SubscriptionsPricingHero({
               : "text-[#7a7164] dark:text-[#9e968a] hover:text-[#1c1917] dark:hover:text-[#f5f4f0]"
           )}
         >
-          الدفع الشهري
+          {t("الدفع الشهري", "Monthly Billing")}
         </button>
 
         <button
@@ -56,7 +62,7 @@ export function SubscriptionsPricingHero({
               : "text-[#7a7164] dark:text-[#9e968a] hover:text-[#1c1917] dark:hover:text-[#f5f4f0]"
           )}
         >
-          <span>الاشتراك السنوي</span>
+          <span>{t("الاشتراك السنوي", "Annual Billing")}</span>
           <span
             className={cn(
               "px-2 py-0.5 rounded-full text-[10px] font-extrabold tracking-wide",
@@ -65,13 +71,13 @@ export function SubscriptionsPricingHero({
                 : "bg-[#e5dbc9] dark:bg-[#38271c] text-[#7a5a22] dark:text-[#d4a759]"
             )}
           >
-            خصم 20%
+            {t("خصم 20%", "20% OFF")}
           </span>
         </button>
       </div>
 
       <p className="text-[11px] text-[#8c8279] dark:text-[#80786e] mt-2.5 font-medium">
-        وفر شهرين كاملين سنوياً مع خطة الدفع السنوي
+        {t("وفر شهرين كاملين سنوياً مع خطة الدفع السنوي", "Save 2 full months per year with annual billing")}
       </p>
     </section>
   );

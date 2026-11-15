@@ -147,6 +147,15 @@ export function SubscriptionDetailsView({
     return liveSubscription || initialSubscription || null;
   }, [liveSubscription, initialSubscription]);
 
+  const isUnlimited = useMemo(() => {
+    if (!currentSub) return false;
+    return (
+      currentSub.planName?.includes("غير محدود") ||
+      (currentSub.billingCycle as string) === "دائم" ||
+      currentSub.statusLabel === "صلاحيات كاملة"
+    );
+  }, [currentSub]);
+
   const handleApprove = async () => {
     if (!currentSub) return;
     setConfirmApproveOpen(false);
@@ -361,14 +370,16 @@ export function SubscriptionDetailsView({
         <div className="flex items-center gap-2 self-stretch md:self-auto justify-end flex-wrap">
           {effectiveStatus === "active" && (
             <>
-              <button
-                type="button"
-                onClick={() => onOpenRenew?.(currentSub)}
-                className="bg-[#9c6402] hover:bg-[#825200] text-white px-3.5 py-1.5 rounded-[4px] font-semibold text-[12px] flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span>{t("تجديد الاشتراك", "Renew Subscription")}</span>
-              </button>
+              {!isUnlimited && (
+                <button
+                  type="button"
+                  onClick={() => onOpenRenew?.(currentSub)}
+                  className="bg-[#9c6402] hover:bg-[#825200] text-white px-3.5 py-1.5 rounded-[4px] font-semibold text-[12px] flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>{t("تجديد الاشتراك", "Renew Subscription")}</span>
+                </button>
+              )}
 
               <button
                 type="button"
@@ -628,14 +639,21 @@ export function SubscriptionDetailsView({
             </div>
 
             <div className="my-3">
-              <h4 className="font-bold text-[18px] text-[#1b1c1a] dark:text-[#fdfbf7]">
-                {currentSub.planName}
+              <h4 className="font-bold text-[18px] text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-2">
+                <span>{currentSub.planName}</span>
+                {isUnlimited && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-[4px] bg-[#fff8e1] dark:bg-[#3d2c14] text-[#b76e00] dark:text-[#fbbf24] border border-[#fde68a] dark:border-[#78350f]">
+                    {t("صلاحيات كاملة", "Full Access")}
+                  </span>
+                )}
               </h4>
               <p className="text-[12px] text-[#837565] dark:text-[#a89f91] mt-0.5">
-                {currentSub.planPrice}
+                {isUnlimited ? t("بدون سعر (مجاني)", "Free (No Price)") : currentSub.planPrice}
               </p>
               <div className="mt-2 inline-block px-2 py-0.5 bg-[#f5f3ef] dark:bg-[#281c15] rounded-[4px] text-[11px] text-[#514537] dark:text-[#cdc5bd] font-medium">
-                {currentSub.billingCycle === "سنوية"
+                {isUnlimited
+                  ? t("اشتراك دائم (صلاحيات كاملة)", "Permanent VIP Subscription")
+                  : currentSub.billingCycle === "سنوية"
                   ? t("الدورة السنوية (توفير 15%)", "Annual Cycle (Save 15%)")
                   : t("الدورة الشهرية المجدولة", "Monthly Scheduled Cycle")}
               </div>
@@ -712,14 +730,14 @@ export function SubscriptionDetailsView({
                 <>
                   <div className="flex items-baseline gap-2">
                     <span className="font-bold text-[26px] text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      {t("21 يوماً", "21 Days")}
+                      {isUnlimited ? "∞" : currentSub.remainingDaysText || t("21 يوماً", "21 Days")}
                     </span>
                     <span className="bg-[#fff8e1] dark:bg-[#342711] text-[#b76e00] dark:text-[#f59e0b] text-[10px] font-bold px-1.5 py-0.5 rounded-[2px]">
-                      {t("متبقي على التجديد", "Until Renewal")}
+                      {isUnlimited ? t("صلاحيات كاملة", "Full Access") : t("متبقي على التجديد", "Until Renewal")}
                     </span>
                   </div>
                   <p className="text-[12px] text-[#514537] dark:text-[#a89f91] mt-1">
-                    {t("15 أكتوبر 2024", "15 October 2024")}
+                    {isUnlimited ? t("دائم (بدون انتهاء)", "Permanent (Never Expires)") : currentSub.renewalDate || t("15 أكتوبر 2024", "15 October 2024")}
                   </p>
                 </>
               )}
@@ -729,14 +747,18 @@ export function SubscriptionDetailsView({
               <span>{t("التجديد التلقائي:", "Auto Renewal:")}</span>
               <span
                 className={`font-bold ${
-                  selectedState === "active"
+                  isUnlimited
+                    ? "text-[#059669]"
+                    : selectedState === "active"
                     ? "text-[#059669]"
                     : selectedState === "pending"
                     ? "text-[#b45309]"
                     : "text-[#dc2626]"
                 }`}
               >
-                {selectedState === "active"
+                {isUnlimited
+                  ? t("غير مطلوب (دائم)", "Not required (Permanent)")
+                  : selectedState === "active"
                   ? t("مفعل ومجدول", "Active & Scheduled")
                   : selectedState === "pending"
                   ? t("مجدول (مشروط)", "Scheduled (Conditional)")

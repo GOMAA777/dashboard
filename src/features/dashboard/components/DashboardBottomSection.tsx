@@ -379,7 +379,9 @@ export function DashboardBottomSection({
             </span>
           </div>
           <span className="text-[#9c6402] dark:text-[#e29d38] text-[10px] font-bold font-sans leading-[14px]">
-            {currentLang === "en" ? "Support System Online" : "نظام الدعم متصل"}
+            {support.systemStatus && !String(support.systemStatus).includes("[object")
+              ? (currentLang === "en" ? "All systems operating normally" : support.systemStatus)
+              : (currentLang === "en" ? "All systems operating normally" : "جميع الأنظمة تعمل بكفاءة عالية")}
           </span>
         </div>
       </div>

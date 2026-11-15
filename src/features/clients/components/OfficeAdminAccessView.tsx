@@ -18,8 +18,10 @@ import {
 import { toast } from "sonner";
 import { ClientOffice } from "../types/client.types";
 import { useLanguage } from "@/lib/i18n";
+import { getLocalizedCityName, localizePlanName, localizeStatus } from "@/lib/localize";
 import { cn } from "@/lib/utils";
 import { endFirmPreview, loginAsFirm } from "@/lib/api/utility";
+import { isLightColor } from "../constants/office-colors";
 
 interface OfficeAdminAccessViewProps {
   office: ClientOffice;
@@ -48,7 +50,10 @@ export function OfficeAdminAccessView({ office, onExit }: OfficeAdminAccessViewP
         await loginAsFirm(office.id);
         if (!cancelled) {
           toast.success(
-            `تم الدخول إلى مكتب «${office.name}» بصلاحيات المسؤول`
+            t(
+              `تم الدخول إلى مكتب «${office.name}» بصلاحيات المسؤول`,
+              `Entered «${office.name}» with Admin permissions`
+            )
           );
         }
       } catch {
@@ -128,25 +133,28 @@ export function OfficeAdminAccessView({ office, onExit }: OfficeAdminAccessViewP
       {/* Office summary */}
       <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#eae8e4] dark:border-[#38271c] p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div
-            className={cn(
-              "size-12 rounded-[10px] flex items-center justify-center font-extrabold text-[18px] border border-[#eae8e4] dark:border-[#423122]",
-              "bg-[#fff9ee] dark:bg-[#2d1f16] text-[#9c6402] dark:text-[#e29d38]"
-            )}
-            style={
-              office.themeColor
-                ? { borderColor: `${office.themeColor}59` }
-                : undefined
-            }
-          >
-            {office.initial}
-          </div>
+          {(() => {
+            const officeBg = office.themeColor || "#9c6402";
+            const officeFont = office.secondaryColor || (isLightColor(officeBg) ? "#1b1c1a" : "#ffffff");
+            return (
+              <div
+                className="size-12 rounded-[10px] flex items-center justify-center font-extrabold text-[18px] border shadow-xs transition-colors shrink-0"
+                style={{
+                  backgroundColor: officeBg,
+                  color: officeFont,
+                  borderColor: `${officeBg}59`,
+                }}
+              >
+                {office.initial}
+              </div>
+            );
+          })()}
           <div className="text-start">
             <h1 className="text-[20px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7]">
               {office.name}
             </h1>
             <p className="text-[12px] text-[#737067] dark:text-[#cdc5bd]">
-              {office.owner} • {office.city} • {office.plan}
+              {office.owner} • {getLocalizedCityName(office.city, isEn)} • {localizePlanName(office.plan, isEn)}
             </p>
           </div>
         </div>
@@ -182,7 +190,7 @@ export function OfficeAdminAccessView({ office, onExit }: OfficeAdminAccessViewP
           {
             icon: CheckCircle2,
             label: t("حالة الاشتراك", "Subscription"),
-            value: office.subscriptionStatus.label,
+            value: localizeStatus(office.subscriptionStatus.label, isEn),
           },
         ].map((card) => (
           <div

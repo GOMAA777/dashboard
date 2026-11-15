@@ -36,6 +36,8 @@ import { LuxurySelect, SelectOption } from "@/components/shared/LuxurySelect";
 import { LuxuryCheckbox } from "@/components/shared/LuxuryCheckbox";
 import { LuxuryAlertDialog } from "@/components/shared/LuxuryAlertDialog";
 import { useUIStore } from "@/stores/use-ui-store";
+import { useLanguage } from "@/lib/i18n";
+import { getLocalizedCityName, localizePlanName, localizeRoleOrTitle } from "@/lib/localize";
 
 export interface FirmInvoice {
   id: string;
@@ -339,6 +341,7 @@ const initialFirms: LawFirm[] = [
 export function LawFirmsView() {
   const language = useUIStore((state) => state.language);
   const isAr = language === "ar";
+  const isEn = !isAr;
 
   const [firms, setFirms] = useState<LawFirm[]>(initialFirms);
   const [search, setSearch] = useState("");
@@ -407,11 +410,11 @@ export function LawFirmsView() {
 
   const cityOptions: SelectOption<string>[] = [
     { value: "all", label: isAr ? "كل المدن" : "All Cities" },
-    { value: "الرياض", label: "الرياض" },
-    { value: "جدة", label: "جدة" },
-    { value: "الدمام", label: "الدمام" },
-    { value: "مكة المكرمة", label: "مكة المكرمة" },
-    { value: "المدينة المنورة", label: "المدينة المنورة" },
+    { value: "الرياض", label: isAr ? "الرياض" : "Riyadh" },
+    { value: "جدة", label: isAr ? "جدة" : "Jeddah" },
+    { value: "الدمام", label: isAr ? "الدمام" : "Dammam" },
+    { value: "مكة المكرمة", label: isAr ? "مكة المكرمة" : "Makkah" },
+    { value: "المدينة المنورة", label: isAr ? "المدينة المنورة" : "Madinah" },
   ];
 
   const pageSizeOptions: SelectOption<number>[] = [
@@ -536,9 +539,11 @@ export function LawFirmsView() {
       notes: [
         {
           id: `note-${Date.now()}`,
-          author: "مدير النظام",
+          author: isAr ? "مدير النظام" : "System Admin",
           date: isAr ? "الآن" : "Just now",
-          text: "تم إنشاء حساب المكتب وإرسال بريد الترحيب وبيانات الدخول الرسمية.",
+          text: isAr
+            ? "تم إنشاء حساب المكتب وإرسال بريد الترحيب وبيانات الدخول الرسمية."
+            : "Office account created and welcome email with credentials sent.",
         },
       ],
     };
@@ -564,7 +569,7 @@ export function LawFirmsView() {
 
     const noteObj: FirmNote = {
       id: `note-${Date.now()}`,
-      author: "مدير النظام",
+      author: isAr ? "مدير النظام" : "System Admin",
       date: isAr ? "الآن" : "Just now",
       text: newProfileNote.trim(),
     };
@@ -617,14 +622,14 @@ export function LawFirmsView() {
       title: isAr ? "تأكيد حذف حساب المكتب نهائياً" : "Confirm Delete Firm",
       description: isAr
         ? `هل أنت متأكد من رغبتك في حذف حساب "${firm.name}" نهائياً؟ سيتم مسح كافة البيانات والقضايا والوصول نهائياً.`
-        : `Are you sure you want to permanently delete "${firm.name}"?`,
+        : `Are you sure you want to permanently delete "${firm.name}"? All data, cases, and access will be removed.`,
       confirmLabel: isAr ? "نعم، حذف المكتب" : "Yes, Delete Firm",
       onConfirm: () => {
         setFirms((prev) => prev.filter((f) => f.id !== firm.id));
         if (profileFirm?.id === firm.id) setProfileFirm(null);
         setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
         toast.success(
-          isAr ? `تم حذف حساب مكتب "${firm.name}" بنجاح` : `Firm deleted`
+          isAr ? `تم حذف حساب مكتب "${firm.name}" بنجاح` : `Firm "${firm.name}" deleted successfully`
         );
       },
     });
@@ -955,7 +960,7 @@ export function LawFirmsView() {
                                     {firm.name}
                                   </span>
                                   <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[#faf5eb] dark:bg-[#281c15] text-[#966e2e] dark:text-[#f3c27e] border border-[#eeddbb]/80 dark:border-[#4d3627]">
-                                    {firm.city}
+                                    {getLocalizedCityName(firm.city, isEn)}
                                   </span>
                                 </div>
                                 <div className="text-[11px] text-[#8c8279] dark:text-[#8e8680] flex items-center gap-2 mt-0.5 font-mono">
@@ -985,11 +990,11 @@ export function LawFirmsView() {
                             <div className="space-y-1">
                               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#c29547]/15 dark:bg-[#e29d38]/15 text-[#966e2e] dark:text-[#f3c27e] border border-[#c29547]/30 dark:border-[#e29d38]/30 shadow-2xs">
                                 <Sparkles className="w-3 h-3 text-[#c29547] dark:text-[#e29d38]" />
-                                <span>{firm.planName}</span>
+                                <span>{localizePlanName(firm.planName, isEn)}</span>
                               </span>
                               <div className="text-[10px] text-[#8c8279] dark:text-[#8e8680] font-mono flex items-center gap-1">
                                 <Calendar className="w-3 h-3 text-[#c29547] dark:text-[#e29d38]" />
-                                <span>تجديد: {firm.renewalDate}</span>
+                                <span>{isAr ? "تجديد:" : "Renewal:"} {firm.renewalDate}</span>
                               </div>
                             </div>
                           </td>
@@ -1171,15 +1176,17 @@ export function LawFirmsView() {
                             : "bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800"
                         }`}
                       >
-                        {profileFirm.status === "active" ? "حساب نشط" : "حساب معطل"}
+                        {profileFirm.status === "active"
+                          ? isAr ? "حساب نشط" : "Active Account"
+                          : isAr ? "حساب معطل" : "Suspended Account"}
                       </span>
                     </div>
                     <div className="text-xs text-[#8c8279] dark:text-[#8e8680] flex flex-wrap items-center gap-3 mt-1 font-mono">
-                      <span>الترخيص: {profileFirm.licenseNumber}</span>
+                      <span>{isAr ? "الترخيص:" : "License:"} {profileFirm.licenseNumber}</span>
                       <span>•</span>
-                      <span>{profileFirm.city}، {profileFirm.country}</span>
+                      <span>{getLocalizedCityName(profileFirm.city, isEn)}، {isAr ? profileFirm.country : (profileFirm.country === "المملكة العربية السعودية" ? "Saudi Arabia" : profileFirm.country)}</span>
                       <span>•</span>
-                      <span>تسجيل: {profileFirm.registeredDate}</span>
+                      <span>{isAr ? "تسجيل:" : "Registered:"} {profileFirm.registeredDate}</span>
                     </div>
                   </div>
                 </div>
@@ -1194,7 +1201,9 @@ export function LawFirmsView() {
                         : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700"
                     }`}
                   >
-                    {profileFirm.status === "active" ? "إيقاف مؤقت" : "إعادة تنشيط"}
+                    {profileFirm.status === "active"
+                      ? isAr ? "إيقاف مؤقت" : "Suspend"
+                      : isAr ? "إعادة تنشيط" : "Reactivate"}
                   </button>
 
                   <button
@@ -1243,23 +1252,23 @@ export function LawFirmsView() {
                     <div className="p-4 rounded-2xl border border-[#ded5c6]/60 dark:border-[#38271c] bg-[#faf8f4] dark:bg-[#1a120d] space-y-3">
                       <h3 className="font-extrabold text-sm text-[#2c2825] dark:text-[#fdfbf7] flex items-center gap-2">
                         <User className="w-4 h-4 text-[#c29547] dark:text-[#e29d38]" />
-                        <span>بيانات المالك والتواصل</span>
+                        <span>{isAr ? "بيانات المالك والتواصل" : "Owner & Contact Info"}</span>
                       </h3>
                       <div className="space-y-2 text-xs">
                         <div className="flex justify-between py-1 border-b border-[#ded5c6]/40 dark:border-[#38271c]">
-                          <span className="text-[#8c8279] dark:text-[#8e8680]">المحامي المسؤول:</span>
+                          <span className="text-[#8c8279] dark:text-[#8e8680]">{isAr ? "المحامي المسؤول:" : "Managing Lawyer:"}</span>
                           <span className="font-bold text-[#1c1917] dark:text-[#fdfbf7]">{profileFirm.ownerName}</span>
                         </div>
                         <div className="flex justify-between py-1 border-b border-[#ded5c6]/40 dark:border-[#38271c]">
-                          <span className="text-[#8c8279] dark:text-[#8e8680]">رقم الجوال:</span>
+                          <span className="text-[#8c8279] dark:text-[#8e8680]">{isAr ? "رقم الجوال:" : "Mobile Phone:"}</span>
                           <span className="font-mono font-bold text-[#1c1917] dark:text-[#fdfbf7]">{profileFirm.phone}</span>
                         </div>
                         <div className="flex justify-between py-1 border-b border-[#ded5c6]/40 dark:border-[#38271c]">
-                          <span className="text-[#8c8279] dark:text-[#8e8680]">البريد الإلكتروني:</span>
+                          <span className="text-[#8c8279] dark:text-[#8e8680]">{isAr ? "البريد الإلكتروني:" : "Email Address:"}</span>
                           <span className="font-mono text-[#1c1917] dark:text-[#fdfbf7]">{profileFirm.email}</span>
                         </div>
                         <div className="flex justify-between py-1">
-                          <span className="text-[#8c8279] dark:text-[#8e8680]">رقم الترخيص المهني:</span>
+                          <span className="text-[#8c8279] dark:text-[#8e8680]">{isAr ? "رقم الترخيص المهني:" : "Professional License:"}</span>
                           <span className="font-mono font-bold text-[#966e2e] dark:text-[#f3c27e]">
                             {profileFirm.licenseNumber}
                           </span>
@@ -1271,21 +1280,23 @@ export function LawFirmsView() {
                     <div className="p-4 rounded-2xl border border-[#ded5c6]/60 dark:border-[#38271c] bg-[#faf8f4] dark:bg-[#1a120d] space-y-3">
                       <h3 className="font-extrabold text-sm text-[#2c2825] dark:text-[#fdfbf7] flex items-center gap-2">
                         <Layers className="w-4 h-4 text-[#c29547] dark:text-[#e29d38]" />
-                        <span>معدل الاستهلاك والموارد</span>
+                        <span>{isAr ? "معدل الاستهلاك والموارد" : "Usage & Resources"}</span>
                       </h3>
                       <div className="space-y-2 text-xs">
                         <div className="flex justify-between py-1 border-b border-[#ded5c6]/40 dark:border-[#38271c]">
-                          <span className="text-[#8c8279] dark:text-[#8e8680]">عدد المحامين / المستخدمين:</span>
+                          <span className="text-[#8c8279] dark:text-[#8e8680]">{isAr ? "عدد المحامين / المستخدمين:" : "Lawyers / Users Count:"}</span>
                           <span className="font-mono font-bold text-[#1c1917] dark:text-[#fdfbf7]">
                             {profileFirm.usersCount} / {profileFirm.maxUsers}
                           </span>
                         </div>
                         <div className="flex justify-between py-1 border-b border-[#ded5c6]/40 dark:border-[#38271c]">
-                          <span className="text-[#8c8279] dark:text-[#8e8680]">القضايا المفتوحة والمؤرشفة:</span>
-                          <span className="font-mono font-bold text-[#1c1917] dark:text-[#fdfbf7]">{profileFirm.casesCount} قضية</span>
+                          <span className="text-[#8c8279] dark:text-[#8e8680]">{isAr ? "القضايا المفتوحة والمؤرشفة:" : "Active Cases:"}</span>
+                          <span className="font-mono font-bold text-[#1c1917] dark:text-[#fdfbf7]">
+                            {profileFirm.casesCount} {isAr ? "قضية" : "cases"}
+                          </span>
                         </div>
                         <div className="flex justify-between py-1">
-                          <span className="text-[#8c8279] dark:text-[#8e8680]">مساحة التخزين السحابي:</span>
+                          <span className="text-[#8c8279] dark:text-[#8e8680]">{isAr ? "مساحة التخزين السحابي:" : "Cloud Storage:"}</span>
                           <span className="font-mono font-bold text-[#1c1917] dark:text-[#fdfbf7]">{profileFirm.storageUsed}</span>
                         </div>
                       </div>
@@ -1295,7 +1306,7 @@ export function LawFirmsView() {
                   {/* Quick Plan Mutation Actions */}
                   <div className="p-4 rounded-2xl border border-[#eeddbb] dark:border-[#4d3627] bg-[#faf5eb]/50 dark:bg-[#1a120d] space-y-3">
                     <h4 className="font-bold text-xs text-[#966e2e] dark:text-[#f3c27e]">
-                      إجراءات سريعة على باقة واشتراك المكتب
+                      {isAr ? "إجراءات سريعة على باقة واشتراك المكتب" : "Quick Subscription Actions"}
                     </h4>
                     <div className="flex flex-wrap items-center gap-2">
                       <button
@@ -1303,21 +1314,21 @@ export function LawFirmsView() {
                         onClick={() => handleUpgradePlan(profileFirm.id, "باقة النخبة (Enterprise)")}
                         className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#d4a759] to-[#c29547] text-white text-xs font-bold hover:opacity-95 cursor-pointer shadow-xs"
                       >
-                        ترقية إلى باقة النخبة (سنوي)
+                        {isAr ? "ترقية إلى باقة النخبة (سنوي)" : "Upgrade to Elite (Annual)"}
                       </button>
                       <button
                         type="button"
                         onClick={() => handleUpgradePlan(profileFirm.id, "الباقة المتقدمة (Professional)")}
                         className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#281c15] border border-[#eeddbb] dark:border-[#4d3627] text-[#966e2e] dark:text-[#f3c27e] text-xs font-bold hover:border-[#c29547] dark:hover:border-[#e29d38] cursor-pointer"
                       >
-                        تحويل للباقة المتقدمة
+                        {isAr ? "تحويل للباقة المتقدمة" : "Switch to Professional"}
                       </button>
                       <button
                         type="button"
                         onClick={() => handleDeleteFirm(profileFirm)}
                         className="px-3 py-1.5 rounded-xl bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-300 dark:border-rose-800 text-xs font-bold hover:bg-rose-100 cursor-pointer"
                       >
-                        حذف المكتب نهائياً
+                        {isAr ? "حذف المكتب نهائياً" : "Delete Firm Permanently"}
                       </button>
                     </div>
                   </div>
@@ -1329,23 +1340,25 @@ export function LawFirmsView() {
                 <div className="p-5 rounded-2xl border border-[#ded5c6]/60 dark:border-[#38271c] bg-[#faf8f4] dark:bg-[#1a120d] space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-[11px] text-[#8c8279] dark:text-[#8e8680]">الباقة النشطة حالياً</span>
+                      <span className="text-[11px] text-[#8c8279] dark:text-[#8e8680]">
+                        {isAr ? "الباقة النشطة حالياً" : "Currently Active Plan"}
+                      </span>
                       <h4 className="font-black text-base text-[#1c1917] dark:text-[#fdfbf7] mt-0.5">
-                        {profileFirm.planName}
+                        {localizePlanName(profileFirm.planName, isEn)}
                       </h4>
                     </div>
                     <span className="px-3 py-1 rounded-full bg-[#c29547]/15 dark:bg-[#e29d38]/15 text-[#966e2e] dark:text-[#f3c27e] font-bold text-xs border border-[#c29547]/30 dark:border-[#e29d38]/30">
-                      دورة الفوترة: {profileFirm.planBilling === "annually" ? "سنوية" : profileFirm.planBilling === "monthly" ? "شهرية" : "تجريبية"}
+                      {isAr ? "دورة الفوترة:" : "Billing Cycle:"} {profileFirm.planBilling === "annually" ? (isAr ? "سنوية" : "Annual") : profileFirm.planBilling === "monthly" ? (isAr ? "شهرية" : "Monthly") : (isAr ? "تجريبية" : "Trial")}
                     </span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 pt-3 border-t border-[#ded5c6]/40 dark:border-[#38271c]">
                     <div>
-                      <span className="text-[#8c8279] dark:text-[#8e8680]">تاريخ بدء الاشتراك:</span>
+                      <span className="text-[#8c8279] dark:text-[#8e8680]">{isAr ? "تاريخ بدء الاشتراك:" : "Subscription Start Date:"}</span>
                       <p className="font-mono font-bold mt-0.5 text-[#1c1917] dark:text-[#fdfbf7]">{profileFirm.registeredDate}</p>
                     </div>
                     <div>
-                      <span className="text-[#8c8279] dark:text-[#8e8680]">موعد التجديد القادم:</span>
+                      <span className="text-[#8c8279] dark:text-[#8e8680]">{isAr ? "موعد التجديد القادم:" : "Next Renewal Date:"}</span>
                       <p className="font-mono font-bold text-[#c29547] dark:text-[#e29d38] mt-0.5">{profileFirm.renewalDate}</p>
                     </div>
                   </div>
@@ -1357,19 +1370,19 @@ export function LawFirmsView() {
                 <div className="space-y-3">
                   {profileFirm.invoices.length === 0 ? (
                     <div className="p-8 text-center text-xs text-[#8c8279] dark:text-[#8e8680] border border-dashed border-[#ded5c6] dark:border-[#38271c] rounded-2xl">
-                      لا توجد فواتير صادرة لهذا المكتب حتى الآن
+                      {isAr ? "لا توجد فواتير صادرة لهذا المكتب حتى الآن" : "No invoices issued for this office yet"}
                     </div>
                   ) : (
                     <div className="rounded-2xl border border-[#ded5c6]/60 dark:border-[#38271c] overflow-hidden">
                       <table className="w-full text-start text-xs border-collapse">
                         <thead>
                           <tr className="bg-[#faf8f4] dark:bg-[#1a120d] border-b border-[#ded5c6]/60 dark:border-[#38271c] text-[#7c7366] dark:text-[#8e8680]">
-                            <th className="py-2.5 px-3 text-start">رقم الفاتورة</th>
-                            <th className="py-2.5 px-3 text-start">التاريخ</th>
-                            <th className="py-2.5 px-3 text-start">المبلغ</th>
-                            <th className="py-2.5 px-3 text-start">طريقة الدفع</th>
-                            <th className="py-2.5 px-3 text-start">الحالة</th>
-                            <th className="py-2.5 px-3 text-center">تحميل</th>
+                            <th className="py-2.5 px-3 text-start">{isAr ? "رقم الفاتورة" : "Invoice #"}</th>
+                            <th className="py-2.5 px-3 text-start">{isAr ? "التاريخ" : "Date"}</th>
+                            <th className="py-2.5 px-3 text-start">{isAr ? "المبلغ" : "Amount"}</th>
+                            <th className="py-2.5 px-3 text-start">{isAr ? "طريقة الدفع" : "Payment Method"}</th>
+                            <th className="py-2.5 px-3 text-start">{isAr ? "الحالة" : "Status"}</th>
+                            <th className="py-2.5 px-3 text-center">{isAr ? "تحميل" : "Download"}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-[#ded5c6]/40 dark:divide-[#38271c]/40">
@@ -1381,7 +1394,7 @@ export function LawFirmsView() {
                               <td className="py-3 px-3 text-[#1c1917] dark:text-[#fdfbf7]">{inv.paymentMethod}</td>
                               <td className="py-3 px-3">
                                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
-                                  مدفوعة
+                                  {isAr ? "مدفوعة" : "Paid"}
                                 </span>
                               </td>
                               <td className="py-3 px-3 text-center">
@@ -1389,7 +1402,9 @@ export function LawFirmsView() {
                                   type="button"
                                   onClick={() =>
                                     toast.success(
-                                      `تم تحميل الفاتورة ${inv.invoiceNumber} بصيغة PDF`
+                                      isAr
+                                        ? `تم تحميل الفاتورة ${inv.invoiceNumber} بصيغة PDF`
+                                        : `Invoice ${inv.invoiceNumber} downloaded as PDF`
                                     )
                                   }
                                   className="p-1.5 rounded-lg border border-[#ded5c6] dark:border-[#38271c] hover:text-[#c29547] dark:hover:text-[#e29d38] transition-colors cursor-pointer"
@@ -1411,7 +1426,7 @@ export function LawFirmsView() {
                 <div className="space-y-3">
                   {profileFirm.tickets.length === 0 ? (
                     <div className="p-8 text-center text-xs text-[#8c8279] dark:text-[#8e8680] border border-dashed border-[#ded5c6] dark:border-[#38271c] rounded-2xl">
-                      لا توجد تذاكر دعم فني مسجلة لهذا المكتب
+                      {isAr ? "لا توجد تذاكر دعم فني مسجلة لهذا المكتب" : "No support tickets recorded for this office"}
                     </div>
                   ) : (
                     profileFirm.tickets.map((t) => (
@@ -1424,7 +1439,9 @@ export function LawFirmsView() {
                             <span className="font-mono font-bold text-[#c29547] dark:text-[#e29d38]">{t.ticketNumber}</span>
                             <span className="font-bold text-[#1c1917] dark:text-[#fdfbf7]">{t.subject}</span>
                           </div>
-                          <span className="text-[10px] text-[#8c8279] dark:text-[#8e8680] font-mono">تاريخ: {t.date}</span>
+                          <span className="text-[10px] text-[#8c8279] dark:text-[#8e8680] font-mono">
+                            {isAr ? "تاريخ:" : "Date:"} {t.date}
+                          </span>
                         </div>
                         <span
                           className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
@@ -1433,7 +1450,7 @@ export function LawFirmsView() {
                               : "bg-stone-100 text-stone-700 border-stone-300 dark:bg-[#281c15] dark:text-[#cdc5bd] dark:border-[#38271c]"
                           }`}
                         >
-                          {t.status === "in_progress" ? "جاري التعامل" : "مغلقة"}
+                          {t.status === "in_progress" ? (isAr ? "جاري التعامل" : "In Progress") : (isAr ? "مغلقة" : "Closed")}
                         </span>
                       </div>
                     ))
@@ -1448,7 +1465,7 @@ export function LawFirmsView() {
                   <div className="space-y-2.5">
                     {profileFirm.notes.length === 0 ? (
                       <div className="p-6 text-center text-xs text-[#8c8279] dark:text-[#8e8680] border border-dashed border-[#ded5c6] dark:border-[#38271c] rounded-2xl">
-                        لا توجد ملاحظات مسجلة على هذا المكتب حتى الآن.
+                        {isAr ? "لا توجد ملاحظات مسجلة على هذا المكتب حتى الآن." : "No notes recorded for this office yet."}
                       </div>
                     ) : (
                       profileFirm.notes.map((note) => (
@@ -1457,7 +1474,9 @@ export function LawFirmsView() {
                           className="p-3.5 rounded-2xl border border-[#eeddbb]/70 dark:border-[#4d3627] bg-[#faf8f4] dark:bg-[#1a120d] space-y-1"
                         >
                           <div className="flex items-center justify-between text-[11px]">
-                            <span className="font-bold text-[#1c1917] dark:text-[#fdfbf7]">{note.author}</span>
+                            <span className="font-bold text-[#1c1917] dark:text-[#fdfbf7]">
+                              {localizeRoleOrTitle(note.author, isEn)}
+                            </span>
                             <span className="text-[#8c8279] dark:text-[#8e8680] font-mono">{note.date}</span>
                           </div>
                           <p className="text-xs text-[#524b43] dark:text-[#cdc5bd] leading-relaxed">{note.text}</p>
@@ -1473,7 +1492,11 @@ export function LawFirmsView() {
                       required
                       value={newProfileNote}
                       onChange={(e) => setNewProfileNote(e.target.value)}
-                      placeholder="اكتب ملاحظة جديدة تظهر في ملف المكتب..."
+                      placeholder={
+                        isAr
+                          ? "اكتب ملاحظة جديدة تظهر في ملف المكتب..."
+                          : "Write a new note to appear on office profile..."
+                      }
                       className="w-full p-3 rounded-2xl text-xs bg-white dark:bg-[#1a120d] border border-[#ded5c6] dark:border-[#38271c] focus:outline-none focus:border-[#c29547] dark:focus:border-[#e29d38] text-[#1c1917] dark:text-[#fdfbf7] resize-none shadow-2xs"
                     />
                     <div className="flex justify-end">
@@ -1482,7 +1505,7 @@ export function LawFirmsView() {
                         className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#d4a759] to-[#c29547] text-white text-xs font-bold hover:opacity-95 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
                       >
                         <Send className="w-3.5 h-3.5" />
-                        <span>إضافة الملاحظة</span>
+                        <span>{isAr ? "إضافة الملاحظة" : "Add Note"}</span>
                       </button>
                     </div>
                   </form>
@@ -1523,14 +1546,18 @@ export function LawFirmsView() {
             <form onSubmit={handleCreateFirm} className="p-6 space-y-4 overflow-y-auto flex-1">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-[#2c2825] dark:text-[#fdfbf7]">
-                  اسم مكتب أو شركة المحاماة *
+                  {isAr ? "اسم مكتب أو شركة المحاماة *" : "Law Firm or Company Name *"}
                 </label>
                 <input
                   type="text"
                   required
                   value={newFirmName}
                   onChange={(e) => setNewFirmName(e.target.value)}
-                  placeholder="مثال: شركة النور للمحاماة والاستشارات"
+                  placeholder={
+                    isAr
+                      ? "مثال: شركة النور للمحاماة والاستشارات"
+                      : "e.g., Al-Noor Law & Legal Consultancy"
+                  }
                   className="w-full h-11 px-4 rounded-xl text-xs bg-white dark:bg-[#1a120d] border border-[#ded5c6] dark:border-[#38271c] focus:outline-none focus:border-[#c29547] dark:focus:border-[#e29d38] text-[#1c1917] dark:text-[#fdfbf7]"
                 />
               </div>
@@ -1538,21 +1565,21 @@ export function LawFirmsView() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-[#2c2825] dark:text-[#fdfbf7]">
-                    اسم صاحب المكتب / المحامي المسؤول *
+                    {isAr ? "اسم صاحب المكتب / المحامي المسؤول *" : "Owner / Managing Lawyer *"}
                   </label>
                   <input
                     type="text"
                     required
                     value={newOwnerName}
                     onChange={(e) => setNewOwnerName(e.target.value)}
-                    placeholder="أ. عبد الرحمن المنصور"
+                    placeholder={isAr ? "أ. عبد الرحمن المنصور" : "e.g., Abdulrahman Al-Mansour"}
                     className="w-full h-11 px-4 rounded-xl text-xs bg-white dark:bg-[#1a120d] border border-[#ded5c6] dark:border-[#38271c] focus:outline-none focus:border-[#c29547] dark:focus:border-[#e29d38] text-[#1c1917] dark:text-[#fdfbf7]"
                   />
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-[#2c2825] dark:text-[#fdfbf7]">
-                    رقم الترخيص المهني (اختياري)
+                    {isAr ? "رقم الترخيص المهني (اختياري)" : "Professional License (Optional)"}
                   </label>
                   <input
                     type="text"
@@ -1567,7 +1594,7 @@ export function LawFirmsView() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-[#2c2825] dark:text-[#fdfbf7]">
-                    البريد الإلكتروني الرسمي *
+                    {isAr ? "البريد الإلكتروني الرسمي *" : "Official Email Address *"}
                   </label>
                   <input
                     type="email"
@@ -1581,7 +1608,7 @@ export function LawFirmsView() {
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-[#2c2825] dark:text-[#fdfbf7]">
-                    رقم الجوال الرسمي *
+                    {isAr ? "رقم الجوال الرسمي *" : "Official Mobile Phone *"}
                   </label>
                   <input
                     type="text"
@@ -1597,20 +1624,20 @@ export function LawFirmsView() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-[#2c2825] dark:text-[#fdfbf7]">
-                    المدينة
+                    {isAr ? "المدينة" : "City"}
                   </label>
                   <input
                     type="text"
                     value={newCity}
                     onChange={(e) => setNewCity(e.target.value)}
-                    placeholder="الرياض"
+                    placeholder={isAr ? "الرياض" : "Riyadh"}
                     className="w-full h-11 px-4 rounded-xl text-xs bg-white dark:bg-[#1a120d] border border-[#ded5c6] dark:border-[#38271c] focus:outline-none focus:border-[#c29547] dark:focus:border-[#e29d38] text-[#1c1917] dark:text-[#fdfbf7]"
                   />
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-[#2c2825] dark:text-[#fdfbf7]">
-                    كلمة السر الأولية للمكتب *
+                    {isAr ? "كلمة السر الأولية للمكتب *" : "Initial Office Password *"}
                   </label>
                   <input
                     type="password"
@@ -1625,16 +1652,16 @@ export function LawFirmsView() {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-[#2c2825] dark:text-[#fdfbf7]">
-                  الباقة المختارة أو التجربة المجانية *
+                  {isAr ? "الباقة المختارة أو التجربة المجانية *" : "Selected Plan or Free Trial *"}
                 </label>
                 <LuxurySelect<string>
                   value={newPlan}
                   onChange={(val) => setNewPlan(val)}
                   options={[
-                    { value: "الباقة الأساسية (Starter)", label: "الباقة الأساسية (Starter)" },
-                    { value: "الباقة المتقدمة (Professional)", label: "الباقة المتقدمة (Professional)" },
-                    { value: "باقة النخبة (Enterprise)", label: "باقة النخبة (Enterprise)" },
-                    { value: "تجربة مجانية 14 يوماً (Free Trial)", label: "تجربة مجانية 14 يوماً (Free Trial)" },
+                    { value: "الباقة الأساسية (Starter)", label: isAr ? "الباقة الأساسية (Starter)" : "Starter Plan" },
+                    { value: "الباقة المتقدمة (Professional)", label: isAr ? "الباقة المتقدمة (Professional)" : "Professional Plan" },
+                    { value: "باقة النخبة (Enterprise)", label: isAr ? "باقة النخبة (Enterprise)" : "Enterprise Plan" },
+                    { value: "تجربة مجانية 14 يوماً (Free Trial)", label: isAr ? "تجربة مجانية 14 يوماً (Free Trial)" : "14-Day Free Trial" },
                   ]}
                   className="w-full"
                   minWidth="w-full"
@@ -1647,14 +1674,14 @@ export function LawFirmsView() {
                   onClick={() => setIsAddModalOpen(false)}
                   className="px-4 py-2.5 rounded-full text-xs font-bold text-[#524b43] dark:text-[#cdc5bd] hover:bg-stone-100 dark:hover:bg-[#281c15] transition-colors cursor-pointer"
                 >
-                  إلغاء
+                  {isAr ? "إلغاء" : "Cancel"}
                 </button>
                 <button
                   type="submit"
                   className="px-6 py-2.5 rounded-full bg-gradient-to-r from-[#d4a759] via-[#c29547] to-[#b38032] hover:opacity-95 text-white text-xs font-bold flex items-center gap-1.5 shadow-[0_4px_16px_rgba(194,149,71,0.3)] transition-all cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>حفظ المكتب وإرسال الترحيب</span>
+                  <span>{isAr ? "حفظ المكتب وإرسال الترحيب" : "Save Firm & Send Welcome"}</span>
                 </button>
               </div>
             </form>

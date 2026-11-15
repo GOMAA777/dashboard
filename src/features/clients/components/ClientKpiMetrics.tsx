@@ -79,7 +79,7 @@ export function ClientKpiMetrics({
         });
       })
       .catch((err) => {
-        console.error("Failed to fetch firms stats:", err);
+        console.warn("Failed to fetch firms stats:", err);
       })
       .finally(() => {
         if (!cancelled) setIsApiLoading(false);

@@ -17,7 +17,7 @@ export const sendNotificationAction = actionClient
       verificationCode,
       dispatchedCount: parsedInput.audienceType === "all" ? 842 : 1,
       timestamp: new Date().toISOString(),
-      formattedTimestamp: new Intl.DateTimeFormat("ar-SA", {
+      formattedTimestamp: new Intl.DateTimeFormat("ar-SA-u-nu-latn", {
         year: "numeric",
         month: "long",
         day: "numeric",

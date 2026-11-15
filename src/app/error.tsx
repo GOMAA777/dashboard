@@ -18,7 +18,9 @@ export default function ErrorPage({
     <AppStatusScreen
       kind="error"
       title="حدث خلل مؤقت"
+      titleEn="Temporary Error"
       description="واجهت المنظومة صعوبة بسيطة أثناء تحميل الصفحة. يمكنك إعادة المحاولة أو العودة للرئيسية."
+      descriptionEn="The system encountered a temporary issue while loading the page. You can retry or return to the dashboard."
       digest={error?.digest}
       onRetry={() => reset()}
       autoRedirectMs={4500}

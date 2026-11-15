@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { SAUDI_CITIES, normalizeArabicDigits } from "../constants/saudi-cities";
+import { SAUDI_CITIES, normalizeArabicDigits, getLocalizedCityName } from "../constants/saudi-cities";
 
 // Regex for Arabic & English letters and spaces only (NO numbers, NO punctuation)
 // Note: \u0621-\u064A covers Arabic alphabet without Arabic numerals \u0660-\u0669
@@ -30,190 +30,195 @@ export const OFFICE_ID_REGEX = /^[a-zA-Z0-9-]+$/;
 // Valid hex color (e.g. #9c6402 or #fff)
 export const HEX_COLOR_REGEX = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
-export const officeSchema = z.object({
-  officeId: z
-    .string()
-    .transform((val) => (val || "").trim())
-    .refine((val) => val.length === 0 || (val.length >= 3 && val.length <= 40), {
-      message: "معرّف المكتب يجب أن يكون من 3 إلى 40 خانة",
-    })
-    .refine((val) => val.length === 0 || OFFICE_ID_REGEX.test(val), {
-      message: "معرّف المكتب يقبل حروفاً إنجليزية وأرقاماً وشرطة (-) فقط بدون مسافات أو رموز خاصة",
-    }),
+export function createOfficeSchema(isEn = false) {
+  const m = (ar: string, en: string) => (isEn ? en : ar);
+  return z.object({
+    officeId: z
+      .string()
+      .transform((val) => (val || "").trim())
+      .refine((val) => val.length === 0 || (val.length >= 3 && val.length <= 40), {
+        message: m("معرّف المكتب يجب أن يكون من 3 إلى 40 خانة", "Office ID must be between 3 and 40 characters"),
+      })
+      .refine((val) => val.length === 0 || OFFICE_ID_REGEX.test(val), {
+        message: m("معرّف المكتب يقبل حروفاً إنجليزية وأرقاماً وشرطة (-) فقط بدون مسافات أو رموز خاصة", "Office ID accepts English letters, numbers, and hyphens (-) only"),
+      }),
 
-  ownerName: z
-    .string()
-    .transform((val) => val.trim())
-    .refine((val) => val.length > 0, {
-      message: "اسم صاحب المكتب مطلوب",
-    })
-    .refine((val) => val.length >= 5 && val.length <= 30, {
-      message: "اسم صاحب المكتب يجب أن يكون من 5 إلى 30 حرفاً",
-    })
-    .refine((val) => LETTERS_AND_SPACES_REGEX.test(val), {
-      message: "اسم صاحب المكتب يقبل حروفاً ومسافات فقط، بدون أرقام أو رموز",
-    }),
+    ownerName: z
+      .string()
+      .transform((val) => val.trim())
+      .refine((val) => val.length > 0, {
+        message: m("اسم صاحب المكتب مطلوب", "Owner name is required"),
+      })
+      .refine((val) => val.length >= 5 && val.length <= 30, {
+        message: m("اسم صاحب المكتب يجب أن يكون من 5 إلى 30 حرفاً", "Owner name must be between 5 and 30 characters"),
+      })
+      .refine((val) => LETTERS_AND_SPACES_REGEX.test(val), {
+        message: m("اسم صاحب المكتب يقبل حروفاً ومسافات فقط، بدون أرقام أو رموز", "Owner name accepts letters and spaces only"),
+      }),
 
-  firmName: z
-    .string()
-    .transform((val) => val.trim())
-    .refine((val) => val.length > 0, {
-      message: "اسم المكتب مطلوب",
-    })
-    .refine((val) => val.length >= 5 && val.length <= 40, {
-      message: "اسم المكتب يجب أن يكون من 5 إلى 40 حرفاً",
-    })
-    .refine((val) => LETTERS_AND_SPACES_REGEX.test(val), {
-      message: "اسم المكتب يقبل حروفاً ومسافات فقط، بدون أرقام أو رموز",
-    }),
+    firmName: z
+      .string()
+      .transform((val) => val.trim())
+      .refine((val) => val.length > 0, {
+        message: m("اسم المكتب مطلوب", "Law office name is required"),
+      })
+      .refine((val) => val.length >= 5 && val.length <= 40, {
+        message: m("اسم المكتب يجب أن يكون من 5 إلى 40 حرفاً", "Law office name must be between 5 and 40 characters"),
+      })
+      .refine((val) => LETTERS_AND_SPACES_REGEX.test(val), {
+        message: m("اسم المكتب يقبل حروفاً ومسافات فقط، بدون أرقام أو رموز", "Law office name accepts letters and spaces only"),
+      }),
 
-  licenseNumber: z
-    .string()
-    .transform((val) => normalizeArabicDigits(val.trim()))
-    .refine((val) => val.length > 0, {
-      message: "رقم الترخيص مطلوب",
-    })
-    .refine((val) => LICENSE_REGEX.test(val), {
-      message: "رقم الترخيص يقبل أرقاماً ورمز / فقط بحد أقصى 15 خانة",
-    })
-    .refine((val) => CONTAINS_DIGIT_REGEX.test(val), {
-      message: "رقم الترخيص يجب أن يحتوي على رقم واحد على الأقل",
-    }),
+    licenseNumber: z
+      .string()
+      .transform((val) => normalizeArabicDigits(val.trim()))
+      .refine((val) => val.length > 0, {
+        message: m("رقم الترخيص مطلوب", "License number is required"),
+      })
+      .refine((val) => LICENSE_REGEX.test(val), {
+        message: m("رقم الترخيص يقبل أرقاماً ورمز / فقط بحد أقصى 15 خانة", "License number accepts digits and / only (max 15 chars)"),
+      })
+      .refine((val) => CONTAINS_DIGIT_REGEX.test(val), {
+        message: m("رقم الترخيص يجب أن يحتوي على رقم واحد على الأقل", "License number must contain at least one digit"),
+      }),
 
-  taxNumber: z
-    .string()
-    .transform((val) => normalizeArabicDigits(val.trim()))
-    .refine((val) => val.length > 0, {
-      message: "الرقم الضريبي مطلوب",
-    })
-    .refine((val) => /^\d+$/.test(val), {
-      message: "الرقم الضريبي يجب أن يتكون من أرقام فقط",
-    })
-    .refine((val) => val.length === 15, {
-      message: "الرقم الضريبي يجب أن يكون 15 رقماً بالضبط",
-    }),
+    taxNumber: z
+      .string()
+      .transform((val) => normalizeArabicDigits(val.trim()))
+      .refine((val) => val.length > 0, {
+        message: m("الرقم الضريبي مطلوب", "Tax number is required"),
+      })
+      .refine((val) => /^\d+$/.test(val), {
+        message: m("الرقم الضريبي يجب أن يتكون من أرقام فقط", "Tax number must consist of digits only"),
+      })
+      .refine((val) => val.length === 15, {
+        message: m("الرقم الضريبي يجب أن يكون 15 رقماً بالضبط", "Tax number must be exactly 15 digits"),
+      }),
 
-  email: z
-    .string()
-    .transform((val) => val.trim())
-    .refine((val) => val.length > 0, {
-      message: "البريد الإلكتروني مطلوب",
-    })
-    .refine((val) => !/\s/.test(val), {
-      message: "البريد الإلكتروني لا يمكن أن يحتوي على مسافات",
-    })
-    .refine((val) => val.length <= 254, {
-      message: "البريد الإلكتروني لا يجب أن يتجاوز 254 حرفاً",
-    })
-    .refine((val) => {
-      const parts = val.split("@");
-      return parts.length === 2 && parts[0].length >= 1 && parts[0].length <= 64;
-    }, {
-      message: "الجزء قبل @ يجب أن يكون بين 1 و 64 حرفاً وبدون تكرار @",
-    })
-    .refine((val) => {
-      const parts = val.split("@");
-      if (parts.length !== 2) return false;
-      const [local, domain] = parts;
-      if (local.startsWith(".") || local.endsWith(".") || local.includes("..")) return false;
-      if (domain.startsWith(".") || domain.endsWith(".") || domain.includes("..")) return false;
-      const domainParts = domain.split(".");
-      if (domainParts.length < 2) return false;
-      const tld = domainParts[domainParts.length - 1];
-      return /^[a-zA-Z]{2,}$/.test(tld);
-    }, {
-      message: "الدومين غير صالح؛ يجب أن يحتوي على نقطة وامتداد بحرفين أو أكثر بدون نقاط متتالية",
-    }),
+    email: z
+      .string()
+      .transform((val) => val.trim())
+      .refine((val) => val.length > 0, {
+        message: m("البريد الإلكتروني مطلوب", "Email address is required"),
+      })
+      .refine((val) => !/\s/.test(val), {
+        message: m("البريد الإلكتروني لا يمكن أن يحتوي على مسافات", "Email address cannot contain spaces"),
+      })
+      .refine((val) => val.length <= 254, {
+        message: m("البريد الإلكتروني لا يجب أن يتجاوز 254 حرفاً", "Email address must not exceed 254 characters"),
+      })
+      .refine((val) => {
+        const parts = val.split("@");
+        return parts.length === 2 && parts[0].length >= 1 && parts[0].length <= 64;
+      }, {
+        message: m("الجزء قبل @ يجب أن يكون بين 1 و 64 حرفاً وبدون تكرار @", "Username before @ must be 1 to 64 characters"),
+      })
+      .refine((val) => {
+        const parts = val.split("@");
+        if (parts.length !== 2) return false;
+        const [local, domain] = parts;
+        if (local.startsWith(".") || local.endsWith(".") || local.includes("..")) return false;
+        if (domain.startsWith(".") || domain.endsWith(".") || domain.includes("..")) return false;
+        const domainParts = domain.split(".");
+        if (domainParts.length < 2) return false;
+        const tld = domainParts[domainParts.length - 1];
+        return /^[a-zA-Z]{2,}$/.test(tld);
+      }, {
+        message: m("الدومين غير صالح؛ يجب أن يحتوي على نقطة وامتداد بحرفين أو أكثر بدون نقاط متتالية", "Invalid email domain format"),
+      }),
 
-  phone: z
-    .string()
-    .transform((val) => {
-      let norm = normalizeArabicDigits(val.trim()).replace(/\s+/g, "");
-      if (norm.startsWith("+966")) norm = norm.slice(4);
-      if (/^5\d{8}$/.test(norm)) norm = `0${norm}`;
-      return norm;
-    })
-    .refine((val) => val.length > 0, {
-      message: "رقم الجوال مطلوب",
-    })
-    .refine((val) => val.startsWith("05"), {
-      message: "رقم الجوال يجب أن يبدأ بـ 05",
-    })
-    .refine((val) => SAUDI_PHONE_REGEX.test(val), {
-      message: "رقم الجوال يجب أن يكون 10 أرقام بالضبط ويبدأ بـ 05 (مثال: 0512345678)",
-    }),
+    phone: z
+      .string()
+      .transform((val) => {
+        let norm = normalizeArabicDigits(val.trim()).replace(/\s+/g, "");
+        if (norm.startsWith("+966")) norm = norm.slice(4);
+        if (/^5\d{8}$/.test(norm)) norm = `0${norm}`;
+        return norm;
+      })
+      .refine((val) => val.length > 0, {
+        message: m("رقم الجوال مطلوب", "Mobile phone is required"),
+      })
+      .refine((val) => val.startsWith("05"), {
+        message: m("رقم الجوال يجب أن يبدأ بـ 05", "Mobile phone must start with 05"),
+      })
+      .refine((val) => SAUDI_PHONE_REGEX.test(val), {
+        message: m("رقم الجوال يجب أن يكون 10 أرقام بالضبط ويبدأ بـ 05 (مثال: 0512345678)", "Mobile phone must be 10 digits starting with 05 (e.g. 0512345678)"),
+      }),
 
-  landline: z
-    .string()
-    .transform((val) => normalizeArabicDigits(val.trim()))
-    .refine((val) => val.length > 0, {
-      message: "الهاتف المكتبي المباشر مطلوب",
-    })
-    .refine((val) => /^01[123467]/.test(val), {
-      message: "الهاتف المكتبي يجب أن يبدأ برمز منطقة سعودي (011، 012، 013، 014، 016، 017)",
-    })
-    .refine((val) => SAUDI_LANDLINE_REGEX.test(val), {
-      message: "الهاتف المكتبي يجب أن يكون 9 أو 10 أرقام (مثال: 011482990 أو 0114829900)",
-    }),
+    landline: z
+      .string()
+      .transform((val) => normalizeArabicDigits(val.trim()))
+      .refine((val) => val.length > 0, {
+        message: m("الهاتف المكتبي المباشر مطلوب", "Direct office landline is required"),
+      })
+      .refine((val) => /^01[123467]/.test(val), {
+        message: m("الهاتف المكتبي يجب أن يبدأ برمز منطقة سعودي (011، 012، 013، 014، 016، 017)", "Landline must start with Saudi area code (011, 012, 013, 014, 016, 017)"),
+      })
+      .refine((val) => SAUDI_LANDLINE_REGEX.test(val), {
+        message: m("الهاتف المكتبي يجب أن يكون 9 أو 10 أرقام (مثال: 011482990 أو 0114829900)", "Landline must be 9 or 10 digits"),
+      }),
 
-  city: z
-    .string()
-    .transform((val) => val.trim())
-    .refine((val) => val.length > 0, {
-      message: "يرجى اختيار المدينة",
-    })
-    .refine((val) => SAUDI_CITIES.includes(val.replace("المملكة العربية السعودية - ", "").trim()), {
-      message: "يرجى اختيار مدينة صحيحة من قائمة المدن المتاحة",
-    }),
+    city: z
+      .string()
+      .transform((val) => val.trim())
+      .refine((val) => val.length > 0, {
+        message: m("يرجى اختيار المدينة", "Please select a city"),
+      })
+      .refine((val) => SAUDI_CITIES.includes(val.replace("المملكة العربية السعودية - ", "").trim()), {
+        message: m("يرجى اختيار مدينة صحيحة من قائمة المدن المتاحة", "Please select a valid city from the list"),
+      }),
 
-  address: z
-    .string()
-    .transform((val) => val.trim())
-    .refine((val) => val.length > 0, {
-      message: "العنوان مطلوب",
-    })
-    .refine((val) => val.length >= 5 && val.length <= 30, {
-      message: "العنوان يجب أن يكون من 5 إلى 30 حرفاً",
-    })
-    .refine((val) => CONTAINS_LETTER_REGEX.test(val), {
-      message: "العنوان يجب أن يحتوي على حرف واحد على الأقل (عربي أو إنجليزي)",
-    }),
+    address: z
+      .string()
+      .transform((val) => val.trim())
+      .refine((val) => val.length > 0, {
+        message: m("العنوان مطلوب", "National address is required"),
+      })
+      .refine((val) => val.length >= 5 && val.length <= 30, {
+        message: m("العنوان يجب أن يكون من 5 إلى 30 حرفاً", "Address must be between 5 and 30 characters"),
+      })
+      .refine((val) => CONTAINS_LETTER_REGEX.test(val), {
+        message: m("العنوان يجب أن يحتوي على حرف واحد على الأقل (عربي أو إنجليزي)", "Address must contain at least one letter (Arabic or English)"),
+      }),
 
-  password: z
-    .string()
-    .refine((val) => val.length > 0, {
-      message: "كلمة المرور مطلوبة",
-    })
-    .refine((val) => !/\s/.test(val), {
-      message: "كلمة المرور يجب ألا تحتوي على مسافات",
-    })
-    .refine((val) => val.length >= 9 && val.length <= 20, {
-      message: "كلمة المرور يجب أن تكون بين 9 و 20 خانة",
-    })
-    .refine((val) => CONTAINS_LETTER_REGEX.test(val), {
-      message: "كلمة المرور يجب أن تحتوي على حرف واحد على الأقل",
-    })
-    .refine((val) => CONTAINS_DIGIT_REGEX.test(val), {
-      message: "كلمة المرور يجب أن تحتوي على رقم واحد على الأقل",
-    })
-    .refine((val) => CONTAINS_SYMBOL_REGEX.test(val), {
-      message: "كلمة المرور يجب أن تحتوي على رمز خاص واحد على الأقل (مثل: !@#$%^&*)",
-    }),
+    password: z
+      .string()
+      .refine((val) => val.length > 0, {
+        message: m("كلمة المرور مطلوبة", "Password is required"),
+      })
+      .refine((val) => !/\s/.test(val), {
+        message: m("كلمة المرور يجب ألا تحتوي على مسافات", "Password cannot contain spaces"),
+      })
+      .refine((val) => val.length >= 9 && val.length <= 20, {
+        message: m("كلمة المرور يجب أن تكون بين 9 و 20 خانة", "Password must be between 9 and 20 characters"),
+      })
+      .refine((val) => CONTAINS_LETTER_REGEX.test(val), {
+        message: m("كلمة المرور يجب أن تحتوي على حرف واحد على الأقل", "Password must contain at least one letter"),
+      })
+      .refine((val) => CONTAINS_DIGIT_REGEX.test(val), {
+        message: m("كلمة المرور يجب أن تحتوي على رقم واحد على الأقل", "Password must contain at least one digit"),
+      })
+      .refine((val) => CONTAINS_SYMBOL_REGEX.test(val), {
+        message: m("كلمة المرور يجب أن تحتوي على رمز خاص واحد على الأقل (مثل: !@#$%^&*)", "Password must contain at least one special symbol (e.g. !@#$%^&*)"),
+      }),
 
-  primaryColor: z
-    .string()
-    .optional()
-    .refine((val) => !val || HEX_COLOR_REGEX.test(val), {
-      message: "اللون الأساسي يجب أن يكون كود HEX صالح (مثال: #9c6402)",
-    }),
+    primaryColor: z
+      .string()
+      .optional()
+      .refine((val) => !val || HEX_COLOR_REGEX.test(val), {
+        message: m("اللون الأساسي يجب أن يكون كود HEX صالح (مثال: #9c6402)", "Primary color must be a valid HEX code (e.g. #9c6402)"),
+      }),
 
-  secondaryColor: z
-    .string()
-    .optional()
-    .refine((val) => !val || HEX_COLOR_REGEX.test(val), {
-      message: "اللون الثانوي يجب أن يكون كود HEX صالح (مثال: #d97706)",
-    }),
-});
+    secondaryColor: z
+      .string()
+      .optional()
+      .refine((val) => !val || HEX_COLOR_REGEX.test(val), {
+        message: m("اللون الثانوي يجب أن يكون كود HEX صالح (مثال: #d97706)", "Secondary color must be a valid HEX code (e.g. #d97706)"),
+      }),
+  });
+}
+
+export const officeSchema = createOfficeSchema(false);
 
 export type OfficeFormValues = z.infer<typeof officeSchema>;
 
@@ -301,8 +306,10 @@ export interface FieldValidationStatus {
 
 export function evaluateFieldRules(
   fieldName: keyof OfficeFormValues,
-  value: string
+  value: string,
+  isEn = false
 ): FieldValidationStatus {
+  const m = (ar: string, en: string) => (isEn ? en : ar);
   const norm = typeof value === "string" ? normalizeArabicDigits(value.trim()) : "";
   const raw = typeof value === "string" ? value : "";
   const isFilled = raw.trim().length > 0;
@@ -315,32 +322,34 @@ export function evaluateFieldRules(
       const r3 = !/\d/.test(raw) && !CONTAINS_SYMBOL_REGEX.test(raw);
       const isValid = isFilled && r1 && r2;
       let errorMessage: string | undefined;
-      if (isFilled && !r1) errorMessage = "يجب أن يكون الاسم من 5 إلى 30 حرفاً";
-      else if (isFilled && !r2) errorMessage = "حروف عربي وإنجليزي ومسافات فقط بدون أرقام أو رموز";
+      if (isFilled && !r1) errorMessage = m("يجب أن يكون الاسم من 5 إلى 30 حرفاً", "Name must be between 5 and 30 characters");
+      else if (isFilled && !r2) errorMessage = m("حروف عربي وإنجليزي ومسافات فقط بدون أرقام أو رموز", "Letters and spaces only, no digits or symbols");
       
       const detailHeader = !isFilled
-        ? "صاحب المكتب: بانتظار الإدخال"
+        ? m("صاحب المكتب: بانتظار الإدخال", "Owner Name: Waiting for input")
         : isValid
-        ? `صاحب المكتب: مكتمل (${formatArabicCount(len, "حرف")})`
-        : `صاحب المكتب: أدخلت ${formatArabicCount(len, "حرف")}`;
+        ? m(`صاحب المكتب: مكتمل (${formatArabicCount(len, "حرف")})`, `Owner Name: Valid (${len} chars)`)
+        : m(`صاحب المكتب: أدخلت ${formatArabicCount(len, "حرف")}`, `Owner Name: Entered ${len} chars`);
 
       return {
         name: "ownerName",
-        title: "اسم صاحب المكتب",
-        shortTitle: "صاحب المكتب",
+        title: m("اسم صاحب المكتب", "Owner Name"),
+        shortTitle: m("صاحب المكتب", "Owner"),
         detailHeader,
         iconName: "User",
         isFilled,
         isValid,
         errorMessage,
         rules: [
-          { id: "char", label: "حروف ومسافات فقط", isValid: isFilled && r2 },
+          { id: "char", label: m("حروف ومسافات فقط", "Letters & spaces only"), isValid: isFilled && r2 },
           {
             id: "len",
-            label: `يجب أن يكون بين 5 و 30 حرفًا${len < 5 ? formatArabicDiff(5, len, "حرف") : len > 30 ? formatArabicDiff(30, len, "حرف") : ""}`,
+            label: isEn
+              ? `Must be between 5 and 30 characters${len < 5 ? ` (${5 - len} more needed)` : len > 30 ? ` (${len - 30} extra)` : ""}`
+              : `يجب أن يكون بين 5 و 30 حرفًا${len < 5 ? formatArabicDiff(5, len, "حرف") : len > 30 ? formatArabicDiff(30, len, "حرف") : ""}`,
             isValid: isFilled && r1,
           },
-          { id: "no_symbols", label: "بدون أرقام أو رموز", isValid: isFilled && r3 },
+          { id: "no_symbols", label: m("بدون أرقام أو رموز", "No digits or symbols"), isValid: isFilled && r3 },
         ],
       };
     }
@@ -352,32 +361,34 @@ export function evaluateFieldRules(
       const r3 = !CONTAINS_SYMBOL_REGEX.test(raw);
       const isValid = isFilled && r1 && r2;
       let errorMessage: string | undefined;
-      if (isFilled && !r1) errorMessage = "يجب أن يكون اسم المكتب من 5 إلى 40 حرفاً";
-      else if (isFilled && !r2) errorMessage = "حروف ومسافات فقط بدون أرقام أو رموز";
+      if (isFilled && !r1) errorMessage = m("يجب أن يكون اسم المكتب من 5 إلى 40 حرفاً", "Office name must be between 5 and 40 characters");
+      else if (isFilled && !r2) errorMessage = m("حروف ومسافات فقط بدون أرقام أو رموز", "Letters and spaces only, no digits or symbols");
 
       const detailHeader = !isFilled
-        ? "اسم المكتب: بانتظار الإدخال"
+        ? m("اسم المكتب: بانتظار الإدخال", "Office Name: Waiting for input")
         : isValid
-        ? `اسم المكتب: مكتمل (${formatArabicCount(len, "حرف")})`
-        : `اسم المكتب: أدخلت ${formatArabicCount(len, "حرف")}`;
+        ? m(`اسم المكتب: مكتمل (${formatArabicCount(len, "حرف")})`, `Office Name: Valid (${len} chars)`)
+        : m(`اسم المكتب: أدخلت ${formatArabicCount(len, "حرف")}`, `Office Name: Entered ${len} chars`);
 
       return {
         name: "firmName",
-        title: "اسم المكتب أو المنشأة",
-        shortTitle: "اسم المكتب",
+        title: m("اسم المكتب أو المنشأة", "Law Office Name"),
+        shortTitle: m("اسم المكتب", "Office Name"),
         detailHeader,
         iconName: "Building2",
         isFilled,
         isValid,
         errorMessage,
         rules: [
-          { id: "char", label: "حروف ومسافات فقط", isValid: isFilled && r2 },
+          { id: "char", label: m("حروف ومسافات فقط", "Letters & spaces only"), isValid: isFilled && r2 },
           {
             id: "len",
-            label: `يجب أن يكون بين 5 و 40 حرفًا${len < 5 ? formatArabicDiff(5, len, "حرف") : len > 40 ? formatArabicDiff(40, len, "حرف") : ""}`,
+            label: isEn
+              ? `Must be between 5 and 40 characters${len < 5 ? ` (${5 - len} more needed)` : len > 40 ? ` (${len - 40} extra)` : ""}`
+              : `يجب أن يكون بين 5 و 40 حرفًا${len < 5 ? formatArabicDiff(5, len, "حرف") : len > 40 ? formatArabicDiff(40, len, "حرف") : ""}`,
             isValid: isFilled && r1,
           },
-          { id: "no_symbols", label: "بدون رموز خاصة", isValid: isFilled && r3 },
+          { id: "no_symbols", label: m("بدون رموز خاصة", "No special symbols"), isValid: isFilled && r3 },
         ],
       };
     }
@@ -388,28 +399,28 @@ export function evaluateFieldRules(
       const r3 = norm.length <= 15 && norm.length >= 1;
       const isValid = isFilled && r1 && r2 && r3;
       let errorMessage: string | undefined;
-      if (isFilled && !r1) errorMessage = "أرقام ورمز / فقط بحد أقصى 15 خانة";
-      else if (isFilled && !r2) errorMessage = "يجب أن يحتوي على رقم واحد على الأقل";
+      if (isFilled && !r1) errorMessage = m("أرقام ورمز / فقط بحد أقصى 15 خانة", "Digits and / only (max 15 chars)");
+      else if (isFilled && !r2) errorMessage = m("يجب أن يحتوي على رقم واحد على الأقل", "Must contain at least one digit");
 
       const detailHeader = !isFilled
-        ? "رقم الترخيص: بانتظار الإدخال"
+        ? m("رقم الترخيص: بانتظار الإدخال", "License No.: Waiting for input")
         : isValid
-        ? `رقم الترخيص: صيغة معتمدة (${formatArabicCount(norm.length, "خانة")})`
-        : `رقم الترخيص: أدخلت ${formatArabicCount(norm.length, "خانة")}`;
+        ? m(`رقم الترخيص: صيغة معتمدة (${formatArabicCount(norm.length, "خانة")})`, `License No.: Valid (${norm.length} chars)`)
+        : m(`رقم الترخيص: أدخلت ${formatArabicCount(norm.length, "خانة")}`, `License No.: Entered ${norm.length} chars`);
 
       return {
         name: "licenseNumber",
-        title: "رقم الترخيص العدلي",
-        shortTitle: "رقم الترخيص",
+        title: m("رقم الترخيص العدلي", "Legal License Number"),
+        shortTitle: m("رقم الترخيص", "License No."),
         detailHeader,
         iconName: "Scale",
         isFilled,
         isValid,
         errorMessage,
         rules: [
-          { id: "char", label: "أرقام ورمز / فقط", isValid: isFilled && r1 },
-          { id: "digit", label: "يحتوي على رقم واحد على الأقل", isValid: isFilled && r2 },
-          { id: "len", label: "بحد أقصى 15 خانة", isValid: isFilled && r3 },
+          { id: "char", label: m("أرقام ورمز / فقط", "Digits and / only"), isValid: isFilled && r1 },
+          { id: "digit", label: m("يحتوي على رقم واحد على الأقل", "Contains at least one digit"), isValid: isFilled && r2 },
+          { id: "len", label: m("بحد أقصى 15 خانة", "Max 15 characters"), isValid: isFilled && r3 },
         ],
       };
     }
@@ -420,32 +431,34 @@ export function evaluateFieldRules(
       const noSpacesOrSymbols = !/\s/.test(raw) && !/[^\d\u0660-\u0669]/.test(raw);
       const isValid = isFilled && isDigitsOnly && isExact15;
       let errorMessage: string | undefined;
-      if (isFilled && !isDigitsOnly) errorMessage = "أرقام فقط بدون حروف أو رموز";
-      else if (isFilled && norm.length !== 15) errorMessage = `15 رقماً بالضبط (المكتوب: ${norm.length})`;
+      if (isFilled && !isDigitsOnly) errorMessage = m("أرقام فقط بدون حروف أو رموز", "Digits only, no letters or symbols");
+      else if (isFilled && norm.length !== 15) errorMessage = m(`15 رقماً بالضبط (المكتوب: ${norm.length})`, `Exactly 15 digits (entered: ${norm.length})`);
 
       const detailHeader = !isFilled
-        ? "الرقم الضريبي: بانتظار الإدخال"
+        ? m("الرقم الضريبي: بانتظار الإدخال", "Tax No.: Waiting for input")
         : isValid
-        ? "الرقم الضريبي: مكتمل (15 رقمًا)"
-        : `الرقم الضريبي: أدخلت ${formatArabicCount(norm.length, "رقم")}`;
+        ? m("الرقم الضريبي: مكتمل (15 رقمًا)", "Tax No.: Complete (15 digits)")
+        : m(`الرقم الضريبي: أدخلت ${formatArabicCount(norm.length, "رقم")}`, `Tax No.: Entered ${norm.length} digits`);
 
       return {
         name: "taxNumber",
-        title: "الرقم الضريبي للمنشأة",
-        shortTitle: "الرقم الضريبي",
+        title: m("الرقم الضريبي للمنشأة", "Entity Tax Number"),
+        shortTitle: m("الرقم الضريبي", "Tax Number"),
         detailHeader,
         iconName: "Hash",
         isFilled,
         isValid,
         errorMessage,
         rules: [
-          { id: "digits", label: "أرقام فقط", isValid: isFilled && isDigitsOnly },
+          { id: "digits", label: m("أرقام فقط", "Digits only"), isValid: isFilled && isDigitsOnly },
           {
             id: "len",
-            label: `يجب أن تتكوّن من 15 رقمًا بالضبط${formatArabicDiff(15, norm.length, "رقم")}`,
+            label: isEn
+              ? `Must be exactly 15 digits${norm.length < 15 ? ` (${15 - norm.length} left)` : norm.length > 15 ? ` (${norm.length - 15} extra)` : ""}`
+              : `يجب أن تتكوّن من 15 رقمًا بالضبط${formatArabicDiff(15, norm.length, "رقم")}`,
             isValid: isFilled && isExact15,
           },
-          { id: "no_symbols", label: "بدون مسافات أو رموز", isValid: isFilled && noSpacesOrSymbols },
+          { id: "no_symbols", label: m("بدون مسافات أو رموز", "No spaces or symbols"), isValid: isFilled && noSpacesOrSymbols },
         ],
       };
     }
@@ -474,30 +487,30 @@ export function evaluateFieldRules(
       }
       const isValid = isFilled && noSpaces && maxLen && localValid && domainValid;
       let errorMessage: string | undefined;
-      if (isFilled && !noSpaces) errorMessage = "البريد الإلكتروني لا يمكن أن يحتوي على مسافات";
-      else if (isFilled && !raw.includes("@")) errorMessage = "صيغة غير مكتملة (ناقص @)";
-      else if (isFilled && !localValid) errorMessage = "اسم المستخدم قبل @ غير صالح (بين 1 و 64 حرفاً)";
-      else if (isFilled && !domainValid) errorMessage = "امتداد الدومين يجب أن يكون بحرفين أو أكثر بنقطة صحيحة";
+      if (isFilled && !noSpaces) errorMessage = m("البريد الإلكتروني لا يمكن أن يحتوي على مسافات", "Email cannot contain spaces");
+      else if (isFilled && !raw.includes("@")) errorMessage = m("صيغة غير مكتملة (ناقص @)", "Incomplete format (missing @)");
+      else if (isFilled && !localValid) errorMessage = m("اسم المستخدم قبل @ غير صالح (بين 1 و 64 حرفاً)", "Invalid username before @ (1 to 64 chars)");
+      else if (isFilled && !domainValid) errorMessage = m("امتداد الدومين يجب أن يكون بحرفين أو أكثر بنقطة صحيحة", "Domain extension must be 2+ letters with a dot");
 
       const detailHeader = !isFilled
-        ? "البريد الإلكتروني: بانتظار الإدخال"
+        ? m("البريد الإلكتروني: بانتظار الإدخال", "Email: Waiting for input")
         : isValid
-        ? "البريد الإلكتروني: بريد رسمي معتمد"
-        : "البريد الإلكتروني: صيغة غير مكتملة";
+        ? m("البريد الإلكتروني: بريد رسمي معتمد", "Email: Verified format")
+        : m("البريد الإلكتروني: صيغة غير مكتملة", "Email: Incomplete format");
 
       return {
         name: "email",
-        title: "البريد الإلكتروني الرسمي",
-        shortTitle: "البريد الإلكتروني",
+        title: m("البريد الإلكتروني الرسمي", "Official Email"),
+        shortTitle: m("البريد الإلكتروني", "Email"),
         detailHeader,
         iconName: "Mail",
         isFilled,
         isValid,
         errorMessage,
         rules: [
-          { id: "at", label: "صيغة بريد صحيحة تحتوي على @", isValid: isFilled && raw.includes("@") && localValid },
-          { id: "domain", label: "دومين مع امتداد بحرفين أو أكثر", isValid: isFilled && domainValid },
-          { id: "no_spaces", label: "بدون مسافات", isValid: isFilled && noSpaces },
+          { id: "at", label: m("صيغة بريد صحيحة تحتوي على @", "Valid email containing @"), isValid: isFilled && raw.includes("@") && localValid },
+          { id: "domain", label: m("دومين مع امتداد بحرفين أو أكثر", "Domain with 2+ letter extension"), isValid: isFilled && domainValid },
+          { id: "no_spaces", label: m("بدون مسافات", "No spaces"), isValid: isFilled && noSpaces },
         ],
       };
     }
@@ -512,32 +525,34 @@ export function evaluateFieldRules(
       const noSpacesOrSymbols = !/[^\d\u0660-\u0669\s+]/.test(raw);
       const isValid = isFilled && starts05 && isExact10;
       let errorMessage: string | undefined;
-      if (isFilled && !starts05) errorMessage = "رقم الجوال يجب أن يبدأ بـ 05";
-      else if (isFilled && normDigits.length !== 10) errorMessage = `10 أرقام بالضبط (المكتوب: ${normDigits.length})`;
+      if (isFilled && !starts05) errorMessage = m("رقم الجوال يجب أن يبدأ بـ 05", "Mobile number must start with 05");
+      else if (isFilled && normDigits.length !== 10) errorMessage = m(`10 أرقام بالضبط (المكتوب: ${normDigits.length})`, `Exactly 10 digits (entered: ${normDigits.length})`);
 
       const detailHeader = !isFilled
-        ? "رقم الجوال: بانتظار الإدخال"
+        ? m("رقم الجوال: بانتظار الإدخال", "Mobile: Waiting for input")
         : isValid
-        ? "رقم الجوال: رقم جوال معتمد"
-        : `رقم الجوال: أدخلت ${formatArabicCount(normDigits.length, "رقم")}`;
+        ? m("رقم الجوال: رقم جوال معتمد", "Mobile: Valid number")
+        : m(`رقم الجوال: أدخلت ${formatArabicCount(normDigits.length, "رقم")}`, `Mobile: Entered ${normDigits.length} digits`);
 
       return {
         name: "phone",
-        title: "رقم الجوال للتواصل",
-        shortTitle: "رقم الجوال",
+        title: m("رقم الجوال للتواصل", "Contact Mobile Number"),
+        shortTitle: m("رقم الجوال", "Mobile"),
         detailHeader,
         iconName: "Phone",
         isFilled,
         isValid,
         errorMessage,
         rules: [
-          { id: "prefix", label: "يبدأ بـ 05", isValid: isFilled && starts05 },
+          { id: "prefix", label: m("يبدأ بـ 05", "Starts with 05"), isValid: isFilled && starts05 },
           {
             id: "len",
-            label: `يجب أن يتكوّن من 10 أرقام بالضبط${formatArabicDiff(10, normDigits.length, "رقم")}`,
+            label: isEn
+              ? `Must be exactly 10 digits${normDigits.length < 10 ? ` (${10 - normDigits.length} left)` : normDigits.length > 10 ? ` (${normDigits.length - 10} extra)` : ""}`
+              : `يجب أن يتكوّن من 10 أرقام بالضبط${formatArabicDiff(10, normDigits.length, "رقم")}`,
             isValid: isFilled && isExact10,
           },
-          { id: "no_symbols", label: "أرقام فقط بدون رموز خاصة", isValid: isFilled && noSpacesOrSymbols },
+          { id: "no_symbols", label: m("أرقام فقط بدون رموز خاصة", "Digits only, no symbols"), isValid: isFilled && noSpacesOrSymbols },
         ],
       };
     }
@@ -548,34 +563,38 @@ export function evaluateFieldRules(
       const noSpacesOrSymbols = !/\s/.test(raw) && !/[^\d\u0660-\u0669]/.test(raw);
       const isValid = isFilled && startsCode && isCorrectLength;
       let errorMessage: string | undefined;
-      if (isFilled && !startsCode) errorMessage = "يجب أن يبدأ برمز منطقة سعودي (011، 012، 013، 014، 016، 017)";
-      else if (isFilled && !isCorrectLength) errorMessage = `9 أو 10 أرقام (المكتوب: ${norm.length})`;
+      if (isFilled && !startsCode) errorMessage = m("يجب أن يبدأ برمز منطقة سعودي (011، 012، 013، 014، 016، 017)", "Must start with Saudi area code (011, 012, 013, 014, 016, 017)");
+      else if (isFilled && !isCorrectLength) errorMessage = m(`9 أو 10 أرقام (المكتوب: ${norm.length})`, `9 or 10 digits (entered: ${norm.length})`);
 
       const detailHeader = !isFilled
-        ? "الهاتف المكتبي: بانتظار الإدخال"
+        ? m("الهاتف المكتبي: بانتظار الإدخال", "Landline: Waiting for input")
         : isValid
-        ? `الهاتف المكتبي: هاتف مكتبي معتمد (${norm.length} أرقام)`
-        : `الهاتف المكتبي: أدخلت ${formatArabicCount(norm.length, "رقم")}`;
+        ? m(`الهاتف المكتبي: هاتف مكتبي معتمد (${norm.length} أرقام)`, `Landline: Valid (${norm.length} digits)`)
+        : m(`الهاتف المكتبي: أدخلت ${formatArabicCount(norm.length, "رقم")}`, `Landline: Entered ${norm.length} digits`);
 
       return {
         name: "landline",
-        title: "الهاتف المكتبي المباشر",
-        shortTitle: "الهاتف المكتبي",
+        title: m("الهاتف المكتبي المباشر", "Direct Office Landline"),
+        shortTitle: m("الهاتف المكتبي", "Landline"),
         detailHeader,
         iconName: "PhoneCall",
         isFilled,
         isValid,
         errorMessage,
         rules: [
-          { id: "code", label: "يبدأ برمز منطقة سعودي (011، 012، 013، ...)", isValid: isFilled && startsCode },
+          { id: "code", label: m("يبدأ برمز منطقة سعودي (011، 012، 013، ...)", "Starts with Saudi area code (011, 012, ...)"), isValid: isFilled && startsCode },
           {
             id: "len",
-            label: isCorrectLength
+            label: isEn
+              ? isCorrectLength
+                ? `${norm.length} digits (valid)`
+                : `Must be 9 or 10 digits`
+              : isCorrectLength
               ? `يتكوّن من ${norm.length} أرقام (مكتمل)`
               : `يجب أن يتكوّن من 9 أو 10 أرقام${norm.length < 9 ? formatArabicDiff(9, norm.length, "رقم") : formatArabicDiff(10, norm.length, "رقم")}`,
             isValid: isFilled && isCorrectLength,
           },
-          { id: "no_symbols", label: "أرقام فقط بدون مسافات أو رموز", isValid: isFilled && noSpacesOrSymbols },
+          { id: "no_symbols", label: m("أرقام فقط بدون مسافات أو رموز", "Digits only, no spaces or symbols"), isValid: isFilled && noSpacesOrSymbols },
         ],
       };
     }
@@ -584,27 +603,28 @@ export function evaluateFieldRules(
       const cleanCity = raw.replace("المملكة العربية السعودية - ", "").trim();
       const inList = SAUDI_CITIES.includes(cleanCity);
       const isValid = isFilled && inList;
+      const displayCity = getLocalizedCityName(cleanCity, isEn);
       let errorMessage: string | undefined;
-      if (isFilled && !inList) errorMessage = "يرجى اختيار مدينة صحيحة من القائمة";
+      if (isFilled && !inList) errorMessage = m("يرجى اختيار مدينة صحيحة من القائمة", "Please select a valid city from the list");
 
       const detailHeader = !isFilled
-        ? "المدينة: بانتظار الاختيار"
+        ? m("المدينة: بانتظار الاختيار", "City: Waiting for selection")
         : isValid
-        ? `المدينة: تم اختيار ${cleanCity}`
-        : "المدينة: مدينة غير مدرجة";
+        ? m(`المدينة: تم اختيار ${displayCity}`, `City: Selected ${displayCity}`)
+        : m("المدينة: مدينة غير مدرجة", "City: Unlisted city");
 
       return {
         name: "city",
-        title: "المدينة / المقر الرئيسي",
-        shortTitle: "المدينة",
+        title: m("المدينة / المقر الرئيسي", "City / Headquarters"),
+        shortTitle: m("المدينة", "City"),
         detailHeader,
         iconName: "MapPin",
         isFilled,
         isValid,
         errorMessage,
         rules: [
-          { id: "select", label: "اختيار مدينة معتمدة من القائمة", isValid: isFilled && inList },
-          { id: "saudi", label: "تابعة لمناطق ومحافظات المملكة العربية السعودية", isValid: isFilled && inList },
+          { id: "select", label: m("اختيار مدينة معتمدة من القائمة", "Select a valid city from the list"), isValid: isFilled && inList },
+          { id: "saudi", label: m("تابعة لمناطق ومحافظات المملكة العربية السعودية", "Located in Saudi Arabia regions"), isValid: isFilled && inList },
         ],
       };
     }
@@ -615,19 +635,19 @@ export function evaluateFieldRules(
       const rLetter = CONTAINS_LETTER_REGEX.test(raw);
       const isValid = isFilled && rLen && rLetter;
       let errorMessage: string | undefined;
-      if (isFilled && !rLen) errorMessage = "العنوان يجب أن يكون من 5 إلى 30 حرفاً";
-      else if (isFilled && !rLetter) errorMessage = "يجب أن يحتوي على حرف واحد على الأقل (عربي أو إنجليزي)";
+      if (isFilled && !rLen) errorMessage = m("العنوان يجب أن يكون من 5 إلى 30 حرفاً", "Address must be between 5 and 30 characters");
+      else if (isFilled && !rLetter) errorMessage = m("يجب أن يحتوي على حرف واحد على الأقل (عربي أو إنجليزي)", "Must contain at least one letter");
 
       const detailHeader = !isFilled
-        ? "العنوان: بانتظار الإدخال"
+        ? m("العنوان: بانتظار الإدخال", "Address: Waiting for input")
         : isValid
-        ? `العنوان: مقر موثق (${formatArabicCount(len, "حرف")})`
-        : `العنوان: أدخلت ${formatArabicCount(len, "حرف")}`;
+        ? m(`العنوان: مقر موثق (${formatArabicCount(len, "حرف")})`, `Address: Valid (${len} chars)`)
+        : m(`العنوان: أدخلت ${formatArabicCount(len, "حرف")}`, `Address: Entered ${len} chars`);
 
       return {
         name: "address",
-        title: "العنوان الوطني ومقر المكتب",
-        shortTitle: "العنوان",
+        title: m("العنوان الوطني ومقر المكتب", "National Address"),
+        shortTitle: m("العنوان", "Address"),
         detailHeader,
         iconName: "MapPin",
         isFilled,
@@ -636,11 +656,13 @@ export function evaluateFieldRules(
         rules: [
           {
             id: "len",
-            label: `يجب أن يكون من 5 إلى 30 حرفًا${len < 5 ? formatArabicDiff(5, len, "حرف") : len > 30 ? formatArabicDiff(30, len, "حرف") : ""}`,
+            label: isEn
+              ? `Must be 5 to 30 characters${len < 5 ? ` (${5 - len} left)` : len > 30 ? ` (${len - 30} extra)` : ""}`
+              : `يجب أن يكون من 5 إلى 30 حرفًا${len < 5 ? formatArabicDiff(5, len, "حرف") : len > 30 ? formatArabicDiff(30, len, "حرف") : ""}`,
             isValid: isFilled && rLen,
           },
-          { id: "letter", label: "يحتوي على حرف واحد على الأقل", isValid: isFilled && rLetter },
-          { id: "desc", label: "وصف دقيق للمقر أو العنوان الوطني", isValid: isFilled && rLen && rLetter },
+          { id: "letter", label: m("يحتوي على حرف واحد على الأقل", "Contains at least one letter"), isValid: isFilled && rLetter },
+          { id: "desc", label: m("وصف دقيق للمقر أو العنوان الوطني", "Clear office location description"), isValid: isFilled && rLen && rLetter },
         ],
       };
     }
@@ -653,29 +675,29 @@ export function evaluateFieldRules(
       const rSymbol = CONTAINS_SYMBOL_REGEX.test(raw);
       const isValid = isFilled && noSpaces && rLen && rLetter && rDigit && rSymbol;
       let errorMessage: string | undefined;
-      if (isFilled && !noSpaces) errorMessage = "لا يسمح بوجود مسافات في كلمة المرور";
-      else if (isFilled && !rLen) errorMessage = `بين 9 و 20 خانة (المكتوب: ${raw.length})`;
-      else if (isFilled && (!rLetter || !rDigit || !rSymbol)) errorMessage = "يجب أن تتضمن حرفاً ورقماً ورمزاً خاصاً";
+      if (isFilled && !noSpaces) errorMessage = m("لا يسمح بوجود مسافات في كلمة المرور", "Spaces are not allowed in password");
+      else if (isFilled && !rLen) errorMessage = m(`بين 9 و 20 خانة (المكتوب: ${raw.length})`, `Between 9 and 20 chars (entered: ${raw.length})`);
+      else if (isFilled && (!rLetter || !rDigit || !rSymbol)) errorMessage = m("يجب أن تتضمن حرفاً ورقماً ورمزاً خاصاً", "Must include a letter, digit, and special symbol");
 
       const detailHeader = !isFilled
-        ? "كلمة المرور: بانتظار الإدخال"
+        ? m("كلمة المرور: بانتظار الإدخال", "Password: Waiting for input")
         : isValid
-        ? "كلمة المرور: كلمة مرور قوية وآمنة"
-        : "كلمة المرور: متطلبات الأمان غير مكتملة";
+        ? m("كلمة المرور: كلمة مرور قوية وآمنة", "Password: Strong & secure")
+        : m("كلمة المرور: متطلبات الأمان غير مكتملة", "Password: Security rules incomplete");
 
       return {
         name: "password",
-        title: "كلمة المرور الأولية",
-        shortTitle: "كلمة المرور",
+        title: m("كلمة المرور الأولية", "Initial Password"),
+        shortTitle: m("كلمة المرور", "Password"),
         detailHeader,
         iconName: "Hash",
         isFilled,
         isValid,
         errorMessage,
         rules: [
-          { id: "len", label: "من 9 إلى 20 خانة بدون مسافات", isValid: isFilled && noSpaces && rLen },
-          { id: "char_digit", label: "تحتوي على حروف وأرقام", isValid: isFilled && rLetter && rDigit },
-          { id: "symbol", label: "تحتوي على رمز خاص واحد على الأقل (@$!%*?&)", isValid: isFilled && rSymbol },
+          { id: "len", label: m("من 9 إلى 20 خانة بدون مسافات", "9 to 20 chars without spaces"), isValid: isFilled && noSpaces && rLen },
+          { id: "char_digit", label: m("تحتوي على حروف وأرقام", "Contains letters and digits"), isValid: isFilled && rLetter && rDigit },
+          { id: "symbol", label: m("تحتوي على رمز خاص واحد على الأقل (@$!%*?&)", "Contains at least one special symbol (@$!%*?&)"), isValid: isFilled && rSymbol },
         ],
       };
     }
@@ -686,27 +708,27 @@ export function evaluateFieldRules(
       const rChars = OFFICE_ID_REGEX.test(raw.trim());
       const isValid = isFilled && rLen && rChars;
       let errorMessage: string | undefined;
-      if (isFilled && !rLen) errorMessage = "يجب أن يكون معرّف المكتب من 3 إلى 40 خانة";
-      else if (isFilled && !rChars) errorMessage = "حروف إنجليزية وأرقام وشرطة (-) فقط بدون مسافات";
+      if (isFilled && !rLen) errorMessage = m("يجب أن يكون معرّف المكتب من 3 إلى 40 خانة", "Office ID must be 3 to 40 chars");
+      else if (isFilled && !rChars) errorMessage = m("حروف إنجليزية وأرقام وشرطة (-) فقط بدون مسافات", "English letters, digits, and hyphen (-) only");
 
       const detailHeader = !isFilled
-        ? "معرّف المكتب: بانتظار الإدخال"
+        ? m("معرّف المكتب: بانتظار الإدخال", "Office ID: Waiting for input")
         : isValid
-        ? `معرّف المكتب: مكتمل (${formatArabicCount(len, "خانة")})`
-        : `معرّف المكتب: أدخلت ${formatArabicCount(len, "خانة")}`;
+        ? m(`معرّف المكتب: مكتمل (${formatArabicCount(len, "خانة")})`, `Office ID: Valid (${len} chars)`)
+        : m(`معرّف المكتب: أدخلت ${formatArabicCount(len, "خانة")}`, `Office ID: Entered ${len} chars`);
 
       return {
         name: "officeId",
-        title: "معرّف المكتب الفريد (Office ID / Slug)",
-        shortTitle: "المعرّف",
+        title: m("معرّف المكتب الفريد (Office ID / Slug)", "Unique Office ID / Slug"),
+        shortTitle: m("المعرّف", "ID"),
         detailHeader,
         iconName: "Hash",
         isFilled,
         isValid,
         errorMessage,
         rules: [
-          { id: "len", label: "الطول بين 3 و 40 خانة", isValid: isFilled && rLen },
-          { id: "chars", label: "حروف إنجليزية وأرقام وشرطة (-) فقط", isValid: isFilled && rChars },
+          { id: "len", label: m("الطول بين 3 و 40 خانة", "Length 3 to 40 chars"), isValid: isFilled && rLen },
+          { id: "chars", label: m("حروف إنجليزية وأرقام وشرطة (-) فقط", "English letters, digits, and hyphen (-) only"), isValid: isFilled && rChars },
         ],
       };
     }
@@ -716,15 +738,15 @@ export function evaluateFieldRules(
       const isValid = !raw || HEX_COLOR_REGEX.test(raw.trim());
       return {
         name: fieldName,
-        title: fieldName === "primaryColor" ? "اللون الأساسي" : "اللون الثانوي",
-        shortTitle: fieldName === "primaryColor" ? "الأساسي" : "الثانوي",
-        detailHeader: isValid ? "كود لون معتمد" : "كود لون غير صالح",
+        title: fieldName === "primaryColor" ? m("اللون الأساسي", "Primary Color") : m("اللون الثانوي", "Secondary Color"),
+        shortTitle: fieldName === "primaryColor" ? m("الأساسي", "Primary") : m("الثانوي", "Secondary"),
+        detailHeader: isValid ? m("كود لون معتمد", "Valid color code") : m("كود لون غير صالح", "Invalid color code"),
         iconName: "Palette",
         isFilled,
         isValid,
-        errorMessage: isValid ? undefined : "كود Hex غير صالح (مثال: #9c6402)",
+        errorMessage: isValid ? undefined : m("كود Hex غير صالح (مثال: #9c6402)", "Invalid Hex code (e.g. #9c6402)"),
         rules: [
-          { id: "hex", label: "كود HEX صالح (#RGB أو #RRGGBB)", isValid },
+          { id: "hex", label: m("كود HEX صالح (#RGB أو #RRGGBB)", "Valid HEX code (#RGB or #RRGGBB)"), isValid },
         ],
       };
     }

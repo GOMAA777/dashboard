@@ -1,8 +1,10 @@
 "use client";
 
 import { issueFirmImpersonation, type LoginAsFirmResult } from "./impersonation";
+import { impersonateStaff } from "./staff";
 import { ApiError } from "./http";
 import { AUTH_BYPASS } from "./config";
+import { fetchUsersByCompany, type ApiUserItem } from "./users";
 import {
   buildImpersonationHandoffUrl,
   buildLawyerAuthSession,
@@ -45,6 +47,12 @@ export async function enterOfficeAsAdmin(
         ? office.id.replace(/^firm-/, "")
         : office.id;
 
+  let realOwnerUser: ApiUserItem | undefined = undefined;
+  try {
+    const firmUsers = await fetchUsersByCompany(targetFirmId);
+    realOwnerUser = firmUsers.find((u) => u.role === "owner" || u.role === "admin") || firmUsers[0];
+  } catch {}
+
   let issued: LoginAsFirmResult | null = null;
   try {
     issued = await issueFirmImpersonation(targetFirmId);
@@ -52,37 +60,78 @@ export async function enterOfficeAsAdmin(
     const is401 = err instanceof ApiError && err.status === 401;
     const isServer500OrMissingModel =
       err instanceof ApiError &&
-      (err.status >= 500 || String(err.message || "").includes("SaasImpersonationLog"));
+      (err.status >= 500 ||
+        err.status === 0 ||
+        String(err.message || "").includes("SaasImpersonationLog"));
+    const isNetworkOrFetchError =
+      err instanceof TypeError ||
+      (err instanceof ApiError && err.status === 0) ||
+      (err instanceof Error &&
+        (err.message.includes("fetch") ||
+          err.message.includes("Network") ||
+          err.message.includes("الاتصال")));
 
-    // If backend crashes with 500 (such as missing SaasImpersonationLog model) or bypass is allowed,
-    // construct a fallback impersonation session so the admin user is not blocked.
-    if (!is401 && (isServer500OrMissingModel || AUTH_BYPASS)) {
-      console.warn(
-        "issueFirmImpersonation failed on server, using resilient impersonation session:",
-        err
-      );
-      issued = {
-        token: `bypass-firm-token-${targetFirmId}`,
-        user: {
-          id: `owner-${targetFirmId}`,
-          full_name: ownerName,
-          email: office.email || `firm-${targetFirmId}@aljudy.sa`,
-          phone: office.phone || "",
-          role: "owner",
-          company_id: targetFirmId,
-        },
-        firm: {
-          id: targetFirmId,
-          name: firmName,
-        },
-        previewBanner: {
-          active: true,
-          message: `أنت الآن في وضع المعاينة الإشرافية لمكتب: ${firmName}`,
-        },
-        raw: {},
-      };
-    } else {
-      throw err;
+    // If login-as-firm failed, attempt real staff impersonation if we resolved a user
+    if (realOwnerUser?.id && !is401) {
+      try {
+        const staffRes = (await impersonateStaff(realOwnerUser.id)) as Record<string, unknown>;
+        const staffData = (staffRes?.data as Record<string, unknown> | undefined) || staffRes;
+        const staffToken = (staffData?.token || staffRes?.token) as string | undefined;
+        if (staffToken) {
+          issued = {
+            token: staffToken,
+            user: (staffData?.user as Record<string, unknown> | undefined) || {
+              id: realOwnerUser.id,
+              full_name: realOwnerUser.full_name,
+              email: realOwnerUser.email,
+              phone: realOwnerUser.phone,
+              role: realOwnerUser.role,
+              company_id: targetFirmId,
+            },
+            firm: { id: targetFirmId, name: firmName },
+            previewBanner: {
+              active: true,
+              message: `أنت الآن في وضع المعاينة الإشرافية لمكتب: ${firmName}`,
+            },
+            raw: staffRes,
+          };
+        }
+      } catch (staffErr) {
+        console.warn("impersonateStaff fallback also failed:", staffErr);
+      }
+    }
+
+    // If backend crashes with 500 or missing model and staff impersonate couldn't issue token,
+    // construct fallback session so super admin can still inspect office.
+    if (!issued) {
+      if (!is401 && (isServer500OrMissingModel || isNetworkOrFetchError || AUTH_BYPASS)) {
+        console.warn(
+          "issueFirmImpersonation failed on server, using resilient impersonation session:",
+          err
+        );
+        issued = {
+          token: `bypass-firm-token-${targetFirmId}`,
+          user: {
+            id: realOwnerUser?.id ?? targetFirmId,
+            full_name: realOwnerUser?.full_name || ownerName,
+            email: realOwnerUser?.email || office.email || `firm-${targetFirmId}@aljudy.sa`,
+            phone: realOwnerUser?.phone || office.phone || "",
+            role: realOwnerUser?.role || "owner",
+            company_id: targetFirmId,
+          },
+          firm: {
+            id: targetFirmId,
+            name: firmName,
+          },
+          previewBanner: {
+            active: true,
+            message: `أنت الآن في وضع المعاينة الإشرافية لمكتب: ${firmName}`,
+          },
+          raw: {},
+        };
+      } else {
+        throw err;
+      }
     }
   }
 
@@ -94,6 +143,19 @@ export async function enterOfficeAsAdmin(
 
   if (!session?.token) {
     throw new Error("لم يُرجع الخادم رمز دخول مصرح للمكتب");
+  }
+
+  if (realOwnerUser && (!session.id || session.id === "0" || String(session.id).startsWith("owner-"))) {
+    session.id = realOwnerUser.id;
+    if (!session.name || session.name === "مكتب") {
+      session.name = realOwnerUser.full_name;
+    }
+    if (!session.email) {
+      session.email = realOwnerUser.email;
+    }
+    if (!session.phone) {
+      session.phone = realOwnerUser.phone;
+    }
   }
 
   if (!session.firm_name || session.firm_name === "مكتب") {
@@ -119,10 +181,12 @@ export async function enterOfficeAsAdmin(
     session.office_id = office.officeId;
   }
 
-  try {
-    session = await enrichLawyerSessionFromMe(session);
-  } catch {
-    /* keep built session */
+  if (session.token && !session.token.startsWith("bypass-")) {
+    try {
+      session = await enrichLawyerSessionFromMe(session);
+    } catch {
+      /* keep built session */
+    }
   }
 
   stashLawyerHandoffSession(session);

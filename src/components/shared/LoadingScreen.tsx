@@ -12,7 +12,7 @@ interface LoadingScreenProps {
  * Full-viewport branded loading — reuses the unified PageLoadingPanel.
  */
 export function LoadingScreen({
-  statusText = "توثيق مساحة العمل والبيانات...",
+  statusText,
 }: LoadingScreenProps) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#fcfbfa] dark:bg-[#150f0b] select-none overflow-hidden">

@@ -86,7 +86,6 @@ export function TicketsView() {
   // Filter state for tickets
   const [filterStatus, setFilterStatus] = useState<TicketFilterStatus>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [forceEmptyState, setForceEmptyState] = useState(false);
 
   // Modals state
   const [assigneeModalTicket, setAssigneeModalTicket] = useState<Ticket | null>(null);
@@ -166,7 +165,7 @@ export function TicketsView() {
         }
       }
     } catch (err) {
-      console.error("Failed to load tickets:", err);
+      console.warn("Failed to load tickets:", err);
       setError(
         isEn
           ? "Failed to load support tickets. Please verify your connection."
@@ -200,8 +199,6 @@ export function TicketsView() {
 
   // Filtered tickets
   const filteredTickets = useMemo(() => {
-    if (forceEmptyState) return [];
-
     return tickets.filter((ticket) => {
       // Status filter
       if (filterStatus === "open" && ticket.status !== "open") return false;
@@ -221,7 +218,7 @@ export function TicketsView() {
 
       return true;
     });
-  }, [tickets, filterStatus, searchQuery, forceEmptyState]);
+  }, [tickets, filterStatus, searchQuery]);
 
   // Handlers: Tickets
   const handleSaveNewTicket = async (
@@ -593,7 +590,6 @@ export function TicketsView() {
                   inProgressCount={counts.in_progress}
                   pendingCount={counts.pending}
                   closedCount={counts.closed}
-                  isEmpty={forceEmptyState}
                 />
 
                 {/* Search & Filter Bar */}
@@ -603,19 +599,15 @@ export function TicketsView() {
                   searchQuery={searchQuery}
                   onSearchChange={setSearchQuery}
                   counts={counts}
-                  isEmptyToggle={forceEmptyState}
-                  onToggleEmptyState={() => setForceEmptyState(!forceEmptyState)}
                 />
 
                 {/* Data Table OR Empty State Canvas */}
                 {filteredTickets.length === 0 ? (
                   <TicketsEmptyState
                     onCreateTicket={() => {
-                      setForceEmptyState(false);
                       setIsCreatingTicket(true);
                     }}
                     onResetFilter={() => {
-                      setForceEmptyState(false);
                       setFilterStatus("all");
                       setSearchQuery("");
                     }}

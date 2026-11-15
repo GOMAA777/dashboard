@@ -1,93 +1,125 @@
-import { type LoginInput } from "../schemas/login.schema";
+import { loginSchema, type LoginInput } from "../schemas/login.schema";
 import { loginAdmin } from "@/lib/api/auth";
-import { AUTH_BYPASS } from "@/lib/api/config";
-import { setAuthSession } from "@/lib/auth-client";
 import { ApiError } from "@/lib/api/http";
 
-/** Local demo token — http layer skips clearAuthSession on 401 for tokens containing "test". */
-const BYPASS_TOKEN = "bypass-test-token";
-
-function resolveLoginError(err: unknown): string {
-  if (err instanceof ApiError) {
-    if (err.status === 401 || err.status === 403) {
-      return err.message || "بيانات تسجيل الدخول أو كلمة المرور غير صحيحة";
-    }
-    if (err.status === 422) {
-      return err.message || "يرجى مراجعة بيانات الدخول المدخلة";
-    }
-    return err.message || "تعذر تسجيل الدخول. حاول مرة أخرى.";
-  }
-  if (err && typeof err === "object" && "message" in err) {
-    const message = String((err as { message: unknown }).message || "").trim();
-    if (message) return message;
-  }
-  return "تعذر تسجيل الدخول. تحقق من البيانات والمحاولة مرة أخرى.";
+export interface LoginActionResult {
+  data: {
+    success: boolean;
+    user?: {
+      id: string;
+      name: string;
+      email: string;
+      role: string;
+    };
+  } | null;
+  serverError: string | null;
+  fieldErrors?: Partial<Record<keyof LoginInput, string>>;
+  errorCode: "validation" | "invalid_credentials" | "forbidden" | "server" | null;
 }
 
-export async function loginAction(input: LoginInput) {
-  const identifier = input.identifier?.trim() || "";
-  const password = input.password || "";
-
-  if (!identifier || !password) {
+function resolveLoginError(err: unknown): {
+  message: string;
+  fieldErrors?: Partial<Record<keyof LoginInput, string>>;
+  code: "invalid_credentials" | "forbidden" | "validation" | "server";
+} {
+  if (err instanceof ApiError) {
+    if (err.status === 401) {
+      return {
+        message: err.message || "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+        code: "invalid_credentials",
+      };
+    }
+    if (err.status === 403) {
+      return {
+        message: err.message || "ليس لديك صلاحية الوصول إلى هذه اللوحة",
+        code: "forbidden",
+      };
+    }
+    if (err.status === 422) {
+      const fieldErrors: Partial<Record<keyof LoginInput, string>> = {};
+      const raw = err.raw as { errors?: Record<string, string[]> } | undefined;
+      if (raw?.errors) {
+        if (raw.errors.login?.[0] || raw.errors.email?.[0]) {
+          fieldErrors.identifier = raw.errors.login?.[0] || raw.errors.email?.[0];
+        }
+        if (raw.errors.password?.[0]) {
+          fieldErrors.password = raw.errors.password[0];
+        }
+      }
+      return {
+        message: err.message || "يرجى مراجعة بيانات الدخول المدخلة وتصحيحها",
+        fieldErrors,
+        code: "validation",
+      };
+    }
     return {
-      data: null,
-      serverError: "يرجى إدخال بيانات الدخول وكلمة المرور",
-      errorCode: "required" as const,
+      message: err.message || "تعذر تسجيل الدخول. تحقق من الاتصال والمحاولة مرة أخرى.",
+      code: "server",
     };
   }
 
-  // Always try the real API first so login-as-firm / دخول المكتب gets a Sanctum token.
+  if (err && typeof err === "object" && "message" in err) {
+    const message = String((err as { message: unknown }).message || "").trim();
+    if (message) {
+      return { message, code: "server" };
+    }
+  }
+
+  return {
+    message: "تعذر تسجيل الدخول. تحقق من صحة البيانات والمحاولة مرة أخرى.",
+    code: "server",
+  };
+}
+
+export async function loginAction(input: LoginInput): Promise<LoginActionResult> {
+  const parsed = loginSchema.safeParse(input);
+  if (!parsed.success) {
+    const fieldErrors: Partial<Record<keyof LoginInput, string>> = {};
+    parsed.error.issues.forEach((issue) => {
+      const field = issue.path[0] as keyof LoginInput;
+      if (field) {
+        fieldErrors[field] = issue.message;
+      }
+    });
+    return {
+      data: null,
+      serverError: "يرجى إدخال بريد إلكتروني صحيح وكلمة المرور",
+      fieldErrors,
+      errorCode: "validation",
+    };
+  }
+
+  const { identifier, password } = parsed.data;
+
   try {
     const loggedIn = await loginAdmin(identifier, password);
+    const user = loggedIn.user;
+
     return {
       data: {
         success: true,
         user: {
-          id: String(loggedIn.user?.id ?? "admin"),
+          id: String(user?.id ?? "admin"),
           name: String(
-            loggedIn.user?.name ||
-              (loggedIn.user as { full_name?: string } | null | undefined)
-                ?.full_name ||
+            user?.name ||
+              (user as { full_name?: string } | null | undefined)?.full_name ||
               "Admin"
           ),
-          email:
-            String(loggedIn.user?.email ?? "") ||
-            (identifier.includes("@")
-              ? identifier
-              : `${identifier}@aljudy.sa`),
-          role: String(loggedIn.user?.role ?? "admin"),
+          email: String(user?.email ?? identifier),
+          role: String(user?.role ?? "admin"),
         },
       },
       serverError: null,
+      fieldErrors: undefined,
       errorCode: null,
     };
   } catch (err: unknown) {
-    if (AUTH_BYPASS) {
-      const user = {
-        id: "bypass-admin",
-        name: identifier.includes("@") ? identifier.split("@")[0] : identifier,
-        email: identifier.includes("@") ? identifier : `${identifier}@aljudy.sa`,
-        role: "admin",
-      };
-      setAuthSession(BYPASS_TOKEN, user);
-      return {
-        data: {
-          success: true,
-          user,
-          bypass: true,
-        },
-        serverError: null,
-        errorCode: null,
-      };
-    }
-
-    const isAuthFailure =
-      err instanceof ApiError && (err.status === 401 || err.status === 403);
-
+    const resolved = resolveLoginError(err);
     return {
       data: null,
-      serverError: resolveLoginError(err),
-      errorCode: isAuthFailure ? ("invalid_credentials" as const) : ("server" as const),
+      serverError: resolved.message,
+      fieldErrors: resolved.fieldErrors,
+      errorCode: resolved.code,
     };
   }
 }

@@ -132,20 +132,20 @@ export function LuxuryAlertDialog({
           <div className="mt-4 p-3 rounded-2xl bg-[#faf8f4] dark:bg-[#281c15] border border-[#ded5c6]/70 dark:border-[#38271c] text-xs">
             {itemDetails.name && (
               <div className="flex items-center justify-between text-[#2c2825] dark:text-[#fdfbf7] font-bold">
-                <span>المشرف المستهدف:</span>
+                <span>{t("المشرف المستهدف:", "Target Admin:")}</span>
                 <span className="text-[#c29547]">{itemDetails.name}</span>
               </div>
             )}
             {itemDetails.email && (
               <div className="flex items-center justify-between text-[#8c8279] dark:text-[#9e968a] text-[11px] mt-1 font-mono">
-                <span>البريد الإلكتروني:</span>
+                <span>{t("البريد الإلكتروني:", "Email:")}</span>
                 <span>{itemDetails.email}</span>
               </div>
             )}
             {itemDetails.count !== undefined && itemDetails.count > 0 && (
               <div className="flex items-center justify-between text-[#2c2825] dark:text-[#fdfbf7] font-bold">
-                <span>عدد الحسابات المحددة:</span>
-                <span className="text-[#c29547] font-mono">{itemDetails.count} حسابات</span>
+                <span>{t("عدد الحسابات المحددة:", "Selected Accounts:")}</span>
+                <span className="text-[#c29547] font-mono">{itemDetails.count} {t("حسابات", "accounts")}</span>
               </div>
             )}
           </div>

@@ -25,6 +25,9 @@ import type {
 } from "@/features/website-settings/types/website-settings.types";
 import type { FirmListItem } from "./types";
 import { asBoolean, asNumber, asString, unwrapData, unwrapList } from "./helpers";
+import { DEFAULT_GOLDEN_LOGO_DATA_URL } from "./default-logo-base64";
+
+export const DEFAULT_OFFICE_LOGO = DEFAULT_GOLDEN_LOGO_DATA_URL;
 
 function statusBadge(status?: string) {
   const normalized = (status || "active").toLowerCase().trim();
@@ -56,6 +59,14 @@ function statusBadge(status?: string) {
 
 function subscriptionBadge(status?: string) {
   const normalized = (status || "active").toLowerCase();
+  if (normalized.includes("unlimited") || normalized.includes("غير محدود")) {
+    return {
+      label: "غير محدود",
+      type: "unlimited" as const,
+      bgClass: "bg-[#f5f3ef] dark:bg-[#281c15] border border-[#d8c29d] dark:border-[#5a4321]",
+      textClass: "text-[#9c6402] dark:text-[#e29d38]",
+    };
+  }
   if (normalized.includes("expir") || normalized.includes("منته")) {
     return {
       label: "منتهي",
@@ -103,11 +114,39 @@ function subscriptionBadge(status?: string) {
   };
 }
 
+export function isDummyLogo(url?: string | null): boolean {
+  if (!url) return true;
+  const str = String(url).trim().toLowerCase();
+  if (!str || str === "null" || str === "undefined") return true;
+  // Backend seeder / dummy placeholders (e.g. 1794312980_company_logo.png or default_logo)
+  if (
+    str.includes("company_logo.png") ||
+    str.includes("default_logo") ||
+    str.includes("placeholder")
+  ) {
+    return true;
+  }
+  return false;
+}
+
 export function normalizeLogoUrl(url?: string | null): string | undefined {
   if (!url) return undefined;
-  const str = String(url).trim();
+  let str = String(url).trim();
   if (!str || str === "null" || str === "undefined") return undefined;
-  // If already absolute or base64/blob, keep as is
+
+  // Filter out dummy/placeholder images
+  if (isDummyLogo(str)) return undefined;
+
+  // Fix Laravel cPanel public storage path:
+  // On this deployment, files uploaded to storage/firms are served directly via /storage/app/public/firms/
+  // while direct /storage/firms/ causes 403 Forbidden.
+  if (str.includes("/storage/firms/") && !str.includes("/storage/app/public/firms/")) {
+    str = str.replace("/storage/firms/", "/storage/app/public/firms/");
+  } else if (str.startsWith("storage/firms/")) {
+    str = str.replace("storage/firms/", "storage/app/public/firms/");
+  }
+
+  // If already absolute or base64/blob, return with storage path fixed
   if (
     str.startsWith("http://") ||
     str.startsWith("https://") ||
@@ -122,10 +161,27 @@ export function normalizeLogoUrl(url?: string | null): string | undefined {
   try {
     const origin = new URL(apiBase).origin;
     const cleanPath = str.startsWith("/") ? str : `/${str}`;
-    return `${origin}${cleanPath}`;
+    let full = `${origin}${cleanPath}`;
+    if (full.includes("/storage/firms/") && !full.includes("/storage/app/public/firms/")) {
+      full = full.replace("/storage/firms/", "/storage/app/public/firms/");
+    }
+    return full;
   } catch {
     return str;
   }
+}
+
+export function withCacheBust(
+  url?: string | null,
+  seed?: string | number
+): string | undefined {
+  if (!url) return undefined;
+  const str = String(url).trim();
+  if (!str || str === "null" || str === "undefined") return undefined;
+  if (str.startsWith("data:") || str.startsWith("blob:")) return str;
+  const separator = str.includes("?") ? "&" : "?";
+  const s = seed !== undefined && seed !== null && seed !== "" ? seed : Date.now();
+  return `${str}${separator}v=${s}`;
 }
 
 export function getLocalCustomLogo(id: string | number): string | undefined {
@@ -134,22 +190,58 @@ export function getLocalCustomLogo(id: string | number): string | undefined {
     const raw = localStorage.getItem("aljudy_firm_logos");
     if (!raw) return undefined;
     const parsed = JSON.parse(raw);
-    return normalizeLogoUrl(parsed[String(id)]) || undefined;
+    const entry = parsed[String(id)];
+    if (!entry) return undefined;
+    const val = typeof entry === "object" && entry !== null ? entry.url : entry;
+    if (!val || typeof val !== "string" || val.startsWith("blob:")) return undefined;
+    if (isDummyLogo(val)) {
+      delete parsed[String(id)];
+      localStorage.setItem("aljudy_firm_logos", JSON.stringify(parsed));
+      return undefined;
+    }
+    if (val.startsWith("data:image/")) return val;
+    return normalizeLogoUrl(val) || val;
   } catch {
     return undefined;
   }
 }
 
 export function saveLocalCustomLogo(id: string | number, logoUrl: string) {
-  if (typeof window === "undefined" || !id || !logoUrl) return;
+  if (
+    typeof window === "undefined" ||
+    !id ||
+    !logoUrl ||
+    logoUrl.startsWith("blob:") ||
+    isDummyLogo(logoUrl)
+  ) {
+    return;
+  }
   try {
     const raw = localStorage.getItem("aljudy_firm_logos");
     const parsed = raw ? JSON.parse(raw) : {};
-    parsed[String(id)] = logoUrl;
+    parsed[String(id)] = {
+      url: logoUrl,
+      updatedAt: Date.now(),
+    };
     localStorage.setItem("aljudy_firm_logos", JSON.stringify(parsed));
   } catch {
     // ignore
   }
+}
+
+export function resolveOfficeLogo(
+  serverLogo?: string | null,
+  officeId?: string | number
+): string {
+  if (serverLogo) {
+    const norm = normalizeLogoUrl(serverLogo);
+    if (norm) return norm;
+  }
+  if (officeId) {
+    const local = getLocalCustomLogo(officeId);
+    if (local) return local;
+  }
+  return DEFAULT_GOLDEN_LOGO_DATA_URL;
 }
 
 export function removeLocalCustomLogo(id: string | number) {
@@ -241,6 +333,43 @@ export function saveLocalCustomStatus(id: string | number, status: "active" | "t
   }
 }
 
+export interface LocalFirmPlanData {
+  plan?: string;
+  planId?: number;
+  planType?: string;
+  billingCycle?: string;
+}
+
+export function getLocalCustomFirmPlan(id: string | number): LocalFirmPlanData | undefined {
+  if (typeof window === "undefined" || !id) return undefined;
+  try {
+    const raw = localStorage.getItem("aljudy_firm_plans");
+    if (!raw) return undefined;
+    const parsed = JSON.parse(raw);
+    return parsed[String(id)];
+  } catch {
+    return undefined;
+  }
+}
+
+export function saveLocalCustomFirmPlan(id: string | number, planData: LocalFirmPlanData) {
+  if (typeof window === "undefined" || !id) return;
+  try {
+    const raw = localStorage.getItem("aljudy_firm_plans");
+    const parsed = raw ? JSON.parse(raw) : {};
+    parsed[String(id)] = {
+      ...(parsed[String(id)] || {}),
+      ...planData,
+    };
+    if (planData.planType === "unlimited" || planData.plan === "غير محدود") {
+      delete parsed[String(id)].planId;
+    }
+    localStorage.setItem("aljudy_firm_plans", JSON.stringify(parsed));
+  } catch {
+    // ignore
+  }
+}
+
 export function getLocalCustomNotes(id: string | number): OfficeInternalNote[] {
   if (typeof window === "undefined" || !id) return [];
   try {
@@ -307,6 +436,31 @@ export function saveLocalCustomSecondaryColor(id: string | number, color: string
     const parsed = raw ? JSON.parse(raw) : {};
     parsed[String(id)] = String(color);
     localStorage.setItem("aljudy_firm_secondary_colors", JSON.stringify(parsed));
+  } catch {
+    // ignore
+  }
+}
+
+export function getLocalCustomBackgroundColor(id: string | number): string | undefined {
+  if (typeof window === "undefined" || !id) return undefined;
+  try {
+    const raw = localStorage.getItem("aljudy_firm_bg_colors");
+    if (!raw) return undefined;
+    const parsed = JSON.parse(raw);
+    const val = parsed[String(id)];
+    return val ? String(val) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export function saveLocalCustomBackgroundColor(id: string | number, color: string) {
+  if (typeof window === "undefined" || !id || !color) return;
+  try {
+    const raw = localStorage.getItem("aljudy_firm_bg_colors");
+    const parsed = raw ? JSON.parse(raw) : {};
+    parsed[String(id)] = String(color);
+    localStorage.setItem("aljudy_firm_bg_colors", JSON.stringify(parsed));
   } catch {
     // ignore
   }
@@ -388,28 +542,89 @@ export function mapFirmToClientOffice(raw: unknown): ClientOffice {
   const name = String(firm.name || "مكتب محاماة");
   const initial = name.trim().charAt(0) || "م";
 
-  const isFirmTrial =
-    String(firm.subscription_plan || firm.plan_type || "").toLowerCase() === "trial" ||
-    String(firm.subscription_plan || firm.plan_type || "").toLowerCase() === "free_trial" ||
-    String(firm.status || "").toLowerCase() === "trial" ||
-    String(firm.plan_name || "").includes("تجرب");
+  const localPlanInfo =
+    getLocalCustomFirmPlan(id) ||
+    (firm.id ? getLocalCustomFirmPlan(String(firm.id)) : undefined) ||
+    (companyId ? getLocalCustomFirmPlan(String(companyId)) : undefined);
+  const rawPlan = (
+    firm.plan && typeof firm.plan === "object"
+      ? firm.plan
+      : Array.isArray(firm.subscriptions) &&
+        firm.subscriptions[0] &&
+        typeof (firm.subscriptions[0] as Record<string, unknown>).plan === "object"
+      ? (firm.subscriptions[0] as Record<string, unknown>).plan
+      : null
+  ) as Record<string, unknown> | null;
+  const rawPlanName = String(rawPlan?.name || firm.plan_name || "");
+  const rawPlanType = String(rawPlan?.type || firm.plan_type || firm.subscription_plan || "").toLowerCase();
+  const rawSubStatus = String(rawSub?.status || "").toLowerCase();
+  const isServerActivePaidSub =
+    rawSubStatus === "active" &&
+    (String(rawPlan?.type || "").toLowerCase() === "paid" || Number(rawSub?.amount || 0) > 0);
 
-  let planName = isFirmTrial ? "تجربة مجانية" : "الباقة الاحترافية";
-  if (!isFirmTrial && firm.plan && typeof firm.plan === "object" && "name" in (firm.plan as Record<string, unknown>)) {
-    planName = String((firm.plan as Record<string, unknown>).name);
-  } else if (!isFirmTrial && firm.plan_name) {
-    planName = String(firm.plan_name);
-  } else if (isFirmTrial) {
-    planName = "تجربة مجانية";
-  } else if (firm.subscription_plan || firm.plan_type) {
-    const sp = String(firm.subscription_plan || firm.plan_type).toLowerCase();
-    if (sp === "trial" || sp === "free_trial") planName = "تجربة مجانية";
-    else if (sp === "paid") planName = "باقة التميز العدلي";
-    else if (sp === "professional") planName = "الباقة الاحترافية";
-    else if (sp === "enterprise") planName = "باقة الشركات";
-    else if (sp === "basic") planName = "الباقة الأساسية";
-    else planName = String(firm.subscription_plan || firm.plan_type);
+  const isUnlimited =
+    localPlanInfo?.planType === "unlimited" ||
+    String(localPlanInfo?.plan || "").includes("غير محدود") ||
+    (!localPlanInfo?.planType && !localPlanInfo?.plan && (
+      rawPlanType === "unlimited" ||
+      rawSubStatus === "unlimited" ||
+      String(firm.subscription_plan || "").toLowerCase() === "unlimited" ||
+      String(firm.plan_type || "").toLowerCase() === "unlimited" ||
+      rawPlanName.includes("غير محدود")
+    ));
+
+  const isFirmTrial =
+    !isUnlimited &&
+    (localPlanInfo?.planType === "trial"
+      ? true
+      : localPlanInfo?.planType === "paid" || localPlanInfo?.planType === "unlimited"
+      ? false
+      : isServerActivePaidSub
+      ? false
+      : rawPlanType === "trial" ||
+        rawPlanType === "free_trial" ||
+        rawSubStatus === "trial" ||
+        String(firm.subscription_plan || "").toLowerCase() === "trial" ||
+        String(firm.plan_type || "").toLowerCase() === "trial" ||
+        String(firm.status || "").toLowerCase() === "trial" ||
+        rawPlanName.includes("تجرب"));
+
+  const isExplicitlyPaid = !isFirmTrial && !isUnlimited;
+
+  let planName = isUnlimited
+    ? "غير محدود"
+    : localPlanInfo?.plan
+    ? localPlanInfo.plan.replace(/\s*-\s*تجربة\s*مجانية/gi, "").replace(/\s*\(تجربة\s*مجانية\)/gi, "").trim()
+    : rawPlanName || (isFirmTrial ? "تجربة مجانية" : "الباقة المعتمدة");
+
+  if (!isUnlimited && !localPlanInfo?.plan) {
+    if (rawPlan?.name) {
+      planName = String(rawPlan.name).replace(/\s*-\s*تجربة\s*مجانية/gi, "").replace(/\s*\(تجربة\s*مجانية\)/gi, "").trim();
+    } else if (firm.plan_name) {
+      planName = String(firm.plan_name).replace(/\s*-\s*تجربة\s*مجانية/gi, "").replace(/\s*\(تجربة\s*مجانية\)/gi, "").trim();
+    } else if (firm.subscription_plan || firm.plan_type) {
+      const sp = String(firm.subscription_plan || firm.plan_type).toLowerCase();
+      if (sp === "unlimited") planName = "غير محدود";
+      else if (sp === "paid") planName = rawPlanName || "باقة التميز العدلي";
+      else if (sp === "professional") planName = "الباقة الاحترافية";
+      else if (sp === "enterprise") planName = "باقة الشركات";
+      else if (sp === "basic") planName = "الباقة الأساسية";
+      else if (sp !== "trial" && sp !== "free_trial") planName = String(firm.subscription_plan || firm.plan_type);
+    }
   }
+
+  const effectivePlanId =
+    isUnlimited
+      ? undefined
+      : localPlanInfo?.planId !== undefined
+      ? localPlanInfo.planId
+      : firm.plan_id
+      ? Number(firm.plan_id)
+      : rawPlan?.id
+      ? Number(rawPlan.id)
+      : undefined;
+
+  const effectivePlanType = isUnlimited ? "unlimited" : isFirmTrial ? "trial" : "paid";
 
   const rawLicense = firm.license_number ? String(firm.license_number) : "—";
   const licenseNumber =
@@ -445,9 +660,8 @@ export function mapFirmToClientOffice(raw: unknown): ClientOffice {
   const lawyersUsed = Number(usage.lawyers_used ?? 0);
   const lawyersLimit = Number(
     usage.lawyers_limit ??
-      (firm.plan && typeof firm.plan === "object"
-        ? (firm.plan as Record<string, unknown>).max_lawyers
-        : 0) ??
+      firm.effective_max_lawyers ??
+      rawPlan?.max_lawyers ??
       0
   );
   const lawyersPercent = Number(
@@ -458,9 +672,8 @@ export function mapFirmToClientOffice(raw: unknown): ClientOffice {
   const storageUsedGb = String(usage.storage_used_gb ?? firm.used_storage_gb ?? "0.00");
   const storageLimitGb = Number(
     usage.storage_limit_gb ??
-      (firm.plan && typeof firm.plan === "object"
-        ? (firm.plan as Record<string, unknown>).storage_limit_gb
-        : 0) ??
+      firm.effective_storage_limit_gb ??
+      rawPlan?.storage_limit_gb ??
       0
   );
   const storagePercent = Number(
@@ -469,8 +682,12 @@ export function mapFirmToClientOffice(raw: unknown): ClientOffice {
         ? Math.round((Number(storageUsedGb) / storageLimitGb) * 100)
         : 0)
   );
-
-  const rawPlan = (firm.plan && typeof firm.plan === "object" ? firm.plan : null) as Record<string, unknown> | null;
+  const maxCasesLimit = Number(
+    usage.max_cases_limit ??
+      firm.effective_max_cases ??
+      rawPlan?.max_cases ??
+      0
+  );
 
   const planDetails = rawPlan
     ? {
@@ -484,27 +701,30 @@ export function mapFirmToClientOffice(raw: unknown): ClientOffice {
         yearlyDiscountPercent: rawPlan.yearly_discount_percent
           ? Number(rawPlan.yearly_discount_percent)
           : undefined,
-        maxLawyers: rawPlan.max_lawyers ? Number(rawPlan.max_lawyers) : undefined,
-        maxCases: rawPlan.max_cases ? Number(rawPlan.max_cases) : undefined,
+        maxLawyers: Number(firm.effective_max_lawyers ?? rawPlan.max_lawyers ?? 0) || undefined,
+        maxCases: Number(firm.effective_max_cases ?? rawPlan.max_cases ?? 0) || undefined,
         maxPowerOfAttorney: rawPlan.max_power_of_attorney
           ? Number(rawPlan.max_power_of_attorney)
           : undefined,
-        maxClients: rawPlan.max_clients ? Number(rawPlan.max_clients) : undefined,
+        maxClients: Number(firm.effective_max_clients ?? rawPlan.max_clients ?? 0) || undefined,
         maxAssistants: rawPlan.max_assistants ? Number(rawPlan.max_assistants) : undefined,
-        storageLimitGb: rawPlan.storage_limit_gb ? Number(rawPlan.storage_limit_gb) : undefined,
+        storageLimitGb: Number(firm.effective_storage_limit_gb ?? rawPlan.storage_limit_gb ?? 0) || undefined,
         supportLevel: rawPlan.support_level ? String(rawPlan.support_level) : undefined,
         features: Array.isArray(rawPlan.features) ? rawPlan.features.map(String) : [],
       }
     : undefined;
 
-  const localAutoRenew = getLocalCustomAutoRenew(id);
+  const localAutoRenew =
+    getLocalCustomAutoRenew(id) ??
+    (firm.id ? getLocalCustomAutoRenew(String(firm.id)) : undefined) ??
+    (companyId ? getLocalCustomAutoRenew(String(companyId)) : undefined);
   const parsedAutoRenew =
-    localAutoRenew !== undefined
-      ? localAutoRenew
+    rawSub?.auto_renew !== undefined
+      ? asBoolean(rawSub.auto_renew, true)
       : firm.auto_renew !== undefined
       ? asBoolean(firm.auto_renew, true)
-      : rawSub?.auto_renew !== undefined
-      ? asBoolean(rawSub.auto_renew, true)
+      : localAutoRenew !== undefined
+      ? localAutoRenew
       : true;
 
   const rawBillingCycleCandidate = String(
@@ -532,6 +752,11 @@ export function mapFirmToClientOffice(raw: unknown): ClientOffice {
   })();
 
   const resolvedBillingCycle = (() => {
+    if (localPlanInfo?.billingCycle) {
+      const bc = localPlanInfo.billingCycle.toLowerCase();
+      if (bc.includes("سنو") || bc.includes("year") || bc.includes("annu")) return "سنوي";
+      if (bc.includes("شهري") || bc.includes("month")) return "شهري";
+    }
     // 1. Check annual FIRST to avoid false positives on "خصم شهرين"
     if (
       rawBillingCycleCandidate.includes("year") ||
@@ -558,17 +783,25 @@ export function mapFirmToClientOffice(raw: unknown): ClientOffice {
         id: rawSub.id ? Number(rawSub.id) : undefined,
         subscriptionCode: rawSub.subscription_code ? String(rawSub.subscription_code) : undefined,
         companyId: rawSub.company_id ? Number(rawSub.company_id) : undefined,
-        planId: rawSub.plan_id ? Number(rawSub.plan_id) : undefined,
+        planId: (rawSub.plan_id ? Number(rawSub.plan_id) : undefined) ?? effectivePlanId,
         billingCycle: resolvedBillingCycle,
         amount: rawSub.amount ? String(rawSub.amount) : undefined,
         paymentMethod: rawSub.payment_method ? String(rawSub.payment_method) : undefined,
         autoRenew: parsedAutoRenew,
         startDate: rawSub.start_date ? String(rawSub.start_date) : undefined,
         renewalDate: rawSub.renewal_date ? String(rawSub.renewal_date) : undefined,
-        status: rawSub.status ? String(rawSub.status) : undefined,
+        status: isFirmTrial ? "trial" : (rawSub.status ? String(rawSub.status) : "active"),
         notes: rawSub.notes ? String(rawSub.notes) : null,
       }
     : undefined;
+
+  const resolvedBackgroundColor =
+    (firm.background_color
+      ? String(firm.background_color)
+      : undefined) ||
+    getLocalCustomBackgroundColor(id) ||
+    (companyId ? getLocalCustomBackgroundColor(companyId) : undefined) ||
+    "#203b3c";
 
   const resolvedThemeColor =
     (firm.color
@@ -580,11 +813,31 @@ export function mapFirmToClientOffice(raw: unknown): ClientOffice {
       : undefined) ||
     getLocalCustomThemeColor(id) ||
     (companyId ? getLocalCustomThemeColor(companyId) : undefined) ||
-    "#9c6402";
+    "#d5a058";
 
-  if (typeof window !== "undefined" && resolvedThemeColor) {
-    saveLocalCustomThemeColor(id, resolvedThemeColor);
-    if (companyId) saveLocalCustomThemeColor(companyId, resolvedThemeColor);
+  const resolvedSecondaryColor =
+    (firm.font_color
+      ? String(firm.font_color)
+      : firm.secondary_color
+      ? String(firm.secondary_color)
+      : undefined) ||
+    getLocalCustomSecondaryColor(id) ||
+    (companyId ? getLocalCustomSecondaryColor(companyId) : undefined) ||
+    "#ffffff";
+
+  if (typeof window !== "undefined") {
+    if (resolvedThemeColor) {
+      saveLocalCustomThemeColor(id, resolvedThemeColor);
+      if (companyId) saveLocalCustomThemeColor(companyId, resolvedThemeColor);
+    }
+    if (resolvedSecondaryColor) {
+      saveLocalCustomSecondaryColor(id, resolvedSecondaryColor);
+      if (companyId) saveLocalCustomSecondaryColor(companyId, resolvedSecondaryColor);
+    }
+    if (resolvedBackgroundColor) {
+      saveLocalCustomBackgroundColor(id, resolvedBackgroundColor);
+      if (companyId) saveLocalCustomBackgroundColor(companyId, resolvedBackgroundColor);
+    }
   }
 
   return {
@@ -596,11 +849,9 @@ export function mapFirmToClientOffice(raw: unknown): ClientOffice {
     themeColor: resolvedThemeColor,
     color: resolvedThemeColor,
     primaryColor: resolvedThemeColor,
-    secondaryColor:
-      (firm.secondary_color ? String(firm.secondary_color) : undefined) ||
-      getLocalCustomSecondaryColor(id) ||
-      (companyId ? getLocalCustomSecondaryColor(companyId) : undefined) ||
-      "#d97706",
+    secondaryColor: resolvedSecondaryColor,
+    backgroundColor: resolvedBackgroundColor,
+    fontColor: resolvedSecondaryColor,
     officeId:
       (firm.office_id ? String(firm.office_id) : firm.slug ? String(firm.slug) : undefined) ||
       getLocalCustomOfficeId(id) ||
@@ -623,22 +874,21 @@ export function mapFirmToClientOffice(raw: unknown): ClientOffice {
     taxNumber:
       (firm.tax_number ? String(firm.tax_number) : firm.vat_number ? String(firm.vat_number) : undefined) ||
       getLocalCustomTaxNumber(id),
-    logo: (() => {
-      const serverLogo = firm.logo ? String(firm.logo) : undefined;
-      const normalizedServerLogo = normalizeLogoUrl(serverLogo);
-      const local = getLocalCustomLogo(id);
-      return normalizedServerLogo || local;
-    })(),
+    logo: resolveOfficeLogo(firm.logo as string | undefined, id),
+    updatedAt: firm.updated_at ? String(firm.updated_at) : undefined,
     password: firm.password ? String(firm.password) : undefined,
     initialPassword: firm.password ? String(firm.password) : undefined,
-    plan: isFirmTrial ? "تجربة مجانية" : planName,
-    planId: isFirmTrial ? undefined : (firm.plan_id ? Number(firm.plan_id) : rawPlan?.id ? Number(rawPlan.id) : undefined),
-    planType: isFirmTrial ? "trial" : String(firm.plan_type || (planName.includes("تجرب") ? "trial" : "paid")),
-    subscriptionPlan: isFirmTrial ? "trial" : String(firm.subscription_plan || firm.plan_type || (planName.includes("تجرب") ? "trial" : "paid")),
+    plan: isFirmTrial
+      ? (planName.includes("تجرب") ? planName : `${planName} (تجربة مجانية)`)
+      : planName,
+    planId: effectivePlanId,
+    planType: effectivePlanType,
+    subscriptionPlan: effectivePlanType,
     planDetails,
     activeSubscriptionDetails,
-    planBadgeClass:
-      "bg-[#ffddb6]/40 text-[#7b4e00] border border-[#ffddb6] dark:bg-[rgba(226,157,56,0.18)] dark:text-[#f3c27e] dark:border-[#e29d38]/50",
+    planBadgeClass: isUnlimited
+      ? "bg-[#f5f3ef] text-[#9c6402] border border-[#d8c29d] dark:bg-[#281c15] dark:text-[#e29d38] dark:border-[#5a4321]"
+      : "bg-[#ffddb6]/40 text-[#7b4e00] border border-[#ffddb6] dark:bg-[rgba(226,157,56,0.18)] dark:text-[#f3c27e] dark:border-[#e29d38]/50",
     registrationDate: String(firm.registration_date || firm.created_at || "—"),
     billingCycle: resolvedBillingCycle,
     subscriptionStart: firm.subscription_start ? String(firm.subscription_start) : undefined,
@@ -652,6 +902,7 @@ export function mapFirmToClientOffice(raw: unknown): ClientOffice {
       storageLimitGb,
       storagePercent,
       activeCases: Number(usage.active_cases ?? 0),
+      maxCasesLimit: maxCasesLimit > 0 ? maxCasesLimit : undefined,
     },
     internalNotes,
     recentInvoices: invoicesRaw,
@@ -683,7 +934,7 @@ export function mapFirmToClientOffice(raw: unknown): ClientOffice {
     ),
     subscriptionStatus: subscriptionBadge(
       String(
-        (isFirmTrial ? "trial" : undefined) ||
+        (isUnlimited ? "unlimited" : isFirmTrial ? "trial" : isExplicitlyPaid ? "active" : undefined) ||
         firm.subscription_status ||
         (firm.active_subscription && typeof firm.active_subscription === "object"
           ? (firm.active_subscription as Record<string, unknown>).status
@@ -835,19 +1086,41 @@ export function mapSubscriptionFromApi(raw: Record<string, unknown>): Subscripti
     (raw.firm as Record<string, unknown> | undefined) ||
     (raw.company as Record<string, unknown> | undefined) ||
     {};
+
+  const rawPlanType = asString(
+    raw.plan_type ||
+      raw.planType ||
+      raw.subscription_plan ||
+      raw.subscriptionPlan ||
+      (raw.plan as Record<string, unknown> | undefined)?.type ||
+      (raw.plan as Record<string, unknown> | undefined)?.name ||
+      raw.plan_name ||
+      raw.planName ||
+      "",
+    ""
+  ).toLowerCase();
+
+  const isUnlimited =
+    rawPlanType.includes("unlimited") ||
+    rawPlanType.includes("غير محدود") ||
+    asString(raw.billing_cycle || raw.billingCycle, "").toLowerCase().includes("unlimited") ||
+    asString(raw.billing_cycle || raw.billingCycle, "").includes("غير محدود") ||
+    asString(raw.plan_name || raw.planName, "").includes("غير محدود");
+
   const statusRaw = asString(raw.status, "active").toLowerCase();
-  const status =
-    statusRaw.includes("pend")
-      ? "pending"
-      : statusRaw.includes("cancel")
-        ? "cancelled"
-        : statusRaw.includes("reject")
-          ? "rejected"
-          : statusRaw.includes("expir")
-            ? "expired"
-            : statusRaw.includes("suspend")
-              ? "suspended"
-              : "active";
+  const status = isUnlimited
+    ? "active"
+    : statusRaw.includes("pend")
+    ? "pending"
+    : statusRaw.includes("cancel")
+      ? "cancelled"
+      : statusRaw.includes("reject")
+        ? "rejected"
+        : statusRaw.includes("expir")
+          ? "expired"
+          : statusRaw.includes("suspend")
+            ? "suspended"
+            : "active";
 
   const isCustomOffer = asBoolean(raw.is_custom_offer ?? raw.custom_offer, false);
 
@@ -858,17 +1131,17 @@ export function mapSubscriptionFromApi(raw: Record<string, unknown>): Subscripti
     const parseMetric = (val: unknown, fallbackTitle: string, fallbackUnit: string) => {
       const v = (val && typeof val === "object" ? val : {}) as Record<string, unknown>;
       const used = asNumber(v.used, 0);
-      const total = asNumber(v.total || v.limit, 100);
-      const percentage = total > 0 ? Math.min(100, Math.round((used / total) * 100)) : 0;
+      const total = isUnlimited ? 999999 : asNumber(v.total || v.limit, 100);
+      const percentage = isUnlimited ? 0 : total > 0 ? Math.min(100, Math.round((used / total) * 100)) : 0;
       return {
         title: asString(v.title, fallbackTitle),
         used,
         total,
         unit: asString(v.unit, fallbackUnit),
         percentage,
-        remainingText: asString(v.remaining_text || v.remainingText, `${Math.max(0, total - used)} ${fallbackUnit}`),
-        statusBadge: v.status_badge ? asString(v.status_badge) : undefined,
-        isLocked: asBoolean(v.is_locked, false),
+        remainingText: isUnlimited ? "غير محدود (∞)" : asString(v.remaining_text || v.remainingText, `${Math.max(0, total - used)} ${fallbackUnit}`),
+        statusBadge: isUnlimited ? "غير محدود" : v.status_badge ? asString(v.status_badge) : undefined,
+        isLocked: false,
       };
     };
 
@@ -887,6 +1160,16 @@ export function mapSubscriptionFromApi(raw: Record<string, unknown>): Subscripti
             statusColor: a.status_color ? asString(a.status_color) : undefined,
           }))
         : [],
+    };
+  } else if (isUnlimited) {
+    metrics = {
+      team: { title: "فريق العمل والمحامين", used: 0, total: 999999, unit: "محامٍ", percentage: 0, remainingText: "غير محدود (∞)", statusBadge: "غير محدود", isLocked: false },
+      cases: { title: "القضايا المفتوحة", used: 0, total: 999999, unit: "قضية", percentage: 0, remainingText: "غير محدود (∞)", statusBadge: "غير محدود", isLocked: false },
+      clients: { title: "ملفات العملاء", used: 0, total: 999999, unit: "عميل", percentage: 0, remainingText: "غير محدود (∞)", statusBadge: "غير محدود", isLocked: false },
+      agents: { title: "الوكالات المعتمدة", used: 0, total: 999999, unit: "وكالة", percentage: 0, remainingText: "غير محدود (∞)", statusBadge: "غير محدود", isLocked: false },
+      storage: { title: "المساحة السحابية", used: 0, total: 999999, unit: "GB", percentage: 0, remainingText: "غير محدود (∞)", statusBadge: "غير محدود", isLocked: false },
+      addonsCount: 0,
+      addons: [],
     };
   }
 
@@ -948,16 +1231,29 @@ export function mapSubscriptionFromApi(raw: Record<string, unknown>): Subscripti
       email: asString(firmObj.email, ""),
       phone: asString(firmObj.phone, ""),
     },
-    planName: asString(raw.plan_name || raw.planName || (raw.plan as Record<string, unknown> | undefined)?.name, "باقة"),
-    planPrice: asString(raw.plan_price || raw.amount || raw.price, "0"),
-    billingCycle: asString(raw.billing_cycle, "yearly").includes("month") ? "شهرية" : "سنوية",
+    planName: isUnlimited
+      ? "غير محدود"
+      : asString(raw.plan_name || raw.planName || (raw.plan as Record<string, unknown> | undefined)?.name, "باقة"),
+    planPrice: isUnlimited
+      ? "بدون سعر (مجاني)"
+      : asString(raw.plan_price || raw.amount || raw.price, "0"),
+    billingCycle: isUnlimited
+      ? "دائم"
+      : asString(raw.billing_cycle, "yearly").includes("month") ? "شهرية" : "سنوية",
     startDate: asString(raw.start_date || raw.started_at, "—"),
-    renewalDate: asString(raw.renewal_date || raw.ends_at || raw.end_date, "—"),
-    remainingDaysText: asString(raw.remaining_days_text || raw.remaining_days, "—"),
-    daysUrgency: status === "expired" ? "expired" : status === "cancelled" ? "cancelled" : "normal",
+    renewalDate: isUnlimited
+      ? "دائم (بدون انتهاء)"
+      : asString(raw.renewal_date || raw.ends_at || raw.end_date, "—"),
+    remainingDaysText: isUnlimited
+      ? "∞"
+      : asString(raw.remaining_days_text || raw.remaining_days, "—"),
+    daysUrgency: isUnlimited
+      ? "normal"
+      : status === "expired" ? "expired" : status === "cancelled" ? "cancelled" : "normal",
     status,
-    statusLabel:
-      status === "active"
+    statusLabel: isUnlimited
+      ? "صلاحيات كاملة"
+      : status === "active"
         ? "نشط"
         : status === "pending"
           ? "قيد الانتظار"
@@ -970,9 +1266,9 @@ export function mapSubscriptionFromApi(raw: Record<string, unknown>): Subscripti
                 : "منتهي",
     paymentMethod: {
       type: "mada",
-      badgeLabel: asString(raw.payment_method || "مدى", "مدى"),
-      statusText: asString(raw.payment_status, "مدفوع"),
-      isAutoPaid: Boolean(raw.auto_renew ?? true),
+      badgeLabel: isUnlimited ? "دائم" : asString(raw.payment_method || "مدى", "مدى"),
+      statusText: isUnlimited ? "صلاحيات كاملة" : asString(raw.payment_status, "مدفوع"),
+      isAutoPaid: isUnlimited ? false : Boolean(raw.auto_renew ?? true),
     },
     isCustomOffer,
     taxNumber: asString(firmObj.tax_number || firmObj.taxNumber || raw.tax_number, ""),
@@ -1000,8 +1296,37 @@ export function mapStaffFromApi(raw: Record<string, unknown>): Employee {
   const roleNameLower = roleName.toLowerCase();
   const isSuperAdmin =
     roleNameLower.includes("super") ||
+    roleNameLower.includes("admin") ||
     roleName.includes("مشرف نظام") ||
-    roleName.includes("مشرف عام");
+    roleName.includes("مشرف عام") ||
+    roleName.includes("مشرف لوحة التحكم");
+  const deptObj = (raw.department as Record<string, unknown> | undefined) || {};
+  const departmentId = raw.department_id
+    ? String(raw.department_id)
+    : deptObj.id
+      ? String(deptObj.id)
+      : undefined;
+  const roleId = roleObj.id
+    ? String(roleObj.id)
+    : raw.role_id
+      ? String(raw.role_id)
+      : undefined;
+  const rawLastLoginAt = raw.last_login_at || raw.last_login;
+  const rawLastLoginIp = raw.last_login_ip;
+  const rawLastLoginCity = raw.last_login_city;
+  const lastLoginTime =
+    rawLastLoginAt && rawLastLoginAt !== "null" && rawLastLoginAt !== "—"
+      ? asString(rawLastLoginAt)
+      : null;
+  const lastLoginIp =
+    rawLastLoginIp && rawLastLoginIp !== "null"
+      ? asString(rawLastLoginIp)
+      : null;
+  const lastLoginCity =
+    rawLastLoginCity && rawLastLoginCity !== "null"
+      ? asString(rawLastLoginCity)
+      : null;
+
   return {
     id: asString(raw.id, cryptoRandomId()),
     empCode: asString(raw.emp_code || raw.code, "EMP"),
@@ -1013,14 +1338,16 @@ export function mapStaffFromApi(raw: Record<string, unknown>): Employee {
     jobTitle: asString(raw.job_title || raw.title || roleObj.name, "موظف"),
     department: asString(
       raw.department_name ||
-        (raw.department as Record<string, unknown> | undefined)?.name ||
+        deptObj.name ||
         raw.department,
       "—"
     ),
+    departmentId,
+    roleId,
     email: asString(raw.email, ""),
     phone: asString(raw.phone, ""),
     role: {
-      id: asString(roleObj.id || raw.role_id, "role"),
+      id: asString(roleId || "role"),
       name: roleName,
       category: asString(roleObj.category, "إدارة"),
       badgeClass: isSuperAdmin
@@ -1030,9 +1357,22 @@ export function mapStaffFromApi(raw: Record<string, unknown>): Employee {
     },
     status: statusRaw.includes("suspend") || statusRaw.includes("inactive") ? "suspended" : "active",
     lastLogin: {
-      time: asString(raw.last_login_at || raw.last_login, "—"),
-      ip: raw.last_login_ip ? asString(raw.last_login_ip) : undefined,
+      time: lastLoginTime,
+      ip: lastLoginIp,
+      city: lastLoginCity,
+      location: lastLoginCity || lastLoginIp || undefined,
     },
+    createdAt: raw.created_at ? asString(raw.created_at) : undefined,
+    permissionsCount: Array.isArray(raw.permissions)
+      ? raw.permissions.length
+      : raw.permissions_count
+        ? asNumber(raw.permissions_count)
+        : undefined,
+    assignedTicketsCount: Array.isArray(raw.tickets)
+      ? raw.tickets.length
+      : raw.tickets_count || raw.assigned_tickets_count
+        ? asNumber(raw.tickets_count || raw.assigned_tickets_count)
+        : undefined,
   };
 }
 

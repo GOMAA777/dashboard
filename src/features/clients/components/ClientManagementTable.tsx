@@ -3,24 +3,29 @@
 import React, { useState, useMemo } from "react";
 import {
   Eye,
-  MoreVertical,
   Mail,
+  Phone,
+  User,
+  Trash2,
   ChevronRight,
   ChevronLeft,
   ChevronsRight,
   ChevronsLeft,
   DoorOpen,
   Loader2,
+  PenSquare,
+  KeyRound,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ClientOffice, TabFilter } from "../types/client.types";
 import { initialOffices } from "../data/initialOffices";
-import { ClientRowActionMenu } from "./ClientRowActionMenu";
 import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
 import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
 import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { useLanguage } from "@/lib/i18n";
-import { getLocalCustomAutoRenew, getLocalCustomLogo } from "@/lib/api/mappers";
+import { getLocalCustomAutoRenew, getLocalCustomLogo, normalizeLogoUrl, resolveOfficeLogo, DEFAULT_OFFICE_LOGO, withCacheBust } from "@/lib/api/mappers";
+import { isLightColor } from "../constants/office-colors";
+import { localizePlanName, localizeLicense, getLocalizedCityName } from "@/lib/localize";
 
 export { initialOffices };
 
@@ -31,6 +36,7 @@ interface ClientManagementTableProps {
   enteringOfficeId?: string | number | null;
   onViewOfficeDetails: (office: ClientOffice) => void;
   onEditOffice: (office: ClientOffice) => void;
+  onResetPassword?: (office: ClientOffice) => void;
   onEnterOfficeAsAdmin?: (office: ClientOffice) => void;
   onOpenDeactivateModal?: (office: ClientOffice) => void;
   onOpenDeleteModal?: (office: ClientOffice) => void;
@@ -45,6 +51,7 @@ export function ClientManagementTable({
   enteringOfficeId = null,
   onViewOfficeDetails,
   onEditOffice,
+  onResetPassword,
   onEnterOfficeAsAdmin,
   onOpenDeactivateModal,
   onOpenDeleteModal,
@@ -56,7 +63,6 @@ export function ClientManagementTable({
   const offices = propOffices !== undefined ? propOffices : internalOffices;
   const [activeTab, setActiveTab] = useState<TabFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [openMenuRowId, setOpenMenuRowId] = useState<string | null>(null);
 
   // Filters
   const [planFilter, setPlanFilter] = useState("all");
@@ -168,22 +174,42 @@ export function ClientManagementTable({
     );
     toast.success(
       isCurrentlyActive
-        ? `تم تعطيل حساب ${office.name} مؤقتاً`
-        : `تم إعادة تفعيل حساب ${office.name} بنجاح`
+        ? t(`تم تعطيل حساب ${office.name} مؤقتاً`, `Temporarily deactivated ${office.name}`)
+        : t(`تم إعادة تفعيل حساب ${office.name} بنجاح`, `Successfully reactivated ${office.name}`)
     );
+  };
+
+  const handleToggleOfficeStatus = (office: ClientOffice) => {
+    const accType = office.accountStatus.type as string | undefined;
+    const isRowSuspended =
+      accType === "suspended" ||
+      accType === "inactive" ||
+      office.accountStatus.label === "غير نشط" ||
+      office.accountStatus.label === "معطل";
+
+    if (isRowSuspended) {
+      if (onReactivate) {
+        onReactivate(office);
+      } else {
+        handleDeactivateToggle(office);
+      }
+    } else {
+      if (onOpenDeactivateModal) {
+        onOpenDeactivateModal(office);
+      } else {
+        handleDeactivateToggle(office);
+      }
+    }
   };
 
   const handleDeleteOffice = (office: ClientOffice) => {
     setInternalOffices((prev) => prev.filter((o) => o.id !== office.id));
-    toast.error(`تم حذف مكتب "${office.name}" نهائياً من النظام`);
+    toast.error(t(`تم حذف مكتب "${office.name}" نهائياً من النظام`, `Office "${office.name}" permanently deleted`));
   };
 
   return (
-    <div
-      className="bg-white dark:bg-[#221812] rounded-[8px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] overflow-hidden w-full shrink-0 font-['Cairo',sans-serif]"
-      data-node-id="1:770"
-    >
-      {/* Unified Filter Bar with 3 Pills + Comprehensive Drawer */}
+    <div className="flex flex-col gap-6 w-full shrink-0 font-['Cairo',sans-serif]">
+      {/* Unified Filter Bar (Separate Card matching Staff layout) */}
       <UnifiedFilterBar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -218,75 +244,75 @@ export function ClientManagementTable({
             {/* 1. Account Status */}
             <div className="space-y-2">
               <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-                حالة الحساب
+                {t("حالة الحساب", "Account Status")}
               </label>
               <DashboardSelect
                 value={activeTab}
                 onChange={(e) => setActiveTab(e.target.value as TabFilter)}
               >
-                <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">كافة الحالات (الكل)</option>
-                <option value="active" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الحسابات النشطة فقط</option>
-                <option value="trial" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الحسابات تحت التجربة فقط</option>
-                <option value="suspended" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الحسابات المعطلة فقط</option>
+                <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("كافة الحالات (الكل)", "All Statuses")}</option>
+                <option value="active" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("الحسابات النشطة فقط", "Active Accounts Only")}</option>
+                <option value="trial" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("الحسابات تحت التجربة فقط", "Trial Accounts Only")}</option>
+                <option value="suspended" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("الحسابات المعطلة فقط", "Suspended Accounts Only")}</option>
               </DashboardSelect>
             </div>
 
             {/* 2. Plan Filter */}
             <div className="space-y-2">
               <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-                باقة الاشتراك المعتمدة
+                {t("باقة الاشتراك المعتمدة", "Approved Plan")}
               </label>
               <DashboardSelect
                 value={planFilter}
                 onChange={(e) => setPlanFilter(e.target.value)}
               >
-                <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">جميع الباقات</option>
-                <option value="التميز" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">باقة التميز العدلي (VIP)</option>
-                <option value="الاحترافية" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الباقة الاحترافية (Pro)</option>
-                <option value="الشركات" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">باقة الشركات (Enterprise)</option>
-                <option value="الأساسية" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الباقة الأساسية (Basic)</option>
-                <option value="مجانية" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">تجربة مجانية (Free Trial)</option>
+                <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("جميع الباقات", "All Plans")}</option>
+                <option value="التميز" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("باقة التميز العدلي (VIP)", "Legal Excellence Plan (VIP)")}</option>
+                <option value="الاحترافية" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("الباقة الاحترافية (Pro)", "Professional Plan (Pro)")}</option>
+                <option value="الشركات" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("باقة الشركات (Enterprise)", "Enterprise Plan")}</option>
+                <option value="الأساسية" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("الباقة الأساسية (Basic)", "Basic Plan")}</option>
+                <option value="مجانية" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("تجربة مجانية (Free Trial)", "Free Trial")}</option>
               </DashboardSelect>
             </div>
 
             {/* 4. City Filter */}
             <div className="space-y-2">
               <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-                المدينة / المقر الرئيسي
+                {t("المدينة / المقر الرئيسي", "City / Headquarters")}
               </label>
               <DashboardSelect
                 value={cityFilter}
                 onChange={(e) => setCityFilter(e.target.value)}
               >
-                <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">كافة المدن والمناطق</option>
-                <option value="الرياض" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">مدينة الرياض</option>
-                <option value="جدة" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">مدينة جدة</option>
-                <option value="الدمام" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الدمام والمنطقة الشرقية</option>
-                <option value="الخبر" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">محافظة الخبر</option>
-                <option value="مكة المكرمة" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">مكة المكرمة</option>
-                <option value="المدينة المنورة" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">المدينة المنورة</option>
+                <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("كافة المدن والمناطق", "All Cities & Regions")}</option>
+                <option value="الرياض" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("مدينة الرياض", "Riyadh")}</option>
+                <option value="جدة" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("مدينة جدة", "Jeddah")}</option>
+                <option value="الدمام" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("الدمام والمنطقة الشرقية", "Dammam & Eastern Region")}</option>
+                <option value="الخبر" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("محافظة الخبر", "Khobar")}</option>
+                <option value="مكة المكرمة" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("مكة المكرمة", "Makkah")}</option>
+                <option value="المدينة المنورة" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("المدينة المنورة", "Madinah")}</option>
               </DashboardSelect>
             </div>
 
             {/* 5. Sort Order */}
             <div className="space-y-2">
               <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-                ترتيب النتائج
+                {t("ترتيب النتائج", "Sort Order")}
               </label>
               <DashboardSelect
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value as "newest" | "oldest" | "name")}
               >
-                <option value="newest" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الأحدث تسجيلاً أولاً</option>
-                <option value="oldest" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">الأقدم تسجيلاً أولاً</option>
-                <option value="name" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">أبجدياً حسب اسم المنشأة (أ - ي)</option>
+                <option value="newest" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("الأحدث تسجيلاً أولاً", "Newest Registered First")}</option>
+                <option value="oldest" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("الأقدم تسجيلاً أولاً", "Oldest Registered First")}</option>
+                <option value="name" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("أبجدياً حسب اسم المنشأة (أ - ي)", "Alphabetical by Office Name")}</option>
               </DashboardSelect>
             </div>
 
             {/* 6. Page Size Control */}
             <div className="space-y-2">
               <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-                عدد المكاتب المعروضة (الترقيم)
+                {t("عدد المكاتب المعروضة (الترقيم)", "Offices Per Page")}
               </label>
               <DashboardSelect
                 value={pageSize}
@@ -295,31 +321,35 @@ export function ClientManagementTable({
                   setPageIndex(0);
                 }}
               >
-                <option value={5} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">5 مكاتب بالصفحة</option>
-                <option value={10} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">10 مكاتب بالصفحة</option>
-                <option value={20} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">20 مكتب بالصفحة</option>
-                <option value={50} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">50 مكتب بالصفحة</option>
-                <option value={9999} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">عرض كافة المكاتب (الكل)</option>
+                <option value={5} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("5 مكاتب بالصفحة", "5 offices / page")}</option>
+                <option value={10} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("10 مكاتب بالصفحة", "10 offices / page")}</option>
+                <option value={20} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("20 مكتب بالصفحة", "20 offices / page")}</option>
+                <option value={50} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("50 مكتب بالصفحة", "50 offices / page")}</option>
+                <option value={9999} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">{t("عرض كافة المكاتب (الكل)", "Show All Offices")}</option>
               </DashboardSelect>
             </div>
           </div>
         }
-        className="rounded-b-none border-b-0"
       />
 
+      {/* Separate Data Table & Pagination Card */}
+      <div
+        className="bg-white dark:bg-[#221812] rounded-[8px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] overflow-hidden w-full shrink-0"
+        data-node-id="1:770"
+      >
       {/* Table Data */}
       <div className="overflow-x-auto overflow-y-hidden scrollbar-none w-full">
-        <table className="w-full text-start border-collapse">
+        <table className="w-full text-start border-collapse min-w-[1020px]">
           <thead>
-            <tr className="bg-[#f5f3ef] dark:bg-[#281c15] border-b border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[18px] font-semibold">
-              <th className="py-[12px] px-[12px] w-[50px] text-center font-bold">#</th>
-              <th className="py-[12px] px-[16px] whitespace-nowrap">{t("اسم المكتب والترخيص", "Office & License")}</th>
-              <th className="py-[12px] px-[16px] whitespace-nowrap">{t("المالك", "Owner")}</th>
-              <th className="py-[12px] px-[16px] whitespace-nowrap">{t("البريد الإلكتروني", "Email")}</th>
-              <th className="py-[12px] px-[16px] whitespace-nowrap">{t("رقم التواصل", "Phone Number")}</th>
-              <th className="py-[12px] px-[16px] whitespace-nowrap">{t("الباقة الحالية", "Current Plan")}</th>
-              <th className="py-[12px] px-[16px] whitespace-nowrap">{t("الحالة", "Status")}</th>
-              <th className="py-[12px] px-[16px] text-center whitespace-nowrap">{t("الإجراءات", "Actions")}</th>
+            <tr className="bg-[#f5f3ef] dark:bg-[#281c15] border-b border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[18px] font-bold">
+              <th className="py-[12px] px-[12px] w-[50px] min-w-[50px] text-center font-bold">#</th>
+              <th className="py-[12px] px-[16px] text-start font-bold whitespace-nowrap min-w-[220px]">{t("اسم المكتب والترخيص", "Office & License")}</th>
+              <th className="py-[12px] px-[16px] text-start font-bold whitespace-nowrap min-w-[130px]">{t("المالك", "Owner")}</th>
+              <th className="py-[12px] px-[16px] text-start font-bold whitespace-nowrap min-w-[200px]">{t("البريد الإلكتروني", "Email")}</th>
+              <th className="py-[12px] px-[16px] text-start font-bold whitespace-nowrap min-w-[130px]">{t("رقم التواصل", "Phone Number")}</th>
+              <th className="py-[12px] px-[16px] text-start font-bold whitespace-nowrap min-w-[130px]">{t("الباقة الحالية", "Current Plan")}</th>
+              <th className="py-[12px] px-[16px] text-start font-bold whitespace-nowrap min-w-[100px]">{t("الحالة", "Status")}</th>
+              <th className="py-[12px] px-[16px] text-center font-bold whitespace-nowrap min-w-[140px] w-[140px]">{t("الإجراءات", "Actions")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#f0eeea] dark:divide-[#38271c]">
@@ -329,7 +359,7 @@ export function ClientManagementTable({
                   <td className="py-[16px] px-[12px] text-center">
                     <div className="size-[24px] rounded-[4px] bg-black/5 dark:bg-white/10 mx-auto" />
                   </td>
-                  <td className="py-[16px] px-[16px]">
+                  <td className="py-[16px] px-[16px] text-start">
                     <div className="flex items-center gap-[12px]">
                       <div className="size-[36px] rounded-[4px] bg-black/5 dark:bg-white/10 shrink-0" />
                       <div className="flex flex-col gap-1.5 flex-1">
@@ -338,19 +368,28 @@ export function ClientManagementTable({
                       </div>
                     </div>
                   </td>
-                  <td className="py-[16px] px-[16px]">
-                    <div className="h-4 w-28 bg-black/5 dark:bg-white/10 rounded" />
+                  <td className="py-[16px] px-[16px] text-start">
+                    <div className="flex items-center gap-[6px]">
+                      <div className="size-[13px] rounded-full bg-black/5 dark:bg-white/10 shrink-0" />
+                      <div className="h-4 w-24 bg-black/5 dark:bg-white/10 rounded" />
+                    </div>
                   </td>
-                  <td className="py-[16px] px-[16px]">
-                    <div className="h-4 w-36 bg-black/5 dark:bg-white/10 rounded" />
+                  <td className="py-[16px] px-[16px] text-start">
+                    <div className="flex items-center gap-[6px]">
+                      <div className="size-[13px] rounded-[2px] bg-black/5 dark:bg-white/10 shrink-0" />
+                      <div className="h-4 w-32 bg-black/5 dark:bg-white/10 rounded" />
+                    </div>
                   </td>
-                  <td className="py-[16px] px-[16px]">
-                    <div className="h-4 w-28 bg-black/5 dark:bg-white/10 rounded" />
+                  <td className="py-[16px] px-[16px] text-start">
+                    <div className="flex items-center gap-[6px]">
+                      <div className="size-[13px] rounded-full bg-black/5 dark:bg-white/10 shrink-0" />
+                      <div className="h-4 w-24 bg-black/5 dark:bg-white/10 rounded" />
+                    </div>
                   </td>
-                  <td className="py-[16px] px-[16px]">
+                  <td className="py-[16px] px-[16px] text-start">
                     <div className="h-5 w-24 bg-black/5 dark:bg-white/10 rounded-full" />
                   </td>
-                  <td className="py-[16px] px-[16px]">
+                  <td className="py-[16px] px-[16px] text-start">
                     <div className="h-5 w-20 bg-black/5 dark:bg-white/10 rounded-full" />
                   </td>
                   <td className="py-[16px] px-[16px] text-center">
@@ -377,41 +416,28 @@ export function ClientManagementTable({
                     </span>
                   </td>
                   {/* 1. اسم المكتب والترخيص */}
-                  <td className="py-[16px] px-[16px]">
+                  <td className="py-[16px] px-[16px] text-start">
                     <div className="flex items-center gap-[12px]">
                       {(() => {
-                        const localLogo = getLocalCustomLogo(office.id);
-                        const tableLogo = !failedLogos[office.id] ? (office.logo || localLogo) : localLogo;
-
-                        if (tableLogo) {
-                          return (
-                            <div className="size-[36px] rounded-[4px] bg-white dark:bg-[#1a120d] border border-[#eae8e4] dark:border-[#422e20] p-0.5 flex items-center justify-center shrink-0 overflow-hidden relative">
-                              <span className={`text-[12px] font-bold ${office.initialText} absolute pointer-events-none select-none`}>
-                                {office.initial}
-                              </span>
-                              <img
-                                src={tableLogo}
-                                alt=""
-                                className="max-h-full max-w-full object-contain relative z-10 bg-white dark:bg-[#1a120d]"
-                                onError={(e) => {
-                                  e.currentTarget.style.display = "none";
-                                  setFailedLogos((prev) => ({ ...prev, [office.id]: true }));
-                                }}
-                              />
-                            </div>
-                          );
-                        }
+                        const candidateLogo = resolveOfficeLogo(office.logo, office.id);
+                        const isFailed = failedLogos[candidateLogo];
+                        const tableLogo = !isFailed ? candidateLogo : DEFAULT_OFFICE_LOGO;
 
                         return (
-                          <div
-                            className={`size-[36px] rounded-[4px] flex items-center justify-center font-bold text-[14px] shrink-0 border border-[#eae8e4] dark:border-[#423122] bg-[#fff9ee] dark:bg-[#2d1f16] text-[#9c6402] dark:text-[#e29d38]`}
-                            style={
-                              office.themeColor
-                                ? { borderColor: `${office.themeColor}59` }
-                                : undefined
-                            }
-                          >
-                            {office.initial}
+                          <div className="size-[36px] rounded-[4px] bg-white dark:bg-[#1a120d] border border-[#eae8e4] dark:border-[#422e20] p-0.5 flex items-center justify-center shrink-0 overflow-hidden relative">
+                            <span className={`text-[12px] font-bold ${office.initialText} absolute pointer-events-none select-none`}>
+                              {office.initial}
+                            </span>
+                            <img
+                              src={withCacheBust(tableLogo, office.updatedAt || office.id)}
+                              alt={office.name}
+                              className="max-h-full max-w-full object-contain relative z-10 bg-white dark:bg-[#1a120d]"
+                              onError={() => {
+                                if (tableLogo !== DEFAULT_OFFICE_LOGO) {
+                                  setFailedLogos((prev) => ({ ...prev, [tableLogo]: true }));
+                                }
+                              }}
+                            />
                           </div>
                         );
                       })()}
@@ -428,47 +454,45 @@ export function ClientManagementTable({
                           </span>
                         </div>
                         <span className="text-[#837565] dark:text-[#8e8680] text-[11px] leading-[16px]">
-                          {office.licenseNumber} • {office.city}
+                          {localizeLicense(office.licenseNumber, isEn)} • {getLocalizedCityName(office.city, isEn)}
                         </span>
                       </div>
                     </div>
                   </td>
 
                   {/* 2. المالك */}
-                  <td className="py-[16px] px-[16px]">
-                    <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-medium leading-[18px]">
-                      {office.owner}
-                    </span>
+                  <td className="py-[16px] px-[16px] text-start">
+                    <div className="flex items-center gap-[6px] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-medium leading-[18px]">
+                      <User className="size-[13px] text-[#837565] dark:text-[#8e8680] shrink-0" />
+                      <span>{office.owner}</span>
+                    </div>
                   </td>
 
                   {/* 3. البريد الإلكتروني */}
-                  <td className="py-[16px] px-[16px]">
-                    <div className="flex items-center gap-[6px] text-[#514537] dark:text-[#cdc5bd] text-[12px] font-normal direction-ltr">
+                  <td className="py-[16px] px-[16px] text-start">
+                    <div className="flex items-center gap-[6px] text-[#514537] dark:text-[#cdc5bd] text-[12px] font-normal">
                       <Mail className="size-[13px] text-[#837565] dark:text-[#8e8680] shrink-0" />
-                      <span>{office.email}</span>
+                      <span dir="ltr" className="font-mono">{office.email}</span>
                     </div>
                   </td>
 
                   {/* 4. رقم التواصل */}
-                  <td className="py-[16px] px-[16px]">
-                    <span dir="ltr" className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] font-normal inline-block whitespace-nowrap font-mono">
-                      {office.phone}
-                    </span>
+                  <td className="py-[16px] px-[16px] text-start">
+                    <div className="flex items-center gap-[6px] text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] font-normal font-mono">
+                      <Phone className="size-[13px] text-[#837565] dark:text-[#8e8680] shrink-0" />
+                      <span dir="ltr" className="inline-block whitespace-nowrap">
+                        {office.phone}
+                      </span>
+                    </div>
                   </td>
 
                   {/* 5. الباقة الحالية */}
-                  <td className="py-[16px] px-[16px]">
+                  <td className="py-[16px] px-[16px] text-start">
                     <div className="flex flex-col gap-1 items-start">
                       <span
                         className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap border ${office.planBadgeClass}`}
                       >
-                        {isEn
-                          ? office.plan
-                              .replace("الباقة الاحترافية", "Professional")
-                              .replace("باقة الشركات", "Enterprise")
-                              .replace("الباقة الأساسية", "Basic")
-                              .replace("تجربة مجانية", "Free Trial")
-                          : office.plan}
+                        {localizePlanName(office.plan, isEn)}
                       </span>
                       {(() => {
                         const effectiveAutoRenew = office.id ? getLocalCustomAutoRenew(office.id) ?? office.autoRenew : office.autoRenew;
@@ -486,28 +510,40 @@ export function ClientManagementTable({
                   </td>
 
                   {/* 6. الحالة */}
-                  <td className="py-[16px] px-[16px]">
+                  <td className="py-[16px] px-[16px] text-start">
                     {(() => {
                       const statusType = office.accountStatus.type;
                       const isActiveStatus = statusType === "active";
                       const isTrialStatus = statusType === "trial";
                       const statusTone = isActiveStatus
                         ? {
-                            wrap: "bg-[#e8f5e9] dark:bg-[#132c1c] text-[#1b7340] dark:text-[#6ee7b7] border-[#c8e6c9] dark:border-emerald-500/40",
+                            wrap: "bg-[#e8f5e9] dark:bg-[#132c1c] text-[#1b7340] dark:text-[#6ee7b7] border-[#c8e6c9] dark:border-emerald-500/40 hover:bg-[#c8e6c9]/40 dark:hover:bg-[#1b432a]",
                             dot: "bg-[#1b7340] dark:bg-[#10b981]",
                           }
                         : isTrialStatus
                         ? {
-                            wrap: "bg-[#fffbeb] dark:bg-[#342711] text-[#92400e] dark:text-[#fbbf24] border-[#fde68a] dark:border-[#e29d38]/40",
+                            wrap: "bg-[#fffbeb] dark:bg-[#342711] text-[#92400e] dark:text-[#fbbf24] border-[#fde68a] dark:border-[#e29d38]/40 hover:bg-[#fde68a]/40 dark:hover:bg-[#4a3718]",
                             dot: "bg-[#d97706] dark:bg-[#fbbf24]",
                           }
                         : {
-                            wrap: "bg-[#fef2f2] dark:bg-[#2c1313] text-[#dc2626] dark:text-[#f87171] border-[#fecaca] dark:border-rose-500/40",
+                            wrap: "bg-[#fef2f2] dark:bg-[#2c1313] text-[#dc2626] dark:text-[#f87171] border-[#fecaca] dark:border-rose-500/40 hover:bg-[#fecaca]/40 dark:hover:bg-[#441d1d]",
                             dot: "bg-[#dc2626] dark:bg-[#ef4444]",
                           };
                       return (
-                        <span
-                          className={`w-fit inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap border ${statusTone.wrap}`}
+                        <button
+                          type="button"
+                          onClick={() => handleToggleOfficeStatus(office)}
+                          title={
+                            isActiveStatus
+                              ? t("انقر للتعطيل المؤقت", "Click to deactivate / suspend office")
+                              : t("انقر للتنشيط والتفعيل", "Click to activate office")
+                          }
+                          aria-label={
+                            isActiveStatus
+                              ? t("تعطيل الحساب", "Deactivate account")
+                              : t("تنشيط وتفعيل الحساب", "Activate account")
+                          }
+                          className={`w-fit inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap border cursor-pointer select-none transition-all hover:scale-[1.04] active:scale-[0.96] hover:shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-[#9c6402] dark:focus-visible:ring-[#e29d38] ${statusTone.wrap}`}
                         >
                           <span
                             className={`size-[7px] rounded-full shadow-[0_0_8px_currentColor] ring-1 ring-current/40 shrink-0 ${statusTone.dot}`}
@@ -525,7 +561,7 @@ export function ClientManagementTable({
                               ? "تحت التجربة"
                               : "غير نشط"}
                           </span>
-                        </span>
+                        </button>
                       );
                     })()}
                   </td>
@@ -544,90 +580,64 @@ export function ClientManagementTable({
                         <Eye className="size-[15px]" />
                       </button>
 
-                      {/* زر دخول المكتب كمسؤول (باب + دخول) */}
+                      {/* زر تعديل بيانات الحساب */}
+                      <button
+                        type="button"
+                        aria-label={t("تعديل بيانات الحساب", "Edit Account Details")}
+                        onClick={() => onEditOffice(office)}
+                        className="p-[6px] rounded-[4px] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] transition-colors cursor-pointer"
+                        title={t("تعديل بيانات الحساب", "Edit Account Details")}
+                      >
+                        <PenSquare className="size-[15px]" />
+                      </button>
+
+                      {/* زر إعادة تعيين كلمة المرور */}
+                      {onResetPassword && (
+                        <button
+                          type="button"
+                          aria-label={t("إعادة تعيين كلمة المرور", "Reset Password")}
+                          onClick={() => onResetPassword(office)}
+                          className="p-[6px] rounded-[4px] hover:bg-[#fff9ee] dark:hover:bg-[#342711] text-[#9c6402] dark:text-[#e29d38] transition-colors cursor-pointer"
+                          title={t("إعادة تعيين كلمة المرور", "Reset Password")}
+                        >
+                          <KeyRound className="size-[15px]" />
+                        </button>
+                      )}
+
+                      {/* زر دخول المكتب كمسؤول (أيقونة الباب فقط بدون كلمة) */}
                       {onEnterOfficeAsAdmin && (
                         <button
                           type="button"
                           aria-label={t("دخول نظام المكتب", "Enter Office System")}
                           onClick={() => onEnterOfficeAsAdmin(office)}
                           disabled={isEnteringOffice && enteringOfficeId === office.id}
-                          className="h-[30px] px-2.5 rounded-[4px] bg-[#fff9ee] dark:bg-[#342711] border border-[#eeddbb] dark:border-[#523b2c] text-[#9c6402] dark:text-[#e29d38] hover:bg-[#9c6402] hover:text-white dark:hover:bg-[#e29d38] dark:hover:text-[#1c140f] text-[12px] font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shadow-[0px_1px_2px_rgba(0,0,0,0.03)]"
+                          className="size-[30px] rounded-[4px] bg-[#fff9ee] dark:bg-[#342711] border border-[#eeddbb] dark:border-[#523b2c] text-[#9c6402] dark:text-[#e29d38] hover:bg-[#9c6402] hover:text-white dark:hover:bg-[#e29d38] dark:hover:text-[#1c140f] inline-flex items-center justify-center transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shadow-[0px_1px_2px_rgba(0,0,0,0.03)]"
                           title={t("دخول نظام المكتب كمسؤول", "Enter office system as admin")}
                         >
                           {isEnteringOffice && enteringOfficeId === office.id ? (
-                            <Loader2 className="size-[13px] animate-spin" />
+                            <Loader2 className="size-[15px] animate-spin" />
                           ) : (
-                            <DoorOpen className="size-[13px]" />
+                            <DoorOpen className="size-[15px]" />
                           )}
-                          <span>{t("دخول", "Enter")}</span>
                         </button>
                       )}
 
-                      {/* زر القائمة المنسدلة (3 dots) */}
-                      <div className="relative">
-                        <button
-                          type="button"
-                          aria-label={t("خيارات إضافية", "More Options")}
-                          onClick={() =>
-                            setOpenMenuRowId(openMenuRowId === office.id ? null : office.id)
+                      {/* زر حذف المكتب نهائياً */}
+                      <button
+                        type="button"
+                        aria-label={t("حذف المكتب نهائياً", "Delete Office")}
+                        onClick={() => {
+                          if (onOpenDeleteModal) {
+                            onOpenDeleteModal(office);
+                          } else {
+                            handleDeleteOffice(office);
                           }
-                          className="p-[6px] rounded-[4px] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] transition-colors cursor-pointer"
-                        >
-                          <MoreVertical className="size-[15px]" />
-                        </button>
-
-                        {(() => {
-                          const accType = office.accountStatus.type as string | undefined;
-                          const isRowSuspended =
-                            accType === "suspended" ||
-                            accType === "inactive" ||
-                            office.accountStatus.label === "غير نشط" ||
-                            office.accountStatus.label === "معطل";
-                          return (
-                            <ClientRowActionMenu
-                              isOpen={openMenuRowId === office.id}
-                              onClose={() => setOpenMenuRowId(null)}
-                              onViewDetails={() => onViewOfficeDetails(office)}
-                              onEnterOfficeAsAdmin={
-                                onEnterOfficeAsAdmin
-                                  ? () => onEnterOfficeAsAdmin(office)
-                                  : undefined
-                              }
-                              onEdit={() => onEditOffice(office)}
-                              onManageSubscriptions={() => {
-                                if (onManageSubscriptions) {
-                                  onManageSubscriptions(office);
-                                } else {
-                                  toast.info(`إدارة اشتراكات وفواتير مكتب ${office.name}`);
-                                }
-                              }}
-                              isSuspended={isRowSuspended}
-                              onDeactivate={() => {
-                                if (isRowSuspended) {
-                                  if (onReactivate) {
-                                    onReactivate(office);
-                                  } else {
-                                    handleDeactivateToggle(office);
-                                  }
-                                } else {
-                                  if (onOpenDeactivateModal) {
-                                    onOpenDeactivateModal(office);
-                                  } else {
-                                    handleDeactivateToggle(office);
-                                  }
-                                }
-                              }}
-                              onDelete={() => {
-                                if (onOpenDeleteModal) {
-                                  onOpenDeleteModal(office);
-                                } else {
-                                  handleDeleteOffice(office);
-                                }
-                              }}
-                            />
-                          );
-                        })()}
-                      </div>
+                        }}
+                        className="p-[6px] rounded-[4px] hover:bg-[#fef2f2] dark:hover:bg-[#311616] text-[#dc2626] dark:text-[#f87171] transition-colors cursor-pointer"
+                        title={t("حذف المكتب نهائياً", "Delete Office")}
+                      >
+                        <Trash2 className="size-[15px]" />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -747,6 +757,7 @@ export function ClientManagementTable({
             <ChevronsLeft className="size-[14px] rtl:rotate-0 rotate-180" />
           </button>
         </div>
+      </div>
       </div>
     </div>
   );

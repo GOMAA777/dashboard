@@ -11,6 +11,7 @@ import { StaffToolbar } from "./StaffToolbar";
 import { StaffTable } from "./StaffTable";
 import { StaffEmptyState } from "./StaffEmptyState";
 import { AddEmployeeView, type SaveEmployeePayload } from "./AddEmployeeView";
+import { EditEmployeeView, type SaveEditEmployeePayload } from "./EditEmployeeView";
 import { EmployeeDetailsView } from "./EmployeeDetailsView";
 import { LoginAsEmployeeModal } from "./LoginAsEmployeeModal";
 import { PreviewErrorModal } from "./PreviewErrorModal";
@@ -19,7 +20,8 @@ import { DeactivateEmployeeModal } from "./DeactivateEmployeeModal";
 import { ActivateEmployeeModal } from "./ActivateEmployeeModal";
 import { ResetPasswordModal } from "./ResetPasswordModal";
 import { EmployeePreviewModeView } from "./EmployeePreviewModeView";
-import { Employee } from "../types/staff.types";
+import { Employee, isEmployeeAdmin } from "../types/staff.types";
+import { LuxuryAlertDialog } from "@/components/shared/LuxuryAlertDialog";
 import { initialStaffMembers, initialStaffKpis } from "../data/initialStaff";
 import { Plus } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
@@ -28,9 +30,11 @@ import {
   fetchStaff,
   fetchStaffStats,
   fetchStaffById,
+  updateStaff,
   updateStaffStatus,
   impersonateStaff,
   createStaff,
+  deleteStaff,
 } from "@/lib/api/staff";
 import { fetchRoles } from "@/lib/api/roles";
 import { mapStaffResponse, mapStaffFromApi } from "@/lib/api/mappers";
@@ -42,7 +46,7 @@ export function StaffManagementView() {
 
   // Navigation & View States
   const [currentView, setCurrentView] = useState<
-    "list" | "empty" | "add" | "details" | "preview"
+    "list" | "empty" | "add" | "edit" | "details" | "preview"
   >("list");
 
   // Staff State
@@ -121,6 +125,8 @@ export function StaffManagementView() {
   const [deactivateModalEmployee, setDeactivateModalEmployee] = useState<Employee | null>(null);
   const [activateModalEmployee, setActivateModalEmployee] = useState<Employee | null>(null);
   const [resetPasswordModalEmployee, setResetPasswordModalEmployee] = useState<Employee | null>(null);
+  const [deleteModalEmployee, setDeleteModalEmployee] = useState<Employee | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [endPreviewModalOpen, setEndPreviewModalOpen] = useState(false);
 
   // Active Simulated Employee
@@ -157,9 +163,9 @@ export function StaffManagementView() {
 
       // Last Login
       if (selectedLastLogin === "today") {
-        if (!emp.lastLogin.time.includes("اليوم") && !emp.lastLogin.time.includes("Today")) return false;
+        if (!emp.lastLogin?.time || (!emp.lastLogin.time.includes("اليوم") && !emp.lastLogin.time.includes("Today"))) return false;
       } else if (selectedLastLogin === "week") {
-        if (emp.lastLogin.time.includes("يوماً") || emp.lastLogin.time.includes("days") || emp.lastLogin.time.includes("لم يسجل") || emp.lastLogin.time.includes("Never")) return false;
+        if (!emp.lastLogin?.time || emp.lastLogin.time.includes("يوماً") || emp.lastLogin.time.includes("days") || emp.lastLogin.time.includes("لم يسجل") || emp.lastLogin.time.includes("Never")) return false;
       }
 
       return true;
@@ -217,6 +223,69 @@ export function StaffManagementView() {
     );
     await reloadStaff();
     setSelectedEmployee(created);
+    setCurrentView("details");
+  };
+
+  const handleEditEmployee = (emp: Employee) => {
+    setSelectedEmployee(emp);
+    setCurrentView("edit");
+  };
+
+  const handleDeleteEmployeeClick = (emp: Employee) => {
+    if (isEmployeeAdmin(emp)) {
+      toast.error(
+        t(
+          "لا يمكن حذف حساب المشرف العام لأسباب أمنية ونظامية.",
+          "Super Admin account cannot be deleted for security and system reasons."
+        )
+      );
+      return;
+    }
+    setDeleteModalEmployee(emp);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteModalEmployee) return;
+    setIsDeleting(true);
+    try {
+      await deleteStaff(deleteModalEmployee.id);
+      toast.success(
+        isEn
+          ? `Employee "${deleteModalEmployee.name}" deleted successfully.`
+          : `تم حذف حساب الموظف "${deleteModalEmployee.name}" بنجاح.`
+      );
+      setDeleteModalEmployee(null);
+      await reloadStaff();
+      if (currentView === "details" || currentView === "edit") {
+        setCurrentView("list");
+      }
+    } catch (err: unknown) {
+      toast.error(
+        err instanceof ApiError
+          ? err.message
+          : t("تعذر حذف حساب الموظف.", "Failed to delete employee account.")
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleUpdateEmployee = async ({ id, payload }: SaveEditEmployeePayload) => {
+    const response = await updateStaff(id, payload);
+    const raw = (unwrapData<Record<string, unknown>>(response) ||
+      response) as Record<string, unknown>;
+    const updated =
+      raw?.id || raw?.name ? mapStaffFromApi(raw) : null;
+
+    toast.success(
+      isEn
+        ? "Employee details updated successfully."
+        : "تم حفظ وتحديث بيانات الموظف بنجاح."
+    );
+    await reloadStaff();
+    if (updated) {
+      setSelectedEmployee(updated);
+    }
     setCurrentView("details");
   };
 
@@ -414,6 +483,8 @@ export function StaffManagementView() {
                       // Keep list employee.
                     });
                 }}
+                onEdit={handleEditEmployee}
+                onDelete={handleDeleteEmployeeClick}
                 onLoginAsEmployee={handleStartLoginAsEmployee}
                 onDeactivate={(emp) => setDeactivateModalEmployee(emp)}
                 onActivate={(emp) => setActivateModalEmployee(emp)}
@@ -431,12 +502,22 @@ export function StaffManagementView() {
             />
           )}
 
+          {/* VIEW: Edit Employee */}
+          {currentView === "edit" && selectedEmployee && (
+            <EditEmployeeView
+              employee={selectedEmployee}
+              onBack={() => setCurrentView("list")}
+              onSave={handleUpdateEmployee}
+            />
+          )}
+
           {/* VIEW: Employee Details (Figma 1:9815) */}
           {currentView === "details" && selectedEmployee && (
             <EmployeeDetailsView
               employee={selectedEmployee}
               onBack={() => setCurrentView("list")}
-              onEdit={() => setCurrentView("add")}
+              onEdit={() => setCurrentView("edit")}
+              onDelete={() => handleDeleteEmployeeClick(selectedEmployee)}
               onLoginAsEmployee={() => handleStartLoginAsEmployee(selectedEmployee)}
               onDeactivate={() => setDeactivateModalEmployee(selectedEmployee)}
               onActivate={() => setActivateModalEmployee(selectedEmployee)}
@@ -515,6 +596,36 @@ export function StaffManagementView() {
         isOpen={!!resetPasswordModalEmployee}
         onClose={() => setResetPasswordModalEmployee(null)}
         employee={resetPasswordModalEmployee}
+      />
+
+      {/* DIALOG 7: Delete Employee Confirmation */}
+      <LuxuryAlertDialog
+        isOpen={!!deleteModalEmployee}
+        onClose={() => !isDeleting && setDeleteModalEmployee(null)}
+        onConfirm={() => {
+          void handleConfirmDelete();
+        }}
+        title={t("تأكيد حذف حساب الموظف", "Confirm Employee Deletion")}
+        description={t(
+          "تحذير: سيتم حذف حساب الموظف نهائياً من طاقم العمل وإلغاء كافة صلاحياته بالمنصة. لا يمكن التراجع عن هذا الإجراء بعد تنفيذه.",
+          "Warning: The employee account will be permanently deleted and all permissions revoked. This action cannot be undone."
+        )}
+        confirmLabel={
+          isDeleting
+            ? t("جاري الحذف...", "Deleting...")
+            : t("نعم، احذف الموظف", "Yes, Delete Employee")
+        }
+        cancelLabel={t("إلغاء", "Cancel")}
+        variant="danger"
+        itemDetails={
+          deleteModalEmployee
+            ? {
+                [t("اسم الموظف", "Employee Name")]: deleteModalEmployee.name,
+                [t("الرقم الوظيفي", "Employee Code")]: deleteModalEmployee.empCode,
+                [t("البريد الإلكتروني", "Email")]: deleteModalEmployee.email,
+              }
+            : undefined
+        }
       />
     </div>
   );

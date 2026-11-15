@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { withCacheBust, resolveOfficeLogo, DEFAULT_OFFICE_LOGO } from "@/lib/api/mappers";
 import { ClientRowActionMenu } from "@/features/clients/components/ClientRowActionMenu";
 import { useUIStore } from "@/stores/use-ui-store";
 
@@ -189,27 +190,29 @@ export function DashboardLawOfficesTable({ offices: externalOffices }: Dashboard
                 <td className="py-[16px] px-[20px]">
                   <div className="flex items-center gap-[12px]">
                     {/* Initials Avatar Box or Logo */}
-                    {row.logo && !failedLogos[row.id] ? (
-                      <div className="size-[32px] rounded-[4px] bg-white dark:bg-[#1a120d] border border-[#eae8e4] dark:border-[#422e20] p-0.5 flex items-center justify-center shrink-0 overflow-hidden">
-                        <img
-                          src={row.logo}
-                          alt={row.nameAr}
-                          className="max-h-full max-w-full object-contain"
-                          onError={() => setFailedLogos((prev) => ({ ...prev, [row.id]: true }))}
-                        />
-                      </div>
-                    ) : (
-                      <div
-                        className={cn(
-                          "size-[32px] rounded-[4px] flex items-center justify-center font-bold text-[12px] shrink-0",
-                          "bg-[#fff9ee] dark:bg-[#2d1f16] text-[#9c6402] dark:text-[#e29d38] border border-[#eae8e4] dark:border-[#423122]",
-                          row.initialBg,
-                          row.initialText
-                        )}
-                      >
-                        {currentLang === "en" ? row.initialEn : row.initialAr}
-                      </div>
-                    )}
+                    {(() => {
+                      const candidateLogo = resolveOfficeLogo(row.logo, row.id);
+                      const isFailed = failedLogos[candidateLogo];
+                      const tableLogo = !isFailed ? candidateLogo : DEFAULT_OFFICE_LOGO;
+
+                      return (
+                        <div className="size-[32px] rounded-[4px] bg-white dark:bg-[#1a120d] border border-[#eae8e4] dark:border-[#422e20] p-0.5 flex items-center justify-center shrink-0 overflow-hidden relative">
+                          <span className={`text-[12px] font-bold ${row.initialText} absolute pointer-events-none select-none`}>
+                            {currentLang === "en" ? row.initialEn : row.initialAr}
+                          </span>
+                          <img
+                            src={withCacheBust(tableLogo, row.id)}
+                            alt={row.nameAr}
+                            className="max-h-full max-w-full object-contain relative z-10 bg-white dark:bg-[#1a120d]"
+                            onError={() => {
+                              if (tableLogo !== DEFAULT_OFFICE_LOGO) {
+                                setFailedLogos((prev) => ({ ...prev, [tableLogo]: true }));
+                              }
+                            }}
+                          />
+                        </div>
+                      );
+                    })()}
 
                     {/* Name + License & Code */}
                     <div className="flex flex-col text-start">

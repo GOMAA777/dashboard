@@ -135,15 +135,14 @@ export function UnifiedFilterBar({
                 title={t("تصفية متقدمة", "Advanced Filter")}
                 aria-label={t("تصفية متقدمة", "Advanced Filter")}
                 className={cn(
-                  "h-[40px] px-[12px] rounded-[6px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] flex items-center gap-[6px] shrink-0 cursor-pointer transition-colors border border-transparent dark:border-[#38271c] relative",
+                  "size-[40px] rounded-[6px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] flex items-center justify-center shrink-0 cursor-pointer transition-colors border border-transparent dark:border-[#38271c] relative",
                   hasActiveFilters &&
                     "text-[#9c6402] dark:text-[#f3c27e] bg-[#fff6e8] dark:bg-[rgba(226,157,56,0.18)] border-[#ffddb6] dark:border-[#e29d38]/50"
                 )}
               >
                 <SlidersHorizontal className="size-[16px]" />
-                <span className="text-[12px] font-bold">{t("فلتر", "Filter")}</span>
                 {hasActiveFilters && (
-                  <span className="size-[7px] rounded-full bg-[#9c6402] dark:bg-[#e29d38]" />
+                  <span className="absolute top-[7px] end-[7px] size-[7px] rounded-full bg-[#9c6402] dark:bg-[#e29d38]" />
                 )}
               </button>
             }

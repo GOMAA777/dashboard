@@ -26,10 +26,12 @@ import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
 import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
 import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { useLanguage } from "@/lib/i18n";
+import { localizePlanName, getLocalizedCityName } from "@/lib/localize";
 import { cn } from "@/lib/utils";
 import { fetchPlanSubscribers } from "@/lib/api/plans";
+import { fetchFirms } from "@/lib/api/firms";
 import { unwrapList, asString, asNumber } from "@/lib/api/helpers";
-import { normalizeLogoUrl } from "@/lib/api/mappers";
+import { normalizeLogoUrl, resolveOfficeLogo } from "@/lib/api/mappers";
 
 interface SubscribedFirmsViewProps {
   plan?: PricingPlanItem;
@@ -38,11 +40,26 @@ interface SubscribedFirmsViewProps {
   onViewOfficeDetails?: (firm: DetailedSubscribedFirm) => void;
 }
 
-function mapSubscriberFirm(raw: Record<string, unknown>): DetailedSubscribedFirm {
-  const name = asString(raw.name || raw.firm_name, "مكتب");
+function mapSubscriberFirm(raw: Record<string, unknown>, isEn = false): DetailedSubscribedFirm {
+  const name = asString(raw.name || raw.firm_name, isEn ? "Law Firm" : "مكتب");
   const activeSub = (raw.active_subscription || {}) as Record<string, unknown>;
+  const rawPlanType = asString(
+    raw.plan_type ||
+      raw.planType ||
+      raw.subscription_plan ||
+      raw.subscriptionPlan ||
+      (raw.plan as Record<string, unknown> | undefined)?.type ||
+      (raw.plan as Record<string, unknown> | undefined)?.name ||
+      raw.plan ||
+      "",
+    ""
+  ).toLowerCase();
+  const isUnlimitedFirm = rawPlanType.includes("unlimited") || rawPlanType.includes("غير محدود");
+
   const statusRaw = asString(activeSub.status || raw.status || raw.subscription_status, "active").toLowerCase();
-  const status: DetailedSubscribedFirm["status"] = statusRaw.includes("trial")
+  const status: DetailedSubscribedFirm["status"] = isUnlimitedFirm
+    ? "active"
+    : statusRaw.includes("trial")
     ? "trial"
     : statusRaw.includes("suspend") || statusRaw.includes("تعطيل")
       ? "suspended"
@@ -53,40 +70,50 @@ function mapSubscriberFirm(raw: Record<string, unknown>): DetailedSubscribedFirm
           : "active";
 
   const rawRenewal = asString(activeSub.renewal_date || raw.subscription_end || raw.renewal_date || raw.ends_at, "");
-  let remainingDaysText = "—";
-  if (rawRenewal) {
+  let remainingDaysText = isUnlimitedFirm ? "∞" : "—";
+  if (!isUnlimitedFirm && rawRenewal) {
     try {
       const diffMs = new Date(rawRenewal).getTime() - Date.now();
       const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-      remainingDaysText = diffDays > 0 ? `${diffDays} يوماً` : "منتهي";
+      remainingDaysText = diffDays > 0
+        ? (isEn ? `${diffDays} days` : `${diffDays} يوماً`)
+        : (isEn ? "Expired" : "منتهي");
     } catch {
       // ignore
     }
   }
 
   const rawCycle = asString(activeSub.billing_cycle || raw.billing_cycle, "yearly").toLowerCase();
-  const renewalCycle = rawCycle.includes("month") || rawCycle.includes("شهر") ? "شهري" : "سنوي";
+  const renewalCycle = isUnlimitedFirm
+    ? (isEn ? "Permanent" : "غير محدود")
+    : rawCycle.includes("month") || rawCycle.includes("شهر")
+    ? "شهري"
+    : "سنوي";
 
   return {
     id: asString(raw.id, String(Math.random())),
-    initial: name.trim().charAt(0) || "م",
+    initial: name.trim().charAt(0) || "M",
     name,
     licenseNumber: asString(raw.license_number, "—"),
     city: asString(raw.city, "—"),
     owner: asString(raw.owner_name || raw.owner, "—"),
     contact: asString(raw.phone || raw.email, "—"),
-    logo: normalizeLogoUrl(raw.logo ? String(raw.logo) : undefined),
+    logo: resolveOfficeLogo(raw.logo ? String(raw.logo) : undefined, raw.id ? String(raw.id) : undefined),
     taxNumber: raw.tax_number ? asString(raw.tax_number) : undefined,
     subscriptionCode: activeSub.subscription_code ? asString(activeSub.subscription_code) : undefined,
-    amount: activeSub.amount ? asString(activeSub.amount) : undefined,
-    paymentMethod: activeSub.payment_method ? asString(activeSub.payment_method) : undefined,
+    amount: isUnlimitedFirm ? "0" : activeSub.amount ? asString(activeSub.amount) : undefined,
+    paymentMethod: isUnlimitedFirm ? (isEn ? "Free VIP" : "اشتراك دائم") : activeSub.payment_method ? asString(activeSub.payment_method) : undefined,
     lawyersUsed: asNumber(raw.lawyers_used, 0),
-    lawyersLimit: asNumber(raw.lawyers_limit || (raw.plan as any)?.max_lawyers, 8),
+    lawyersLimit: isUnlimitedFirm ? 999999 : asNumber(raw.lawyers_limit || (raw.plan as any)?.max_lawyers, 8),
     casesUsed: asNumber(raw.cases_used, 0),
-    casesLimit: asNumber(raw.cases_limit || (raw.plan as any)?.max_cases, 350),
+    casesLimit: isUnlimitedFirm ? 999999 : asNumber(raw.cases_limit || (raw.plan as any)?.max_cases, 350),
     agentsUsed: asNumber(raw.agents_used, 0),
-    agentsLimit: asNumber(raw.agents_limit || (raw.plan as any)?.max_power_of_attorney, 555),
-    renewalDate: rawRenewal && rawRenewal.includes("T") ? rawRenewal.split("T")[0] : rawRenewal || "—",
+    agentsLimit: isUnlimitedFirm ? 999999 : asNumber(raw.agents_limit || (raw.plan as any)?.max_power_of_attorney, 555),
+    renewalDate: isUnlimitedFirm
+      ? (isEn ? "Permanent" : "دائم (بدون انتهاء)")
+      : rawRenewal && rawRenewal.includes("T")
+      ? rawRenewal.split("T")[0]
+      : rawRenewal || "—",
     renewalCycle,
     remainingDaysText,
     status,
@@ -133,15 +160,41 @@ export function SubscribedFirmsView({
     let cancelled = false;
     setIsLoading(true);
     setError(null);
+
+    const isUnlimitedPlan = plan.id === "unlimited" || plan.name?.includes("غير محدود");
+
+    if (isUnlimitedPlan) {
+      fetchFirms()
+        .then((payload) => {
+          if (cancelled) return;
+          const allFirms = unwrapList<Record<string, unknown>>(payload);
+          const filtered = allFirms.filter((f) => {
+            const t = String(f.plan_type || f.subscription_plan || f.plan || "").toLowerCase();
+            return t.includes("unlimited") || t.includes("غير محدود");
+          });
+          const mapped = filtered.map((f) => mapSubscriberFirm(f, isEn));
+          setFirms(mapped);
+        })
+        .catch((err: unknown) => {
+          if (!cancelled) {
+            setError(err instanceof Error ? err.message : t("فشل تحميل قائمة المكاتب المشتركة", "Failed to load subscribed firms list"));
+          }
+        })
+        .finally(() => {
+          if (!cancelled) setIsLoading(false);
+        });
+      return;
+    }
+
     fetchPlanSubscribers(plan.id)
       .then((payload) => {
         if (cancelled) return;
-        const mapped = unwrapList<Record<string, unknown>>(payload).map(mapSubscriberFirm);
+        const mapped = unwrapList<Record<string, unknown>>(payload).map((f) => mapSubscriberFirm(f, isEn));
         setFirms(mapped);
       })
       .catch((err: unknown) => {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "فشل تحميل قائمة المكاتب المشتركة");
+          setError(err instanceof Error ? err.message : t("فشل تحميل قائمة المكاتب المشتركة", "Failed to load subscribed firms list"));
         }
       })
       .finally(() => {
@@ -150,7 +203,7 @@ export function SubscribedFirmsView({
     return () => {
       cancelled = true;
     };
-  }, [plan?.id]);
+  }, [plan?.id, plan?.name, isEn, t]);
 
   useEffect(() => {
     return loadSubscribers();
@@ -248,7 +301,12 @@ export function SubscribedFirmsView({
   };
 
   const handleConfirmUpgrade = (firmId: string, targetPlan: string) => {
-    toast.success(`تمت ترقية اشتراك المكتب إلى "${targetPlan}" بنجاح.`);
+    toast.success(
+      t(
+        `تمت ترقية اشتراك المكتب إلى "${localizePlanName(targetPlan, isEn)}" بنجاح.`,
+        `Office subscription upgraded to "${localizePlanName(targetPlan, isEn)}" successfully.`
+      )
+    );
   };
 
   const handleConfirmDeactivate = (
@@ -264,8 +322,8 @@ export function SubscribedFirmsView({
     );
     toast.success(
       mode === "immediate"
-        ? "تم تعطيل اشتراك المكتب فورياً بنجاح."
-        : "تمت جدولة تعطيل اشتراك المكتب بنهاية الدورة الحالية."
+        ? t("تم تعطيل اشتراك المكتب فورياً بنجاح.", "Office subscription suspended immediately.")
+        : t("تمت جدولة تعطيل اشتراك المكتب بنهاية الدورة الحالية.", "Office subscription suspension scheduled for end of cycle.")
     );
   };
 
@@ -659,7 +717,7 @@ export function SubscribedFirmsView({
                           {firm.name}
                         </button>
                         <div className="text-[11px] text-[#737067] dark:text-[#8e8680]">
-                          {firm.licenseNumber} • {firm.city}
+                          {firm.licenseNumber} • {getLocalizedCityName(firm.city, isEn)}
                         </div>
                       </div>
                     </div>

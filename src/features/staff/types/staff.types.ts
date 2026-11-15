@@ -18,6 +18,14 @@ export interface EmployeeRole {
   iconType: IconType;
 }
 
+export interface EmployeeLastLogin {
+  time: string | null;
+  ip?: string | null;
+  city?: string | null;
+  location?: string | null;
+  note?: string;
+}
+
 export interface Employee {
   id: string;
   empCode: string;
@@ -28,21 +36,37 @@ export interface Employee {
   avatarImage?: string;
   jobTitle: string;
   department: string;
+  departmentId?: string | number;
   email: string;
   phone: string;
   role: EmployeeRole;
+  roleId?: string | number;
   status: EmployeeStatus;
-  lastLogin: {
-    time: string;
-    ip?: string;
-    location?: string;
-    note?: string;
-  };
+  lastLogin: EmployeeLastLogin;
   createdAt?: string;
   directSupervisor?: string;
   twoFactorEnabled?: boolean;
   twoFactorMethod?: string;
   passwordLastChanged?: string;
+  permissionsCount?: number;
+  assignedTicketsCount?: number;
+}
+
+export function isEmployeeAdmin(emp: Employee | null | undefined): boolean {
+  if (!emp) return false;
+  const roleName = (emp.role?.name || "").toLowerCase();
+  const empCode = (emp.empCode || "").toUpperCase();
+  const name = (emp.name || "").toLowerCase();
+  return (
+    roleName.includes("super") ||
+    roleName.includes("admin") ||
+    roleName.includes("مشرف") ||
+    empCode === "EMP-ADMIN-01" ||
+    empCode.includes("ADMIN") ||
+    emp.role?.id === "1" ||
+    name.includes("مشرف لوحة التحكم") ||
+    name.includes("super admin")
+  );
 }
 
 export interface AuditLogEntry {

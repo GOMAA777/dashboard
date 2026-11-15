@@ -10,6 +10,7 @@ import {
   Trash2,
   DoorOpen,
   CheckCircle2,
+  KeyRound,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -20,6 +21,7 @@ interface ClientRowActionMenuProps {
   onViewDetails: () => void;
   onEnterOfficeAsAdmin?: () => void;
   onEdit: () => void;
+  onResetPassword?: () => void;
   onManageSubscriptions: () => void;
   onDeactivate: () => void;
   onDelete: () => void;
@@ -34,6 +36,7 @@ export function ClientRowActionMenu({
   onViewDetails,
   onEnterOfficeAsAdmin,
   onEdit,
+  onResetPassword,
   onManageSubscriptions,
   onDeactivate,
   onDelete,
@@ -170,6 +173,21 @@ export function ClientRowActionMenu({
               <PenSquare className="size-[15px] text-[#514537] dark:text-[#a89f91] group-hover:text-[#1b1c1a] dark:group-hover:text-[#fdfbf7] shrink-0" />
               <span className="leading-[18px]">{t("تعديل بيانات الحساب", "Edit Account Details")}</span>
             </button>
+
+            {/* 2b. إعادة تعيين كلمة المرور */}
+            {onResetPassword && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onResetPassword();
+                }}
+                className="w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] hover:bg-[#fff9ee] dark:hover:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold transition-colors cursor-pointer group"
+              >
+                <KeyRound className="size-[15px] text-[#9c6402] dark:text-[#e29d38] shrink-0" />
+                <span className="leading-[18px]">{t("إعادة تعيين كلمة المرور", "Reset Password")}</span>
+              </button>
+            )}
 
             {/* 3. إدارة الاشتراكات والفواتير */}
             <button

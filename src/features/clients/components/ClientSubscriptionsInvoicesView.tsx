@@ -35,6 +35,7 @@ import { CreateInvoiceModal } from "@/features/invoices/components/CreateInvoice
 import { RecordPaymentModal } from "@/features/invoices/components/RecordPaymentModal";
 import { UpgradeClientOfficePlanModal } from "./UpgradeClientOfficePlanModal";
 import { useLanguage } from "@/lib/i18n";
+import { getLocalizedCityName, localizePlanName } from "@/lib/localize";
 import { cn } from "@/lib/utils";
 
 interface ClientSubscriptionsInvoicesViewProps {
@@ -52,8 +53,15 @@ export function ClientSubscriptionsInvoicesView({
   const licenseNum = office?.licenseNumber && office.licenseNumber !== "—" ? office.licenseNumber.replace("ترخيص عدلي: ", "") : "—";
   const email = office?.email || "—";
   const phone = office?.phone || "—";
-  const city = office?.city || "—";
+  const city = office?.city ? getLocalizedCityName(office.city, isEn) : "—";
   const [currentPlan, setCurrentPlan] = useState(office?.plan || "—");
+
+  const isUnlimited =
+    office?.planType === "unlimited" ||
+    office?.subscriptionPlan === "unlimited" ||
+    office?.plan?.includes("غير محدود") ||
+    office?.subscriptionStatus?.type === "unlimited" ||
+    currentPlan === "غير محدود";
 
   const isMonthly = (() => {
     const rawCycle = (office?.billingCycle || office?.activeSubscriptionDetails?.billingCycle || "").toLowerCase().trim();
@@ -262,11 +270,11 @@ export function ClientSubscriptionsInvoicesView({
             </div>
             <div className="flex items-center gap-2 text-[#514537] dark:text-[#a89f91]">
               <Mail className="size-4 text-[#837565] shrink-0" />
-              <span className="truncate">{email}</span>
+              <span dir="ltr" className="inline-block truncate">{email}</span>
             </div>
             <div className="flex items-center gap-2 text-[#514537] dark:text-[#a89f91]">
               <Phone className="size-4 text-[#837565] shrink-0" />
-              <span className="truncate font-mono">{phone}</span>
+              <span dir="ltr" className="inline-block truncate font-mono">{phone}</span>
             </div>
           </div>
 
@@ -276,21 +284,29 @@ export function ClientSubscriptionsInvoicesView({
               <div className="flex items-center gap-2">
                 <Sparkles className="size-4 text-[#9c6402] dark:text-[#e29d38]" />
                 <span className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                  {currentPlan}
+                  {isUnlimited ? t("غير محدود", "Unlimited") : localizePlanName(currentPlan, isEn)}
                 </span>
                 <span className="text-[11px] text-[#837565] dark:text-[#a89f91]">
-                  {isMonthly
+                  {isUnlimited
+                    ? `(${t("اشتراك دائم بدون انتهاء - صلاحيات كاملة", "Permanent VIP Subscription - Full Privileges")})`
+                    : isMonthly
                     ? `(${t("سداد شهري", "Monthly Billing")}${office?.subscriptionEnd ? ` - ${t("يتجدد في", "renews on")} ${formatDate(office.subscriptionEnd, "dd MMMM yyyy")}` : ""})`
                     : `(${t("سداد سنوي", "Annual Billing")}${office?.subscriptionEnd ? ` - ${t("يتجدد في", "renews on")} ${formatDate(office.subscriptionEnd, "dd MMMM yyyy")}` : ""})`}
                 </span>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsUpgradeModalOpen(true)}
-                className="text-[12px] font-bold text-[#9c6402] dark:text-[#e29d38] hover:underline cursor-pointer"
-              >
-                {isEn ? "Change Plan" : "ترقية / تعديل الباقة"}
-              </button>
+              {!isUnlimited ? (
+                <button
+                  type="button"
+                  onClick={() => setIsUpgradeModalOpen(true)}
+                  className="text-[12px] font-bold text-[#9c6402] dark:text-[#e29d38] hover:underline cursor-pointer"
+                >
+                  {isEn ? "Change Plan" : "ترقية / تعديل الباقة"}
+                </button>
+              ) : (
+                <span className="text-[11px] font-bold text-[#9c6402] dark:text-[#e29d38] bg-[#9c6402]/10 dark:bg-[#e29d38]/10 px-2 py-0.5 rounded">
+                  {t("صلاحيات كاملة", "Full Access")}
+                </span>
+              )}
             </div>
 
             {/* Quota bars */}
@@ -298,7 +314,7 @@ export function ClientSubscriptionsInvoicesView({
               {/* Lawyer seats */}
               <div>
                 <div className="flex justify-between font-bold text-[#514537] dark:text-[#cdc5bd] mb-1">
-                  <span>مقاعد المحامين</span>
+                  <span>{t("مقاعد المحامين", "Lawyer Seats")}</span>
                   <span>12 / 15</span>
                 </div>
                 <div className="w-full bg-[#eae8e4] dark:bg-[#38271c] h-2 rounded-full overflow-hidden">
@@ -309,7 +325,7 @@ export function ClientSubscriptionsInvoicesView({
               {/* Storage */}
               <div>
                 <div className="flex justify-between font-bold text-[#514537] dark:text-[#cdc5bd] mb-1">
-                  <span>المساحة السحابية</span>
+                  <span>{t("المساحة السحابية", "Cloud Storage")}</span>
                   <span>68 GB / 100 GB</span>
                 </div>
                 <div className="w-full bg-[#eae8e4] dark:bg-[#38271c] h-2 rounded-full overflow-hidden">
@@ -320,7 +336,7 @@ export function ClientSubscriptionsInvoicesView({
               {/* Active Cases */}
               <div>
                 <div className="flex justify-between font-bold text-[#514537] dark:text-[#cdc5bd] mb-1">
-                  <span>القضايا النشطة</span>
+                  <span>{t("القضايا النشطة", "Active Cases")}</span>
                   <span>180 / 250</span>
                 </div>
                 <div className="w-full bg-[#eae8e4] dark:bg-[#38271c] h-2 rounded-full overflow-hidden">
@@ -462,7 +478,7 @@ export function ClientSubscriptionsInvoicesView({
                           type="button"
                           onClick={(e) => handleCopy(inv.invoiceNumber, inv.id, e)}
                           className="text-[#837565] hover:text-[#9c6402] p-1 rounded"
-                          title="نسخ"
+                          title={t("نسخ", "Copy")}
                         >
                           {copiedId === inv.id ? (
                             <Check className="size-3 text-emerald-500" />
@@ -473,17 +489,17 @@ export function ClientSubscriptionsInvoicesView({
                       </div>
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#059669] dark:text-[#10b981] mt-0.5">
                         <ShieldCheck className="size-3" />
-                        <span>{inv.zatcaComplianceStatus === "cleared" ? "ZATCA معتمد" : "مبلّغ"}</span>
+                        <span>{inv.zatcaComplianceStatus === "cleared" ? t("ZATCA معتمد", "ZATCA Cleared") : t("مبلّغ", "Reported")}</span>
                       </span>
                     </td>
 
                     {/* Plan */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-                        {inv.planName}
+                        {localizePlanName(inv.planName, isEn)}
                       </span>
                       <span className="text-[11px] text-[#837565] dark:text-[#a89f91]">
-                        {inv.billingPeriod === "annual" ? "سداد سنوي" : "سداد شهري"}
+                        {inv.billingPeriod === "annual" ? t("سداد سنوي", "Annual Billing") : t("سداد شهري", "Monthly Billing")}
                       </span>
                     </td>
 
@@ -494,7 +510,7 @@ export function ClientSubscriptionsInvoicesView({
                         <span>{inv.issueDate}</span>
                       </div>
                       <span className="text-[10px] text-[#837565] font-mono mt-0.5 block">
-                        استحقاق: {inv.dueDate}
+                        {t("استحقاق:", "Due:")} {inv.dueDate}
                       </span>
                     </td>
 
@@ -505,18 +521,22 @@ export function ClientSubscriptionsInvoicesView({
                           {inv.totalAmount.toLocaleString()}
                         </span>
                         <span className="text-[11px] font-bold text-[#9c6402] dark:text-[#e29d38]">
-                          ر.س
+                          {t("ر.س", "SAR")}
                         </span>
                       </div>
                       <span className="text-[10px] text-[#837565] font-mono">
-                        ضريبة 15%: {inv.taxAmount.toLocaleString()} ر.س
+                        {t("ضريبة 15%:", "15% VAT:")} {inv.taxAmount.toLocaleString()} {t("ر.س", "SAR")}
                       </span>
                     </td>
 
                     {/* Payment Method */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       <span className="inline-block bg-[#f0fdf4] dark:bg-[#142d1f] text-[#166534] dark:text-[#86efac] border border-emerald-200 dark:border-emerald-700/40 px-2 py-0.5 rounded-[4px] text-[11px] font-bold">
-                        {inv.paymentMethod === "mada" ? "مدى (mada)" : inv.paymentMethod === "apple_pay" ? "Apple Pay" : "تحويل بنكي"}
+                        {inv.paymentMethod === "mada"
+                          ? t("مدى (mada)", "Mada")
+                          : inv.paymentMethod === "apple_pay"
+                          ? "Apple Pay"
+                          : t("تحويل بنكي", "Bank Transfer")}
                       </span>
                       <span className="block text-[10px] font-mono text-[#837565] mt-0.5">
                         {inv.transactionReference}
@@ -576,7 +596,7 @@ export function ClientSubscriptionsInvoicesView({
                         <button
                           type="button"
                           onClick={() => handleDownloadPdf(inv)}
-                          title="تحميل PDF"
+                          title={t("تحميل PDF", "Download PDF")}
                           className="p-1.5 rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:text-[#059669] cursor-pointer"
                         >
                           <Download className="size-3.5" />
@@ -623,7 +643,8 @@ export function ClientSubscriptionsInvoicesView({
         onConfirmUpgrade={(officeId: string, newPlanName: string) => {
           setCurrentPlan(newPlanName);
           setIsUpgradeModalOpen(false);
-          toast.success(isEn ? `Plan upgraded to ${newPlanName}` : `تمت ترقية الباقة إلى ${newPlanName} بنجاح`);
+          const localizedToastPlan = localizePlanName(newPlanName, isEn);
+          toast.success(isEn ? `Plan upgraded to ${localizedToastPlan}` : `تمت ترقية الباقة إلى ${newPlanName} بنجاح`);
         }}
       />
 

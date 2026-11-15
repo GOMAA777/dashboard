@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createSubscriptionSchema, CreateSubscriptionInput } from "../schemas/subscription.schemas";
+import { getCreateSubscriptionSchema, CreateSubscriptionInput } from "../schemas/subscription.schemas";
 import { X, Building2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/lib/i18n";
@@ -24,7 +24,7 @@ export function AddSubscriptionModal({
   onClose,
   onSubmitSuccess,
 }: AddSubscriptionModalProps) {
-  const { t } = useLanguage();
+  const { t, isEn } = useLanguage();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingValues, setPendingValues] = useState<CreateSubscriptionInput | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,7 +38,7 @@ export function AddSubscriptionModal({
     watch,
     formState: { errors },
   } = useForm<CreateSubscriptionInput>({
-    resolver: zodResolver(createSubscriptionSchema),
+    resolver: zodResolver(getCreateSubscriptionSchema(isEn)),
     defaultValues: {
       planName: "الباقة الذهبية",
       billingCycle: "سنوية",
@@ -61,6 +61,10 @@ export function AddSubscriptionModal({
     setIsSubmitting(true);
     setServerErrors({});
 
+    const isUnlimited =
+      pendingValues.planName === "غير محدود" ||
+      pendingValues.planName?.includes("غير محدود");
+
     try {
       await createFirm({
         name: pendingValues.firmName,
@@ -69,9 +73,13 @@ export function AddSubscriptionModal({
         owner_name: pendingValues.ownerName,
         email: pendingValues.email,
         phone: pendingValues.phone,
-        plan_name: pendingValues.planName,
-        plan_type: "paid",
-        billing_cycle: pendingValues.billingCycle === "سنوية" ? "yearly" : "monthly",
+        plan_name: isUnlimited ? "غير محدود" : pendingValues.planName,
+        plan_type: isUnlimited ? "unlimited" : "paid",
+        billing_cycle: isUnlimited
+          ? "unlimited"
+          : pendingValues.billingCycle === "سنوية"
+          ? "yearly"
+          : "monthly",
         tax_number: pendingValues.taxNumber || undefined,
       });
 
@@ -261,6 +269,7 @@ export function AddSubscriptionModal({
                     onChange={(e) => setValue("planName", e.target.value)}
                     className="h-10 rounded-[6px]"
                   >
+                    <option value="غير محدود">{t("غير محدود (صلاحيات كاملة - بدون سعر)", "Unlimited (Full Access - Free)")}</option>
                     <option value="الباقة المخصصة">{t("الباقة المخصصة (Custom - 24,500 ر.س)", "Enterprise Plan (Custom - 24,500 SAR)")}</option>
                     <option value="الباقة الذهبية">{t("الباقة الذهبية (12,000 ر.س)", "Gold Plan (12,000 SAR)")}</option>
                     <option value="الباقة الفضية">{t("الباقة الفضية (9,200 ر.س)", "Silver Plan (9,200 SAR)")}</option>

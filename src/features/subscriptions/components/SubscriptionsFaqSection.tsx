@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Plus, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
 
 interface FaqItem {
   id: string;
@@ -11,6 +12,7 @@ interface FaqItem {
 }
 
 export function SubscriptionsFaqSection() {
+  const { t } = useLanguage();
   const [openIds, setOpenIds] = useState<Record<string, boolean>>({
     faq1: true, // First open by default
   });
@@ -25,51 +27,67 @@ export function SubscriptionsFaqSection() {
   const faqs: FaqItem[] = [
     {
       id: "faq1",
-      question: "ما هي خطة الاشتراك الأنسب لمكتبي أو نشاطي القانوني؟",
-      answer:
+      question: t("ما هي خطة الاشتراك الأنسب لمكتبي أو نشاطي القانوني؟", "Which subscription plan is best for my office or legal practice?"),
+      answer: t(
         "إذا كنت محامياً مستقلاً وتبدأ نشاطك يمكنك البدء بالباقة المجانية. أما إذا كان لديك فريق عمل ومساعدين وقضايا نشطة مستمرة فإن باقة المحترف هي الأكثر طلباً، وللشركات الكبرى ذات الفروع المتعددة توفر باقة المؤسسات سعة مفتوحة ودعماً مخصصاً.",
+        "If you are a solo practitioner just starting, you can start with the Free tier. If you have a team and continuous active cases, Pro is most popular. For large multi-branch firms, Enterprise provides open quotas and dedicated support."
+      ),
     },
     {
       id: "faq2",
-      question: "هل يمكنني ترقية أو تخفيض باقتي في أي وقت؟",
-      answer:
+      question: t("هل يمكنني ترقية أو تخفيض باقتي في أي وقت؟", "Can I upgrade or downgrade my plan anytime?"),
+      answer: t(
         "نعم بكل تأكيد. يمكنك ترقية باقتك فوراً بنقرة واحدة من لوحة التحكم، وسيتم احتساب الأيام المتبقية والمبلغ المدفوع كخصم تلقائي على الباقة الجديدة دون أي هدر.",
+        "Yes, absolutely. Upgrade anytime with one click; remaining days and paid amounts are prorated automatically."
+      ),
     },
     {
       id: "faq3",
-      question: "ما هي طرق الدفع المعتمدة؟",
-      answer:
+      question: t("ما هي طرق الدفع المعتمدة؟", "What payment methods are supported?"),
+      answer: t(
         "نقبل كافة وسائل الدفع الإلكتروني المعتمدة: بطاقات مدى، فيزا، ماستركارد، وApple Pay، بالإضافة إلى خيار التحويل البنكي المباشر لاشتراكات الشركات السنوية.",
+        "We accept all approved electronic payment methods: Mada, Visa, Mastercard, Apple Pay, plus direct wire transfer for annual enterprise plans."
+      ),
     },
     {
       id: "faq4",
-      question: "هل بيانات القضايا والمستندات سرية ومشفرة؟",
-      answer:
+      question: t("هل بيانات القضايا والمستندات سرية ومشفرة؟", "Are case data and documents confidential and encrypted?"),
+      answer: t(
         "السرية القانونية هي خطنا الأحمر. جميع ملفات القضايا ومستندات الموكلين مشفرة بتشفير مصرفي متقدم (AES-256) عبر خوادم سحابية محمية داخل المملكة، ولا يمكن لأي طرف ثالث الاطلاع عليها.",
+        "Legal confidentiality is paramount. All case files and documents are encrypted with banking-grade AES-256 on secure Saudi-hosted cloud servers."
+      ),
     },
     {
       id: "faq5",
-      question: "هل يتم إصدار فواتير ضريبية إلكترونية معتمدة؟",
-      answer:
+      question: t("هل يتم إصدار فواتير ضريبية إلكترونية معتمدة؟", "Are official electronic tax invoices issued?"),
+      answer: t(
         "نعم، فور إتمام السداد يصدر النظام فاتورة ضريبية إلكترونية رسمية متوافقة كلياً مع متطلبات هيئة الزكاة والضريبة والجمارك (ZATCA) جاهزة للتحميل والتوثيق المالي لمكتبك.",
+        "Yes, immediately upon payment the system generates a ZATCA-compliant electronic tax invoice ready for download."
+      ),
     },
     {
       id: "faq6",
-      question: "ماذا يحدث لبياناتي إذا انتهت فترة الاشتراك ولم أجدد؟",
-      answer:
+      question: t("ماذا يحدث لبياناتي إذا انتهت فترة الاشتراك ولم أجدد؟", "What happens to my data if my subscription expires and I don't renew?"),
+      answer: t(
         "تظل كافة بياناتك وملفاتك وقضاياك محفوظة بأمان تام في وضع القراءة، ولن يتم حذف أو تقييد الوصول لبياناتك السابقة أبداً، وتستعيد كامل الصلاحيات فور التجديد.",
+        "All your data and files remain safe in read-only mode; your files are never deleted and full access restores upon renewal."
+      ),
     },
     {
       id: "faq7",
-      question: "هل يوجد حد أقصى لحجم المستندات المرفوعة؟",
-      answer:
+      question: t("هل يوجد حد أقصى لحجم المستندات المرفوعة؟", "Is there a maximum size for uploaded documents?"),
+      answer: t(
         "تختلف السعة السحابية باختلاف الباقة: تبدأ من 1 جيجابايت للباقة المجانية، وتصل إلى 25 جيجابايت لباقة المحترف، وسعة غير محدودة لباقة المؤسسات، مع دعم رفع ملفات PDF وصور ومستندات بمختلف الأحجام.",
+        "Cloud storage varies by plan: from 1 GB for Free, up to 25 GB for Pro, and unlimited for Enterprise, supporting PDF, images, and office documents."
+      ),
     },
     {
       id: "faq8",
-      question: "كيف يمكنني إلغاء الاشتراك أو إيقاف التجديد التلقائي؟",
-      answer:
+      question: t("كيف يمكنني إلغاء الاشتراك أو إيقاف التجديد التلقائي؟", "How can I cancel or pause automatic renewal?"),
+      answer: t(
         "يمكنك في أي لحظة تعطيل التجديد التلقائي بضغطة زر واحدة من إعدادات الفوترة بحسابك، دون أي أسئلة أو شروط جزائية، وسيظل حسابك نشطاً حتى نهاية الفترة المدفوعة.",
+        "You can disable auto-renewal anytime with one click in your billing settings without penalties; account stays active until end of paid term."
+      ),
     },
   ];
 
@@ -88,10 +106,10 @@ export function SubscriptionsFaqSection() {
           F . A . Q
         </span>
         <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1c1917] dark:text-[#fdfbf7] mb-2 tracking-tight">
-          الأسئلة الشائعة حول الاشتراكات
+          {t("الأسئلة الشائعة حول الاشتراكات", "Frequently Asked Questions")}
         </h2>
         <p className="text-xs sm:text-sm text-[#7d7367] dark:text-[#9e968a]">
-          إجابات واضحة ومباشرة على كل ما يتعلق بالباقات، الدفع، والأمان
+          {t("إجابات واضحة ومباشرة على كل ما يتعلق بالباقات، الدفع، والأمان", "Clear, direct answers regarding plans, billing, and security")}
         </p>
       </div>
 

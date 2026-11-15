@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Eye,
   EyeOff,
@@ -15,10 +16,10 @@ import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 import { useUIStore } from "@/stores/use-ui-store";
 import { translations } from "@/lib/i18n";
-import { LoginInput } from "../schemas/login.schema";
+import { loginSchema, LoginInput } from "../schemas/login.schema";
 import { loginAction } from "../actions/login.action";
 import { AlJoudyLogo } from "@/components/shared/BrandLogos";
-import { getAuthSession, setAuthSession } from "@/lib/auth-client";
+import { getAuthSession } from "@/lib/auth-client";
 import { withBasePath } from "@/lib/base-path";
 import { cn } from "@/lib/utils";
 
@@ -47,11 +48,19 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps = {}) {
     }
   }, [onLoginSuccess]);
 
-  const { register, handleSubmit, watch } = useForm<LoginInput>({
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors },
+    watch,
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       identifier: "",
       password: "",
     },
+    mode: "onTouched",
   });
 
   const identifierValue = watch("identifier");
@@ -83,14 +92,19 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps = {}) {
     try {
       const res = await loginAction(data);
       if (res?.data?.success) {
-        // Real login already persisted the Sanctum token in loginAdmin/setAuthSession.
-        // Only seed a bypass token when AUTH_BYPASS fell back and nothing was stored.
-        if (!getAuthSession() && res.data.user) {
-          setAuthSession("bypass-test-token", res.data.user);
-        }
         handleFinishLogin();
         return;
       }
+
+      if (res?.fieldErrors) {
+        if (res.fieldErrors.identifier) {
+          setError("identifier", { message: res.fieldErrors.identifier });
+        }
+        if (res.fieldErrors.password) {
+          setError("password", { message: res.fieldErrors.password });
+        }
+      }
+
       showLoginError(res?.serverError || t.loginFailedTitle);
     } catch {
       showLoginError(t.loginFailedTitle);
@@ -117,7 +131,7 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps = {}) {
           transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
           className="w-full h-full flex flex-col justify-between"
         >
-          {/* Top Bar: Brand Logo & Sign Up Link */}
+          {/* Top Bar: Brand Logo & Portal Badge */}
           <div className="flex items-center justify-between">
             {/* Brand Logo & Name (Static Display) */}
             <div className="flex items-center gap-2.5">
@@ -196,22 +210,26 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps = {}) {
                 ) : null}
               </AnimatePresence>
 
-              {/* Email or Username Pill Input with Animated Floating Label */}
-              <div className="space-y-1.5">
+              {/* Email Input with Animated Floating Label */}
+              <div className="space-y-1">
                 <div className="relative">
                   <input
                     id="identifier"
-                    type="text"
+                    type="email"
                     placeholder=" "
-                    aria-invalid={!!formError}
+                    aria-invalid={!!errors.identifier || !!formError}
                     {...register("identifier")}
-                    className={cn(inputBase, "pe-5", formError ? inputBad : inputOk)}
+                    className={cn(
+                      inputBase,
+                      "pe-5",
+                      errors.identifier || formError ? inputBad : inputOk
+                    )}
                   />
                   <label
                     htmlFor="identifier"
                     className={cn(
                       "pointer-events-none absolute start-5 top-0 -translate-y-1/2 bg-white dark:bg-[#1a120d] px-2 text-xs font-bold transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-sm peer-placeholder-shown:font-normal peer-placeholder-shown:bg-transparent peer-focus:top-0 peer-focus:text-xs peer-focus:font-bold peer-focus:bg-white dark:peer-focus:bg-[#1a120d] peer-autofill:top-0 peer-autofill:text-xs peer-autofill:font-bold peer-autofill:bg-white dark:peer-autofill:bg-[#1a120d]",
-                      formError
+                      errors.identifier || formError
                         ? "text-red-600 dark:text-red-400 peer-placeholder-shown:text-red-500/80 peer-focus:text-red-600 dark:peer-focus:text-red-400"
                         : "text-[#c29547] dark:text-[#d4a759] peer-placeholder-shown:text-[#8c8279] dark:peer-placeholder-shown:text-[#8e8680] peer-focus:text-[#c29547] dark:peer-focus:text-[#d4a759]"
                     )}
@@ -219,24 +237,33 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps = {}) {
                     {t.emailOrUsername}
                   </label>
                 </div>
+                {errors.identifier?.message && (
+                  <p className="text-[12px] font-medium text-red-600 dark:text-red-400 px-4 pt-0.5">
+                    {errors.identifier.message}
+                  </p>
+                )}
               </div>
 
-              {/* Password Pill Input with Animated Floating Label */}
-              <div className="space-y-1.5">
+              {/* Password Input with Animated Floating Label */}
+              <div className="space-y-1">
                 <div className="relative flex items-center">
                   <input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder=" "
-                    aria-invalid={!!formError}
+                    aria-invalid={!!errors.password || !!formError}
                     {...register("password")}
-                    className={cn(inputBase, "pe-12", formError ? inputBad : inputOk)}
+                    className={cn(
+                      inputBase,
+                      "pe-12",
+                      errors.password || formError ? inputBad : inputOk
+                    )}
                   />
                   <label
                     htmlFor="password"
                     className={cn(
                       "pointer-events-none absolute start-5 top-0 -translate-y-1/2 bg-white dark:bg-[#1a120d] px-2 text-xs font-bold transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-sm peer-placeholder-shown:font-normal peer-placeholder-shown:bg-transparent peer-focus:top-0 peer-focus:text-xs peer-focus:font-bold peer-focus:bg-white dark:peer-focus:bg-[#1a120d] peer-autofill:top-0 peer-autofill:text-xs peer-autofill:font-bold peer-autofill:bg-white dark:peer-autofill:bg-[#1a120d]",
-                      formError
+                      errors.password || formError
                         ? "text-red-600 dark:text-red-400 peer-placeholder-shown:text-red-500/80 peer-focus:text-red-600 dark:peer-focus:text-red-400"
                         : "text-[#c29547] dark:text-[#d4a759] peer-placeholder-shown:text-[#8c8279] dark:peer-placeholder-shown:text-[#8e8680] peer-focus:text-[#c29547] dark:peer-focus:text-[#d4a759]"
                     )}
@@ -256,6 +283,11 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps = {}) {
                     )}
                   </button>
                 </div>
+                {errors.password?.message && (
+                  <p className="text-[12px] font-medium text-red-600 dark:text-red-400 px-4 pt-0.5">
+                    {errors.password.message}
+                  </p>
+                )}
               </div>
 
               {/* Sign In Primary Pill Button */}

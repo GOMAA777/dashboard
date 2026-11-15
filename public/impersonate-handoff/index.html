@@ -1,13 +1,20 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" style="background-color: #140d09 !important; color-scheme: dark;">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>بوابة الربط والتحويل الإشرافي | منصة الجودي</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#140d09" />
+    <title>بوابة الربط والتحويل الإشرافي المباشر | منصة الجودي</title>
     <style>
+      html, body {
+        background-color: #140d09 !important;
+        background: #140d09 !important;
+        color-scheme: dark;
+        color: #fdfbf7;
+        margin: 0;
+        padding: 0;
+      }
       * {
         box-sizing: border-box;
         margin: 0;
@@ -20,7 +27,7 @@
         justify-content: center;
         background: #140d09;
         color: #fdfbf7;
-        font-family: 'Cairo', Tahoma, sans-serif;
+        font-family: 'Cairo', system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
         padding: 16px;
         position: relative;
         overflow-x: hidden;
@@ -44,7 +51,6 @@
         position: relative;
         z-index: 10;
         display: flex;
-        flex-col;
         flex-direction: column;
         gap: 20px;
       }
@@ -300,7 +306,7 @@
       .actions-row {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-start;
         gap: 12px;
         border-top: 1px solid #38271c;
         padding-top: 14px;
@@ -309,34 +315,18 @@
         padding: 8px 16px;
         border-radius: 6px;
         background: transparent;
-        border: none;
+        border: 1px solid #38271c;
         color: #a89f91;
         font-family: inherit;
         font-size: 12px;
         font-weight: 600;
         cursor: pointer;
+        transition: all 0.2s ease;
       }
       .btn-cancel:hover {
         color: #fdfbf7;
         background: #261911;
-      }
-      .btn-proceed {
-        padding: 9px 18px;
-        border-radius: 6px;
-        background: #9c6402;
-        border: none;
-        color: #fff;
-        font-family: inherit;
-        font-size: 13px;
-        font-weight: 700;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-      }
-      .btn-proceed:hover {
-        background: #855402;
+        border-color: #553b2a;
       }
       .footer-note {
         display: flex;
@@ -348,6 +338,12 @@
         text-align: center;
       }
     </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    </noscript>
   </head>
   <body>
     <div class="ambient-glow"></div>
@@ -371,7 +367,13 @@
           <!-- Super Admin -->
           <div class="node-card">
             <div class="node-icon-wrap">
-              <div class="node-icon-inner">🛡️</div>
+              <div class="node-icon-inner">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z" fill="#991b1b"/>
+                  <path d="M12 4.18l6 2.25v4.66c0 4.09-2.6 7.9-6 8.91-3.4-1.01-6-4.82-6-8.91V6.43l6-2.25z" fill="#b91c1c"/>
+                  <path d="M12 7l3 3-1.2 1.2L12 9.4l-1.8 1.8L9 10l3-3z" fill="#ffffff"/>
+                </svg>
+              </div>
             </div>
             <div class="node-title">لوحة الإدارة المركزية</div>
             <div class="node-desc">المشرف العام (Super Admin)</div>
@@ -394,17 +396,17 @@
             </div>
             <div class="node-title" id="firmName">مكتب المحاماة</div>
             <div class="node-desc" id="firmOwner">لوحة تحكم المكتب القضائية</div>
-            <span class="node-tag tag-amber">جاري فتح الجلسة...</span>
+            <span class="node-tag tag-amber" id="targetBadge">جاري فتح الجلسة...</span>
           </div>
         </div>
 
         <div class="progress-area">
           <div class="progress-header">
             <span class="progress-status" id="statusText">جاري التحقق من هوية المشرف واعتماد الجلسة...</span>
-            <span class="progress-pct" id="pctText">15%</span>
+            <span class="progress-pct" id="pctText">25%</span>
           </div>
           <div class="progress-track">
-            <div class="progress-bar" id="progressBar"></div>
+            <div class="progress-bar" id="progressBar" style="width: 25%;"></div>
           </div>
         </div>
 
@@ -425,10 +427,6 @@
 
         <div class="actions-row">
           <button type="button" class="btn-cancel" onclick="handleCancel()">إلغاء والعودة</button>
-          <button type="button" class="btn-proceed" id="btnProceed" onclick="proceedNow()">
-            <span>الانتقال المباشر الآن</span>
-            <span>↗</span>
-          </button>
         </div>
       </div>
 
@@ -448,6 +446,7 @@
           query.get("next") ||
           hash.get("next") ||
           "https://law.elmoroj.com/lawyer/";
+        var isPending = query.get("pending") === "1";
 
         var firmNameEl = document.getElementById("firmName");
         var firmOwnerEl = document.getElementById("firmOwner");
@@ -459,32 +458,63 @@
         var step2Text = document.getElementById("step2Text");
         var step3Icon = document.getElementById("step3Icon");
         var step3Text = document.getElementById("step3Text");
+        var targetBadge = document.getElementById("targetBadge");
 
         var targetUrl = next.charAt(next.length - 1) === "/" ? next : next + "/";
         var redirected = false;
+        var activated = false;
 
-        function decodeSession(raw) {
+        function safeBase64Decode(str) {
+          if (!str) return null;
           try {
-            var padded = raw.replace(/-/g, "+").replace(/_/g, "/");
-            while (padded.length % 4) padded += "=";
-            var binary = atob(padded);
-            var bytes = Uint8Array.from(binary, function (c) {
-              return c.charCodeAt(0);
-            });
-            return JSON.parse(new TextDecoder().decode(bytes));
-          } catch (e) {
-            return null;
+            var base64 = str.replace(/-/g, "+").replace(/_/g, "/");
+            while (base64.length % 4) {
+              base64 += "=";
+            }
+            var binary = atob(base64);
+            var bytes = new Uint8Array(binary.length);
+            for (var i = 0; i < binary.length; i++) {
+              bytes[i] = binary.charCodeAt(i);
+            }
+            var jsonStr = new TextDecoder("utf-8").decode(bytes);
+            var parsed = JSON.parse(jsonStr);
+            if (parsed && parsed.token) return parsed;
+          } catch (e) {}
+
+          try {
+            var direct = JSON.parse(decodeURIComponent(str));
+            if (direct && direct.token) return direct;
+          } catch (e2) {}
+
+          return null;
+        }
+
+        function getRawHashParam(name) {
+          var hash = window.location.hash || "";
+          if (hash.charAt(0) === "#") hash = hash.substring(1);
+          if (!hash) return "";
+          var pairs = hash.split("&");
+          for (var i = 0; i < pairs.length; i++) {
+            var p = pairs[i].split("=");
+            if (p[0] === name) {
+              return p.slice(1).join("=");
+            }
           }
+          return "";
         }
 
         function readSession() {
+          // 1. Bridge from localStorage (set by Super Admin on same origin)
           try {
             var bridge = localStorage.getItem(BRIDGE_KEY);
             if (bridge) {
               var fromBridge = JSON.parse(bridge);
-              localStorage.removeItem(BRIDGE_KEY);
               if (fromBridge && fromBridge.token) return fromBridge;
             }
+          } catch (e) {}
+
+          // 2. Existing session from localStorage
+          try {
             var existing = localStorage.getItem(SESSION_KEY);
             if (existing) {
               var fromStorage = JSON.parse(existing);
@@ -492,100 +522,95 @@
             }
           } catch (e) {}
 
-          var encoded = hash.get("s") || query.get("s") || "";
-          return encoded ? decodeSession(encoded) : null;
+          // 3. Hash param #s= (raw decode without space corruption)
+          var rawHashS = getRawHashParam("s");
+          if (rawHashS) {
+            var fromHash = safeBase64Decode(rawHashS);
+            if (fromHash && fromHash.token) return fromHash;
+          }
+
+          // 4. Query param ?s=
+          var rawQueryS = query.get("s");
+          if (rawQueryS) {
+            var fromQuery = safeBase64Decode(rawQueryS);
+            if (fromQuery && fromQuery.token) return fromQuery;
+          }
+
+          return null;
         }
 
         function persist(session) {
-          // Flattened shape matching lawyer login success (`jc` → sessionStorage).
+          if (!session || !session.token) return;
           var payload = Object.assign({}, session, {
             token: session.token,
             permissions: session.permissions || { all: true },
             company_id: session.company_id == null ? null : session.company_id,
           });
           var json = JSON.stringify(payload);
+          var userObj = {
+            id: payload.id,
+            name: payload.name,
+            email: payload.email,
+            role: payload.role,
+            phone: payload.phone,
+            company_id: payload.company_id,
+          };
           var userJson = JSON.stringify({
             id: payload.id,
-            user: {
-              id: payload.id,
-              name: payload.name,
-              email: payload.email,
-              role: payload.role,
-              phone: payload.phone,
-              company_id: payload.company_id,
-            },
+            user: userObj,
           });
+
+          // 1. Session Storage (Primary for Lawyer SPA)
           try {
             sessionStorage.setItem(SESSION_KEY, json);
+            sessionStorage.setItem(USER_KEY, userJson);
+            sessionStorage.setItem("token", payload.token);
+            sessionStorage.setItem("access_token", payload.token);
+            sessionStorage.setItem("auth_token", payload.token);
+            sessionStorage.setItem("user", JSON.stringify(userObj));
+            if (payload.company_id != null) {
+              sessionStorage.setItem("company_id", String(payload.company_id));
+            }
           } catch (e) {}
+
+          // 2. Local Storage
           try {
             localStorage.setItem(SESSION_KEY, json);
             localStorage.setItem(USER_KEY, userJson);
             localStorage.setItem("token", payload.token);
             localStorage.setItem("access_token", payload.token);
+            localStorage.setItem("auth_token", payload.token);
+            localStorage.setItem("user", JSON.stringify(userObj));
+            if (payload.company_id != null) {
+              localStorage.setItem("company_id", String(payload.company_id));
+            }
+          } catch (e) {}
+
+          // 3. Cookies (Domain and Path wide)
+          try {
+            var cookieToken = encodeURIComponent(payload.token);
+            document.cookie = "token=" + cookieToken + "; path=/; max-age=86400; SameSite=Lax";
+            document.cookie = "access_token=" + cookieToken + "; path=/; max-age=86400; SameSite=Lax";
+            document.cookie = "doussary_auth_session=" + encodeURIComponent(json) + "; path=/; max-age=86400; SameSite=Lax";
           } catch (e) {}
         }
 
-        function enrichFromMe(session) {
-          return fetch("https://law.elmoroj.com/api/me", {
-            method: "GET",
-            headers: {
-              Accept: "application/json",
-              Authorization: "Bearer " + session.token,
-            },
-          })
-            .then(function (res) {
-              if (!res.ok) return session;
-              return res.json().then(function (payload) {
-                var data = payload.data || payload;
-                var user = (data && data.user) || payload.user || data;
-                if (!user || typeof user !== "object") return session;
-                var role = user.role || session.role || "owner";
-                var assigned =
-                  user.assignedRole ||
-                  user.assigned_role ||
-                  session.assignedRole ||
-                  "المستشار العام";
-                var company =
-                  user.company_id != null
-                    ? user.company_id
-                    : (user.company && user.company.id) != null
-                    ? user.company.id
-                    : session.company_id;
-                var companyName =
-                  (user.company && user.company.name) ||
-                  user.company_name ||
-                  session.company_name ||
-                  session.firm_name ||
-                  "Law Office";
-                return Object.assign({}, session, {
-                  id: user.id != null ? user.id : session.id,
-                  name: user.full_name || user.name || session.name,
-                  email: user.email || session.email,
-                  phone: user.phone || session.phone,
-                  role: role,
-                  roleId: "admin",
-                  assignedRole: assigned,
-                  company_id: company,
-                  company_name: companyName,
-                  firm_name: companyName,
-                  status: user.status || session.status || "نشط",
-                  permissions: user.permissions || session.permissions || { all: true },
-                  raw: user,
-                  token: session.token,
-                });
-              });
-            })
-            .catch(function () {
-              return session;
-            });
-        }
-
-        function safeTarget(url) {
-          if (!url || url.indexOf("/login") !== -1) {
-            return "https://law.elmoroj.com/lawyer/";
+        function safeTarget(url, token) {
+          var base = (!url || url.indexOf("/login") !== -1)
+            ? "https://law.elmoroj.com/lawyer/"
+            : (url.charAt(url.length - 1) === "/" ? url : url + "/");
+          if (token) {
+            try {
+              var u = new URL(base);
+              u.searchParams.set("token", token);
+              u.searchParams.set("impersonated", "1");
+              u.hash = "token=" + encodeURIComponent(token);
+              return u.toString();
+            } catch (e) {
+              return base + "?token=" + encodeURIComponent(token);
+            }
           }
-          return url.charAt(url.length - 1) === "/" ? url : url + "/";
+          return base;
         }
 
         function goToOffice(session) {
@@ -595,7 +620,7 @@
           try {
             window.history.replaceState({}, "", window.location.pathname);
           } catch (e) {}
-          window.location.replace(safeTarget(targetUrl));
+          window.location.replace(safeTarget(targetUrl, session && session.token));
         }
 
         var session = readSession();
@@ -606,19 +631,10 @@
         firmOwnerEl.textContent = owner;
         firmInitialEl.textContent = firm.trim().charAt(0) || "م";
 
-        if (!session || !session.token) {
-          statusText.textContent = "رابط الدخول غير صالح أو منتهي. سيتم إعادتك للوحة الإدارة...";
-          statusText.style.color = "#f87171";
-          setTimeout(function () {
-            window.location.replace("https://law.elmoroj.com/dashboard/accounts");
-          }, 2500);
-          return;
-        }
-
-        persist(session);
-
-        enrichFromMe(session).then(function (enriched) {
-          session = enriched;
+        function startActivation(validSession) {
+          if (activated || !validSession || !validSession.token) return;
+          activated = true;
+          session = validSession;
           persist(session);
           firm = session.firm_name || firm;
           owner = session.name || owner;
@@ -634,7 +650,7 @@
             step2Icon.textContent = "✓";
             step2Text.style.color = "#fdfbf7";
             step2Text.style.fontWeight = "600";
-          }, 500);
+          }, 300);
 
           setTimeout(function () {
             progressBar.style.width = "85%";
@@ -645,21 +661,77 @@
             step3Text.style.color = "#e29d38";
             step3Text.style.fontWeight = "700";
             persist(session);
-          }, 1100);
+          }, 700);
 
           setTimeout(function () {
             progressBar.style.width = "100%";
             pctText.textContent = "100%";
-          }, 1700);
+          }, 1100);
 
           setTimeout(function () {
             goToOffice(session);
-          }, 2100);
-        });
+          }, 1400);
+        }
 
-        window.proceedNow = function () {
-          goToOffice(session);
-        };
+        window.__activateHandoff = startActivation;
+
+        if (session && session.token) {
+          startActivation(session);
+        } else {
+          // Always remain in friendly loading state while awaiting session
+          progressBar.style.width = "25%";
+          pctText.textContent = "25%";
+          statusText.textContent = "جاري التحقق من هوية المشرف واعتماد الجلسة...";
+
+          function checkNow() {
+            if (activated) return;
+            var s = readSession();
+            if (s && s.token) {
+              startActivation(s);
+            }
+          }
+
+          window.addEventListener("message", function (e) {
+            if (!e || !e.data) return;
+            if (e.data.type === "ALJUDY_IMPERSONATION_SESSION") {
+              if (e.data.session) {
+                startActivation(e.data.session);
+              } else if (e.data.handoffUrl) {
+                try {
+                  var urlObj = new URL(e.data.handoffUrl);
+                  var raw = urlObj.hash ? urlObj.hash.replace(/^#s=/, "").replace(/^#.*s=/, "") : "";
+                  if (raw) {
+                    var decoded = safeBase64Decode(raw);
+                    if (decoded && decoded.token) startActivation(decoded);
+                  }
+                } catch (err) {}
+              }
+            } else if (e.data.type === "ALJUDY_IMPERSONATION_ERROR") {
+              statusText.textContent = "تعذر إكمال الربط: " + (e.data.message || "حدث خطأ");
+              statusText.style.color = "#f87171";
+            }
+          });
+
+          window.addEventListener("hashchange", function () {
+            checkNow();
+          });
+
+          var pollTimer = setInterval(function () {
+            if (activated) {
+              clearInterval(pollTimer);
+              return;
+            }
+            checkNow();
+          }, 50);
+
+          setTimeout(function () {
+            if (!activated) {
+              clearInterval(pollTimer);
+              statusText.textContent = "انتهت مهلة انتظار اعتماد الجلسة. يرجى المحاولة مرة أخرى.";
+              statusText.style.color = "#f87171";
+            }
+          }, 30000);
+        }
 
         window.handleCancel = function () {
           if (window.opener) {

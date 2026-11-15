@@ -14,14 +14,17 @@ import {
   Cell,
 } from "recharts";
 import { useUIStore } from "@/stores/use-ui-store";
-import type { DashboardRevenuePoint, DashboardPlanSlice } from "@/lib/api/dashboard";
+import { localizePlanName } from "@/lib/localize";
+import type { DashboardRevenuePoint, DashboardPlanSlice, DashboardRevenueInfo } from "@/lib/api/dashboard";
 
 interface DashboardAnalyticsSectionProps {
+  revenueInfo?: DashboardRevenueInfo;
   revenueData?: DashboardRevenuePoint[];
   planData?: DashboardPlanSlice[];
 }
 
 export function DashboardAnalyticsSection({
+  revenueInfo,
   revenueData: externalRevenueData,
   planData: externalPlanData,
 }: DashboardAnalyticsSectionProps = {}) {
@@ -45,9 +48,15 @@ export function DashboardAnalyticsSection({
   const planData = externalPlanData || defaultPlanData;
 
   const totalRevenue = revenueData.reduce((acc, curr) => acc + curr.value, 0);
-  const formattedTotalRevenue = totalRevenue > 0
-    ? `${totalRevenue.toLocaleString()} ${currentLang === "en" ? "SAR" : "ر.س"}`
-    : `0 ${currentLang === "en" ? "SAR" : "ر.س"}`;
+  const formattedTotalRevenue =
+    revenueInfo?.totalPeriodFormatted ||
+    (totalRevenue > 0
+      ? `${totalRevenue.toLocaleString()} ${currentLang === "en" ? "SAR" : "ر.س"}`
+      : `0 ${currentLang === "en" ? "SAR" : "ر.س"}`);
+
+  const growthBadgeText =
+    revenueInfo?.growthLabel ||
+    (currentLang === "en" ? "+14% vs target" : "+14% مقارنة");
 
   const highestRevenuePoint = revenueData.find((p) => p.isHighest);
   const totalPlanOffices = planData.reduce((acc, curr) => acc + curr.value, 0);
@@ -83,15 +92,17 @@ export function DashboardAnalyticsSection({
               className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[18px] leading-[26px] font-bold font-sans"
               data-node-id="1:134"
             >
-              {currentLang === "en" ? "Revenue Analytics" : "تحليل الإيرادات"}
+              {currentLang === "en"
+                ? (revenueInfo?.titleEn || "Revenue Analytics")
+                : (revenueInfo?.titleAr || "تحليل الإيرادات")}
             </h2>
             <p
               className="text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[18px] font-normal"
               data-node-id="1:136"
             >
               {currentLang === "en"
-                ? "Revenue growth over the last 6 months vs target performance"
-                : "نمو الإيرادات خلال آخر 6 أشهر ومقارنة الأداء المستهدف"}
+                ? (revenueInfo?.subtitleEn || "Revenue growth over the last 6 months vs target performance")
+                : (revenueInfo?.subtitleAr || "نمو الإيرادات خلال آخر 6 أشهر ومقارنة الأداء المستهدف")}
             </p>
           </div>
 
@@ -100,13 +111,13 @@ export function DashboardAnalyticsSection({
             className="bg-[#f5f3ef] dark:bg-[#2a1d15] rounded-[4px] px-[12px] py-[6px] flex items-center gap-[16px] shrink-0 self-start sm:self-auto border border-transparent dark:border-[#38271c]"
             data-node-id="1:121"
           >
-            {/* +14% Badge */}
+            {/* Growth Badge */}
             <div
               className="bg-[#ecfdf5] dark:bg-[#12281a] rounded-[2px] px-[8px] py-[2px] flex items-center gap-[4px]"
               data-node-id="1:122"
             >
               <span className="text-[#065f46] dark:text-[#6ee7b7] text-[10px] leading-[14px] font-semibold">
-                {currentLang === "en" ? "+14% vs target" : "+14% مقارنة"}
+                {growthBadgeText}
               </span>
               <div className="size-[8.75px] flex items-center justify-center shrink-0">
                 <ArrowUpRight className="size-[8.75px] block text-[#065f46] dark:text-[#6ee7b7]" />
@@ -342,7 +353,7 @@ export function DashboardAnalyticsSection({
                     style={{ backgroundColor: plan.color }}
                   />
                   <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] leading-[16px]">
-                    {currentLang === "en" ? plan.nameEn : plan.nameAr}
+                    {currentLang === "en" ? localizePlanName(plan.nameEn || plan.nameAr, true) : plan.nameAr}
                   </span>
                 </div>
 

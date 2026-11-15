@@ -40,18 +40,28 @@ import { fetchPlans, createPlan, updatePlan, getLocalCustomPlans, saveLocalCusto
 import { unwrapList } from "@/lib/api/helpers";
 import {
   normalizeLogoUrl,
+  withCacheBust,
   mapPlanFromApi,
   getLocalCustomAutoRenew,
   getLocalCustomThemeColor,
+  getLocalCustomBackgroundColor,
   getLocalCustomOfficeId,
+  getLocalCustomSecondaryColor,
+  getLocalCustomLogo,
+  resolveOfficeLogo,
+  DEFAULT_OFFICE_LOGO,
 } from "@/lib/api/mappers";
 import type { PricingPlanItem } from "@/features/plans/types/plan.types";
 import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { LuxuryAlertDialog } from "@/components/shared/LuxuryAlertDialog";
-import { OfficeColorPalettePicker } from "./OfficeColorPalettePicker";
-import { DEFAULT_OFFICE_THEME_COLOR } from "../constants/office-colors";
+import { OfficeFontColorPicker } from "./OfficeFontColorPicker";
 import {
-  officeSchema,
+  DEFAULT_OFFICE_THEME_COLOR,
+  DEFAULT_OFFICE_FONT_COLOR,
+  suggestColorsFromLogo,
+} from "../constants/office-colors";
+import {
+  createOfficeSchema,
   OfficeFormValues,
   evaluateFieldRules,
   FieldValidationStatus,
@@ -61,7 +71,9 @@ import {
   SAUDI_CITIES,
   normalizeArabicDigits,
   getEmailDomainSuggestion,
+  getLocalizedCityName,
 } from "../constants/saudi-cities";
+import { localizePlanName, localizeBillingCycle } from "@/lib/localize";
 
 export interface OfficeFormData {
   id?: string;
@@ -89,6 +101,10 @@ export interface OfficeFormData {
   themeColor?: string;
   primaryColor?: string;
   secondaryColor?: string;
+  backgroundColor?: string;
+  accentColor?: string;
+  fontColor?: string;
+  color?: string;
   status?: "active" | "inactive" | "suspended";
 }
 
@@ -196,7 +212,20 @@ export function AddClientOfficeView({
     setOfficeStatus(resolveOfficeAccountStatus(officeToEdit));
   }, [officeToEdit]);
 
-  const [selectedThemeColor, setSelectedThemeColor] = useState<string>(() => {
+  const [selectedBackgroundColor, setSelectedBackgroundColor] = useState<string>(() => {
+    if (officeToEdit?.id) {
+      const local = getLocalCustomBackgroundColor(officeToEdit.id);
+      if (local) return local;
+    }
+    if (officeToEdit?.companyId) {
+      const local = getLocalCustomBackgroundColor(officeToEdit.companyId);
+      if (local) return local;
+    }
+    if (officeToEdit?.backgroundColor) return officeToEdit.backgroundColor;
+    return "#203b3c";
+  });
+
+  const [selectedAccentColor, setSelectedAccentColor] = useState<string>(() => {
     if (officeToEdit?.id) {
       const local = getLocalCustomThemeColor(officeToEdit.id);
       if (local) return local;
@@ -205,20 +234,54 @@ export function AddClientOfficeView({
       const local = getLocalCustomThemeColor(officeToEdit.companyId);
       if (local) return local;
     }
-    if (officeToEdit?.themeColor) return officeToEdit.themeColor;
     if (officeToEdit?.color) return officeToEdit.color;
-    return DEFAULT_OFFICE_THEME_COLOR;
+    if (officeToEdit?.themeColor) return officeToEdit.themeColor;
+    return "#d5a058";
   });
 
+  const [selectedFontColor, setSelectedFontColor] = useState<string>(() => {
+    if (officeToEdit?.id) {
+      const local = getLocalCustomSecondaryColor(officeToEdit.id);
+      if (local) return local;
+    }
+    if (officeToEdit?.companyId) {
+      const local = getLocalCustomSecondaryColor(officeToEdit.companyId);
+      if (local) return local;
+    }
+    if (officeToEdit?.fontColor) return officeToEdit.fontColor;
+    if (officeToEdit?.secondaryColor) return officeToEdit.secondaryColor;
+    return DEFAULT_OFFICE_FONT_COLOR;
+  });
+
+  const initialOfficeColorsLoadedRef = useRef<string | null>(null);
   useEffect(() => {
     if (officeToEdit) {
+      const currentId = String(officeToEdit.id || officeToEdit.companyId || "");
+      if (initialOfficeColorsLoadedRef.current === currentId) return;
+      initialOfficeColorsLoadedRef.current = currentId;
+
+      const bg =
+        (officeToEdit.id ? getLocalCustomBackgroundColor(officeToEdit.id) : undefined) ||
+        (officeToEdit.companyId ? getLocalCustomBackgroundColor(officeToEdit.companyId) : undefined) ||
+        officeToEdit.backgroundColor ||
+        "#203b3c";
+      setSelectedBackgroundColor(bg);
+
       const color =
         (officeToEdit.id ? getLocalCustomThemeColor(officeToEdit.id) : undefined) ||
         (officeToEdit.companyId ? getLocalCustomThemeColor(officeToEdit.companyId) : undefined) ||
-        officeToEdit.themeColor ||
         officeToEdit.color ||
-        DEFAULT_OFFICE_THEME_COLOR;
-      setSelectedThemeColor(color);
+        officeToEdit.themeColor ||
+        "#d5a058";
+      setSelectedAccentColor(color);
+
+      const fontColor =
+        (officeToEdit.id ? getLocalCustomSecondaryColor(officeToEdit.id) : undefined) ||
+        (officeToEdit.companyId ? getLocalCustomSecondaryColor(officeToEdit.companyId) : undefined) ||
+        officeToEdit.fontColor ||
+        officeToEdit.secondaryColor ||
+        DEFAULT_OFFICE_FONT_COLOR;
+      setSelectedFontColor(fontColor);
     }
   }, [officeToEdit]);
 
@@ -229,14 +292,27 @@ export function AddClientOfficeView({
   const [submitStage, setSubmitStage] = useState<number>(1);
 
   const [showPassword, setShowPassword] = useState(false);
-  const [selectedPlanType, setSelectedPlanType] = useState<"paid" | "trial">(
-    officeToEdit?.planType === "trial" ||
-    officeToEdit?.subscriptionPlan === "trial" ||
-    officeToEdit?.subscriptionStatus?.type === "trial" ||
-    officeToEdit?.plan?.includes("تجرب")
-      ? "trial"
-      : "paid"
-  );
+  const [selectedPlanType, setSelectedPlanType] = useState<"paid" | "trial" | "unlimited">(() => {
+    if (
+      officeToEdit?.planType === "unlimited" ||
+      officeToEdit?.subscriptionPlan === "unlimited" ||
+      officeToEdit?.plan === "غير محدود" ||
+      officeToEdit?.subscriptionStatus?.type === "unlimited"
+    ) {
+      return "unlimited";
+    }
+    if (officeToEdit?.planType === "paid" || officeToEdit?.subscriptionStatus?.type === "active") {
+      return "paid";
+    }
+    if (
+      officeToEdit?.planType === "trial" ||
+      officeToEdit?.subscriptionPlan === "trial" ||
+      officeToEdit?.subscriptionStatus?.type === "trial"
+    ) {
+      return "trial";
+    }
+    return officeToEdit?.plan?.includes("تجرب") ? "trial" : "paid";
+  });
 
   const [autoRenew, setAutoRenew] = useState(() => {
     if (!officeToEdit) return true;
@@ -265,6 +341,7 @@ export function AddClientOfficeView({
   >([]);
 
   const isTrial = selectedPlanType === "trial";
+  const isUnlimited = selectedPlanType === "unlimited";
   const popularPlan = availablePlans.find((p) => p.isPopular) || availablePlans[0];
 
   const [trialDurationDays, setTrialDurationDays] = useState<number>(() => {
@@ -346,6 +423,8 @@ export function AddClientOfficeView({
     return SAUDI_CITIES.includes(clean) ? clean : "";
   }, [officeToEdit]);
 
+  const activeOfficeSchema = useMemo(() => createOfficeSchema(isEn), [isEn]);
+
   const {
     register,
     handleSubmit,
@@ -356,7 +435,7 @@ export function AddClientOfficeView({
     reset,
     formState: { errors, touchedFields, submitCount },
   } = useForm<OfficeFormValues>({
-    resolver: zodResolver(officeSchema),
+    resolver: zodResolver(activeOfficeSchema),
     mode: "onTouched",
     defaultValues: {
       officeId:
@@ -374,13 +453,18 @@ export function AddClientOfficeView({
       city: defaultCityValue,
       address: officeToEdit?.address || "",
       password: officeToEdit ? "Secret123!" : "",
-      primaryColor: selectedThemeColor,
+      primaryColor: selectedAccentColor,
     },
   });
 
   // Sync form values whenever officeToEdit changes or loads asynchronously
+  const initialOfficeFormResetRef = useRef<string | null>(null);
   useEffect(() => {
     if (officeToEdit) {
+      const currentId = String(officeToEdit.id || officeToEdit.companyId || "");
+      if (initialOfficeFormResetRef.current === currentId) return;
+      initialOfficeFormResetRef.current = currentId;
+
       const cleanCity = officeToEdit.city
         ? officeToEdit.city.replace("المملكة العربية السعودية - ", "").trim()
         : "";
@@ -402,24 +486,43 @@ export function AddClientOfficeView({
         city: validCity,
         address: officeToEdit.address || "",
         password: officeToEdit.initialPassword || "Secret123!",
-        primaryColor: selectedThemeColor,
+        primaryColor: selectedAccentColor,
       });
 
-      setSelectedPlanType(
-        officeToEdit.planType === "trial" ||
-        officeToEdit.subscriptionPlan === "trial" ||
-        officeToEdit.subscriptionStatus?.type === "trial" ||
-        officeToEdit.plan?.includes("تجرب")
-          ? "trial"
-          : "paid"
-      );
+      const isUnlim =
+        officeToEdit.planType === "unlimited" ||
+        officeToEdit.subscriptionPlan === "unlimited" ||
+        officeToEdit.plan === "غير محدود" ||
+        officeToEdit.subscriptionStatus?.type === "unlimited";
+
+      const initialType = isUnlim
+        ? "unlimited"
+        : officeToEdit.planType === "paid" || officeToEdit.subscriptionStatus?.type === "active"
+        ? "paid"
+        : officeToEdit.planType === "trial" ||
+          officeToEdit.subscriptionPlan === "trial" ||
+          officeToEdit.subscriptionStatus?.type === "trial"
+        ? "trial"
+        : officeToEdit.plan?.includes("تجرب")
+        ? "trial"
+        : "paid";
+      setSelectedPlanType(initialType);
       const localRenew = officeToEdit.id ? getLocalCustomAutoRenew(officeToEdit.id) : undefined;
       setAutoRenew(localRenew !== undefined ? localRenew : officeToEdit.autoRenew !== false);
-      if (officeToEdit.planId && officeToEdit.planId !== -1) {
-        setSelectedPlanId(officeToEdit.planId);
-      }
-      if (officeToEdit.plan) {
-        setPackageTier(officeToEdit.plan);
+      const cleanInitialPlan = officeToEdit.plan
+        ? officeToEdit.plan.replace(/\s*-\s*تجربة\s*مجانية/gi, "").replace(/\s*\(تجربة\s*مجانية\)/gi, "").trim()
+        : "";
+      if (isUnlim) {
+        setSelectedPlanId("unlimited");
+        setPackageTier("غير محدود");
+        setIsCustomPlan(false);
+      } else {
+        if (officeToEdit.planId && officeToEdit.planId !== -1) {
+          setSelectedPlanId(officeToEdit.planId);
+        }
+        if (cleanInitialPlan) {
+          setPackageTier(cleanInitialPlan);
+        }
       }
       const raw = officeToEdit.billingCycle || "";
       const isAnnual = raw.includes("سنو") || raw.includes("year") || raw.includes("annu");
@@ -445,9 +548,16 @@ export function AddClientOfficeView({
       }
 
       setOfficeStatus(resolveOfficeAccountStatus(officeToEdit));
-      setLogoPreview(normalizeLogoUrl(officeToEdit.logo) || null);
+      const initialLogo = officeToEdit ? resolveOfficeLogo(officeToEdit.logo, officeToEdit.id) : null;
+      setLogoPreview(initialLogo);
+      setLogoLoadError(false);
+      setLogoFile(null);
+      if (logoFileRef.current) logoFileRef.current = null;
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } else {
+      setOfficeStatus("active");
     }
-  }, [officeToEdit, reset]);
+  }, [officeToEdit?.id]);
 
   const watchedValues = watch();
 
@@ -470,8 +580,8 @@ export function AddClientOfficeView({
       "address",
       "password",
     ];
-    return fields.map((f) => evaluateFieldRules(f, watchedValues[f] || ""));
-  }, [watchedValues]);
+    return fields.map((f) => evaluateFieldRules(f, watchedValues[f] || "", isEn));
+  }, [watchedValues, isEn]);
 
   const validCount = useMemo(() => {
     return fieldValidationStatuses.filter((s) => s.isValid).length;
@@ -505,6 +615,7 @@ export function AddClientOfficeView({
   }, []);
 
   // Fetch real plans from server + local storage
+  const initialOfficePlanLoadedRef = useRef<string | null>(null);
   useEffect(() => {
     let cancelled = false;
     const localPlans = getLocalCustomPlans();
@@ -546,6 +657,37 @@ export function AddClientOfficeView({
             setSelectedPlanId("custom");
             setPackageTier("باقة مخصصة");
           }
+        } else {
+          // If editing, find matching plan by id or name only on initial load
+          const currentId = String(officeToEdit.id || officeToEdit.companyId || "");
+          if (initialOfficePlanLoadedRef.current !== currentId) {
+            initialOfficePlanLoadedRef.current = currentId;
+            const isUnlim =
+              officeToEdit.planType === "unlimited" ||
+              officeToEdit.subscriptionPlan === "unlimited" ||
+              officeToEdit.plan === "غير محدود";
+            if (isUnlim) {
+              setSelectedPlanType("unlimited");
+              setSelectedPlanId("unlimited");
+              setPackageTier("غير محدود");
+              setIsCustomPlan(false);
+              return;
+            }
+            const cleanOfficePlan = officeToEdit.plan
+              ? officeToEdit.plan.replace(/\s*-\s*تجربة\s*مجانية/gi, "").replace(/\s*\(تجربة\s*مجانية\)/gi, "").trim()
+              : "";
+            const matching = merged.find(
+              (m) =>
+                String(m.id) === String(officeToEdit.planId) ||
+                m.name === officeToEdit.plan ||
+                m.name === cleanOfficePlan ||
+                (cleanOfficePlan && m.name.includes(cleanOfficePlan))
+            );
+            if (matching) {
+              setSelectedPlanId(matching.id);
+              setPackageTier(matching.name);
+            }
+          }
         }
       })
       .catch(() => {
@@ -580,35 +722,53 @@ export function AddClientOfficeView({
 
   // File Upload State
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const logoFileRef = useRef<File | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(
-    normalizeLogoUrl(officeToEdit?.logo) || null
-  );
+  const [logoPreview, setLogoPreview] = useState<string | null>(() => {
+    return officeToEdit ? resolveOfficeLogo(officeToEdit.logo, officeToEdit.id) : null;
+  });
+  const [logoLoadError, setLogoLoadError] = useState(false);
+
+  useEffect(() => {
+    setLogoLoadError(false);
+  }, [logoPreview]);
   const [isDragging, setIsDragging] = useState(false);
 
-  const processLogoFile = async (file: File) => {
+  const processLogoFile = (file: File) => {
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("حجم الملف يتجاوز الحد الأقصى المسموح به (5 ميجابايت)");
+      toast.error(t("حجم ملف الشعار يتجاوز الحد الأقصى المسموح به (5 ميجابايت)", "Logo file size exceeds the 5 MB limit"));
       return;
     }
-    if (!file.type.startsWith("image/")) {
-      toast.error("يرجى اختيار ملف صورة صالح (PNG, JPG, WebP, SVG)");
+    const validMimes = ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/svg+xml"];
+    if (!file.type.startsWith("image/") && !validMimes.includes(file.type)) {
+      toast.error(t("صيغة الملف غير مدعومة. يرجى اختيار صورة صالحة (PNG, JPG, WebP, SVG)", "Unsupported file format. Please select PNG, JPG, WebP, or SVG"));
       return;
     }
+    if (logoPreview && logoPreview.startsWith("blob:")) {
+      URL.revokeObjectURL(logoPreview);
+    }
+    logoFileRef.current = file;
     setLogoFile(file);
-    try {
-      const thumb = await createThumbnail(file, 256);
-      setLogoPreview(thumb);
-      toast.success(`تم إرفاق الشعار "${file.name}" بنجاح.`);
-    } catch {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setLogoPreview(reader.result as string);
-        toast.success(`تم إرفاق الشعار "${file.name}" بنجاح.`);
-      };
-      reader.readAsDataURL(file);
-    }
+    setLogoLoadError(false);
+    const objectUrl = URL.createObjectURL(file);
+    setLogoPreview(objectUrl);
+    toast.success(t(`تم إرفاق الشعار "${file.name}" بنجاح.`, `Logo "${file.name}" attached successfully.`));
+    suggestColorsFromLogo(objectUrl)
+      .then((colors) => {
+        setSelectedBackgroundColor(colors.backgroundColor);
+        setSelectedAccentColor(colors.accentColor);
+        setSelectedFontColor(colors.fontColor);
+      })
+      .catch(() => {});
   };
+
+  useEffect(() => {
+    return () => {
+      if (logoPreview && logoPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(logoPreview);
+      }
+    };
+  }, [logoPreview]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -624,17 +784,25 @@ export function AddClientOfficeView({
 
   const handleRemoveLogo = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (logoPreview && logoPreview.startsWith("blob:")) {
+      URL.revokeObjectURL(logoPreview);
+    }
+    logoFileRef.current = null;
     setLogoFile(null);
     setLogoPreview(null);
+    setLogoLoadError(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
-    toast.info("تمت إزالة الشعار المرفق.");
+    toast.info(t("تمت إزالة الشعار المرفق.", "Attached logo removed."));
   };
 
   // Filtered Saudi cities for searchable Combobox
   const filteredCities = useMemo(() => {
-    if (!citySearchTerm.trim()) return SAUDI_CITIES;
-    return SAUDI_CITIES.filter((c) =>
-      c.toLowerCase().includes(citySearchTerm.trim().toLowerCase())
+    const q = citySearchTerm.trim().toLowerCase();
+    if (!q) return SAUDI_CITIES;
+    return SAUDI_CITIES.filter(
+      (c) =>
+        c.toLowerCase().includes(q) ||
+        getLocalizedCityName(c, true).toLowerCase().includes(q)
     );
   }, [citySearchTerm]);
 
@@ -676,10 +844,14 @@ export function AddClientOfficeView({
     const timer2 = setTimeout(() => setSubmitStage(3), 1600);
 
     const isTrial = selectedPlanType === "trial";
+  const isUnlimited = selectedPlanType === "unlimited";
     let cleanPlanName = packageTier;
     let finalPlanId: number | string | undefined = selectedPlanId;
 
-    if (isCustomPlan) {
+    if (isUnlimited) {
+      cleanPlanName = "غير محدود";
+      finalPlanId = undefined;
+    } else if (isCustomPlan) {
       cleanPlanName = customPlanName.trim() || `باقة مخصصة - ${data.firmName || "المكتب"}`;
 
       const numMonthly = Number(customMonthlyPrice) || 0;
@@ -843,11 +1015,36 @@ export function AddClientOfficeView({
       setSelectedPlanId(finalPlanId!);
     } else {
       const selectedPlan = availablePlans.find((p) => String(p.id) === String(selectedPlanId));
-      cleanPlanName = selectedPlan?.name || packageTier || (isTrial ? (popularPlan?.name || "الباقة الفضية") : "الباقة الأساسية");
-      finalPlanId = selectedPlan ? selectedPlan.id : (selectedPlanId || (isTrial ? (popularPlan?.id || 1) : 1));
+      const fallbackPaidPlan = availablePlans.find((p) => !p.name.includes("تجرب") && Number(p.monthlyPrice) > 0) || availablePlans[0];
+      cleanPlanName = selectedPlan?.name || packageTier || (isTrial ? (popularPlan?.name || "الباقة الفضية") : (fallbackPaidPlan?.name || "الباقة الأساسية"));
+      if (!isTrial && cleanPlanName) {
+        cleanPlanName = cleanPlanName.replace(/\s*-\s*تجربة\s*مجانية/gi, "").trim();
+      }
+      finalPlanId = selectedPlan ? selectedPlan.id : (selectedPlanId || (isTrial ? (popularPlan?.id || undefined) : (fallbackPaidPlan?.id || 15)));
     }
 
-    const customPlanDetailsObj = isCustomPlan ? {
+    const customPlanDetailsObj = isUnlimited ? {
+      id: 0,
+      name: "غير محدود",
+      badge: "صلاحيات كاملة",
+      badgeColor: "gold",
+      type: "unlimited",
+      monthlyPrice: "0",
+      yearlyPrice: "0",
+      maxLawyers: 999999,
+      storageLimitGb: 999999,
+      maxCases: 999999,
+      supportLevel: "دعم مباشر VIP شامل",
+      features: [
+        "صلاحيات كاملة وغير محدودة للنظام",
+        "ربط مباشر مع منصة ناجز ووزارة العدل",
+        "الفوترة الإلكترونية ZATCA المرحلة 2",
+        "تقارير مؤشرات الأداء والتحليلات القضائية",
+        "مدير حساب استشاري مخصص VIP",
+        "تكامل API خاص لأنظمة ERP",
+        "دعم فني فوري مخصص 24/7",
+      ],
+    } : isCustomPlan ? {
       id: finalPlanId || -1,
       name: cleanPlanName,
       badge: isTrial ? "تجربة مجانية مخصصة" : "باقة مخصصة",
@@ -870,7 +1067,7 @@ export function AddClientOfficeView({
     } : undefined;
 
     const cleanCity = data.city ? data.city.replace("المملكة العربية السعودية - ", "").trim() : "الرياض";
-    const resolvedLogoFile = logoFile || fileInputRef.current?.files?.[0] || null;
+    const resolvedLogoFile = logoFileRef.current || logoFile || fileInputRef.current?.files?.[0] || null;
 
     try {
       await onSuccess(
@@ -889,25 +1086,30 @@ export function AddClientOfficeView({
           address: data.address || `المملكة العربية السعودية - ${cleanCity}`,
           taxNumber: data.taxNumber || undefined,
           city: cleanCity,
-          plan: cleanPlanName,
-          planId: finalPlanId,
+          plan: isUnlimited ? "غير محدود" : cleanPlanName,
+          planId: isUnlimited ? undefined : finalPlanId,
           planType: selectedPlanType,
-          billingCycle: isTrial ? `فترة تجريبية (${trialDurationDays} يوماً)` : billingCycle,
+          billingCycle: isUnlimited ? "غير محدود" : billingCycle,
           trialDays: isTrial ? trialDurationDays : undefined,
-          autoRenew: isTrial ? false : autoRenew,
+          autoRenew: autoRenew,
           planDetails: customPlanDetailsObj || officeToEdit?.planDetails,
           password: data.password && data.password !== "••••••••••••" ? data.password : undefined,
           logoFile: resolvedLogoFile,
-          logoUrl: logoPreview || undefined,
-          themeColor: selectedThemeColor || DEFAULT_OFFICE_THEME_COLOR,
-          primaryColor: selectedThemeColor || DEFAULT_OFFICE_THEME_COLOR,
+          logoUrl: isEditMode && !resolvedLogoFile ? (officeToEdit?.logo || undefined) : undefined,
+          themeColor: selectedAccentColor || "#d5a058",
+          primaryColor: selectedAccentColor || "#d5a058",
+          secondaryColor: selectedFontColor || DEFAULT_OFFICE_FONT_COLOR,
+          backgroundColor: selectedBackgroundColor || "#203b3c",
+          accentColor: selectedAccentColor || "#d5a058",
+          fontColor: selectedFontColor || DEFAULT_OFFICE_FONT_COLOR,
+          color: selectedAccentColor || "#d5a058",
           status: officeStatus,
         },
         isEditMode
       );
+      setIsConfirmDialogOpen(false);
     } catch (err: unknown) {
-      console.error("Save office error:", err);
-      toast.error(t("حدث خطأ أثناء حفظ بيانات المنشأة، يرجى المحاولة مرة أخرى", "Failed to save office, please retry"));
+      console.warn("Save office error:", err);
     } finally {
       clearTimeout(timer1);
       clearTimeout(timer2);
@@ -1053,7 +1255,7 @@ export function AddClientOfficeView({
     if (validateNextPhoneValue(nextVal.slice(0, 10))) {
       setValue("phone", nextVal.slice(0, 10), { shouldValidate: true, shouldTouch: true });
     } else {
-      toast.error("رقم الجوال يجب أن يبدأ بـ 05 ويتكون من 10 أرقام");
+      toast.error(t("رقم الجوال يجب أن يبدأ بـ 05 ويتكون من 10 أرقام", "Mobile number must start with 05 and be 10 digits"));
     }
   };
 
@@ -1104,7 +1306,7 @@ export function AddClientOfficeView({
     if (validateNextLandlineValue(nextVal.slice(0, 10))) {
       setValue("landline", nextVal.slice(0, 10), { shouldValidate: true, shouldTouch: true });
     } else {
-      toast.error("الهاتف المكتبي يجب أن يبدأ بـ 011 أو 012 أو 013 أو 014 أو 016 أو 017 ويتكون من 9 أو 10 أرقام");
+      toast.error(t("الهاتف المكتبي يجب أن يبدأ بـ 011 أو 012 أو 013 أو 014 أو 016 أو 017 ويتكون من 9 أو 10 أرقام", "Landline must start with 011, 012, 013, 014, 016, or 017 and be 9 or 10 digits"));
     }
   };
 
@@ -1160,20 +1362,20 @@ export function AddClientOfficeView({
           <div className="bg-[#f5f3ef]/80 dark:bg-[#1a120d] border border-[#eae8e4] dark:border-[#453022] rounded-[4px] px-[20px] py-[10px] flex items-center justify-between">
             <div className="flex items-center gap-[10px]">
               <div className="bg-[#9c6402] dark:bg-[#c29547] text-[#fff3e9] dark:text-[#1c140f] font-bold text-[13px] size-[28px] rounded-full flex items-center justify-center shrink-0 shadow-xs">
-                ١
+                1
               </div>
               <div className="flex flex-col text-start">
                 <h2 className="text-[17px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[24px]">
-                  بيانات المكتب والمنشأة القانونية
+                  {t("بيانات المكتب والمنشأة القانونية", "Office & Legal Entity Information")}
                 </h2>
                 <p className="text-[12px] text-[#514537] dark:text-[#d5cec5] leading-[18px]">
-                  المعلومات الأساسية للترخيص والمنشأة ووسائل التواصل المعتمدة للربط القضائي
+                  {t("المعلومات الأساسية للترخيص والمنشأة ووسائل التواصل المعتمدة للربط القضائي", "Core licensing, entity profile, and contact details for judicial integration")}
                 </p>
               </div>
             </div>
 
             <span className="bg-[#eae8e4] dark:bg-[#2c1e15] text-[#514537] dark:text-[#f0e6dc] border border-[#ded5c6] dark:border-[#523b2c] text-[10px] font-bold px-[8px] py-[3px] rounded-[2px]">
-              الخطوة الأساسية
+              {t("الخطوة الأساسية", "Basic Step")}
             </span>
           </div>
 
@@ -1182,7 +1384,7 @@ export function AddClientOfficeView({
             {/* 1. اسم صاحب المكتب */}
             <div className="flex flex-col gap-[6px] text-start">
               <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                اسم صاحب المكتب <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
+                {t("اسم صاحب المكتب", "Owner Name")} <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
               </label>
               <div className="relative">
                 <input
@@ -1205,7 +1407,7 @@ export function AddClientOfficeView({
                     "w-full h-[44px] bg-[#f5f3ef] dark:bg-[#160e0a] rounded-[6px] ps-[38px] pe-[14px] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#9e9286] focus:outline-none transition-colors border",
                     getInputStateClass("ownerName")
                   )}
-                  placeholder="أدخل الاسم الكامل لصاحب المكتب أو المحامي المسؤول (مثال: عبد العزيز فهد العجلان)"
+                  placeholder={t("أدخل الاسم", "Enter name")}
                 />
                 <User className="size-[15px] text-[#837565] dark:text-[#a89f91] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
@@ -1220,7 +1422,7 @@ export function AddClientOfficeView({
             {/* 2. اسم المكتب أو الشركة المهنية */}
             <div className="flex flex-col gap-[6px] text-start">
               <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                اسم المكتب أو الشركة المهنية <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
+                {t("اسم المكتب", "Law Office Name")} <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
               </label>
               <div className="relative">
                 <input
@@ -1243,7 +1445,7 @@ export function AddClientOfficeView({
                     "w-full h-[44px] bg-[#f5f3ef] dark:bg-[#160e0a] rounded-[6px] ps-[38px] pe-[14px] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#9e9286] focus:outline-none transition-colors border",
                     getInputStateClass("firmName")
                   )}
-                  placeholder="أدخل الاسم التجاري المعتمد للمكتب أو الشركة (مثال: شركة العجلان للمحاماة)"
+                  placeholder={t("أدخل الاسم", "Enter name")}
                 />
                 <Building2 className="size-[15px] text-[#837565] dark:text-[#a89f91] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
@@ -1258,7 +1460,7 @@ export function AddClientOfficeView({
             {/* 3. رقم الترخيص العدلي */}
             <div className="flex flex-col gap-[6px] text-start">
               <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                رقم الترخيص العدلي <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
+                {t("رقم الترخيص العدلي", "Legal License Number")} <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
               </label>
               <div className="relative">
                 <input
@@ -1305,7 +1507,7 @@ export function AddClientOfficeView({
             {/* 4. الرقم الضريبي للمنشأة (ZATCA) */}
             <div className="flex flex-col gap-[6px] text-start">
               <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                الرقم الضريبي للمنشأة (ZATCA) <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
+                {t("الرقم الضريبي", "Tax Number")} <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
               </label>
               <div className="relative">
                 <input
@@ -1353,7 +1555,7 @@ export function AddClientOfficeView({
             {/* 5. البريد الإلكتروني الرسمي */}
             <div className="flex flex-col gap-[6px] text-start">
               <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                البريد الإلكتروني الرسمي للمكتب <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
+                {t("البريد الإلكتروني للمكتب", "Office Email")} <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
               </label>
               <div className="relative">
                 <input
@@ -1387,18 +1589,18 @@ export function AddClientOfficeView({
                   <div className="flex items-center gap-1.5">
                     <Sparkles className="size-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
                     <span>
-                      هل تقصد <strong className="font-mono dir-ltr inline-block underline">{emailSuggestion}</strong>؟
+                      {t("هل تقصد", "Did you mean")} <strong className="font-mono dir-ltr inline-block underline">{emailSuggestion}</strong>{t("؟", "?")}
                     </span>
                   </div>
                   <button
                     type="button"
                     onClick={() => {
                       setValue("email", emailSuggestion, { shouldValidate: true, shouldTouch: true });
-                      toast.info(`تم تصحيح البريد الإلكتروني إلى: ${emailSuggestion}`);
+                      toast.info(t(`تم تصحيح البريد الإلكتروني إلى: ${emailSuggestion}`, `Email corrected to: ${emailSuggestion}`));
                     }}
                     className="bg-[#9c6402] hover:bg-[#855402] text-white px-2.5 py-0.5 rounded-[3px] text-[11px] font-bold transition-colors cursor-pointer shrink-0"
                   >
-                    تصحيح
+                    {t("تصحيح", "Fix")}
                   </button>
                 </div>
               )}
@@ -1414,7 +1616,7 @@ export function AddClientOfficeView({
             {/* 6. رقم الجوال / الهاتف للتواصل */}
             <div className="flex flex-col gap-[6px] text-start">
               <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                رقم الجوال للتواصل <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
+                {t("رقم الجوال", "Mobile Number")} <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
               </label>
               <div className="flex items-center gap-[8px]">
                 <div className="relative flex-1">
@@ -1464,7 +1666,7 @@ export function AddClientOfficeView({
             {/* 7. الهاتف المكتبي الثابت */}
             <div className="flex flex-col gap-[6px] text-start">
               <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                الهاتف المكتبي المباشر (الثابت) <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
+                {t("الهاتف المكتبي", "Office Landline")} <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
               </label>
               <div className="relative">
                 <input
@@ -1509,7 +1711,7 @@ export function AddClientOfficeView({
             {/* 8. المدينة / المقر الرئيسي (SEARCHABLE COMBOBOX) */}
             <div className="flex flex-col gap-[6px] text-start relative" ref={cityDropdownRef}>
               <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                المدينة / المقر الرئيسي <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
+                {t("المدينة", "City")} <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
               </label>
 
               {/* Combobox Trigger Button */}
@@ -1534,8 +1736,8 @@ export function AddClientOfficeView({
                 <MapPin className="size-[15px] text-[#837565] dark:text-[#a89f91] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
                 <span className="truncate">
                   {watchedValues.city
-                    ? `المملكة العربية السعودية - ${watchedValues.city}`
-                    : "اختر أو ابحث عن المدينة / المقر الرئيسي..."}
+                    ? t(`المملكة العربية السعودية - ${watchedValues.city}`, `Saudi Arabia - ${getLocalizedCityName(watchedValues.city, true)}`)
+                    : t("اختر أو ابحث عن المدينة", "Select or search city")}
                 </span>
                 <ChevronDown
                   className={cn(
@@ -1558,7 +1760,7 @@ export function AddClientOfficeView({
                       autoFocus
                       value={citySearchTerm}
                       onChange={(e) => setCitySearchTerm(e.target.value)}
-                      placeholder="ابحث عن اسم المدينة أو المحافظة..."
+                      placeholder={t("ابحث عن اسم المدينة أو المحافظة...", "Search city name...")}
                       className="w-full h-[36px] bg-white dark:bg-[#1f150f] border border-[#ded5c6] dark:border-[#523b2c] rounded-[4px] ps-[32px] pe-[10px] text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#9e9286] focus:outline-none focus:border-[#9c6402] dark:focus:border-[#e29d38]"
                     />
                     <Search className="size-[14px] text-[#837565] dark:text-[#a89f91] absolute start-[18px] top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -1587,7 +1789,7 @@ export function AddClientOfficeView({
                                 : "text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#2c1e15]"
                             )}
                           >
-                            <span>{cityName}</span>
+                            <span>{getLocalizedCityName(cityName, isEn)}</span>
                             {isSelected && (
                               <Check className="size-[14px] text-[#9c6402] dark:text-[#e29d38] stroke-[3]" />
                             )}
@@ -1596,7 +1798,7 @@ export function AddClientOfficeView({
                       })
                     ) : (
                       <div className="p-4 text-center text-[12px] text-[#837565] dark:text-[#a89f91]">
-                        لم يتم العثور على مدينة تطابق بحثك
+                        {t("لم يتم العثور على مدينة تطابق بحثك", "No matching city found")}
                       </div>
                     )}
                   </div>
@@ -1614,7 +1816,7 @@ export function AddClientOfficeView({
             {/* 9. العنوان الوطني / مقر المكتب الرئيسي */}
             <div className="flex flex-col gap-[6px] text-start">
               <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                العنوان الوطني / مقر المكتب الرئيسي <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
+                {t("مقر المكتب الرئيسي", "Office HQ")} <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
               </label>
               <div className="relative">
                 <input
@@ -1633,7 +1835,7 @@ export function AddClientOfficeView({
                     "w-full h-[44px] bg-[#f5f3ef] dark:bg-[#160e0a] rounded-[6px] ps-[38px] pe-[14px] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#9e9286] focus:outline-none transition-colors border",
                     getInputStateClass("address")
                   )}
-                  placeholder="طريق الملك فهد، حي الصحافة، برج النخبة"
+                  placeholder={t("طريق الملك فهد، حي الصحافة، برج النخبة", "King Fahd Rd, Al Sahafa Dist, Elite Tower")}
                 />
                 <MapPin className="size-[15px] text-[#837565] dark:text-[#a89f91] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
@@ -1648,7 +1850,7 @@ export function AddClientOfficeView({
             {/* 10. كلمة المرور الأولية للحساب (بجانب العنوان الوطني) */}
             <div className="flex flex-col gap-[6px] text-start">
               <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                كلمة المرور الأولية للحساب <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
+                {t("كلمة المرور الأولية للحساب", "Initial Account Password")} <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
               </label>
               <div className="relative">
                 <input
@@ -1671,7 +1873,7 @@ export function AddClientOfficeView({
                     "w-full h-[44px] bg-[#f5f3ef] dark:bg-[#160e0a] rounded-[6px] ps-[40px] pe-[14px] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#9e9286] focus:outline-none direction-ltr text-start font-mono transition-colors border",
                     getInputStateClass("password")
                   )}
-                  placeholder="أدخل كلمة مرور (من 9 إلى 20 خانة تحتوي على حرف ورقم ورمز)"
+                  placeholder={t("أدخل كلمة مرور", "Enter password")}
                 />
                 <button
                   type="button"
@@ -1692,29 +1894,9 @@ export function AddClientOfficeView({
 
             {/* 11. حالة نشاط المكتب */}
             <div className="flex flex-col gap-[6px] text-start">
-              <div className="flex items-center justify-between">
-                <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                  {t("حالة نشاط المكتب", "Office Activity Status")} <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
-                </label>
-                <span
-                  className={cn(
-                    "text-[10px] font-bold px-[8px] py-[1.5px] rounded-full border inline-flex items-center gap-1.5 transition-colors",
-                    officeStatus === "active"
-                      ? "bg-[#e8f5e9] dark:bg-[#132c1c] text-[#1b7340] dark:text-[#6ee7b7] border-[#c8e6c9] dark:border-emerald-500/40"
-                      : "bg-[#fef2f2] dark:bg-[#2c1313] text-[#dc2626] dark:text-[#f87171] border-[#fecaca] dark:border-red-500/40"
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "size-1.5 rounded-full shrink-0",
-                      officeStatus === "active"
-                        ? "bg-[#1b7340] dark:bg-[#10b981]"
-                        : "bg-[#dc2626] dark:bg-[#ef4444]"
-                    )}
-                  />
-                  {officeStatus === "active" ? t("نشط", "Active") : t("غير نشط", "Inactive")}
-                </span>
-              </div>
+              <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                {t("حالة نشاط المكتب", "Office Activity Status")} <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
+              </label>
               <div className="w-full h-[44px] bg-[#f5f3ef] dark:bg-[#160e0a] rounded-[6px] p-1 border border-[#eae8e4] dark:border-[#38271c] grid grid-cols-2 gap-1.5 items-center">
                 <button
                   type="button"
@@ -1745,35 +1927,32 @@ export function AddClientOfficeView({
               </div>
             </div>
 
-            {/* 12. اللون الأساسي للهوية (باليت الألوان) */}
-            <div className="flex flex-col gap-[6px] text-start">
-              <div className="flex items-center justify-between">
-                <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                  {t("اللون الأساسي للهوية", "Primary Brand Color")} <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
-                </label>
-                <span className="text-[10px] font-bold px-[8px] py-[1.5px] rounded-full border border-[#eae8e4] dark:border-[#38271c] bg-white dark:bg-[#1f150f] text-[#514537] dark:text-[#cdc5bd] uppercase font-mono">
-                  {selectedThemeColor}
-                </span>
-              </div>
-              <OfficeColorPalettePicker
-                value={selectedThemeColor}
-                onChange={setSelectedThemeColor}
-                defaultColor="#9c6402"
-                label={t("اللون الأساسي", "Primary Color")}
-                firmName={watch("firmName") || officeToEdit?.name || t("مكتب المحاماة", "Law Firm")}
-                className="w-full"
-              />
-            </div>
+            {/* 12. ألوان الهوية المعتمدة (الخلفية • الثانوي • الخط) */}
+            <OfficeFontColorPicker
+              backgroundColor={selectedBackgroundColor}
+              onBackgroundColorChange={setSelectedBackgroundColor}
+              accentColor={selectedAccentColor}
+              onAccentColorChange={(hex) => {
+                setSelectedAccentColor(hex);
+                setValue("primaryColor", hex, { shouldValidate: true, shouldDirty: true });
+              }}
+              fontColor={selectedFontColor}
+              onFontColorChange={setSelectedFontColor}
+              logoUrl={logoPreview}
+              firmName={watch("firmName") || officeToEdit?.name || t("مكتب المحاماة", "Law Firm")}
+              label={t("ألوان هوية المنشأة وبوابة الموكلين (الخلفية • الثانوي • الخط)", "Portal & Brand Identity Colors (Bg • Secondary • Font)")}
+              className="w-full"
+            />
           </div>
 
           {/* Identity / Logo Upload Area */}
           <div className="flex flex-col gap-[8px] pt-[8px] text-start">
             <div className="flex items-center justify-between">
               <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                شعار المنشأة / الهوية القانونية
+                {t("شعار المنشأة / الهوية القانونية", "Office Logo / Brand Identity")}
               </label>
               <span className="bg-[#eae8e4] dark:bg-[#281c15] text-[#514537] dark:text-[#cdc5bd] border border-[#ded5c6] dark:border-[#38271c] text-[10px] font-bold px-[6px] py-[2px] rounded-[2px]">
-                اختياري
+                {t("اختياري", "Optional")}
               </span>
             </div>
 
@@ -1804,24 +1983,33 @@ export function AddClientOfficeView({
                 /* Uploaded Logo Preview */
                 <div className="flex items-center gap-[14px] w-full">
                   <div className="size-[56px] rounded-[6px] bg-white dark:bg-[#2c1e15] border border-[#eae8e4] dark:border-[#523b2c] p-1 flex items-center justify-center shrink-0 shadow-xs overflow-hidden">
-                    <img
-                      src={logoPreview}
-                      alt="شعار المنشأة"
-                      className="max-h-full max-w-full object-contain"
-                    />
+                    {!logoLoadError ? (
+                      <img
+                        src={withCacheBust(logoPreview, officeToEdit?.updatedAt || officeToEdit?.id)}
+                        alt={t("شعار المنشأة", "Office Logo")}
+                        className="max-h-full max-w-full object-contain"
+                        onError={() => setLogoLoadError(true)}
+                      />
+                    ) : (
+                      <img
+                        src={DEFAULT_OFFICE_LOGO}
+                        alt={t("شعار المنشأة", "Office Logo")}
+                        className="max-h-full max-w-full object-contain"
+                      />
+                    )}
                   </div>
 
                   <div className="flex-1 flex flex-col text-start min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] truncate">
-                        {logoFile ? logoFile.name : "تم رفع شعار المنشأة"}
+                        {logoFile ? logoFile.name : t("تم رفع شعار المنشأة", "Office logo uploaded")}
                       </span>
                       <span className="bg-[#e8f5e9] dark:bg-[#132c1c] text-[#1b7340] dark:text-[#6ee7b7] border border-[#c8e6c9] dark:border-emerald-500/40 text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0">
-                        جاهز
+                        {t("جاهز", "Ready")}
                       </span>
                     </div>
                     <span className="text-[11px] text-[#514537] dark:text-[#d5cec5] mt-0.5">
-                      {logoFile ? `${(logoFile.size / 1024).toFixed(1)} KB` : "انقر لتغيير الشعار أو سحب صورة جديدة"}
+                      {logoFile ? `${(logoFile.size / 1024).toFixed(1)} KB` : t("انقر لتغيير الشعار أو سحب صورة جديدة", "Click to change logo or drag a new image")}
                     </span>
                   </div>
 
@@ -1829,7 +2017,7 @@ export function AddClientOfficeView({
                     type="button"
                     onClick={handleRemoveLogo}
                     className="p-2 rounded-[4px] hover:bg-[#fef2f2] dark:hover:bg-[#341616] text-[#dc2626] dark:text-[#f87171] transition-colors cursor-pointer shrink-0"
-                    title="حذف الشعار"
+                    title={t("حذف الشعار", "Remove logo")}
                   >
                     <Trash2 className="size-[16px]" />
                   </button>
@@ -1844,21 +2032,21 @@ export function AddClientOfficeView({
                     <div className="flex-1 flex flex-col text-start">
                       <div className="flex items-center gap-[8px]">
                         <span className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                          اسحب الشعار وأفلته هنا
+                          {t("اسحب الشعار وأفلته هنا", "Drag and drop logo here")}
                         </span>
-                        <span className="text-[12px] text-[#514537] dark:text-[#d5cec5]">أو</span>
+                        <span className="text-[12px] text-[#514537] dark:text-[#d5cec5]">{t("أو", "or")}</span>
                         <span className="text-[13px] font-bold text-[#9c6402] dark:text-[#e29d38] underline">
-                          تصفح الملفات
+                          {t("تصفح الملفات", "Browse files")}
                         </span>
                       </div>
                       <span className="text-[11px] text-[#514537] dark:text-[#d5cec5] mt-[2px]">
-                        الملفات المدعومة: PNG, SVG, JPG بحد أقصى 2 ميجابايت (يفضل خلفية شفافة أبعاد 400x400).
+                        {t("الملفات المدعومة: PNG, SVG, JPG بحد أقصى 2 ميجابايت (يفضل خلفية شفافة أبعاد 400x400).", "Supported formats: PNG, SVG, JPG up to 2 MB (transparent 400x400 recommended).")}
                       </span>
                     </div>
                   </div>
 
                   <span className="bg-[#eae8e4] dark:bg-[#2c1e15] text-[#514537] dark:text-[#f0e6dc] border border-[#ded5c6] dark:border-[#523b2c] text-[10px] font-bold px-[10px] py-[4px] rounded-[2px] shrink-0">
-                    2 MB كحد أقصى
+                    {t("2 MB كحد أقصى", "Max 2 MB")}
                   </span>
                 </>
               )}
@@ -1874,20 +2062,20 @@ export function AddClientOfficeView({
           <div className="bg-[#f5f3ef]/80 dark:bg-[#1a120d] border border-[#eae8e4] dark:border-[#453022] rounded-[4px] px-[20px] py-[10px] flex items-center justify-between">
             <div className="flex items-center gap-[10px]">
               <div className="bg-[#9c6402] dark:bg-[#c29547] text-[#fff3e9] dark:text-[#1c140f] font-bold text-[13px] size-[28px] rounded-full flex items-center justify-center shrink-0 shadow-xs">
-                ٢
+                2
               </div>
               <div className="flex flex-col text-start">
                 <h2 className="text-[17px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[24px]">
-                  بيانات الاشتراك السحابي
+                  {t("بيانات الاشتراك السحابي", "Cloud Subscription Details")}
                 </h2>
                 <p className="text-[12px] text-[#514537] dark:text-[#d5cec5] leading-[18px]">
-                  تحديد باقة الاشتراك المفعلة للمكتب ودورة الفوترة والتحصيل وخيارات التجديد
+                  {t("تحديد باقة الاشتراك المفعلة للمكتب ودورة الفوترة والتحصيل وخيارات التجديد", "Select active subscription plan, billing cycle, and auto-renewal preferences")}
                 </p>
               </div>
             </div>
 
             <span className="bg-[#eae8e4] dark:bg-[#2c1e15] text-[#514537] dark:text-[#f0e6dc] border border-[#ded5c6] dark:border-[#523b2c] text-[10px] font-bold px-[8px] py-[3px] rounded-[2px]">
-              الاشتراك والفوترة
+              {t("الاشتراك والفوترة", "Subscription & Billing")}
             </span>
           </div>
 
@@ -1900,14 +2088,26 @@ export function AddClientOfficeView({
               {/* Subscription Plan Radio Cards */}
               <div className="flex flex-col gap-[8px] text-start">
                 <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                  نوع وخطة الاشتراك <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
+                  {t("نوع وخطة الاشتراك", "Subscription Type & Plan")} <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
                 </label>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Card 1: باقة مدفوعة (Selected) */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                  {/* Card 1: باقة مدفوعة */}
                   <div
                     onClick={() => {
                       setSelectedPlanType("paid");
+                      const currentPlan = availablePlans.find((p) => String(p.id) === String(selectedPlanId));
+                      const isCurrentTrial = currentPlan && (currentPlan.name.includes("تجرب") || Number(currentPlan.monthlyPrice) === 0);
+                      if (!selectedPlanId || selectedPlanId === "custom" || selectedPlanId === "unlimited" || isCurrentTrial || packageTier.includes("تجرب") || packageTier === "غير محدود") {
+                        const paidPlan = availablePlans.find((p) => !p.name.includes("تجرب") && Number(p.monthlyPrice) > 0) || availablePlans[0];
+                        if (paidPlan) {
+                          setIsCustomPlan(false);
+                          setSelectedPlanId(paidPlan.id);
+                          setPackageTier(paidPlan.name.replace(/\s*-\s*تجربة\s*مجانية/gi, "").trim());
+                        }
+                      } else if (packageTier) {
+                        setPackageTier(packageTier.replace(/\s*-\s*تجربة\s*مجانية/gi, "").trim());
+                      }
                     }}
                     className={`rounded-[8px] p-[14px] flex flex-col gap-[8px] cursor-pointer transition-all border ${
                       selectedPlanType === "paid"
@@ -1928,21 +2128,21 @@ export function AddClientOfficeView({
                         </div>
                         <div className="flex flex-col text-start">
                           <span className="text-[15px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[20px]">
-                            باقة مدفوعة
+                            {t("باقة مدفوعة", "Paid Plan")}
                           </span>
                           <span className="text-[11px] text-[#514537] dark:text-[#d5cec5] leading-[15px]">
-                            تفعيل فوري لكافة مزايا النظام
+                            {t("تفعيل فوري لكافة مزايا النظام", "Instant activation of all features")}
                           </span>
                         </div>
                       </div>
 
                       <span className="bg-[#9c6402]/15 dark:bg-[#e29d38]/20 text-[#9c6402] dark:text-[#e29d38] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px]">
-                        فوري
+                        {t("فوري", "Instant")}
                       </span>
                     </div>
 
                     <div className="bg-white/80 dark:bg-[#1f150f] border border-[#eae8e4] dark:border-[#422e20] rounded-[4px] px-[8px] py-[5px] flex items-center justify-between text-[11px] font-bold text-[#514537] dark:text-[#d5cec5]">
-                      <span>وصول كامل لكافة القضايا</span>
+                      <span>{t("وصول كامل لكافة القضايا", "Full access to all cases")}</span>
                       <FileCheck className="size-[13px] text-[#9c6402] dark:text-[#e29d38]" />
                     </div>
                   </div>
@@ -1951,6 +2151,14 @@ export function AddClientOfficeView({
                   <div
                     onClick={() => {
                       setSelectedPlanType("trial");
+                      if (!selectedPlanId || selectedPlanId === "custom" || selectedPlanId === "unlimited") {
+                        const trialPlan = availablePlans.find((p) => p.name.includes("تجرب") || Number(p.monthlyPrice) === 0) || availablePlans[0];
+                        if (trialPlan) {
+                          setIsCustomPlan(false);
+                          setSelectedPlanId(trialPlan.id);
+                          setPackageTier(trialPlan.name.replace(/\s*-\s*تجربة\s*مجانية/gi, "").replace(/\s*\(تجربة\s*مجانية\)/gi, "").trim());
+                        }
+                      }
                     }}
                     className={`rounded-[8px] p-[14px] flex flex-col gap-[8px] cursor-pointer transition-all border ${
                       selectedPlanType === "trial"
@@ -1971,10 +2179,10 @@ export function AddClientOfficeView({
                         </div>
                         <div className="flex flex-col text-start">
                           <span className="text-[15px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[20px]">
-                            تجربة مجانية
+                            {t("تجربة مجانية", "Free Trial")}
                           </span>
                           <span className="text-[11px] text-[#514537] dark:text-[#d5cec5] leading-[15px]">
-                            فترة استكشافية لاختبار المنظومة
+                            {t("فترة استكشافية لاختبار المنظومة", "Trial period to evaluate the system")}
                           </span>
                         </div>
                       </div>
@@ -1989,17 +2197,117 @@ export function AddClientOfficeView({
                         {isCustomPlan
                           ? `${t("إمكانية إضافة", "Add up to")} ${customLawyersLimit === "unlimited" ? t("غير محدود من", "Unlimited") : customLawyersLimit} ${t("محامين", "Lawyers")}`
                           : selectedPlanId
-                          ? `${packageTier || t("الباقة المعتمدة", "Approved Plan")}`
+                          ? `${localizePlanName(packageTier, isEn) || t("الباقة المعتمدة", "Approved Plan")}`
                           : t("إمكانية إضافة 3 محامين", "Up to 3 lawyers")}
                       </span>
                       <Hourglass className="size-[13px] text-[#837565] dark:text-[#a89f91]" />
+                    </div>
+                  </div>
+
+                  {/* Card 3: غير محدود (صلاحيات كاملة) */}
+                  <div
+                    onClick={() => {
+                      setSelectedPlanType("unlimited");
+                      setIsCustomPlan(false);
+                      setSelectedPlanId("unlimited");
+                      setPackageTier("غير محدود");
+                    }}
+                    className={`rounded-[8px] p-[14px] flex flex-col gap-[8px] cursor-pointer transition-all border ${
+                      selectedPlanType === "unlimited"
+                        ? "bg-[#f5f3ef] dark:bg-[#261911] border-[#9c6402] dark:border-[#c29547] ring-1 ring-[#9c6402] dark:ring-[#c29547] shadow-sm"
+                        : "bg-[#f5f3ef] dark:bg-[#160e0a] border-[#eae8e4] dark:border-[#422e20] opacity-80"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-[8px]">
+                        <div
+                          className={`size-[20px] rounded-full flex items-center justify-center shrink-0 ${
+                            selectedPlanType === "unlimited"
+                              ? "bg-[#9c6402] dark:bg-[#c29547] text-white dark:text-[#1c140f]"
+                              : "border border-[#837565] dark:border-[#a89f91]"
+                          }`}
+                        >
+                          {selectedPlanType === "unlimited" && <Check className="size-[12px] stroke-[3]" />}
+                        </div>
+                        <div className="flex flex-col text-start">
+                          <span className="text-[15px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[20px]">
+                            {t("غير محدود", "Unlimited")}
+                          </span>
+                          <span className="text-[11px] text-[#514537] dark:text-[#d5cec5] leading-[15px]">
+                            {t("للعملاء الخاصين وصلاحيات كاملة", "VIP clients with full privileges")}
+                          </span>
+                        </div>
+                      </div>
+
+                      <span className="bg-[#9c6402]/15 dark:bg-[#e29d38]/20 text-[#9c6402] dark:text-[#e29d38] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px]">
+                        {t("صلاحيات كاملة", "Full Access")}
+                      </span>
+                    </div>
+
+                    <div className="bg-white/80 dark:bg-[#1f150f] border border-[#eae8e4] dark:border-[#422e20] rounded-[4px] px-[8px] py-[5px] flex items-center justify-between text-[11px] font-bold text-[#514537] dark:text-[#d5cec5]">
+                      <span>{t("بدون أي حدود أو تاريخ انتهاء", "No limits or expiration date")}</span>
+                      <ShieldCheck className="size-[13px] text-[#9c6402] dark:text-[#e29d38]" />
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Tier & Billing Configuration Details */}
-              <div className="bg-[#f5f3ef] dark:bg-[#160e0a] border border-[#eae8e4] dark:border-[#422e20] rounded-[8px] p-[16px] flex flex-col gap-[14px]">
+              {selectedPlanType === "unlimited" ? (
+                <div className="bg-[#f5f3ef] dark:bg-[#160e0a] border border-[#9c6402]/30 dark:border-[#c29547]/30 rounded-[8px] p-[16px] flex flex-col gap-[14px]">
+                  <div className="flex items-center justify-between pb-[10px] border-b border-[#eae8e4] dark:border-[#422e20]">
+                    <div className="flex items-center gap-[8px]">
+                      <div className="size-[28px] rounded-[6px] bg-[#9c6402]/15 dark:bg-[#e29d38]/15 flex items-center justify-center text-[#9c6402] dark:text-[#e29d38]">
+                        <ShieldCheck className="size-[16px]" />
+                      </div>
+                      <div>
+                        <h4 className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                          {t("اشتراك خاص غير محدود (صلاحيات كاملة)", "VIP Unlimited Subscription (Full Access)")}
+                        </h4>
+                        <p className="text-[11px] text-[#514537] dark:text-[#d5cec5]">
+                          {t("هذا الحساب مخصص للعملاء المميزين دون قيود أو فترات انتهاء أو رسوم دورية", "Exclusive VIP client account with no expiration, fees, or quotas")}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold text-[#9c6402] dark:text-[#e29d38] bg-[#9c6402]/10 dark:bg-[#e29d38]/10 px-[8px] py-[3px] rounded-full border border-[#9c6402]/20">
+                      {t("صلاحيات كاملة", "Full Privileges")}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-start">
+                    <div className="bg-white/80 dark:bg-[#1f150f] border border-[#eae8e4] dark:border-[#422e20] rounded-[6px] p-[10px] flex flex-col gap-1">
+                      <span className="text-[10px] text-[#514537] dark:text-[#d5cec5]">{t("الرسوم والتكلفة", "Fees")}</span>
+                      <span className="text-[12px] font-bold text-[#10b981]">{t("بدون سعر (مجاني)", "Free (0 SAR)")}</span>
+                    </div>
+
+                    <div className="bg-white/80 dark:bg-[#1f150f] border border-[#eae8e4] dark:border-[#422e20] rounded-[6px] p-[10px] flex flex-col gap-1">
+                      <span className="text-[10px] text-[#514537] dark:text-[#d5cec5]">{t("مدة الاشتراك", "Duration")}</span>
+                      <span className="text-[12px] font-bold text-[#9c6402] dark:text-[#e29d38]">{t("دائم (بدون انتهاء)", "Permanent (∞)")}</span>
+                    </div>
+
+                    <div className="bg-white/80 dark:bg-[#1f150f] border border-[#eae8e4] dark:border-[#422e20] rounded-[6px] p-[10px] flex flex-col gap-1">
+                      <span className="text-[10px] text-[#514537] dark:text-[#d5cec5]">{t("القضايا والموكلين", "Cases & Clients")}</span>
+                      <span className="text-[12px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{t("غير محدود (∞)", "Unlimited (∞)")}</span>
+                    </div>
+
+                    <div className="bg-white/80 dark:bg-[#1f150f] border border-[#eae8e4] dark:border-[#422e20] rounded-[6px] p-[10px] flex flex-col gap-1">
+                      <span className="text-[10px] text-[#514537] dark:text-[#d5cec5]">{t("المستخدمين والسعة", "Users & Storage")}</span>
+                      <span className="text-[12px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{t("غير محدود (∞)", "Unlimited (∞)")}</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-white/60 dark:bg-[#1f150f]/60 border border-[#eae8e4] dark:border-[#422e20] rounded-[6px] p-[10px] text-[11px] text-[#514537] dark:text-[#d5cec5] flex items-center gap-2">
+                    <CheckCircle2 className="size-4 text-[#10b981] shrink-0" />
+                    <span>
+                      {t(
+                        "سيتم تفعيل المنشأة فورياً بنوع باقة مستقل (unlimited) مع فتح كافة بوابات الربط (ناجز، زاتكا) والميزات المتقدمة دون إرسال فواتير تجديد.",
+                        "Office will be activated with plan type (unlimited) with all integrations unlocked and no renewal invoices."
+                      )}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-[#f5f3ef] dark:bg-[#160e0a] border border-[#eae8e4] dark:border-[#422e20] rounded-[8px] p-[16px] flex flex-col gap-[14px]">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-[14px]">
                   {/* الباقة المعتمدة */}
                   <div className="flex flex-col gap-[6px] text-start">
@@ -2012,7 +2320,7 @@ export function AddClientOfficeView({
                       placeholder={
                         isCustomPlan
                           ? t("باقة مخصصة لهذا المكتب", "Custom Plan")
-                          : packageTier || (availablePlans.length > 0 ? t("اختر الباقة المعتمدة...", "Select approved plan...") : t("باقة مخصصة لهذا المكتب", "Custom Plan"))
+                          : localizePlanName(packageTier, isEn) || (availablePlans.length > 0 ? t("اختر الباقة المعتمدة...", "Select approved plan...") : t("باقة مخصصة لهذا المكتب", "Custom Plan"))
                       }
                       onChange={(e) => {
                         const val = e.target.value;
@@ -2026,17 +2334,23 @@ export function AddClientOfficeView({
                         setSelectedPlanId(val);
                         const found = availablePlans.find((p) => String(p.id) === String(val));
                         if (found) {
-                          setPackageTier(found.name);
+                          const cleanFound = !isTrial
+                            ? found.name.replace(/\s*-\s*تجربة\s*مجانية/gi, "").trim()
+                            : found.name;
+                          setPackageTier(cleanFound);
                         }
                       }}
                       className="bg-white dark:bg-[#1f150f] border-[#eae8e4] dark:border-[#422e20] h-[42px] rounded-[6px]"
                     >
                       {availablePlans.length > 0 ? (
-                        availablePlans.map((p) => (
-                          <option key={p.id} value={String(p.id)}>
-                            {p.name} ({Number(p.monthlyPrice).toLocaleString("ar-SA")} ر.س / شهرياً{isTrial ? ` - تجربة مجانية` : ""})
-                          </option>
-                        ))
+                        availablePlans.map((p) => {
+                          const displayName = localizePlanName(p.name.replace(/\s*-\s*تجربة\s*مجانية/gi, "").trim(), isEn);
+                          return (
+                            <option key={p.id} value={String(p.id)}>
+                              {displayName} ({Number(p.monthlyPrice).toLocaleString("en-US")} {t("ر.س / شهرياً", "SAR / mo")}{isTrial ? t(" - تجربة مجانية", " - Free Trial") : ""})
+                            </option>
+                          );
+                        })
                       ) : (
                         <option value="" disabled className="text-[#837565] dark:text-[#a89f91]">
                           {t("لا توجد باقات عامة معرفة في تاب الباقات", "No public plans in plans tab")}
@@ -2065,91 +2379,30 @@ export function AddClientOfficeView({
                     </span>
                   </div>
 
-                  {/* دورة الفوترة والتحصيل أو مدة الفترة التجريبية */}
-                  {isTrial ? (
-                    <div className="flex flex-col gap-[6px] text-start">
-                      <div className="flex items-center justify-between">
-                        <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                          {t("مدة الفترة التجريبية المعتمدة", "Approved Trial Duration")}
-                        </label>
-                        <span className="text-[11px] font-bold text-[#9c6402] dark:text-[#e29d38]">
-                          {trialDurationDays} {t("يوماً", "Days")}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-[8px]">
-                        <DashboardSelect
-                          aria-label={t("مدة الفترة التجريبية", "Trial Duration")}
-                          value={isCustomTrialDays ? "custom" : String(trialDurationDays)}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            if (val === "custom") {
-                              setIsCustomTrialDays(true);
-                            } else {
-                              setIsCustomTrialDays(false);
-                              setTrialDurationDays(Number(val));
-                            }
-                          }}
-                          className="bg-white dark:bg-[#1f150f] border-[#eae8e4] dark:border-[#422e20] h-[42px] rounded-[6px] flex-1"
-                        >
-                          <option value="14">{t("14 يوماً (الافتراضي / القياسي)", "14 Days (Default / Standard)")}</option>
-                          <option value="7">{t("7 أيام (تجربة سريعة)", "7 Days (Quick Trial)")}</option>
-                          <option value="21">{t("21 يوماً (3 أسابيع)", "21 Days (3 Weeks)")}</option>
-                          <option value="30">{t("30 يوماً (شهر كامل)", "30 Days (Full Month)")}</option>
-                          <option value="60">{t("60 يوماً (شهران)", "60 Days (Two Months)")}</option>
-                          <option value="90">{t("90 يوماً (3 أشهر)", "90 Days (Three Months)")}</option>
-                          <option value="custom">✨ {t("تحديد مدة مخصصة بالـ (أيام)...", "Specify custom duration in days...")}</option>
-                        </DashboardSelect>
-
-                        {isCustomTrialDays && (
-                          <div className="flex items-center gap-[6px] shrink-0">
-                            <input
-                              type="number"
-                              min="1"
-                              max="365"
-                              value={trialDurationDays}
-                              onChange={(e) => {
-                                const v = Math.max(1, Math.min(365, Number(e.target.value) || 1));
-                                setTrialDurationDays(v);
-                              }}
-                              className="w-[84px] h-[42px] bg-white dark:bg-[#1f150f] border border-[#9c6402] dark:border-[#e29d38] rounded-[6px] px-[8px] text-center font-bold text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] focus:outline-none"
-                              placeholder="14"
-                            />
-                            <span className="text-[12px] font-bold text-[#514537] dark:text-[#d5cec5]">
-                              {t("يوم", "Day")}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      <span className="text-[11px] text-[#9c6402] dark:text-[#c29547] font-medium">
-                        {t(
-                          `فترة تجريبية مجانية لمدة ${trialDurationDays} يوماً بدون أي رسوم أو مطالبات مالية، تبدأ من تاريخ إنشاء الحساب.`,
-                          `Free trial for ${trialDurationDays} days with zero charges, starting from account creation date.`
-                        )}
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col gap-[6px] text-start">
-                      <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                        {t("دورة الفوترة والتحصيل", "Billing Cycle")}
-                      </label>
-                      <DashboardSelect
-                        aria-label={t("دورة الفوترة والتحصيل", "Billing Cycle")}
-                        value={billingCycle}
-                        onChange={(e) => setBillingCycle(e.target.value)}
-                        className="bg-white dark:bg-[#1f150f] border-[#eae8e4] dark:border-[#422e20] h-[42px] rounded-[6px]"
-                      >
-                        <option value="اشتراك سنوي (موصى به - خصم شهرين مجاناً)">
-                          {t("اشتراك سنوي (موصى به - خصم شهرين)", "Annual (Recommended - 2 Months Free)")}
-                        </option>
-                        <option value="اشتراك شهري عادي">
-                          {t("اشتراك شهري عادي", "Monthly Standard")}
-                        </option>
-                      </DashboardSelect>
-                      <span className="text-[11px] text-[#514537] dark:text-[#d5cec5]">
-                        {t("يتم احتساب الفاتورة الأولى فور التأكيد.", "First invoice is calculated upon confirmation.")}
-                      </span>
-                    </div>
-                  )}
+                  {/* دورة الفوترة والتحصيل */}
+                  <div className="flex flex-col gap-[6px] text-start">
+                    <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                      {t("دورة الفوترة والتحصيل", "Billing Cycle")}
+                    </label>
+                    <DashboardSelect
+                      aria-label={t("دورة الفوترة والتحصيل", "Billing Cycle")}
+                      value={billingCycle}
+                      onChange={(e) => setBillingCycle(e.target.value)}
+                      className="bg-white dark:bg-[#1f150f] border-[#eae8e4] dark:border-[#422e20] h-[42px] rounded-[6px]"
+                    >
+                      <option value="اشتراك سنوي (موصى به - خصم شهرين مجاناً)">
+                        {t("اشتراك سنوي (موصى به - خصم شهرين)", "Annual (Recommended - 2 Months Free)")}
+                      </option>
+                      <option value="اشتراك شهري عادي">
+                        {t("اشتراك شهري عادي", "Monthly Standard")}
+                      </option>
+                    </DashboardSelect>
+                    <span className="text-[11px] text-[#514537] dark:text-[#d5cec5]">
+                      {isTrial
+                        ? t("يبدأ احتساب الفاتورة الأولى بعد انتهاء الفترة الاستكشافية.", "First invoice is calculated after trial period ends.")
+                        : t("يتم احتساب الفاتورة الأولى فور التأكيد.", "First invoice is calculated upon confirmation.")}
+                    </span>
+                  </div>
 
                   {/* قسم بناء باقة مخصصة لهذا المكتب */}
                   {isCustomPlan && (
@@ -2457,35 +2710,17 @@ export function AddClientOfficeView({
                   <div className="flex items-center justify-between p-[12px] bg-white dark:bg-[#1f150f] border border-[#eae8e4] dark:border-[#422e20] rounded-[6px] md:col-span-2">
                     <div className="flex items-center gap-[10px]">
                       <div className="size-[30px] rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] flex items-center justify-center text-[#9c6402] dark:text-[#e29d38]">
-                        {isTrial ? (
-                          <BellRing className="size-[14px]" />
-                        ) : (
-                          <RefreshCw className="size-[14px]" />
-                        )}
+                        <RefreshCw className="size-[14px]" />
                       </div>
                       <div className="flex flex-col text-start">
-                        <div className="flex items-center gap-[8px]">
-                          <span className="text-[12px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                            {isTrial
-                              ? t("تنبيه وتذكير المكتب بالترقية قبل انتهاء التجربة", "Remind Office Before Trial Ends")
-                              : t("تفعيل التجديد التلقائي للاشتراك", "Enable Auto-Renewal")}
-                          </span>
-                          {isTrial && (
-                            <span className="text-[10px] font-semibold text-[#9c6402] dark:text-[#e29d38] bg-[#9c6402]/10 dark:bg-[#e29d38]/10 px-[6px] py-[1px] rounded-full">
-                              {t("تذكير بالترقية • بدون خصم آلي", "Upgrade reminder • No auto-charge")}
-                            </span>
-                          )}
-                        </div>
+                        <span className="text-[12px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                          {t("تفعيل التجديد التلقائي للاشتراك", "Enable Auto-Renewal")}
+                        </span>
                         <span className="text-[10px] text-[#514537] dark:text-[#d5cec5]">
-                          {isTrial
-                            ? t(
-                                "إرسال إشعار تذكيري للمكتب قبل نهاية الـ 14 يوماً لتسجيل وسيلة دفع وترقية الحساب وتجنب انقطاع الخدمة",
-                                "Send reminder notice before the 14 days end to add payment and upgrade"
-                              )
-                            : t(
-                                "تجديد الاشتراك آلياً عبر البطاقة المسجلة لتجنب انقطاع الخدمة",
-                                "Auto renew using registered card"
-                              )}
+                          {t(
+                            "تجديد الاشتراك آلياً عبر البطاقة المسجلة لتجنب انقطاع الخدمة",
+                            "Auto renew using registered card"
+                          )}
                         </span>
                       </div>
                     </div>
@@ -2501,11 +2736,7 @@ export function AddClientOfficeView({
                           ? "bg-[#10b981] dark:bg-[#10b981]"
                           : "bg-[#d1ccc4] dark:bg-[#38271c]"
                       )}
-                      aria-label={
-                        isTrial
-                          ? t("تنبيه وتذكير المكتب بالترقية", "Trial reminder")
-                          : t("تفعيل التجديد التلقائي للاشتراك", "Enable Auto-Renewal")
-                      }
+                      aria-label={t("تفعيل التجديد التلقائي للاشتراك", "Enable Auto-Renewal")}
                     >
                       <span
                         className={cn(
@@ -2521,6 +2752,7 @@ export function AddClientOfficeView({
                   </div>
                 </div>
               </div>
+              )}
             </div>
 
             {/* ======================================================== */}
@@ -2750,14 +2982,20 @@ export function AddClientOfficeView({
           }
         }}
         variant="info"
-        title={isEditMode ? "تأكيد تعديل بيانات المنشأة" : "تأكيد تسجيل المنشأة الجديدة"}
+        title={isEditMode ? t("تأكيد تعديل بيانات المنشأة", "Confirm Office Details Update") : t("تأكيد تسجيل المنشأة الجديدة", "Confirm New Office Registration")}
         description={
           isEditMode
-            ? `هل أنت متأكد من حفظ التعديلات والبيانات المحدثة لمنشأة "${pendingFormData?.firmName || watch("firmName") || ""}"؟`
-            : `هل أنت متأكد من اعتماد وتسجيل منشأة "${pendingFormData?.firmName || watch("firmName") || ""}" بالهوية والبيانات المحددة؟`
+            ? t(
+                `هل أنت متأكد من حفظ التعديلات والبيانات المحدثة لمنشأة "${pendingFormData?.firmName || watch("firmName") || ""}"؟`,
+                `Are you sure you want to save updates for "${pendingFormData?.firmName || watch("firmName") || ""}"?`
+              )
+            : t(
+                `هل أنت متأكد من اعتماد وتسجيل منشأة "${pendingFormData?.firmName || watch("firmName") || ""}" بالهوية والبيانات المحددة؟`,
+                `Are you sure you want to register "${pendingFormData?.firmName || watch("firmName") || ""}" with the selected details?`
+              )
         }
-        confirmLabel={isEditMode ? "تأكيد وحفظ التعديلات" : "تأكيد إنشاء المنشأة"}
-        cancelLabel="مراجعة وتعديل"
+        confirmLabel={isEditMode ? t("تأكيد وحفظ التعديلات", "Confirm & Save Changes") : t("تأكيد إنشاء المنشأة", "Confirm & Create Office")}
+        cancelLabel={t("مراجعة وتعديل", "Review & Edit")}
         itemDetails={{
           name: pendingFormData?.firmName || watch("firmName"),
           email: pendingFormData?.email || watch("email"),

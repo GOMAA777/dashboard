@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { MoreVertical, Eye, Edit3, RefreshCw, XCircle } from "lucide-react";
+import { MoreVertical, Eye, Edit3, RefreshCw, XCircle, CheckCircle2 } from "lucide-react";
 import { SubscriptionRecord } from "../types/subscription.types";
 import { useLanguage } from "@/lib/i18n";
 
@@ -12,6 +12,8 @@ interface SubscriptionRowActionMenuProps {
   onEdit?: (sub: SubscriptionRecord) => void;
   onRenew?: (sub: SubscriptionRecord) => void;
   onCancel?: (sub: SubscriptionRecord) => void;
+  onApprove?: (sub: SubscriptionRecord) => void;
+  onReject?: (sub: SubscriptionRecord) => void;
 }
 
 export function SubscriptionRowActionMenu({
@@ -20,8 +22,14 @@ export function SubscriptionRowActionMenu({
   onEdit,
   onRenew,
   onCancel,
+  onApprove,
+  onReject,
 }: SubscriptionRowActionMenuProps) {
   const { t } = useLanguage();
+  const isUnlimited =
+    subscription.planName?.includes("غير محدود") ||
+    (subscription.billingCycle as string) === "دائم" ||
+    subscription.statusLabel === "صلاحيات كاملة";
   const [isOpen, setIsOpen] = useState(false);
   const [coords, setCoords] = useState<{
     left: number;
@@ -135,6 +143,38 @@ export function SubscriptionRowActionMenu({
             }}
             className="w-44 bg-white dark:bg-[#221812] rounded-[6px] shadow-[0px_8px_24px_rgba(0,0,0,0.14)] border border-[#f0eeea] dark:border-[#38271c] py-1 text-[12px] font-['Cairo'] animate-in fade-in-50 zoom-in-95 select-none"
           >
+            {subscription.status === "pending" && onApprove && (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(false);
+                  onApprove(subscription);
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-[#059669] hover:bg-[#ecfdf5] dark:hover:bg-[#132c21] transition-colors cursor-pointer font-bold"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#059669] shrink-0" />
+                <span>{t("اعتماد وتفعيل", "Approve & Activate")}</span>
+              </button>
+            )}
+
+            {subscription.status === "pending" && onReject && (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(false);
+                  onReject(subscription);
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-[#dc2626] dark:text-[#f87171] hover:bg-[#fef2f2] dark:hover:bg-[#311616] transition-colors cursor-pointer font-bold"
+              >
+                <XCircle className="w-3.5 h-3.5 text-[#dc2626] dark:text-[#f87171] shrink-0" />
+                <span>{t("رفض الطلب", "Reject Request")}</span>
+              </button>
+            )}
+
+            {subscription.status === "pending" && (onApprove || onReject) && (
+              <div className="h-px bg-[#f0eeea] dark:bg-[#38271c] my-1" />
+            )}
+
             <button
               type="button"
               onClick={() => {
@@ -159,17 +199,19 @@ export function SubscriptionRowActionMenu({
               <span>{t("تعديل الباقة", "Change Plan")}</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => {
-                setIsOpen(false);
-                onRenew?.(subscription);
-              }}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] transition-colors cursor-pointer"
-            >
-              <RefreshCw className="w-3.5 h-3.5 text-[#059669] shrink-0" />
-              <span>{t("تجديد فوري", "Renew Now")}</span>
-            </button>
+            {subscription.status !== "pending" && !isUnlimited && (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(false);
+                  onRenew?.(subscription);
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-[#1b1c1a] dark:text-[#fdfbf7] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] transition-colors cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5 text-[#059669] shrink-0" />
+                <span>{t("تجديد فوري", "Renew Now")}</span>
+              </button>
+            )}
 
             <div className="h-px bg-[#f0eeea] dark:bg-[#38271c] my-1" />
 

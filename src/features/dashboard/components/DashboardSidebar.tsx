@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useSyncExternalStore } from "react";
+import React, { useState, useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/use-ui-store";
+import { useDraftsStore } from "@/stores/use-drafts-store";
 import { LogoutConfirmModal } from "./LogoutConfirmModal";
 import { AlJoudyLogo } from "@/components/shared/BrandLogos";
 import { clearAuthSession } from "@/lib/auth-client";
@@ -48,6 +49,7 @@ const navItems: NavItem[] = [
   { id: "home", labelAr: "الرئيسية", labelEn: "Dashboard", href: "/", icon: LayoutGrid, sizeClass: "size-[16px]" },
   { id: "clients", labelAr: "مكاتب المحاماة", labelEn: "Law Firms", href: "/accounts", icon: Users, sizeClass: "size-[18px]" },
   { id: "notifications", labelAr: "الإشعارات", labelEn: "Notifications", href: "/notifications", icon: Bell, sizeClass: "size-[16px]" },
+  { id: "drafts", labelAr: "المسودات", labelEn: "Drafts", href: "/drafts", icon: FileText, sizeClass: "size-[16px]" },
   { id: "staff", labelAr: "طاقم العمل", labelEn: "Staff", href: "/permissions", icon: UserCheck, sizeClass: "size-[19px]" },
   { id: "finance", labelAr: "الفواتير والمالية", labelEn: "Invoices & Finance", href: "/invoices", icon: Receipt, sizeClass: "size-[16px]" },
   { id: "support", labelAr: "الدعم الفني", labelEn: "Technical Support", href: "/tickets", icon: Headphones, sizeClass: "size-[17px]" },
@@ -65,6 +67,14 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
   const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
   const toggleSidebarCollapsed = useUIStore((state) => state.toggleSidebarCollapsed);
   const setPageNavigating = useUIStore((state) => state.setPageNavigating);
+  const drafts = useDraftsStore((state) => state.drafts);
+  const initDrafts = useDraftsStore((state) => state.init);
+
+  useEffect(() => {
+    initDrafts();
+  }, [initDrafts]);
+
+  const draftCount = drafts.length;
 
   const handleNavClick = (href: string) => {
     if (href && href !== "#" && href !== pathname) {
@@ -293,6 +303,11 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                         : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
                     )}
                   />
+                  {item.id === "drafts" && draftCount > 0 && (
+                    <span className="absolute -top-1 -end-1 size-4 bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] text-[10px] font-bold rounded-full flex items-center justify-center font-mono leading-none shadow-xs">
+                      {draftCount > 9 ? "9+" : draftCount}
+                    </span>
+                  )}
                 </Link>
               );
             }
@@ -354,6 +369,19 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                     >
                       {itemLabel}
                     </span>
+
+                    {item.id === "drafts" && draftCount > 0 && (
+                      <span
+                        className={cn(
+                          "text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0 font-mono transition-colors",
+                          isActive
+                            ? "bg-white/20 text-white dark:bg-black/20 dark:text-[#1c140f]"
+                            : "bg-[#9c6402]/10 text-[#9c6402] dark:bg-[#e29d38]/20 dark:text-[#e29d38]"
+                        )}
+                      >
+                        {draftCount}
+                      </span>
+                    )}
                   </Link>
                 )}
 
@@ -701,14 +729,14 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
               prefetch={true}
               onClick={() => handleNavClick("/profile")}
               title={currentLang === "en" ? "Profile - Eng. Abdulaziz Bin Fahad" : "الملف الشخصي - م. عبد العزيز بن فهد"}
-              className="size-[38px] rounded-full overflow-hidden border border-[#9c6402] hover:border-[#b47818] transition-colors flex items-center justify-center shrink-0 relative group"
+              className="size-[38px] rounded-full overflow-hidden border border-[#9c6402] hover:border-[#b47818] hover:ring-2 hover:ring-[#9c6402]/40 dark:hover:ring-[#e29d38]/40 hover:scale-105 active:scale-95 transition-all flex items-center justify-center shrink-0 relative group shadow-2xs cursor-pointer"
             >
               <Image
                 src={userAvatarImg}
                 alt={currentLang === "en" ? "Eng. Abdulaziz Bin Fahad" : "م. عبد العزيز بن فهد"}
                 width={38}
                 height={38}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-200"
               />
               <span className="absolute bottom-0 end-0 size-[8px] rounded-full bg-[#10b981] border border-white dark:border-[#16100c]" />
             </Link>
@@ -719,34 +747,34 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
               onClick={() => setIsLogoutModalOpen(true)}
               title={currentLang === "en" ? "Logout" : "تسجيل الخروج"}
               aria-label={currentLang === "en" ? "Logout" : "تسجيل الخروج"}
-              className="size-[34px] rounded-full bg-white dark:bg-[#281c15] border border-[#eae8e4] dark:border-[#3b2a1f] hover:border-[#ba1a1a]/40 hover:bg-[#ba1a1a]/10 text-[#837565] dark:text-[#8e8680] hover:text-[#ba1a1a] dark:hover:text-[#f87171] flex items-center justify-center transition-colors cursor-pointer shadow-2xs"
+              className="size-[34px] rounded-full bg-white dark:bg-[#281c15] border border-[#eae8e4] dark:border-[#3b2a1f] hover:border-[#ba1a1a] hover:bg-[#ba1a1a]/15 dark:hover:bg-[#ba1a1a]/25 text-[#837565] dark:text-[#8e8680] hover:text-[#dc2626] dark:hover:text-[#f87171] hover:ring-2 hover:ring-[#ba1a1a]/20 dark:hover:ring-[#ba1a1a]/30 hover:scale-105 active:scale-95 flex items-center justify-center transition-all cursor-pointer shadow-2xs group/logout"
             >
-              <LogOut className="size-[15px]" />
+              <LogOut className="size-[15px] transition-transform duration-200 group-hover/logout:-translate-x-0.5 rtl:group-hover/logout:translate-x-0.5" />
             </button>
           </div>
         ) : (
           /* Expanded Mode: Large Oval / Pill Box Container */
-          <div className="w-full bg-white dark:bg-[#221812] border border-[#eae8e4] dark:border-[#38271c] hover:border-[#9c6402]/30 dark:hover:border-[#4d3627] rounded-full p-1.5 ps-2.5 pe-1.5 flex items-center justify-between gap-2 shadow-xs transition-colors">
+          <div className="w-full bg-white dark:bg-[#221812] border border-[#eae8e4] dark:border-[#38271c] rounded-full p-1.5 ps-2 pe-1.5 flex items-center justify-between gap-1.5 shadow-xs transition-colors">
             {/* User Info Link (Avatar + Name + Role) leading to /profile */}
             <Link
               href="/profile"
               prefetch={true}
               onClick={() => handleNavClick("/profile")}
               title={currentLang === "en" ? "View Profile" : "فتح الملف الشخصي"}
-              className="flex items-center gap-2.5 flex-1 min-w-0 text-start group cursor-pointer"
+              className="flex items-center gap-2.5 flex-1 min-w-0 text-start group/user cursor-pointer px-2 py-1 -ms-0.5 rounded-full hover:bg-[#f5f3ef]/80 dark:hover:bg-[#2d1f17] active:scale-[0.98] transition-all duration-200"
             >
-              <div className="relative size-[34px] rounded-full overflow-hidden border border-[#9c6402] shrink-0">
+              <div className="relative size-[34px] rounded-full overflow-hidden border border-[#9c6402] shrink-0 transition-all duration-200 group-hover/user:border-[#b47818] group-hover/user:ring-2 group-hover/user:ring-[#9c6402]/50 dark:group-hover/user:ring-[#e29d38]/50 group-hover/user:scale-105 shadow-2xs">
                 <Image
                   src={userAvatarImg}
                   alt={currentLang === "en" ? "Eng. Abdulaziz Bin Fahad" : "م. عبد العزيز بن فهد"}
                   width={34}
                   height={34}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                  className="w-full h-full object-cover group-hover/user:scale-110 transition-transform duration-200"
                 />
                 <span className="absolute bottom-0 end-0 size-[7px] rounded-full bg-[#10b981] border border-white dark:border-[#16100c]" />
               </div>
               <div className="flex flex-col min-w-0 text-start">
-                <span className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] truncate group-hover:text-[#9c6402] dark:group-hover:text-[#e29d38] transition-colors leading-[18px]">
+                <span className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] truncate group-hover/user:text-[#9c6402] dark:group-hover/user:text-[#e29d38] transition-colors leading-[18px]">
                   {currentLang === "en" ? "Eng. Abdulaziz Bin Fahad" : "م. عبد العزيز بن فهد"}
                 </span>
                 <span className="text-[10px] text-[#837565] dark:text-[#8e8680] truncate leading-[14px]">
@@ -761,9 +789,9 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
               onClick={() => setIsLogoutModalOpen(true)}
               title={currentLang === "en" ? "Logout" : "تسجيل الخروج"}
               aria-label={currentLang === "en" ? "Logout" : "تسجيل الخروج"}
-              className="size-[32px] rounded-full bg-[#f5f3ef] dark:bg-[#2d1f17] border border-[#eae8e4] dark:border-[#443023] hover:border-[#ba1a1a]/50 hover:bg-[#ba1a1a]/10 dark:hover:bg-[#ba1a1a]/20 text-[#837565] dark:text-[#a89f91] hover:text-[#ba1a1a] dark:hover:text-[#f87171] flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-2xs"
+              className="size-[32px] rounded-full bg-[#f5f3ef] dark:bg-[#2d1f17] border border-[#eae8e4] dark:border-[#443023] hover:border-[#ba1a1a] hover:bg-[#ba1a1a]/15 dark:hover:bg-[#ba1a1a]/25 text-[#837565] dark:text-[#a89f91] hover:text-[#dc2626] dark:hover:text-[#f87171] hover:ring-2 hover:ring-[#ba1a1a]/25 dark:hover:ring-[#ba1a1a]/35 hover:scale-110 active:scale-95 flex items-center justify-center transition-all duration-200 cursor-pointer shrink-0 shadow-2xs group/logout"
             >
-              <LogOut className="size-[15px]" />
+              <LogOut className="size-[15px] transition-transform duration-200 group-hover/logout:-translate-x-0.5 rtl:group-hover/logout:translate-x-0.5" />
             </button>
           </div>
         )}

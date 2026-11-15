@@ -18,9 +18,10 @@ import {
 import { toast } from "sonner";
 import { ClientOffice } from "../types/client.types";
 import { useLanguage } from "@/lib/i18n";
+import { localizePlanFeature, localizePlanName, localizeRoleOrTitle } from "@/lib/localize";
 import { ModalPortal } from "@/components/shared/ModalPortal";
 import { fetchPlans, getLocalCustomPlans } from "@/lib/api/plans";
-import { mapPlansResponse } from "@/lib/api/mappers";
+import { mapPlansResponse, saveLocalCustomFirmPlan } from "@/lib/api/mappers";
 import { initialPricingPlans } from "@/features/plans/data/initialPlans";
 import type { PricingPlanItem } from "@/features/plans/types/plan.types";
 import { updateFirm } from "@/lib/api/firms";
@@ -57,6 +58,28 @@ export const CUSTOM_SLA_PLAN: AvailablePlan = {
     "تكامل API ثنائي الاتجاه مع أنظمة ERP و CRM",
     "أعلى معايير تشفير وأمان متوافقة مع الأمن السيبراني",
     "تدريب ميداني وإعداد مخصص لفريق المكتب",
+  ],
+};
+
+export const UNLIMITED_VIP_PLAN: AvailablePlan = {
+  id: "unlimited",
+  name: "غير محدود (صلاحيات كاملة)",
+  badge: "صلاحيات كاملة",
+  monthlyPrice: 0,
+  annualPrice: 0,
+  description: "خطة حصرية للعملاء الخاصين بصلاحيات كاملة وغير محدودة للنظام بدون رسوم أو قيود.",
+  lawyersLimit: "غير محدود (∞) من المحامين",
+  casesLimit: "غير محدود (∞) من القضايا والوكالات",
+  storageLimit: "غير محدود (∞) سعة سحابية",
+  supportLevel: "دعم مباشر VIP شامل 24/7",
+  features: [
+    "صلاحيات كاملة وغير محدودة للنظام",
+    "ربط مباشر مع منصة ناجز ووزارة العدل",
+    "الفوترة الإلكترونية ZATCA المرحلة 2",
+    "تقارير مؤشرات الأداء والتحليلات القضائية",
+    "مدير حساب استشاري مخصص VIP",
+    "تكامل API خاص لأنظمة ERP",
+    "دعم فني فوري مخصص 24/7",
   ],
 };
 
@@ -108,7 +131,7 @@ export function UpgradeClientOfficePlanModal({
   onUpgrade,
   onConfirmUpgrade,
 }: UpgradeClientOfficePlanModalProps) {
-  const { t } = useLanguage();
+  const { t, isEn } = useLanguage();
 
   // Determine currently active plan from office
   const currentOfficePlan = office?.plan || currentPlan || "الباقة المعتمدة";
@@ -118,7 +141,7 @@ export function UpgradeClientOfficePlanModal({
     const local = getLocalCustomPlans();
     const source = local.length > 0 ? local : initialPricingPlans;
     const mapped = source.map(mapPricingPlanItemToAvailablePlan);
-    return [...mapped, CUSTOM_SLA_PLAN];
+    return [...mapped, CUSTOM_SLA_PLAN, UNLIMITED_VIP_PLAN];
   });
   const [isLoadingPlans, setIsLoadingPlans] = useState(false);
 
@@ -182,9 +205,12 @@ export function UpgradeClientOfficePlanModal({
         const sourceList = activePlans.length > 0 ? activePlans : finalPlans;
         const mappedList = sourceList.map(mapPricingPlanItemToAvailablePlan);
 
-        // Append custom SLA plan at the end if not present
+        // Append custom SLA plan and unlimited VIP plan if not present
         if (!mappedList.some((p) => p.id === "custom" || p.name.includes("مخصصة"))) {
           mappedList.push(CUSTOM_SLA_PLAN);
+        }
+        if (!mappedList.some((p) => p.id === "unlimited" || p.name === "غير محدود" || p.name.includes("غير محدود"))) {
+          mappedList.push(UNLIMITED_VIP_PLAN);
         }
 
         setAvailablePlans(mappedList);
@@ -205,7 +231,8 @@ export function UpgradeClientOfficePlanModal({
             (p) =>
               p.name.trim().toLowerCase() !== currNorm &&
               !currNorm.includes(p.name.trim().toLowerCase()) &&
-              p.id !== "custom"
+              p.id !== "custom" &&
+              p.id !== "unlimited"
           );
           setSelectedPlanId(candidate ? candidate.id : mappedList[0]?.id || "custom");
         }
@@ -217,6 +244,9 @@ export function UpgradeClientOfficePlanModal({
         const mappedList = fallback.map(mapPricingPlanItemToAvailablePlan);
         if (!mappedList.some((p) => p.id === "custom" || p.name.includes("مخصصة"))) {
           mappedList.push(CUSTOM_SLA_PLAN);
+        }
+        if (!mappedList.some((p) => p.id === "unlimited" || p.name === "غير محدود" || p.name.includes("غير محدود"))) {
+          mappedList.push(UNLIMITED_VIP_PLAN);
         }
         setAvailablePlans(mappedList);
         if (mappedList.length > 0) {
@@ -239,8 +269,16 @@ export function UpgradeClientOfficePlanModal({
     availablePlans[0] ||
     CUSTOM_SLA_PLAN;
 
+  const isSelectedUnlimited =
+    selectedPlanId === "unlimited" ||
+    selectedPlan.id === "unlimited" ||
+    selectedPlan.name === "غير محدود" ||
+    selectedPlan.name.includes("غير محدود");
+
   const resolvedPlanName =
-    selectedPlanId === "custom"
+    isSelectedUnlimited
+      ? "غير محدود"
+      : selectedPlanId === "custom"
       ? t(
           `باقة مخصصة (${customAnnualPrice.toLocaleString()} ر.س)`,
           `Custom Plan (${customAnnualPrice.toLocaleString()} SAR)`
@@ -259,18 +297,39 @@ export function UpgradeClientOfficePlanModal({
 
     try {
       if (office?.id) {
-        // Persist change to backend
+        // Persist change to backend and local storage
+        const isUnlim = isSelectedUnlimited;
         const numericPlanId = Number(selectedPlan.id);
+        const cycleValue = isUnlim ? "unlimited" : billingCycle === "annual" ? "yearly" : "monthly";
+        const targetPlanType = isUnlim ? "unlimited" : "paid";
+
+        saveLocalCustomFirmPlan(office.id, {
+          plan: isUnlim ? "غير محدود" : resolvedPlanName,
+          planId: isUnlim ? undefined : (!isNaN(numericPlanId) && selectedPlan.id !== "custom" ? numericPlanId : undefined),
+          planType: targetPlanType,
+          billingCycle: cycleValue,
+        });
+        if (office.companyId) {
+          saveLocalCustomFirmPlan(office.companyId, {
+            plan: isUnlim ? "غير محدود" : resolvedPlanName,
+            planId: isUnlim ? undefined : (!isNaN(numericPlanId) && selectedPlan.id !== "custom" ? numericPlanId : undefined),
+            planType: targetPlanType,
+            billingCycle: cycleValue,
+          });
+        }
         await updateFirm(office.id, {
-          plan_id: !isNaN(numericPlanId) && selectedPlan.id !== "custom" ? numericPlanId : undefined,
-          subscription_plan: resolvedPlanName,
-          billing_cycle: billingCycle === "annual" ? "yearly" : "monthly",
+          plan_name: isUnlim ? "غير محدود" : resolvedPlanName,
+          plan: isUnlim ? "غير محدود" : resolvedPlanName,
+          plan_type: targetPlanType,
+          subscription_plan: isUnlim ? "unlimited" : resolvedPlanName,
+          plan_id: isUnlim ? undefined : (!isNaN(numericPlanId) && selectedPlan.id !== "custom" ? numericPlanId : undefined),
+          billing_cycle: cycleValue,
         }).catch(() => null);
 
-        if (office.activeSubscriptionDetails?.id) {
+        if (office.activeSubscriptionDetails?.id && !isUnlim) {
           await upgradeSubscription(office.activeSubscriptionDetails.id, {
             new_plan_id: selectedPlan.id,
-            billing_cycle: billingCycle === "annual" ? "yearly" : "monthly",
+            billing_cycle: cycleValue,
           }).catch(() => null);
         }
       }
@@ -286,10 +345,11 @@ export function UpgradeClientOfficePlanModal({
         onConfirmUpgrade(office.id, resolvedPlanName, effectiveOption);
       }
       const officeTitle = office ? `"${office.name}" ` : "";
+      const localizedToastPlan = localizePlanName(resolvedPlanName, isEn);
       toast.success(
         t(
           `تمت ترقية الاشتراك ${officeTitle}إلى "${resolvedPlanName}" بنجاح.`,
-          `Successfully upgraded subscription ${officeTitle}to "${resolvedPlanName}".`
+          `Successfully upgraded subscription ${officeTitle}to "${localizedToastPlan}".`
         )
       );
       setIsSubmitting(false);
@@ -317,12 +377,12 @@ export function UpgradeClientOfficePlanModal({
           {/* ======================================================== */}
           <div className="flex items-center justify-between p-5 sm:p-6 border-b border-[#f0eeea] dark:border-[#38271c] bg-white dark:bg-[#221812] shrink-0">
             {/* Close button (Left in RTL) */}
-            <button
-              type="button"
-              onClick={onClose}
-              className="size-8 rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#2c221a] text-[#837565] hover:text-[#1b1c1a] dark:text-[#a89f91] dark:hover:text-[#fdfbf7] flex items-center justify-center transition-colors cursor-pointer"
-              aria-label="إغلاق النافذة"
-            >
+              <button
+                type="button"
+                onClick={onClose}
+                className="size-8 rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#2c221a] text-[#837565] hover:text-[#1b1c1a] dark:text-[#a89f91] dark:hover:text-[#fdfbf7] flex items-center justify-center transition-colors cursor-pointer"
+                aria-label={t("إغلاق النافذة", "Close modal")}
+              >
               <X className="size-5" />
             </button>
 
@@ -363,7 +423,7 @@ export function UpgradeClientOfficePlanModal({
                 <ShieldCheck className="size-4 text-[#059669] dark:text-[#10b981] shrink-0" />
                 <span className="text-[12px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                   {t("الباقة الحالية للمكتب:", "Current Active Plan:")}{" "}
-                  <strong className="text-[#9c6402] dark:text-[#e29d38]">{currentOfficePlan}</strong>
+                  <strong className="text-[#9c6402] dark:text-[#e29d38]">{localizePlanName(currentOfficePlan, isEn)}</strong>
                 </span>
               </div>
 
@@ -452,7 +512,7 @@ export function UpgradeClientOfficePlanModal({
                           )}
                           {plan.badge && !isCurrent && !plan.isPopular && (
                             <span className="bg-[#f5f3ef] dark:bg-[#281c15] text-[#837565] dark:text-[#cdc5bd] border border-[#eae8e4] dark:border-[#38271c] text-[10px] font-bold px-2 py-0.5 rounded-full">
-                              {plan.badge}
+                              {localizeRoleOrTitle(plan.badge, isEn)}
                             </span>
                           )}
                         </div>
@@ -472,20 +532,28 @@ export function UpgradeClientOfficePlanModal({
                       {/* Plan Name & Price */}
                       <div className="text-start">
                         <h4 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                          {plan.name}
+                          {localizePlanName(plan.name, isEn)}
                         </h4>
                         <p className="text-[11px] text-[#514537] dark:text-[#cdc5bd] mt-0.5 line-clamp-2 leading-[16px]">
-                          {plan.description}
+                          {localizePlanFeature(plan.description, isEn)}
                         </p>
 
                         <div className="flex items-baseline gap-1.5 mt-3 pt-2 border-t border-[#f0eeea] dark:border-[#38271c]">
-                          <span className="text-[24px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7] leading-none">
-                            {displayPrice.toLocaleString("en-US")}
-                          </span>
-                          <span className="text-[11px] text-[#837565] dark:text-[#a89f91] font-semibold">
-                            {t("ر.س / شهرياً", "SAR / mo")}{" "}
-                            {billingCycle === "annual" ? t("(تدفع سنوياً)", "(Billed Annually)") : ""}
-                          </span>
+                          {plan.id === "unlimited" ? (
+                            <span className="text-[18px] font-extrabold text-[#9c6402] dark:text-[#e29d38] leading-none">
+                              {t("بدون سعر (مجاني)", "Free (0 SAR)")}
+                            </span>
+                          ) : (
+                            <>
+                              <span className="text-[24px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7] leading-none">
+                                {displayPrice.toLocaleString("en-US")}
+                              </span>
+                              <span className="text-[11px] text-[#837565] dark:text-[#a89f91] font-semibold">
+                                {t("ر.س / شهرياً", "SAR / mo")}{" "}
+                                {billingCycle === "annual" ? t("(تدفع سنوياً)", "(Billed Annually)") : ""}
+                              </span>
+                            </>
+                          )}
                         </div>
                       </div>
 
@@ -493,22 +561,22 @@ export function UpgradeClientOfficePlanModal({
                       <div className="mt-3.5 space-y-2 pt-2.5 border-t border-[#f0eeea] dark:border-[#38271c] text-[11px]">
                         <div className="flex items-center gap-2 text-[#1b1c1a] dark:text-[#fdfbf7]">
                           <Users className="size-3.5 text-[#9c6402] dark:text-[#e29d38] shrink-0" />
-                          <span>{plan.lawyersLimit}</span>
+                          <span>{localizePlanFeature(plan.lawyersLimit, isEn)}</span>
                         </div>
 
                         <div className="flex items-center gap-2 text-[#1b1c1a] dark:text-[#fdfbf7]">
                           <Briefcase className="size-3.5 text-[#9c6402] dark:text-[#e29d38] shrink-0" />
-                          <span>{plan.casesLimit}</span>
+                          <span>{localizePlanFeature(plan.casesLimit, isEn)}</span>
                         </div>
 
                         <div className="flex items-center gap-2 text-[#1b1c1a] dark:text-[#fdfbf7]">
                           <HardDrive className="size-3.5 text-[#9c6402] dark:text-[#e29d38] shrink-0" />
-                          <span>{plan.storageLimit}</span>
+                          <span>{localizePlanFeature(plan.storageLimit, isEn)}</span>
                         </div>
 
                         <div className="flex items-center gap-2 text-[#1b1c1a] dark:text-[#fdfbf7]">
                           <Headphones className="size-3.5 text-[#9c6402] dark:text-[#e29d38] shrink-0" />
-                          <span>{plan.supportLevel}</span>
+                          <span>{localizePlanFeature(plan.supportLevel, isEn)}</span>
                         </div>
 
                         {/* Top Included Features */}
@@ -520,7 +588,7 @@ export function UpgradeClientOfficePlanModal({
                                 className="flex items-start gap-1.5 text-[10px] text-[#514537] dark:text-[#cdc5bd]"
                               >
                                 <CheckCircle2 className="size-3 text-[#059669] dark:text-[#10b981] shrink-0 mt-0.5" />
-                                <span className="leading-[14px] line-clamp-1">{feature}</span>
+                                <span className="leading-[14px] line-clamp-1">{localizePlanFeature(feature, isEn)}</span>
                               </div>
                             ))}
                           </div>
@@ -679,7 +747,7 @@ export function UpgradeClientOfficePlanModal({
               <span>
                 {t("الباقة المختارة:", "Selected Tier:")}{" "}
                 <strong className="text-[#1b1c1a] dark:text-[#fdfbf7] font-bold">
-                  {resolvedPlanName}
+                  {localizePlanName(resolvedPlanName, isEn)}
                 </strong>{" "}
                 (
                 {billingCycle === "annual"

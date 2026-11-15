@@ -16,7 +16,7 @@ export function DashboardPageSkeleton({
   return (
     <div
       className={cn("w-full space-y-6 select-none animate-in fade-in duration-300", className)}
-      aria-label="جاري تحميل محتوى الصفحة..."
+      aria-label="Loading page content..."
       role="status"
     >
       {/* 1. Header Banner Skeleton */}

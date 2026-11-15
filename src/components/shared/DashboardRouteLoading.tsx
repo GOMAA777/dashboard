@@ -17,8 +17,8 @@ interface DashboardRouteLoadingProps {
 export function DashboardRouteLoading({
   activeNav,
   activeSubNav,
-  title = "جاري التحميل",
-  statusText = "نجهّز مساحة العمل والبيانات...",
+  title,
+  statusText,
 }: DashboardRouteLoadingProps) {
   return (
     <div className="flex h-screen h-dvh w-full bg-[#fcfbfa] dark:bg-[#150f0b] text-[#1b1c1a] dark:text-[#fdfbf7] overflow-hidden">

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { ClientOffice } from "../types/client.types";
 import { useLanguage } from "@/lib/i18n";
+import { localizePlanName } from "@/lib/localize";
 import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { ModalPortal } from "@/components/shared/ModalPortal";
 
@@ -26,7 +27,7 @@ export function DeactivateOfficeModal({
   office,
   onConfirm,
 }: DeactivateOfficeModalProps) {
-  const { t } = useLanguage();
+  const { t, isEn } = useLanguage();
   const [reason, setReason] = useState("");
   const [notes, setNotes] = useState("");
 
@@ -103,7 +104,7 @@ export function DeactivateOfficeModal({
           <div className="flex items-center justify-between text-[11px] pt-[6px] border-t border-[#eae8e4]/60 dark:border-[#38271c]">
             <div className="flex items-center gap-[4px]">
               <span className="text-[#514537] dark:text-[#cdc5bd] font-semibold">{t("الباقة:", "Plan:")}</span>
-              <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">{office.plan}</span>
+              <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">{localizePlanName(office.plan, isEn)}</span>
             </div>
 
             <div className="flex items-center gap-[4px]">

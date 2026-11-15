@@ -41,7 +41,17 @@ export async function apiRequest<T>(
   const headers = new Headers(initHeaders);
   headers.set("Accept", "application/json");
 
-  if (body !== undefined && !(body instanceof FormData)) {
+  const isFormData =
+    typeof FormData !== "undefined" &&
+    (body instanceof FormData ||
+      (Boolean(body) &&
+        typeof body === "object" &&
+        (body as { constructor?: { name?: string } }).constructor?.name === "FormData" &&
+        typeof (body as { append?: unknown }).append === "function"));
+
+  if (isFormData) {
+    headers.delete("Content-Type");
+  } else if (body !== undefined) {
     headers.set("Content-Type", "application/json");
   }
 
@@ -52,17 +62,30 @@ export async function apiRequest<T>(
     }
   }
 
-  const response = await fetch(buildUrl(path, query), {
-    cache: "no-store",
-    ...rest,
-    headers,
-    body:
-      body === undefined
-        ? undefined
-        : body instanceof FormData
-          ? body
-          : JSON.stringify(body),
-  });
+  let response: Response;
+  try {
+    response = await fetch(buildUrl(path, query), {
+      cache: "no-store",
+      ...rest,
+      headers,
+      body:
+        body === undefined
+          ? undefined
+          : isFormData
+            ? (body as FormData)
+            : JSON.stringify(body),
+    });
+  } catch (networkErr: unknown) {
+    const rawMessage =
+      networkErr instanceof Error ? networkErr.message : String(networkErr || "");
+    const friendlyMessage =
+      rawMessage.toLowerCase().includes("fetch") ||
+      rawMessage.toLowerCase().includes("network") ||
+      networkErr instanceof TypeError
+        ? "تعذر الاتصال بخادم الـ API (يرجى التحقق من الشبكة أو اتصال الخادم)."
+        : rawMessage || "خطأ غير متوقع في الاتصال بالخادم";
+    throw new ApiError(friendlyMessage, 0, networkErr);
+  }
 
   const text = await response.text();
   let parsed: unknown = null;

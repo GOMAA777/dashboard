@@ -164,32 +164,47 @@ export function PlanCard({
       {/* Pricing Block */}
       <div className="bg-[#f5f3ef]/60 dark:bg-[#281c15] border border-transparent dark:border-[#38271c] rounded-[6px] p-[16px] flex flex-col text-start mb-[16px]">
         <div className="flex items-baseline gap-[6px] flex-wrap">
-          {plan.isEnterprise && (
-            <span className="text-[12px] font-bold text-[#514537] dark:text-[#cdc5bd]">{t("يبدأ من", "Starts at")}</span>
-          )}
-          <span className="text-[32px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7] leading-none">
-            {displayPrice > 0 ? displayPrice.toLocaleString() : t("مخصص", "Custom")}
-          </span>
-          <span className="text-[12px] font-semibold text-[#514537] dark:text-[#cdc5bd]">
-            {isCustom
-              ? t("ر.س / مخصص", "SAR / Custom")
-              : isAnnual
-              ? t("ر.س / سنوياً", "SAR / yr")
-              : t("ر.س / شهرياً", "SAR / mo")}
-          </span>
-          {isCustom && (
-            <span className="bg-[#fff8e6] border border-[#f5e3c8] dark:bg-[rgba(226,157,56,0.18)] dark:border-[#e29d38]/50 text-[#9c6402] dark:text-[#f3c27e] text-[10px] font-bold px-[6px] py-[1px] rounded-full ms-auto">
-              {t("تسعير تعاقدي", "Contractual Pricing")}
-            </span>
-          )}
-          {discountPercent > 0 && (
-            <span className="bg-[#ecfdf5] border border-emerald-300 dark:bg-[#132c1c] dark:border-emerald-500/40 text-[#047857] dark:text-[#6ee7b7] text-[10px] font-bold px-[6px] py-[1px] rounded-full ms-auto">
-              {t("خصم", "Discount")}
-            </span>
+          {plan.type === "unlimited" || plan.name.includes("غير محدود") ? (
+            <div className="flex items-center justify-between w-full">
+              <span className="text-[26px] font-extrabold text-[#9c6402] dark:text-[#e29d38] leading-none">
+                {t("بدون سعر (مجاني)", "Free (0 SAR)")}
+              </span>
+              <span className="bg-[#fff8e6] border border-[#f5e3c8] dark:bg-[rgba(226,157,56,0.18)] dark:border-[#e29d38]/50 text-[#9c6402] dark:text-[#f3c27e] text-[10px] font-bold px-[8px] py-[2px] rounded-full">
+                {t("صلاحيات كاملة", "Full Access")}
+              </span>
+            </div>
+          ) : (
+            <>
+              {plan.isEnterprise && (
+                <span className="text-[12px] font-bold text-[#514537] dark:text-[#cdc5bd]">{t("يبدأ من", "Starts at")}</span>
+              )}
+              <span className="text-[32px] font-extrabold text-[#1b1c1a] dark:text-[#fdfbf7] leading-none">
+                {displayPrice > 0 ? displayPrice.toLocaleString() : t("مخصص", "Custom")}
+              </span>
+              <span className="text-[12px] font-semibold text-[#514537] dark:text-[#cdc5bd]">
+                {isCustom
+                  ? t("ر.س / مخصص", "SAR / Custom")
+                  : isAnnual
+                  ? t("ر.س / سنوياً", "SAR / yr")
+                  : t("ر.س / شهرياً", "SAR / mo")}
+              </span>
+              {isCustom && (
+                <span className="bg-[#fff8e6] border border-[#f5e3c8] dark:bg-[rgba(226,157,56,0.18)] dark:border-[#e29d38]/50 text-[#9c6402] dark:text-[#f3c27e] text-[10px] font-bold px-[6px] py-[1px] rounded-full ms-auto">
+                  {t("تسعير تعاقدي", "Contractual Pricing")}
+                </span>
+              )}
+              {discountPercent > 0 && (
+                <span className="bg-[#ecfdf5] border border-emerald-300 dark:bg-[#132c1c] dark:border-emerald-500/40 text-[#047857] dark:text-[#6ee7b7] text-[10px] font-bold px-[6px] py-[1px] rounded-full ms-auto">
+                  {t("خصم", "Discount")}
+                </span>
+              )}
+            </>
           )}
         </div>
         <p className="text-[11px] text-[#837565] dark:text-[#8e8680] leading-[16px] mt-[6px]">
-          {isCustom
+          {plan.type === "unlimited" || plan.name.includes("غير محدود")
+            ? t("خطة كبار العملاء الحصرية مفتوحة المدة والصلاحيات بدون أي رسوم أو فواتير تجديد.", "Exclusive VIP client plan with full privileges and no expiration or invoices.")
+            : isCustom
             ? t(
                 "تسعير تعاقدي مخصص ومميزات استثنائية وفق متطلبات واتفاقية المكتب",
                 "Custom contractual pricing and exclusive features tailored to firm requirements"

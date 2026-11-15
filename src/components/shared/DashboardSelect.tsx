@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect, useId } from "react";
 import { ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
 
 export interface DashboardSelectOption {
   value: string;
@@ -87,6 +88,7 @@ export const DashboardSelect = React.forwardRef<HTMLSelectElement, DashboardSele
     },
     ref
   ) => {
+    const { t } = useLanguage();
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const internalSelectRef = useRef<HTMLSelectElement>(null);
@@ -280,7 +282,7 @@ export const DashboardSelect = React.forwardRef<HTMLSelectElement, DashboardSele
           >
             {options.length === 0 ? (
               <div className="py-2 px-3 text-center text-xs text-[#837565] dark:text-[#a89f91]">
-                لا توجد خيارات متاحة
+                {t("لا توجد خيارات متاحة", "No options available")}
               </div>
             ) : (
               options.map((option) => {

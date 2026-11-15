@@ -26,6 +26,7 @@ import {
 import { mapPlanFromApi } from "@/lib/api/mappers";
 import { extractFieldErrors } from "@/lib/api/field-errors";
 import { ApiError } from "@/lib/api/http";
+import { saveUnifiedDraft, useDraftsStore } from "@/stores/use-drafts-store";
 
 interface CreatePlanViewProps {
   onBack: () => void;
@@ -74,8 +75,8 @@ function supportLevelForApi(code: string): string {
 
 /** Map UI status to API status values. */
 function statusForApi(uiStatus: string, isDraft: boolean): string {
-  if (isDraft || uiStatus === "draft" || uiStatus === "private") return "inactive";
-  if (uiStatus === "disabled" || uiStatus === "inactive") return "inactive";
+  if (isDraft || uiStatus === "draft" || uiStatus === "private") return "disabled";
+  if (uiStatus === "disabled" || uiStatus === "inactive") return "disabled";
   return "active";
 }
 
@@ -399,12 +400,12 @@ export function CreatePlanView({
       newErrors.description = t("الوصف التعريفي مطلوب", "Description is required");
     }
     const numMonthly = monthlyPrice === "" ? NaN : Number(monthlyPrice);
-    if (isNaN(numMonthly) || numMonthly <= 0) {
-      newErrors.monthly_price = t("السعر الشهري مطلوب ويجب أن يكون أكبر من 0", "Monthly price is required and must be greater than 0");
+    if (isNaN(numMonthly) || numMonthly < 0) {
+      newErrors.monthly_price = t("السعر الشهري مطلوب ويجب أن يكون 0 أو أكبر", "Monthly price is required and must be 0 or greater");
     }
     const numAnnual = annualPrice === "" ? NaN : Number(annualPrice);
-    if (isNaN(numAnnual) || numAnnual <= 0) {
-      newErrors.yearly_price = t("السعر السنوي مطلوب ويجب أن يكون أكبر من 0", "Annual price is required and must be greater than 0");
+    if (isNaN(numAnnual) || numAnnual < 0) {
+      newErrors.yearly_price = t("السعر السنوي مطلوب ويجب أن يكون 0 أو أكبر", "Annual price is required and must be 0 or greater");
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -453,8 +454,8 @@ export function CreatePlanView({
 
     const payload: Record<string, unknown> = {
       name: name.trim(),
-      description: description.trim(),
-      type: "paid",
+      description: description.trim() || `باقة ${name.trim()} المعتمدة`,
+      type: planToEdit?.type || "paid",
       monthly_price: numMonthly,
       yearly_price: numAnnual,
       yearly_discount_percent: calculatedDiscount,
@@ -589,7 +590,7 @@ export function CreatePlanView({
           ...mapped,
           limits: mergedLimits,
           id: String(persistedId || mapped.id),
-          type: "paid",
+          type: mapped.type || savedPlan.type || "paid",
           monthlyPrice: Number(mapped.monthlyPrice ?? numMonthly),
           annualPrice: Number(mapped.annualPrice ?? numAnnual),
           yearlyDiscountPercent:
@@ -610,6 +611,41 @@ export function CreatePlanView({
       }
 
       saveLocalCustomPlan(savedPlan, planToEdit?.id, planToEdit?.name);
+
+      if (isDraft) {
+        saveUnifiedDraft({
+          id: `draft_plan_${savedPlan.id}`,
+          type: "plans",
+          typeLabelAr: "باقة تسعير",
+          typeLabelEn: "Pricing Plan",
+          title: name.trim() || t("مسودة باقة جديدة", "New Draft Plan"),
+          summary: `${monthlyPrice || 0} ر.س / شهرياً • ${annualPrice || 0} ر.س / سنوياً`,
+          targetUrl: `/plans?action=create&draftId=draft_plan_${savedPlan.id}`,
+          badge: t("مسودة", "Draft"),
+          data: {
+            name,
+            description,
+            monthlyPrice,
+            annualPrice,
+            yearlyDiscountPercent,
+            lawyersLimit,
+            casesLimit,
+            agentsLimit,
+            assistantsLimit,
+            clientsLimit,
+            documentsLimit,
+            storageLimit,
+            supportSla,
+            colorTheme,
+            badge,
+            badgeColor,
+            isPopular,
+            status,
+            features,
+          },
+        });
+      }
+
       setIsConfirmDialogOpen(false);
       onSuccess(savedPlan);
       toast.success(
@@ -715,7 +751,7 @@ export function CreatePlanView({
             <div className="bg-[#f5f3ef]/50 dark:bg-[#281c15] rounded-[4px] px-[16px] py-[10px] flex items-center justify-between">
               <div className="flex items-center gap-[10px]">
                 <div className="size-[28px] rounded-full bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] font-bold text-[12px] flex items-center justify-center shrink-0">
-                  {isEn ? "1" : "١"}
+                  1
                 </div>
                 <div className="flex flex-col text-start">
                   <h2 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
@@ -944,7 +980,7 @@ export function CreatePlanView({
             <div className="bg-[#f5f3ef]/50 dark:bg-[#281c15] rounded-[4px] px-[16px] py-[10px] flex items-center justify-between">
               <div className="flex items-center gap-[10px]">
                 <div className="size-[28px] rounded-full bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] font-bold text-[12px] flex items-center justify-center shrink-0">
-                  {isEn ? "2" : "٢"}
+                  2
                 </div>
                 <div className="flex flex-col text-start">
                   <h2 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
@@ -1136,7 +1172,7 @@ export function CreatePlanView({
             <div className="bg-[#f5f3ef]/50 dark:bg-[#281c15] rounded-[4px] px-[16px] py-[10px] flex items-center justify-between">
               <div className="flex items-center gap-[10px]">
                 <div className="size-[28px] rounded-full bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] font-bold text-[12px] flex items-center justify-center shrink-0">
-                  {isEn ? "3" : "٣"}
+                  3
                 </div>
                 <div className="flex flex-col text-start">
                   <h2 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
@@ -1384,7 +1420,7 @@ export function CreatePlanView({
             <div className="bg-[#f5f3ef]/50 dark:bg-[#281c15] rounded-[4px] px-[16px] py-[10px] flex items-center justify-between">
               <div className="flex items-center gap-[10px]">
                 <div className="size-[28px] rounded-full bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] font-bold text-[12px] flex items-center justify-center shrink-0">
-                  {isEn ? "4" : "٤"}
+                  4
                 </div>
                 <div className="flex flex-col text-start">
                   <h2 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
@@ -1885,7 +1921,10 @@ export function CreatePlanView({
         cancelLabel={t("تراجع", "Cancel")}
         itemDetails={{
           name: name.trim(),
-          email: `${monthlyPrice || 0} ر.س / شهرياً - ${annualPrice || 0} ر.س / سنوياً`,
+          email: t(
+            `${monthlyPrice || 0} ر.س / شهرياً - ${annualPrice || 0} ر.س / سنوياً`,
+            `${monthlyPrice || 0} SAR / mo - ${annualPrice || 0} SAR / yr`
+          ),
         }}
       />
     </div>

@@ -8,9 +8,11 @@ import { useLanguage } from "@/lib/i18n";
 import { ModalPortal } from "@/components/shared/ModalPortal";
 import { LuxuryAlertDialog } from "@/components/shared/LuxuryAlertDialog";
 import { upgradeSubscription, applyCustomOffer } from "@/lib/api/subscriptions";
+import { updateFirm } from "@/lib/api/firms";
+import { saveLocalCustomFirmPlan } from "@/lib/api/mappers";
 import { cn } from "@/lib/utils";
 
-type PlanId = "basic" | "silver" | "gold" | "custom";
+type PlanId = "basic" | "silver" | "gold" | "unlimited" | "custom";
 
 interface CustomPlanConfig {
   annualPrice: number;
@@ -73,10 +75,11 @@ export function ChangeSubscriptionPlanModal({
     basic: t("الباقة الأساسية", "Basic Plan"),
     silver: t("الباقة الفضية", "Silver Plan"),
     gold: t("الباقة الذهبية", "Gold Plan"),
+    unlimited: t("غير محدود", "Unlimited"),
     custom: t("باقة مخصصة", "Custom Plan"),
   };
 
-  const planIdToNumber: Record<Exclude<PlanId, "custom">, number> = {
+  const planIdToNumber: Record<Exclude<PlanId, "custom" | "unlimited">, number> = {
     basic: 1,
     silver: 2,
     gold: 3,
@@ -115,7 +118,65 @@ export function ChangeSubscriptionPlanModal({
         : planTitleById[selectedPlanId];
 
     try {
-      if (subscription?.id) {
+      const firmId = subscription?.firm?.id;
+      if (firmId) {
+        if (selectedPlanId === "unlimited") {
+          saveLocalCustomFirmPlan(firmId, {
+            plan: "غير محدود",
+            planType: "unlimited",
+            billingCycle: "unlimited",
+          });
+          await updateFirm(firmId, {
+            plan_name: "غير محدود",
+            plan: "غير محدود",
+            subscription_plan: "unlimited",
+            plan_type: "unlimited",
+            billing_cycle: "unlimited",
+          }).catch(() => null);
+        } else if (selectedPlanId === "custom") {
+          saveLocalCustomFirmPlan(firmId, {
+            plan: planTitle,
+            planType: "paid",
+            billingCycle: "yearly",
+          });
+          await updateFirm(firmId, {
+            plan_name: planTitle,
+            plan: planTitle,
+            subscription_plan: planTitle,
+            billing_cycle: "yearly",
+          }).catch(() => null);
+          if (subscription?.id) {
+            await applyCustomOffer(subscription.id, {
+              is_custom_offer: 1,
+              offer_name: "باقة مخصصة للمكتب",
+              custom_price: customConfig.annualPrice,
+              extra_lawyers: customConfig.lawyersLimit,
+              extra_cases: customConfig.casesLimit,
+              extra_storage_gb: customConfig.storageGb,
+            });
+          }
+        } else {
+          saveLocalCustomFirmPlan(firmId, {
+            plan: planTitle,
+            planId: planIdToNumber[selectedPlanId],
+            planType: "paid",
+            billingCycle: "yearly",
+          });
+          await updateFirm(firmId, {
+            plan_name: planTitle,
+            plan: planTitle,
+            subscription_plan: planTitle,
+            plan_id: planIdToNumber[selectedPlanId],
+            billing_cycle: "yearly",
+          }).catch(() => null);
+          if (subscription?.id) {
+            await upgradeSubscription(subscription.id, {
+              new_plan_id: planIdToNumber[selectedPlanId] || 3,
+              billing_cycle: "yearly",
+            });
+          }
+        }
+      } else if (subscription?.id) {
         if (selectedPlanId === "custom") {
           await applyCustomOffer(subscription.id, {
             is_custom_offer: 1,
@@ -125,7 +186,7 @@ export function ChangeSubscriptionPlanModal({
             extra_cases: customConfig.casesLimit,
             extra_storage_gb: customConfig.storageGb,
           });
-        } else {
+        } else if (selectedPlanId !== "unlimited") {
           await upgradeSubscription(subscription.id, {
             new_plan_id: planIdToNumber[selectedPlanId] || 3,
             billing_cycle: "yearly",
@@ -150,7 +211,9 @@ export function ChangeSubscriptionPlanModal({
   };
 
   const differenceLabel =
-    selectedPlanId === "gold"
+    selectedPlanId === "unlimited"
+      ? t("باقة خاصة VIP • صلاحيات كاملة بدون رسوم", "VIP Plan • Full access with no fees")
+      : selectedPlanId === "gold"
       ? t("الفارق: +5,300 ر.س / سنوياً", "Difference: +5,300 SAR / yr")
       : selectedPlanId === "basic"
         ? t("الفارق: -5,700 ر.س / سنوياً", "Difference: -5,700 SAR / yr")
@@ -163,7 +226,9 @@ export function ChangeSubscriptionPlanModal({
 
   const summary = {
     storage:
-      selectedPlanId === "gold"
+      selectedPlanId === "unlimited"
+        ? t("غير محدود (∞)", "Unlimited (∞)")
+        : selectedPlanId === "gold"
         ? t("250 GB (مشفرة)", "250 GB (Encrypted)")
         : selectedPlanId === "basic"
           ? "50 GB"
@@ -171,7 +236,9 @@ export function ChangeSubscriptionPlanModal({
             ? `${customConfig.storageGb} GB`
             : "100 GB",
     cases:
-      selectedPlanId === "gold"
+      selectedPlanId === "unlimited"
+        ? t("غير محدود (∞)", "Unlimited (∞)")
+        : selectedPlanId === "gold"
         ? t("500 (بدلاً من 250)", "500 (instead of 250)")
         : selectedPlanId === "basic"
           ? t("100 قضية", "100 cases")
@@ -179,7 +246,9 @@ export function ChangeSubscriptionPlanModal({
             ? t(`${customConfig.casesLimit} قضية`, `${customConfig.casesLimit} cases`)
             : t("250 قضية", "250 cases"),
     lawyers:
-      selectedPlanId === "gold"
+      selectedPlanId === "unlimited"
+        ? t("غير محدود (∞)", "Unlimited (∞)")
+        : selectedPlanId === "gold"
         ? t("15 (+5 إضافي)", "15 (+5 extra)")
         : selectedPlanId === "basic"
           ? t("5 محامين", "5 lawyers")
@@ -252,7 +321,7 @@ export function ChangeSubscriptionPlanModal({
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
                 {/* Basic */}
                 <button
                   type="button"
@@ -352,6 +421,38 @@ export function ChangeSubscriptionPlanModal({
                   </div>
                 </button>
 
+                {/* Unlimited */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedPlanId("unlimited")}
+                  className={cn(
+                    "p-3 rounded-[4px] border transition-all cursor-pointer flex flex-col justify-between text-start",
+                    selectedPlanId === "unlimited"
+                      ? "bg-[#fff9ee] dark:bg-[#342711] border-[#9c6402] dark:border-[#e29d38] shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
+                      : "bg-[#f5f3ef]/50 dark:bg-[#281c15] border-[#e4e2de] dark:border-[#38271c] hover:border-[#9c6402]/40 dark:hover:border-[#e29d38]/40 hover:bg-[#f5f3ef] dark:hover:bg-[#2e2018]"
+                  )}
+                >
+                  <div className="flex items-center justify-between pb-1 gap-1">
+                    <span className="bg-[#9c6402]/15 text-[#9c6402] dark:text-[#e29d38] text-[10px] font-bold px-1.5 py-0.5 rounded-[2px]">
+                      {t("VIP", "VIP")}
+                    </span>
+                    <div className="flex items-center gap-1 text-[#9c6402] dark:text-[#e29d38]">
+                      {selectedPlanId === "unlimited" && (
+                        <Check className="w-3 h-3 text-[#9c6402] dark:text-[#e29d38]" />
+                      )}
+                      <span className="font-bold text-[12px]">{t("غير محدود", "Unlimited")}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-baseline justify-end gap-1 my-1">
+                    <span className="font-bold text-[12px] text-[#10b981]">
+                      {t("بدون سعر", "Free")}
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-[#9c6402] dark:text-[#e29d38] font-bold">
+                    {t("صلاحيات كاملة (∞)", "Full Access (∞)")}
+                  </div>
+                </button>
+
                 {/* Custom */}
                 <button
                   type="button"
@@ -409,7 +510,7 @@ export function ChangeSubscriptionPlanModal({
                     "Values below apply to this office only and will not affect other clients' plans."
                   )}
                 </p>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
                   <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-bold text-[#514537] dark:text-[#cdc5bd] text-start">
                       {t("السعر السنوي (ر.س)", "Annual price (SAR)")}

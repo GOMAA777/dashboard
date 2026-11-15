@@ -7,9 +7,14 @@ import { useLanguage } from "@/lib/i18n";
 import { fetchWebsiteTheme, updateWebsiteTheme } from "@/lib/api/website";
 import { unwrapData, asString } from "@/lib/api/helpers";
 import { cn } from "@/lib/utils";
+import { useUIStore } from "@/stores/use-ui-store";
+import { PALETTE_OPTIONS } from "@/components/shared/PaletteSwitcher";
 
 export function ThemeOptionsTab() {
-  const { isEn } = useLanguage();
+  const { isEn, t } = useLanguage();
+  const currentPalette = useUIStore((state) => state.palette);
+  const setGlobalPalette = useUIStore((state) => state.setPalette);
+  const theme = useUIStore((state) => state.theme);
   const [primaryColor, setPrimaryColor] = useState("#9c6402");
   const [secondaryColor, setSecondaryColor] = useState("#1b1c1a");
   const [fontFamily, setFontFamily] = useState("Cairo");
@@ -66,6 +71,53 @@ export function ThemeOptionsTab() {
               ? "Control primary branding colors and typography for the public website."
               : "تحكم بألوان الهوية والخطوط للموقع التعريفي."}
           </p>
+        </div>
+      </div>
+
+      {/* Preset Palettes Grid */}
+      <div className="flex flex-col gap-2.5 text-start">
+        <label className="text-[13px] font-bold text-[#1c1917] dark:text-[#fdfbf7]">
+          {isEn ? "Predefined Color Palettes" : "باليتات الألوان المعتمدة للمنصة"}
+        </label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {PALETTE_OPTIONS.map((pal) => {
+            const isSelected = pal.id === currentPalette;
+            const primary = theme === "dark" ? pal.darkPrimaryHex : pal.lightPrimaryHex;
+            return (
+              <button
+                key={pal.id}
+                type="button"
+                onClick={() => {
+                  setGlobalPalette(pal.id);
+                  setPrimaryColor(pal.lightPrimaryHex);
+                }}
+                className={cn(
+                  "p-3 rounded-[10px] border text-start transition-all cursor-pointer flex items-center justify-between gap-3",
+                  isSelected
+                    ? "bg-[#fff9ee] dark:bg-[#2d1f16] border-[#9c6402] dark:border-[#e29d38] shadow-xs"
+                    : "bg-[#fafaf9]/60 dark:bg-[#1a120d] border-[#e7e5e4] dark:border-[#38271c] hover:border-[#9c6402]/40"
+                )}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span
+                    className="size-4 rounded-full shrink-0 border border-black/10 shadow-xs"
+                    style={{ backgroundColor: primary }}
+                  />
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[12px] font-bold text-[#1c1917] dark:text-[#fdfbf7] truncate">
+                      {isEn ? pal.nameEn : pal.nameAr}
+                    </span>
+                    <span className="text-[10px] text-[#78716c] dark:text-[#a89f91] truncate">
+                      {isEn ? pal.descriptionEn : pal.descriptionAr}
+                    </span>
+                  </div>
+                </div>
+                {isSelected && (
+                  <Check className="size-4 text-[#9c6402] dark:text-[#e29d38] shrink-0" />
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 

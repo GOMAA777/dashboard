@@ -18,7 +18,7 @@ Lawyer collection `50014550-62b8c9a7-67d7-4f6d-8104-6e46c4e41342` was **not** av
 
 | # | Method | Path | Auth | Request body | Response | Purpose | UI screen / button | Status |
 |---|--------|------|------|--------------|----------|---------|--------------------|--------|
-| 1 | GET | `/admin/dashboardSaas` | Bearer admin_token (optional) | — | Laravel envelope `{status,message,data}` (UID: `50014550-ef8b79ff-ceb5-4885-963d-8f0d0e4b7328`) | إحصائيات المنصة الشاملة SaaS، الاشتراكات، أحدث المكاتب المسجلة، وآخر النشاطات | DashboardHomeView / الرئيسية | wired |
+| 1 | GET | `/admin/dashboardSaas` | Bearer admin_token (optional) | — | Laravel envelope `{status,message,data}` (UID: `50014550-ef3c182a-dd9b-4850-8bb1-f4dd625fd187`) | إحصائيات المنصة الشاملة SaaS، الاشتراكات، أحدث المكاتب المسجلة، وآخر النشاطات | DashboardHomeView / الرئيسية | wired |
 | 1b | GET | `/admin/dashboard` | Bearer admin_token | `?company_id=X` | Laravel envelope `{status,message,data}` (UID: `50014550-31fd1dd4-edbe-4d98-8a68-258bb70fca83`) | إحصائيات المنشأة الفردية (قديم) | Dashboard fallback | wired |
 | 2 | GET | `/admin/firms/stats` | Bearer admin_token | — | Laravel envelope `{status,message,data}` | 01. إحصائيات المكاتب (KPIs) | ClientKpiMetrics | wired |
 | 3 | GET | `/admin/firms` | Bearer admin_token | — | Laravel envelope `{status,message,data}` | 02. قائمة مكاتب المحاماة (مع الفلترة والبحث) | ClientKpiMetrics | wired |

@@ -90,7 +90,7 @@ export function DashboardKpiCards({ kpis: initialKpis }: DashboardKpiCardsProps 
               className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[28px] leading-[38px] font-bold font-sans mt-[4px]"
               data-node-id="1:107"
             >
-              {kpis.totalFirms.toLocaleString(currentLang === "en" ? "en-US" : "ar-SA")}
+              {kpis.totalFirms.toLocaleString("en-US")}
             </span>
           </div>
         </div>
@@ -150,7 +150,7 @@ export function DashboardKpiCards({ kpis: initialKpis }: DashboardKpiCardsProps 
               className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[28px] leading-[38px] font-bold font-sans mt-[4px]"
               data-node-id="1:88"
             >
-              {kpis.activeSubscriptions.toLocaleString(currentLang === "en" ? "en-US" : "ar-SA")}
+              {kpis.activeSubscriptions.toLocaleString("en-US")}
             </span>
           </div>
         </div>
@@ -214,7 +214,7 @@ export function DashboardKpiCards({ kpis: initialKpis }: DashboardKpiCardsProps 
                 className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[28px] leading-[38px] font-bold font-sans"
                 data-node-id="1:68"
               >
-                {kpis.monthlyRevenue.toLocaleString(currentLang === "en" ? "en-US" : "ar-SA")}
+                {kpis.monthlyRevenue.toLocaleString("en-US")}
               </span>
             </div>
           </div>
@@ -275,7 +275,7 @@ export function DashboardKpiCards({ kpis: initialKpis }: DashboardKpiCardsProps 
               className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[28px] leading-[38px] font-bold font-sans mt-[4px]"
               data-node-id="1:46"
             >
-              {kpis.openTickets.toLocaleString(currentLang === "en" ? "en-US" : "ar-SA")}
+              {kpis.openTickets.toLocaleString("en-US")}
             </span>
           </div>
         </div>
@@ -293,13 +293,15 @@ export function DashboardKpiCards({ kpis: initialKpis }: DashboardKpiCardsProps 
             >
               <span className="size-[7px] rounded-full bg-[#e11d48] shadow-[0_0_8px_#e11d48] ring-1 ring-rose-400/60 shrink-0" />
               <span className="text-[#9f1239] dark:text-[#fca5a5] text-[11px] font-bold">
-                {kpis.openTickets > 0
-                  ? currentLang === "en"
-                    ? `${kpis.openTickets} Active / Urgent`
-                    : `${kpis.openTickets} حرجة / عاجلة`
-                  : currentLang === "en"
-                    ? "All Resolved"
-                    : "تم حل الجميع"}
+                {kpis.openTicketsBadge
+                  ? (currentLang === "en" ? `${kpis.openTickets} Urgent / Active` : kpis.openTicketsBadge)
+                  : kpis.openTickets > 0
+                    ? currentLang === "en"
+                      ? `${kpis.openTickets} Active / Urgent`
+                      : `${kpis.openTickets} حرجة / عاجلة`
+                    : currentLang === "en"
+                      ? "All Resolved"
+                      : "تم حل الجميع"}
               </span>
             </div>
 

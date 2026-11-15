@@ -26,9 +26,10 @@ import { toast } from "sonner";
 import { PricingPlanItem, SubscribedFirm } from "../types/plan.types";
 import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
 import { useLanguage } from "@/lib/i18n";
+import { localizeBillingCycle, getLocalizedCityName, localizeRoleOrTitle } from "@/lib/localize";
 import { cn } from "@/lib/utils";
 import { fetchPlanById, fetchPlanSubscribers } from "@/lib/api/plans";
-import { mapPlanFromApi, normalizeLogoUrl } from "@/lib/api/mappers";
+import { mapPlanFromApi } from "@/lib/api/mappers";
 import { unwrapData, unwrapList, asString } from "@/lib/api/helpers";
 
 interface PlanDetailsViewProps {
@@ -75,7 +76,7 @@ export function PlanDetailsView({
         if (cancelled) return;
         const list = unwrapList<Record<string, unknown>>(payload);
         const mappedSubscribers: SubscribedFirm[] = list.map((item) => {
-          const firmName = asString(item.name || item.firm_name, "مكتب محاماة");
+          const firmName = asString(item.name || item.firm_name, isEn ? "Law Firm" : "مكتب محاماة");
           const activeSub = (item.active_subscription || {}) as Record<string, unknown>;
           const billing = asString(activeSub.billing_cycle || item.billing_cycle, "monthly");
           const subEnd = asString(activeSub.renewal_date || item.subscription_end || item.renewal_date, "—");
@@ -83,12 +84,12 @@ export function PlanDetailsView({
           const subStatus = asString(activeSub.status || item.status, "active");
           return {
             id: asString(item.id, String(Math.random())),
-            initial: firmName.trim().charAt(0) || "م",
+            initial: firmName.trim().charAt(0) || "M",
             name: firmName,
             licenseNumber: asString(item.license_number, "—"),
             city: asString(item.city, "—"),
             owner: asString(item.owner_name || item.owner, "—"),
-            ownerRole: "المدير العام للمكتب",
+            ownerRole: isEn ? "General Director" : "المدير العام للمكتب",
             subscriptionDate: subStart && subStart.includes("T") ? subStart.split("T")[0] : subStart,
             renewalDate: subEnd && subEnd.includes("T") ? subEnd.split("T")[0] : subEnd,
             billingCycle: billing.includes("year") || billing.includes("سنو") ? "سنوي" : "شهري",
@@ -796,7 +797,7 @@ export function PlanDetailsView({
                           {firm.name}
                         </div>
                         <div className="text-[11px] text-[#737067] dark:text-[#8e8680]">
-                          {firm.licenseNumber} • {firm.city}
+                          {firm.licenseNumber} • {getLocalizedCityName(firm.city, isEn)}
                         </div>
                       </div>
                     </div>
@@ -806,7 +807,7 @@ export function PlanDetailsView({
                   <td className="py-[14px] px-[12px]">
                     <div className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{firm.owner}</div>
                     <div className="text-[11px] text-[#737067] dark:text-[#8e8680]">
-                      {firm.ownerRole}
+                      {localizeRoleOrTitle(firm.ownerRole, isEn)}
                     </div>
                   </td>
 
@@ -833,12 +834,12 @@ export function PlanDetailsView({
                     {firm.status === "active" ? (
                       <span className="inline-flex items-center gap-[6px] bg-[#e8f5e9] dark:bg-[#132c1c] text-[#15803d] dark:text-[#6ee7b7] border border-[#c8e6c9] dark:border-[#165a2e] px-[8px] py-[3px] rounded-full text-[11px] font-bold">
                         <span className="size-[6px] rounded-full bg-[#15803d] dark:bg-[#6ee7b7]" />
-                        <span>{t(firm.billingCycle, firm.billingCycle === "سنوي" ? "Annual" : "Monthly")}</span>
+                        <span>{localizeBillingCycle(firm.billingCycle, isEn)}</span>
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-[6px] bg-[#fef3c7] dark:bg-[rgba(226,157,56,0.18)] text-[#92400e] dark:text-[#f3c27e] border border-[#fde68a] dark:border-[#e29d38]/40 px-[8px] py-[3px] rounded-full text-[11px] font-bold">
                         <span className="size-[6px] rounded-full bg-[#f59e0b] dark:bg-[#f3c27e]" />
-                        <span>{t(firm.billingCycle, firm.billingCycle === "سنوي" ? "Annual" : "Monthly")}</span>
+                        <span>{localizeBillingCycle(firm.billingCycle, isEn)}</span>
                       </span>
                     )}
                   </td>

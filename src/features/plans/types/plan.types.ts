@@ -80,7 +80,7 @@ export interface DetailedSubscribedFirm {
   agentsUsed: number;
   agentsLimit: number;
   renewalDate: string;
-  renewalCycle: "سنوي" | "شهري" | "تجريبي";
+  renewalCycle: "سنوي" | "شهري" | "تجريبي" | "غير محدود" | "دائم" | "Permanent";
   remainingDaysText: string;
   isOverdue?: boolean;
   status: "active" | "expiring_soon" | "trial" | "pending_payment" | "suspended";

@@ -64,7 +64,7 @@ export function AuthSideVisual() {
 
             {/* Main Metric */}
             <div className="text-xl font-black text-white tracking-tight mb-2 flex items-baseline gap-1.5">
-              <span>{language === "ar" ? "١٢٤ قضية" : "124 Cases"}</span>
+              <span>{language === "ar" ? "124 قضية" : "124 Cases"}</span>
               <span className="text-[10px] font-semibold text-[#c29547]">
                 {language === "ar" ? "قيد التداول" : "Active"}
               </span>
@@ -92,7 +92,7 @@ export function AuthSideVisual() {
                   {language === "ar" ? "الجلسات القادمة" : "Hearings"}
                 </span>
                 <span className="text-[11px] font-bold text-white block mt-0.5">
-                  {language === "ar" ? "١٤ جلسة" : "14 Sessions"}
+                  {language === "ar" ? "14 جلسة" : "14 Sessions"}
                 </span>
               </div>
               <div className="bg-[#1a1816] p-2 rounded-xl border border-[#38332c]">

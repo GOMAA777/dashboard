@@ -19,8 +19,13 @@ import {
   Sparkles,
   CheckCircle2,
   ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  ChevronDown,
   Check,
   DoorOpen,
+  KeyRound,
   Hash,
   MapPin,
   User,
@@ -28,10 +33,25 @@ import {
   FileText,
   ArrowUpRight,
   Palette,
+  CreditCard,
+  HardDrive,
+  Headphones,
+  RefreshCw,
+  Briefcase,
+  UserCheck,
+  ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ClientOffice, OfficeInternalNote } from "../types/client.types";
 import { useLanguage } from "@/lib/i18n";
+import {
+  getLocalizedCityName,
+  localizeLicense,
+  localizePlanFeature,
+  localizePlanName,
+  localizeRoleOrTitle,
+  localizeStatus,
+} from "@/lib/localize";
 import { cn } from "@/lib/utils";
 import { addFirmNote, fetchFirmById } from "@/lib/api/firms";
 import { unwrapData } from "@/lib/api/helpers";
@@ -40,12 +60,18 @@ import {
   getLocalCustomLogo,
   getLocalCustomTaxNumber,
   getLocalCustomThemeColor,
+  getLocalCustomBackgroundColor,
+  getLocalCustomSecondaryColor,
   getLocalCustomNotes,
   saveAllLocalCustomNotes,
+  mapFirmToClientOffice,
+  normalizeLogoUrl,
+  resolveOfficeLogo,
+  DEFAULT_OFFICE_LOGO,
+  withCacheBust,
 } from "@/lib/api/mappers";
 import {
   DEFAULT_OFFICE_THEME_COLOR,
-  getOfficeColorName,
   isLightColor,
 } from "../constants/office-colors";
 import { UpgradeClientOfficePlanModal } from "./UpgradeClientOfficePlanModal";
@@ -57,12 +83,12 @@ import {
   TicketQuickViewData,
 } from "@/features/tickets/components/TicketQuickViewModal";
 
-function formatArabicDate(isoOrStr?: string, fallback = "—"): string {
+function formatArabicDate(isoOrStr?: string, isEn = false, fallback = "—"): string {
   if (!isoOrStr) return fallback;
   try {
     const d = new Date(isoOrStr);
     if (isNaN(d.getTime())) return isoOrStr;
-    return d.toLocaleDateString("ar-SA", {
+    return d.toLocaleDateString(isEn ? "en-US" : "ar-SA-u-nu-latn", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -72,12 +98,12 @@ function formatArabicDate(isoOrStr?: string, fallback = "—"): string {
   }
 }
 
-function formatShortDate(isoOrStr?: string, fallback = "—"): string {
+function formatShortDate(isoOrStr?: string, isEn = false, fallback = "—"): string {
   if (!isoOrStr) return fallback;
   try {
     const d = new Date(isoOrStr);
     if (isNaN(d.getTime())) return isoOrStr;
-    return d.toLocaleDateString("ar-SA", {
+    return d.toLocaleDateString(isEn ? "en-US" : "ar-SA-u-nu-latn", {
       month: "short",
       day: "numeric",
     });
@@ -86,12 +112,12 @@ function formatShortDate(isoOrStr?: string, fallback = "—"): string {
   }
 }
 
-function formatNoteDate(isoOrStr?: string): string {
-  if (!isoOrStr) return "اليوم";
+function formatNoteDate(isoOrStr?: string, isEn = false): string {
+  if (!isoOrStr) return isEn ? "Today" : "اليوم";
   try {
     const d = new Date(isoOrStr);
     if (isNaN(d.getTime())) return isoOrStr;
-    return d.toLocaleDateString("ar-SA", {
+    return d.toLocaleDateString(isEn ? "en-US" : "ar-SA-u-nu-latn", {
       month: "short",
       day: "numeric",
       hour: "2-digit",
@@ -102,10 +128,86 @@ function formatNoteDate(isoOrStr?: string): string {
   }
 }
 
+/** Maximum number of notes rendered per page inside the notes card. */
+export const NOTES_PER_PAGE = 5;
+
+/** Slice a notes array to a bounded 5-item page and return clamped page metadata. */
+export function paginateNotes<T>(items: T[], requestedPage: number, perPage = NOTES_PER_PAGE) {
+  const safePerPage = Math.max(1, Math.min(perPage, NOTES_PER_PAGE));
+  const totalItems = items.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / safePerPage));
+  const currentPage = Math.min(Math.max(1, requestedPage), totalPages);
+  const startIndex = (currentPage - 1) * safePerPage;
+  const endIndex = Math.min(startIndex + safePerPage, totalItems);
+  return {
+    items: items.slice(startIndex, endIndex),
+    currentPage,
+    totalPages,
+    startItem: totalItems === 0 ? 0 : startIndex + 1,
+    endItem: endIndex,
+    totalItems,
+  };
+}
+
+/** Build compact page numbers with ellipsis tokens when totalPages exceeds 5. */
+export function getVisibleNotePages(
+  current: number,
+  total: number
+): Array<number | "ellipsis-start" | "ellipsis-end"> {
+  if (total <= 5) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+  const pages: Array<number | "ellipsis-start" | "ellipsis-end"> = [1];
+  const start = Math.max(2, current - 1);
+  const end = Math.min(total - 1, current + 1);
+
+  if (start > 2) pages.push("ellipsis-start");
+  for (let p = start; p <= end; p++) {
+    pages.push(p);
+  }
+  if (end < total - 1) pages.push("ellipsis-end");
+  pages.push(total);
+  return pages;
+}
+
+/** Merge two note lists while preserving order and deduplicating by id or content+timestamp. */
+function mergeUniqueNotes(
+  primary: OfficeInternalNote[],
+  secondary: OfficeInternalNote[]
+): OfficeInternalNote[] {
+  const merged = [...primary];
+  for (const item of secondary) {
+    if (
+      !merged.some(
+        (m) =>
+          m.id === item.id ||
+          (m.note === item.note && m.createdAt === item.createdAt)
+      )
+    ) {
+      merged.push(item);
+    }
+  }
+  return merged;
+}
+
+/** Format raw gateway/payment method identifier into a short human-readable label. */
+function formatPaymentMethod(method?: string, isEn = false): string {
+  const m = String(method || "").toLowerCase().trim();
+  if (!m) return "—";
+  if (m.includes("mada")) return isEn ? "Mada" : "مدى";
+  if (m.includes("visa")) return "Visa";
+  if (m.includes("master")) return "Mastercard";
+  if (m.includes("apple")) return "Apple Pay";
+  if (m.includes("bank")) return isEn ? "Bank Transfer" : "تحويل بنكي";
+  if (m.includes("stripe")) return "Stripe";
+  return method || "—";
+}
+
 interface ClientOfficeDetailsViewProps {
   office: ClientOffice | null;
   onBack: () => void;
   onEdit: () => void;
+  onResetPassword?: () => void;
   onEnterOfficeAsAdmin?: () => void;
   onOpenDeactivateModal?: (office: ClientOffice) => void;
   onReactivate?: (office: ClientOffice) => void;
@@ -117,6 +219,7 @@ export function ClientOfficeDetailsView({
   office,
   onBack,
   onEdit,
+  onResetPassword,
   onEnterOfficeAsAdmin,
   onOpenDeactivateModal,
   onReactivate,
@@ -126,54 +229,54 @@ export function ClientOfficeDetailsView({
   const { t, isEn } = useLanguage();
   const [internalNote, setInternalNote] = useState("");
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
-  const [notes, setNotes] = useState<OfficeInternalNote[]>(() => {
-    const local = office?.id ? getLocalCustomNotes(office.id) : [];
-    if (local && local.length > 0) return local;
-    return office?.internalNotes || [];
+  const [liveOfficesById, setLiveOfficesById] = useState<Record<string, ClientOffice>>({});
+  const [showPlanFeatures, setShowPlanFeatures] = useState(false);
+  const [upgradedPlanByOffice, setUpgradedPlanByOffice] = useState<Record<string, string>>({});
+  const [notesPageState, setNotesPageState] = useState<{ officeId?: string; page: number }>({
+    officeId: office?.id,
+    page: 1,
   });
-
-  React.useEffect(() => {
-    if (office?.internalNotes && office.internalNotes.length > 0) {
-      setNotes((prev) => {
-        const combined = [...office.internalNotes!];
-        for (const p of prev) {
-          if (!combined.some((c) => c.id === p.id || (c.note === p.note && c.createdAt === p.createdAt))) {
-            combined.push(p);
-          }
-        }
-        if (office?.id) saveAllLocalCustomNotes(office.id, combined);
-        return combined;
+  const notesPage = notesPageState.officeId === office?.id ? notesPageState.page : 1;
+  const setNotesPage = React.useCallback(
+    (next: number | ((prev: number) => number)) => {
+      setNotesPageState((prev) => {
+        const current = prev.officeId === office?.id ? prev.page : 1;
+        const page = typeof next === "function" ? next(current) : next;
+        return { officeId: office?.id, page };
       });
-    }
-  }, [office?.internalNotes, office?.id]);
+    },
+    [office?.id]
+  );
 
-  // Synchronize with local storage on office ID change
-  React.useEffect(() => {
-    if (!office?.id) return;
-    const local = getLocalCustomNotes(office.id);
-    if (local && local.length > 0) {
-      setNotes((prev) => {
-        const merged = [...local];
-        for (const p of prev) {
-          if (!merged.some((m) => m.id === p.id || (m.note === p.note && m.createdAt === p.createdAt))) {
-            merged.push(p);
-          }
-        }
-        return merged;
-      });
-    }
-  }, [office?.id]);
+  const [notesByOffice, setNotesByOffice] = useState<Record<string, OfficeInternalNote[]>>({});
 
-  // Direct fetch on mount / ID change to guarantee fresh notes from API
+  const notes = React.useMemo(() => {
+    if (!office?.id) return [];
+    const override = notesByOffice[office.id] || [];
+    const fromProps = office.internalNotes || [];
+    const fromLocal = typeof window !== "undefined" ? getLocalCustomNotes(office.id) : [];
+    return mergeUniqueNotes(mergeUniqueNotes(override, fromProps), fromLocal);
+  }, [office, notesByOffice]);
+
+  // Direct fetch on mount / ID change to guarantee fresh office & subscription details from API
   React.useEffect(() => {
-    if (!office?.id) return;
+    const firmId = office?.id;
+    if (!firmId) return;
     let cancelled = false;
 
-    fetchFirmById(office.id)
+    fetchFirmById(firmId)
       .then((payload) => {
         if (cancelled) return;
         const rawData = (unwrapData<Record<string, unknown>>(payload) || payload) as Record<string, unknown>;
         const firm = (rawData.firm || rawData) as Record<string, unknown>;
+
+        if (rawData.firm || firm.id) {
+          const mappedLive = mapFirmToClientOffice(rawData);
+          if (mappedLive.id) {
+            setLiveOfficesById((prev) => ({ ...prev, [firmId]: mappedLive }));
+          }
+        }
+
         const notesRaw = (rawData.internal_notes || firm.internal_notes || []) as Array<Record<string, unknown>>;
         const liveNotes: OfficeInternalNote[] = notesRaw.map((n) => ({
           id: Number(n.id || Date.now()),
@@ -184,20 +287,15 @@ export function ClientOfficeDetailsView({
         }));
 
         if (liveNotes.length > 0) {
-          setNotes((prev) => {
-            const merged = [...liveNotes];
-            for (const p of prev) {
-              if (!merged.some((m) => m.id === p.id || (m.note === p.note && m.createdAt === p.createdAt))) {
-                merged.push(p);
-              }
-            }
-            if (office?.id) saveAllLocalCustomNotes(office.id, merged);
-            return merged;
+          setNotesByOffice((prev) => {
+            const merged = mergeUniqueNotes(liveNotes, prev[firmId] || []);
+            saveAllLocalCustomNotes(firmId, merged);
+            return { ...prev, [firmId]: merged };
           });
         }
       })
       .catch((err) => {
-        console.warn("Could not refresh firm notes from server:", err);
+        console.warn("Could not refresh firm details from server:", err);
       });
 
     return () => {
@@ -205,27 +303,55 @@ export function ClientOfficeDetailsView({
     };
   }, [office?.id]);
 
+  const displayOffice =
+    office?.id && liveOfficesById[office.id]
+      ? { ...office, ...liveOfficesById[office.id] }
+      : office;
+
+  const isUnlimited =
+    displayOffice?.planType === "unlimited" ||
+    displayOffice?.subscriptionPlan === "unlimited" ||
+    displayOffice?.plan?.includes("غير محدود") ||
+    displayOffice?.subscriptionStatus?.type === "unlimited" ||
+    displayOffice?.subscriptionStatus?.label === "غير محدود";
+
+  const isExplicitlyPaid =
+    !isUnlimited &&
+    (displayOffice?.planType === "paid" ||
+      displayOffice?.subscriptionPlan === "paid" ||
+      displayOffice?.subscriptionStatus?.type === "active");
   const isTrial =
-    office?.planType === "trial" ||
-    office?.subscriptionPlan === "trial" ||
-    office?.plan?.includes("تجرب") ||
-    office?.accountStatus?.type === "trial" ||
-    office?.accountStatus?.label?.includes("تجرب") ||
-    (office as unknown as { status?: string })?.status === "trial";
-  const accType = office?.accountStatus?.type as string | undefined;
+    !isUnlimited &&
+    !isExplicitlyPaid &&
+    (displayOffice?.planType === "trial" ||
+      displayOffice?.subscriptionPlan === "trial" ||
+      displayOffice?.plan?.includes("تجرب") ||
+      displayOffice?.accountStatus?.type === "trial" ||
+      displayOffice?.accountStatus?.label?.includes("تجرب") ||
+      (displayOffice as unknown as { status?: string })?.status === "trial");
+  const accType = displayOffice?.accountStatus?.type as string | undefined;
   const isDeactivated =
     accType === "suspended" ||
     accType === "inactive" ||
-    office?.accountStatus?.label === "غير نشط" ||
-    office?.accountStatus?.label?.includes("معطل") ||
-    (office as unknown as { status?: string })?.status === "inactive" ||
-    (office as unknown as { status?: string })?.status === "suspended";
+    displayOffice?.accountStatus?.label === "غير نشط" ||
+    displayOffice?.accountStatus?.label?.includes("معطل") ||
+    (displayOffice as unknown as { status?: string })?.status === "inactive" ||
+    (displayOffice as unknown as { status?: string })?.status === "suspended";
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [upgradeCycle, setUpgradeCycle] = useState<"annual" | "monthly" | undefined>(undefined);
   const [isAnnualBenefitsModalOpen, setIsAnnualBenefitsModalOpen] = useState(false);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
-  const [currentPlan, setCurrentPlan] = useState(office?.plan || "الباقة الاحترافية");
+  const rawPlanTitle =
+    (displayOffice?.id ? upgradedPlanByOffice[displayOffice.id] : undefined) ||
+    displayOffice?.planDetails?.name ||
+    displayOffice?.plan ||
+    "الباقة المعتمدة";
+  const currentPlan = isUnlimited
+    ? "غير محدود"
+    : isExplicitlyPaid
+    ? rawPlanTitle.replace(/\s*-\s*تجربة\s*مجانية/gi, "").replace(/\s*\(تجربة\s*مجانية\)/gi, "").trim()
+    : rawPlanTitle;
   const [logoFailed, setLogoFailed] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
@@ -241,13 +367,7 @@ export function ClientOfficeDetailsView({
     setLogoFailed(false);
   }, [office?.id, office?.logo]);
 
-  React.useEffect(() => {
-    if (office?.plan) {
-      setCurrentPlan(office.plan);
-    }
-  }, [office?.plan]);
-
-  if (!office) {
+  if (!displayOffice || !office) {
     return (
       <div className="w-full flex flex-col items-center justify-center p-16 bg-white dark:bg-[#221812] rounded-[8px] border border-[#f0eeea] dark:border-[#38271c]">
         <div className="size-10 border-4 border-[#9c6402] border-t-transparent rounded-full animate-spin mb-4" />
@@ -258,63 +378,68 @@ export function ClientOfficeDetailsView({
     );
   }
 
-  const officeName = office.name;
-  const owner = office.owner && office.owner !== "—" ? office.owner : "—";
-  const licenseNum = office.licenseNumber && office.licenseNumber !== "—" ? office.licenseNumber.replace("ترخيص عدلي: ", "") : "—";
-  const taxNumber = office.taxNumber || (office.id ? getLocalCustomTaxNumber(office.id) : undefined) || "—";
-  const localLogo = office?.id ? getLocalCustomLogo(office.id) : undefined;
-  const officeLogo = !logoFailed ? (office.logo || localLogo) : localLogo;
-  const officeColor =
-    office.color ||
-    office.themeColor ||
-    (office.id ? getLocalCustomThemeColor(office.id) : undefined) ||
-    (office.companyId ? getLocalCustomThemeColor(office.companyId) : undefined) ||
+  const officeName = displayOffice.name;
+  const owner = displayOffice.owner && displayOffice.owner !== "—" ? displayOffice.owner : "—";
+  const licenseNum =
+    displayOffice.licenseNumber && displayOffice.licenseNumber !== "—"
+      ? localizeLicense(displayOffice.licenseNumber, isEn)
+          .replace(/^ترخيص عدلي:\s*/g, "")
+          .replace(/^License:\s*/gi, "")
+      : "—";
+  const taxNumber = displayOffice.taxNumber || (displayOffice.id ? getLocalCustomTaxNumber(displayOffice.id) : undefined) || "—";
+  const officeLogo = !logoFailed ? resolveOfficeLogo(displayOffice.logo, displayOffice.id) : DEFAULT_OFFICE_LOGO;
+  const officeBgColor =
+    displayOffice.backgroundColor ||
+    (displayOffice.id ? getLocalCustomBackgroundColor(displayOffice.id) : undefined) ||
+    (displayOffice.companyId ? getLocalCustomBackgroundColor(displayOffice.companyId) : undefined) ||
+    displayOffice.color ||
+    displayOffice.themeColor ||
     DEFAULT_OFFICE_THEME_COLOR;
-  const colorName = getOfficeColorName(officeColor);
-  const isColorLight = isLightColor(officeColor);
-  const email = office.email || "—";
-  const phone = office.phone || "—";
-  const landline = office.landline || "—";
-  const city = office.city || "—";
-  const country = office.country || "";
-  const address = office.address || (office.city ? `المملكة العربية السعودية - ${office.city}` : "—");
-  const planType = office.planType || (office.plan.includes("تجرب") ? "trial" : "paid");
-  const registrationDate = formatArabicDate(office.registrationDate);
-  const subscriptionEnd = office.subscriptionEnd || office.activeSubscriptionDetails?.renewalDate;
-  const subscriptionStart = office.subscriptionStart || office.activeSubscriptionDetails?.startDate;
+  const officeColor =
+    displayOffice.color ||
+    displayOffice.themeColor ||
+    (displayOffice.id ? getLocalCustomThemeColor(displayOffice.id) : undefined) ||
+    (displayOffice.companyId ? getLocalCustomThemeColor(displayOffice.companyId) : undefined) ||
+    DEFAULT_OFFICE_THEME_COLOR;
+  const isColorLight = isLightColor(officeBgColor);
+  const officeFontColor =
+    displayOffice.fontColor ||
+    displayOffice.secondaryColor ||
+    (displayOffice.id ? getLocalCustomSecondaryColor(displayOffice.id) : undefined) ||
+    (displayOffice.companyId ? getLocalCustomSecondaryColor(displayOffice.companyId) : undefined) ||
+    (isColorLight ? "#1b1c1a" : "#ffffff");
+  const email = displayOffice.email || "—";
+  const phone = displayOffice.phone || "—";
+  const landline = displayOffice.landline || "—";
+  const rawCity = displayOffice.city || "";
+  const city = rawCity ? getLocalizedCityName(rawCity, isEn) : "—";
+  const country = displayOffice.country
+    ? isEn && displayOffice.country === "المملكة العربية السعودية"
+      ? "Saudi Arabia"
+      : displayOffice.country
+    : "";
+  const address =
+    displayOffice.address ||
+    (rawCity
+      ? isEn
+        ? `Saudi Arabia - ${getLocalizedCityName(rawCity, true)}`
+        : `المملكة العربية السعودية - ${rawCity}`
+      : "—");
+  const registrationDate = formatArabicDate(displayOffice.registrationDate, isEn);
+  const subscriptionEnd = displayOffice.subscriptionEnd || displayOffice.activeSubscriptionDetails?.renewalDate;
+  const subscriptionStart = displayOffice.subscriptionStart || displayOffice.activeSubscriptionDetails?.startDate;
 
   const isMonthly = (() => {
-    // If it's a trial, don't show the annual upsell note
-    if (planType === "trial" || currentPlan.includes("تجرب")) return false;
+    const rawCycle = (
+      displayOffice.activeSubscriptionDetails?.billingCycle ||
+      displayOffice.billingCycle ||
+      ""
+    ).toLowerCase().trim();
 
-    const rawCycle = (office.billingCycle || office.activeSubscriptionDetails?.billingCycle || "").toLowerCase().trim();
-
-    // 1. Annual check FIRST (handles "سنوي", "yearly", "annual", "اشتراك سنوي (موصى به - خصم شهرين مجاناً)")
     if (rawCycle.includes("سنو") || rawCycle.includes("year") || rawCycle.includes("annu")) {
       return false;
     }
 
-    // 2. Check subscription interval: if greater than 45 days (e.g. 1 year / 365 days), it's annual!
-    const s = office.subscriptionStart || office.activeSubscriptionDetails?.startDate;
-    const e = office.subscriptionEnd || office.activeSubscriptionDetails?.renewalDate;
-    if (s && e) {
-      const sTime = new Date(s).getTime();
-      const eTime = new Date(e).getTime();
-      if (!isNaN(sTime) && !isNaN(eTime) && eTime > sTime) {
-        const diffDays = Math.round((eTime - sTime) / (1000 * 60 * 60 * 24));
-        if (diffDays > 45) return false;
-      }
-    }
-
-    // 3. Check amount: if matches yearly price, it is annual!
-    const subAmt = Number(office.activeSubscriptionDetails?.amount || 0);
-    const mPrice = Number(office.planDetails?.monthlyPrice || 0);
-    const yPrice = Number(office.planDetails?.yearlyPrice || 0);
-    if (subAmt > 0 && yPrice > 0 && Math.abs(subAmt - yPrice) < 5) {
-      return false;
-    }
-
-    // 4. Monthly check:
     if (
       rawCycle.includes("شهري") ||
       rawCycle.includes("month") ||
@@ -323,41 +448,111 @@ export function ClientOfficeDetailsView({
       return true;
     }
 
-    // 5. Short interval <= 45 days (1 month) or amount matches monthly price:
+    const s = subscriptionStart;
+    const e = subscriptionEnd;
     if (s && e) {
       const sTime = new Date(s).getTime();
       const eTime = new Date(e).getTime();
       if (!isNaN(sTime) && !isNaN(eTime) && eTime > sTime) {
         const diffDays = Math.round((eTime - sTime) / (1000 * 60 * 60 * 24));
-        if (diffDays <= 45) return true;
+        return diffDays <= 45;
       }
     }
 
-    if (subAmt > 0 && mPrice > 0 && Math.abs(subAmt - mPrice) < 5) {
-      return true;
-    }
+    const subAmt = Number(displayOffice.activeSubscriptionDetails?.amount || 0);
+    const mPrice = Number(displayOffice.planDetails?.monthlyPrice || 0);
+    const yPrice = Number(displayOffice.planDetails?.yearlyPrice || 0);
+    if (subAmt > 0 && yPrice > 0 && Math.abs(subAmt - yPrice) < 5) return false;
+    if (subAmt > 0 && mPrice > 0 && Math.abs(subAmt - mPrice) < 5) return true;
 
     return false;
   })();
 
-  const billingCycle = isMonthly ? "شهري" : "سنوي";
-  const localRenew = office.id ? getLocalCustomAutoRenew(office.id) : undefined;
+  const localRenew = displayOffice.id ? getLocalCustomAutoRenew(displayOffice.id) : undefined;
   const autoRenew =
-    localRenew !== undefined
+    displayOffice.activeSubscriptionDetails?.autoRenew !== undefined
+      ? displayOffice.activeSubscriptionDetails.autoRenew
+      : displayOffice.autoRenew !== undefined
+      ? displayOffice.autoRenew
+      : localRenew !== undefined
       ? localRenew
-      : office.autoRenew !== undefined
-      ? office.autoRenew
-      : office.activeSubscriptionDetails?.autoRenew !== undefined
-      ? office.activeSubscriptionDetails.autoRenew
       : true;
 
-  const lawyersUsed = office.resourceUsage?.lawyersUsed ?? 0;
-  const lawyersLimit = office.resourceUsage?.lawyersLimit ?? office.planDetails?.maxLawyers ?? 0;
-  const lawyersPercent = office.resourceUsage?.lawyersPercent ?? (lawyersLimit > 0 ? Math.round((lawyersUsed / lawyersLimit) * 100) : 0);
-  const storageUsedGb = office.resourceUsage?.storageUsedGb ?? "0.00";
-  const storageLimitGb = office.resourceUsage?.storageLimitGb ?? office.planDetails?.storageLimitGb ?? 0;
-  const storagePercent = office.resourceUsage?.storagePercent ?? (storageLimitGb > 0 ? Math.round((Number(storageUsedGb) / storageLimitGb) * 100) : 0);
-  const activeCases = office.resourceUsage?.activeCases ?? 0;
+  const lawyersUsed = displayOffice.resourceUsage?.lawyersUsed ?? 0;
+  const lawyersLimit = displayOffice.resourceUsage?.lawyersLimit ?? displayOffice.planDetails?.maxLawyers ?? 0;
+  const lawyersPercent = displayOffice.resourceUsage?.lawyersPercent ?? (lawyersLimit > 0 ? Math.round((lawyersUsed / lawyersLimit) * 100) : 0);
+  const storageUsedGb = displayOffice.resourceUsage?.storageUsedGb ?? "0.00";
+  const storageLimitGb = displayOffice.resourceUsage?.storageLimitGb ?? displayOffice.planDetails?.storageLimitGb ?? 0;
+  const storagePercent = displayOffice.resourceUsage?.storagePercent ?? (storageLimitGb > 0 ? Math.round((Number(storageUsedGb) / storageLimitGb) * 100) : 0);
+  const activeCases = displayOffice.resourceUsage?.activeCases ?? 0;
+  const maxCasesLimit = displayOffice.resourceUsage?.maxCasesLimit ?? displayOffice.planDetails?.maxCases ?? 0;
+  const casesPercent = maxCasesLimit > 0 ? Math.round((activeCases / maxCasesLimit) * 100) : 0;
+  const casesExceeded = maxCasesLimit > 0 && activeCases > maxCasesLimit;
+  const paymentMethodLabel = formatPaymentMethod(displayOffice.activeSubscriptionDetails?.paymentMethod, isEn);
+  const yearlyDiscount = displayOffice.planDetails?.yearlyDiscountPercent;
+  const rawSubPrice =
+    displayOffice.activeSubscriptionDetails?.amount ||
+    (isMonthly
+      ? displayOffice.planDetails?.monthlyPrice
+      : displayOffice.planDetails?.yearlyPrice || displayOffice.planDetails?.monthlyPrice);
+  const resolvedSubPrice = rawSubPrice ? Number(rawSubPrice).toLocaleString("en-US") : "0";
+  const formatQuota = (val?: number, unit = "") => {
+    if (isUnlimited) return t("غير محدود (∞)", "Unlimited (∞)");
+    if (val === undefined || val === null) return "—";
+    if (val === -1 || val >= 99999) return t("غير محدود (∞)", "Unlimited (∞)");
+    return `${val}${unit}`;
+  };
+  const planQuotaItems = [
+    {
+      key: "lawyers",
+      label: t("المحامين", "Lawyers"),
+      value: formatQuota(lawyersLimit > 0 ? lawyersLimit : displayOffice.planDetails?.maxLawyers),
+      icon: <Users aria-hidden="true" className="size-3 text-[#9c6402] dark:text-[#e29d38] shrink-0" />,
+      visible: (lawyersLimit > 0 ? lawyersLimit : displayOffice.planDetails?.maxLawyers) !== undefined,
+    },
+    {
+      key: "cases",
+      label: t("القضايا", "Cases"),
+      value: formatQuota(maxCasesLimit !== 0 ? maxCasesLimit : displayOffice.planDetails?.maxCases),
+      icon: <Briefcase aria-hidden="true" className="size-3 text-[#9c6402] dark:text-[#e29d38] shrink-0" />,
+      visible: (maxCasesLimit !== 0 ? maxCasesLimit : displayOffice.planDetails?.maxCases) !== undefined,
+    },
+    {
+      key: "storage",
+      label: t("التخزين", "Storage"),
+      value: formatQuota(
+        storageLimitGb > 0 ? storageLimitGb : displayOffice.planDetails?.storageLimitGb,
+        " GB"
+      ),
+      icon: <HardDrive aria-hidden="true" className="size-3 text-[#9c6402] dark:text-[#e29d38] shrink-0" />,
+      visible:
+        (storageLimitGb > 0 ? storageLimitGb : displayOffice.planDetails?.storageLimitGb) !== undefined,
+    },
+    {
+      key: "clients",
+      label: t("العملاء", "Clients"),
+      value: formatQuota(displayOffice.planDetails?.maxClients),
+      icon: <UserCheck aria-hidden="true" className="size-3 text-[#9c6402] dark:text-[#e29d38] shrink-0" />,
+      visible: displayOffice.planDetails?.maxClients !== undefined,
+    },
+    {
+      key: "agents",
+      label: t("الوكلاء", "Agents"),
+      value: formatQuota(displayOffice.planDetails?.maxPowerOfAttorney),
+      icon: <Scale aria-hidden="true" className="size-3 text-[#9c6402] dark:text-[#e29d38] shrink-0" />,
+      visible: displayOffice.planDetails?.maxPowerOfAttorney !== undefined,
+    },
+    {
+      key: "assistants",
+      label: t("المساعدين", "Assistants"),
+      value: formatQuota(displayOffice.planDetails?.maxAssistants),
+      icon: <User aria-hidden="true" className="size-3 text-[#9c6402] dark:text-[#e29d38] shrink-0" />,
+      visible: displayOffice.planDetails?.maxAssistants !== undefined,
+    },
+  ].filter((q) => q.visible);
+  const planFeatures = (displayOffice.planDetails?.features || []).map((feat) =>
+    localizePlanFeature(feat, isEn)
+  );
 
   const latestTicket: TicketQuickViewData | null = null;
   const latestInvoice: InvoiceItem | null = null;
@@ -372,9 +567,25 @@ export function ClientOfficeDetailsView({
       return;
     }
     const noteText = internalNote.trim();
+    const firmId = office.id;
+    const persistNewNote = (noteItem: OfficeInternalNote) => {
+      const updated = mergeUniqueNotes([noteItem], notes);
+      saveAllLocalCustomNotes(firmId, updated);
+      setNotesByOffice((prev) => ({
+        ...prev,
+        [firmId]: mergeUniqueNotes([noteItem], prev[firmId] || []),
+      }));
+      setNotesPage(1);
+      if (onNoteAdded) {
+        onNoteAdded(firmId, noteItem);
+      }
+      toast.success(t("تم حفظ الملاحظة الإدارية بنجاح", "Internal note added successfully"));
+      setInternalNote("");
+    };
+
     setIsSubmittingNote(true);
     try {
-      const res = await addFirmNote(office.id, noteText);
+      const res = await addFirmNote(firmId, noteText);
       const raw = (unwrapData<Record<string, unknown>>(res) || res) as Record<string, unknown>;
       const noteData = ((raw && typeof raw === "object" && (raw.data || raw)) || {}) as Record<string, unknown>;
       const newNote: OfficeInternalNote = {
@@ -384,19 +595,7 @@ export function ClientOfficeDetailsView({
         note: String(noteData.note || noteText),
         createdAt: String(noteData.created_at || new Date().toISOString()),
       };
-
-      setNotes((prev) => {
-        const updated = [newNote, ...prev.filter((n) => n.id !== newNote.id)];
-        if (office?.id) saveAllLocalCustomNotes(office.id, updated);
-        return updated;
-      });
-
-      if (onNoteAdded && office?.id) {
-        onNoteAdded(office.id, newNote);
-      }
-
-      toast.success(t("تم حفظ الملاحظة الإدارية بنجاح", "Internal note added successfully"));
-      setInternalNote("");
+      persistNewNote(newNote);
     } catch {
       // Local fallback so user note is never lost even if server drops
       const fallbackNote: OfficeInternalNote = {
@@ -406,20 +605,17 @@ export function ClientOfficeDetailsView({
         note: noteText,
         createdAt: new Date().toISOString(),
       };
-      setNotes((prev) => {
-        const updated = [fallbackNote, ...prev];
-        if (office?.id) saveAllLocalCustomNotes(office.id, updated);
-        return updated;
-      });
-      if (onNoteAdded && office?.id) {
-        onNoteAdded(office.id, fallbackNote);
-      }
-      toast.success(t("تم حفظ الملاحظة الإدارية بنجاح", "Internal note added successfully"));
-      setInternalNote("");
+      persistNewNote(fallbackNote);
     } finally {
       setIsSubmittingNote(false);
     }
   };
+
+  const notesPagination = paginateNotes(notes, notesPage);
+  const visibleNotePages = getVisibleNotePages(
+    notesPagination.currentPage,
+    notesPagination.totalPages
+  );
 
   const handleToggleDeactivate = () => {
     if (!isDeactivated && onOpenDeactivateModal) {
@@ -439,25 +635,37 @@ export function ClientOfficeDetailsView({
     >
       {/* 1. TOP PROFILE HEADER & SUMMARY CARD */}
       <div
-        className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative overflow-hidden"
+        className="rounded-[8px] p-5 sm:p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.08)] border flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative overflow-hidden transition-colors"
+        style={{
+          backgroundColor: officeBgColor,
+          backgroundImage: isColorLight
+            ? "linear-gradient(135deg, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0) 60%, rgba(0,0,0,0.05) 100%)"
+            : "linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 55%, rgba(0,0,0,0.22) 100%)",
+          borderColor: isColorLight ? "rgba(0,0,0,0.10)" : "rgba(255,255,255,0.16)",
+          color: officeFontColor,
+        }}
         data-node-id="1:1781"
       >
-        {/* Subtle decorative gold ambient glow */}
-        <div className="absolute -top-[48px] -start-[48px] size-[180px] bg-gradient-to-br from-[#ffddb6]/20 to-transparent blur-[25px] rounded-full pointer-events-none" />
+        {/* Subtle decorative ambient highlight */}
+        <div
+          className="absolute -top-[56px] -start-[56px] size-[200px] blur-[30px] rounded-full pointer-events-none"
+          style={{
+            backgroundColor: isColorLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.14)",
+          }}
+        />
 
         {/* Right: Monogram & Identity Info */}
         <div className="flex items-center gap-[16px] z-10">
           {/* Monogram / Seal Avatar or Real Logo */}
           {officeLogo ? (
             <div
-              className="size-[80px] rounded-[8px] bg-white dark:bg-[#1f150f] border border-[#eae8e4] dark:border-[#38271c] p-1.5 flex items-center justify-center shadow-md shrink-0 overflow-hidden"
+              className="size-[80px] rounded-[8px] bg-white/95 dark:bg-[#1f150f]/95 border p-1.5 flex items-center justify-center shadow-md shrink-0 overflow-hidden"
               style={{
-                borderColor: `${officeColor}40`,
-                boxShadow: `0 4px 12px ${officeColor}20`,
+                borderColor: isColorLight ? "rgba(0,0,0,0.12)" : "rgba(255,255,255,0.28)",
               }}
             >
               <img
-                src={officeLogo}
+                src={withCacheBust(officeLogo, office.updatedAt || office.id)}
                 alt={officeName}
                 className="max-h-full max-w-full object-contain"
                 onError={() => setLogoFailed(true)}
@@ -465,11 +673,11 @@ export function ClientOfficeDetailsView({
             </div>
           ) : (
             <div
-              className="size-[80px] rounded-[8px] flex flex-col items-center justify-center shadow-md shrink-0 transition-transform"
+              className="size-[80px] rounded-[8px] flex flex-col items-center justify-center shadow-md shrink-0 transition-transform border"
               style={{
-                background: `linear-gradient(135deg, ${officeColor}, ${officeColor}dd)`,
-                boxShadow: `0 4px 14px ${officeColor}35`,
-                color: isColorLight ? "#1b1c1a" : "#ffffff",
+                backgroundColor: isColorLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.14)",
+                borderColor: isColorLight ? "rgba(0,0,0,0.14)" : "rgba(255,255,255,0.25)",
+                color: officeFontColor,
               }}
             >
               <Scale className="size-[28px]" />
@@ -481,24 +689,30 @@ export function ClientOfficeDetailsView({
 
           {/* Details & Status Badges */}
           <div className="flex flex-col items-start text-start">
-            <h1 className="text-[26px] leading-[36px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+            <h1
+              className="text-[26px] leading-[36px] font-bold"
+              style={{ color: officeFontColor }}
+            >
               {officeName}
             </h1>
 
             {/* Subtitle Metadata */}
-            <div className="flex flex-wrap items-center gap-[8px] text-[12px] text-[#514537] dark:text-[#cdc5bd] mt-[4px]">
+            <div
+              className="flex flex-wrap items-center gap-[8px] text-[12px] mt-[4px]"
+              style={{ color: officeFontColor }}
+            >
               <div className="flex items-center gap-[4px]">
-                <Hash className="size-[13px] text-[#837565] dark:text-[#8e8680]" />
-                <span>{t("معرف المنشأة:", "Company ID:")}</span>
-                <span className="font-mono text-[#1b1c1a] dark:text-[#fdfbf7] font-semibold">#{office.companyId || office.id}</span>
+                <Hash className="size-[13px] opacity-80" />
+                <span className="opacity-85">{t("معرف المنشأة:", "Company ID:")}</span>
+                <span className="font-mono font-semibold">#{office.companyId || office.id}</span>
               </div>
 
-              <span className="text-[#d6c4b1] dark:text-[#6e5849]">|</span>
+              <span className="opacity-45">|</span>
 
               <div className="flex items-center gap-[4px]">
-                <Calendar className="size-[13px] text-[#837565] dark:text-[#8e8680]" />
-                <span>{t("تاريخ التسجيل:", "Registration Date:")}</span>
-                <span className="text-[#1b1c1a] dark:text-[#fdfbf7] font-normal">{registrationDate}</span>
+                <Calendar className="size-[13px] opacity-80" />
+                <span className="opacity-85">{t("تاريخ التسجيل:", "Registration Date:")}</span>
+                <span className="font-medium">{registrationDate}</span>
               </div>
             </div>
           </div>
@@ -510,7 +724,7 @@ export function ClientOfficeDetailsView({
           <button
             type="button"
             onClick={onBack}
-            className="bg-white dark:bg-[#281c15] hover:bg-[#f5f3ef] dark:hover:bg-[#38271c] border border-[#eae8e4] dark:border-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] px-[12px] py-[8px] rounded-[4px] text-[13px] font-semibold flex items-center gap-[6px] shadow-sm transition-colors cursor-pointer"
+            className="bg-white/95 dark:bg-[#1f150f]/90 hover:bg-white dark:hover:bg-[#1f150f] border border-black/10 dark:border-white/15 text-[#1b1c1a] dark:text-[#fdfbf7] px-[12px] py-[8px] rounded-[4px] text-[13px] font-semibold flex items-center gap-[6px] shadow-sm transition-colors cursor-pointer backdrop-blur-sm"
           >
             <ArrowLeft className="size-[14px] rtl:rotate-180" />
             <span>{t("العودة للقائمة", "Back to List")}</span>
@@ -521,7 +735,7 @@ export function ClientOfficeDetailsView({
             <button
               type="button"
               onClick={onEnterOfficeAsAdmin}
-              className="bg-[#1b1c1a] hover:bg-[#333] text-white px-[14px] py-[8px] rounded-[4px] text-[13px] font-semibold flex items-center gap-[6px] shadow-sm transition-colors cursor-pointer"
+              className="bg-[#1b1c1a] hover:bg-[#2a2b28] border border-white/20 text-white px-[14px] py-[8px] rounded-[4px] text-[13px] font-semibold flex items-center gap-[6px] shadow-sm transition-colors cursor-pointer"
               title={t("دخول المكتب بصلاحيات Admin كاملة", "Enter office with full Admin permissions")}
             >
               <DoorOpen className="size-[14px]" />
@@ -533,17 +747,34 @@ export function ClientOfficeDetailsView({
           <button
             type="button"
             onClick={onEdit}
-            className="bg-[#9c6402] hover:bg-[#855402] text-white px-[16px] py-[8px] rounded-[4px] text-[13px] font-semibold flex items-center gap-[6px] shadow-sm transition-colors cursor-pointer"
+            className={`px-[16px] py-[8px] rounded-[4px] text-[13px] font-semibold flex items-center gap-[6px] shadow-sm transition-colors cursor-pointer ${
+              officeColor.toLowerCase().trim() === "#9c6402"
+                ? "bg-white hover:bg-[#fff9ee] text-[#7b4e00] border border-black/10"
+                : "bg-[#9c6402] hover:bg-[#855402] text-white border border-white/25"
+            }`}
           >
             <PenSquare className="size-[14px]" />
             <span>{t("تعديل بيانات المكتب", "Edit Office")}</span>
           </button>
 
+          {/* Reset Password Button */}
+          {onResetPassword && (
+            <button
+              type="button"
+              onClick={onResetPassword}
+              className="bg-white/95 dark:bg-[#1f150f]/90 hover:bg-white dark:hover:bg-[#1f150f] border border-black/10 dark:border-white/15 text-[#1b1c1a] dark:text-[#fdfbf7] px-[14px] py-[8px] rounded-[4px] text-[13px] font-semibold flex items-center gap-[6px] shadow-sm transition-colors cursor-pointer backdrop-blur-sm"
+              title={t("إعادة تعيين كلمة المرور", "Reset Password")}
+            >
+              <KeyRound className="size-[14px] text-[#9c6402] dark:text-[#e29d38]" />
+              <span>{t("إعادة تعيين كلمة المرور", "Reset Password")}</span>
+            </button>
+          )}
+
           {/* Manage Subscription Button */}
           <button
             type="button"
             onClick={() => setIsUpgradeModalOpen(true)}
-            className="bg-white dark:bg-[#281c15] hover:bg-[#f5f3ef] dark:hover:bg-[#38271c] border border-[#eae8e4] dark:border-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] px-[14px] py-[8px] rounded-[4px] text-[13px] font-semibold flex items-center gap-[6px] shadow-sm transition-colors cursor-pointer"
+            className="bg-white/95 dark:bg-[#1f150f]/90 hover:bg-white dark:hover:bg-[#1f150f] border border-black/10 dark:border-white/15 text-[#1b1c1a] dark:text-[#fdfbf7] px-[14px] py-[8px] rounded-[4px] text-[13px] font-semibold flex items-center gap-[6px] shadow-sm transition-colors cursor-pointer backdrop-blur-sm"
           >
             <Receipt className="size-[14px]" />
             <span>{t("إدارة الاشتراك", "Manage Subscription")}</span>
@@ -553,10 +784,10 @@ export function ClientOfficeDetailsView({
           <button
             type="button"
             onClick={handleToggleDeactivate}
-            className={`px-[12px] py-[8px] rounded-[4px] text-[12px] font-semibold flex items-center gap-[6px] transition-colors cursor-pointer ${
+            className={`px-[12px] py-[8px] rounded-[4px] text-[12px] font-semibold flex items-center gap-[6px] transition-colors cursor-pointer backdrop-blur-sm ${
               isDeactivated
-                ? "bg-[#e8f5e9] dark:bg-[#132c1c] text-[#1b7340] dark:text-[#6ee7b7] hover:bg-[#c8e6c9]"
-                : "bg-[#f5f3ef] dark:bg-[#281c15] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#eae8e4]"
+                ? "bg-[#e8f5e9] dark:bg-[#132c1c] border border-[#a5d6a7] dark:border-emerald-500/40 text-[#1b7340] dark:text-[#6ee7b7] hover:bg-[#c8e6c9]"
+                : "bg-white/90 dark:bg-[#1f150f]/90 border border-black/10 dark:border-white/15 text-[#514537] dark:text-[#cdc5bd] hover:bg-white dark:hover:bg-[#1f150f]"
             }`}
           >
             <Lock className="size-[13px]" />
@@ -594,9 +825,6 @@ export function ClientOfficeDetailsView({
                   <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-bold mt-[2px] truncate">
                     {owner}
                   </span>
-                  <span className="text-[10px] text-[#837565] dark:text-[#8e8680] mt-[1px]">
-                    {t("المخول بالتوقيع والتمثيل القانوني", "Authorized signatory")}
-                  </span>
                 </div>
                 <div className="bg-white dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 size-[36px] rounded-[4px] shadow-sm flex items-center justify-center text-[#9c6402] dark:text-[#e29d38] shrink-0">
                   <User className="size-[16px]" />
@@ -612,9 +840,6 @@ export function ClientOfficeDetailsView({
                   <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-bold mt-[2px] truncate">
                     {officeName}
                   </span>
-                  <span className="text-[10px] text-[#837565] dark:text-[#8e8680] mt-[1px]">
-                    {t("الاسم والكيان القانوني المعتمد", "Certified trade name")}
-                  </span>
                 </div>
                 <div className="bg-white dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 size-[36px] rounded-[4px] shadow-sm flex items-center justify-center text-[#9c6402] dark:text-[#e29d38] shrink-0">
                   <Building2 className="size-[16px]" />
@@ -628,7 +853,10 @@ export function ClientOfficeDetailsView({
                     {t("رقم الترخيص العدلي", "Judicial License Number")}
                   </span>
                   <div className="flex items-center gap-1.5 mt-[2px]">
-                    <span className="text-[#9c6402] dark:text-[#f3c27e] text-[13px] font-bold font-mono">
+                    <span
+                      dir="ltr"
+                      className="inline-block text-[#9c6402] dark:text-[#f3c27e] text-[13px] font-bold font-mono"
+                    >
                       {licenseNum}
                     </span>
                     {licenseNum !== "—" && (
@@ -646,23 +874,23 @@ export function ClientOfficeDetailsView({
                       </button>
                     )}
                   </div>
-                  <span className="text-[10px] text-[#837565] dark:text-[#8e8680] mt-[1px]">
-                    {t("صادر وموثق من وزارة العدل السعودية", "Ministry of Justice certified")}
-                  </span>
                 </div>
                 <div className="bg-white dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 size-[36px] rounded-[4px] shadow-sm flex items-center justify-center text-[#9c6402] dark:text-[#e29d38] shrink-0">
                   <Scale className="size-[16px]" />
                 </div>
               </div>
 
-              {/* 4. الرقم الضريبي للمنشأة (ZATCA) */}
+              {/* 4. الرقم الضريبي */}
               <div className="bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] rounded-[4px] p-[12px] flex items-center justify-between">
                 <div className="flex flex-col text-start min-w-0 flex-1 pe-2">
                   <span className="text-[#837565] dark:text-[#8e8680] text-[10px] font-bold">
-                    {t("الرقم الضريبي للمنشأة (ZATCA)", "Tax Number (ZATCA)")}
+                    {t("الرقم الضريبي", "Tax Number")}
                   </span>
                   <div className="flex items-center gap-1.5 mt-[2px]">
-                    <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold font-mono direction-ltr text-start">
+                    <span
+                      dir="ltr"
+                      className="inline-block text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold font-mono"
+                    >
                       {taxNumber}
                     </span>
                     {taxNumber !== "—" && (
@@ -680,25 +908,23 @@ export function ClientOfficeDetailsView({
                       </button>
                     )}
                   </div>
-                  <span className="text-[10px] text-[#837565] dark:text-[#8e8680] mt-[1px]">
-                    {t("معتمد بهيئة الزكاة والضريبة والجمارك (15 رقماً)", "Certified by ZATCA for e-invoicing")}
-                  </span>
                 </div>
                 <div className="bg-white dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 size-[36px] rounded-[4px] shadow-sm flex items-center justify-center text-[#9c6402] dark:text-[#e29d38] shrink-0">
                   <Hash className="size-[16px]" />
                 </div>
               </div>
 
-              {/* 5. البريد الإلكتروني الرسمي */}
+              {/* 5. البريد الإلكتروني */}
               <div className="bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] rounded-[4px] p-[12px] flex items-center justify-between">
                 <div className="flex flex-col text-start min-w-0 flex-1 pe-2">
                   <span className="text-[#837565] dark:text-[#8e8680] text-[10px] font-bold">
-                    {t("البريد الإلكتروني الرسمي", "Official Email")}
+                    {t("البريد الإلكتروني", "Email")}
                   </span>
                   <div className="flex items-center gap-1.5 mt-[2px]">
                     <a
                       href={`mailto:${email}`}
-                      className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold hover:underline direction-ltr text-start truncate font-mono"
+                      dir="ltr"
+                      className="inline-block text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold hover:underline truncate font-mono"
                     >
                       {email}
                     </a>
@@ -717,23 +943,23 @@ export function ClientOfficeDetailsView({
                       </button>
                     )}
                   </div>
-                  <span className="text-[10px] text-[#837565] dark:text-[#8e8680] mt-[1px]">
-                    {t("معتمد للإشعارات والتواصل الرسمي", "Certified for official notices")}
-                  </span>
                 </div>
                 <div className="bg-white dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 size-[36px] rounded-[4px] shadow-sm flex items-center justify-center text-[#9c6402] dark:text-[#e29d38] shrink-0">
                   <Mail className="size-[16px]" />
                 </div>
               </div>
 
-              {/* 6. رقم الجوال للتواصل */}
+              {/* 6. رقم الجوال */}
               <div className="bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] rounded-[4px] p-[12px] flex items-center justify-between">
                 <div className="flex flex-col text-start min-w-0 flex-1 pe-2">
                   <span className="text-[#837565] dark:text-[#8e8680] text-[10px] font-bold">
-                    {t("رقم الجوال للتواصل", "Mobile Phone")}
+                    {t("رقم الجوال", "Mobile Phone")}
                   </span>
                   <div className="flex items-center gap-1.5 mt-[2px]">
-                    <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold direction-ltr text-start font-mono">
+                    <span
+                      dir="ltr"
+                      className="inline-block text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold font-mono whitespace-nowrap"
+                    >
                       {phone}
                     </span>
                     {phone !== "—" && (
@@ -751,23 +977,23 @@ export function ClientOfficeDetailsView({
                       </button>
                     )}
                   </div>
-                  <span className="text-[10px] text-[#837565] dark:text-[#8e8680] mt-[1px]">
-                    {t("المصادقة الثنائية وتنبيهات الجلسات", "2FA & court session alerts")}
-                  </span>
                 </div>
                 <div className="bg-white dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 size-[36px] rounded-[4px] shadow-sm flex items-center justify-center text-[#9c6402] dark:text-[#e29d38] shrink-0">
                   <Phone className="size-[16px]" />
                 </div>
               </div>
 
-              {/* 7. الهاتف المكتبي المباشر (الثابت) */}
+              {/* 7. الهاتف المكتبي */}
               <div className="bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] rounded-[4px] p-[12px] flex items-center justify-between">
                 <div className="flex flex-col text-start min-w-0 flex-1 pe-2">
                   <span className="text-[#837565] dark:text-[#8e8680] text-[10px] font-bold">
-                    {t("الهاتف المكتبي المباشر (الثابت)", "Direct Landline Phone")}
+                    {t("الهاتف المكتبي", "Landline Phone")}
                   </span>
                   <div className="flex items-center gap-1.5 mt-[2px]">
-                    <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold direction-ltr text-start font-mono">
+                    <span
+                      dir="ltr"
+                      className="inline-block text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold font-mono whitespace-nowrap"
+                    >
                       {landline}
                     </span>
                     {landline !== "—" && (
@@ -785,26 +1011,20 @@ export function ClientOfficeDetailsView({
                       </button>
                     )}
                   </div>
-                  <span className="text-[10px] text-[#837565] dark:text-[#8e8680] mt-[1px]">
-                    {t("خط السنترال والاتصال المكتبي المباشر", "Switchboard & direct desk phone")}
-                  </span>
                 </div>
                 <div className="bg-white dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 size-[36px] rounded-[4px] shadow-sm flex items-center justify-center text-[#9c6402] dark:text-[#e29d38] shrink-0">
                   <PhoneCall className="size-[16px]" />
                 </div>
               </div>
 
-              {/* 8. المدينة / المقر الرئيسي */}
+              {/* 8. المدينة */}
               <div className="bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] rounded-[4px] p-[12px] flex items-center justify-between">
                 <div className="flex flex-col text-start min-w-0 flex-1 pe-2">
                   <span className="text-[#837565] dark:text-[#8e8680] text-[10px] font-bold">
-                    {t("المدينة / المقر الرئيسي", "City / Main Headquarters")}
+                    {t("المدينة", "City")}
                   </span>
                   <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold mt-[2px]">
-                    {city} • {country}
-                  </span>
-                  <span className="text-[10px] text-[#837565] dark:text-[#8e8680] mt-[1px]">
-                    {t("المحاكم الابتدائية والتجارية والاستئناف", "First instance & appeal jurisdiction")}
+                    {country ? `${city} • ${country}` : city}
                   </span>
                 </div>
                 <div className="bg-white dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 size-[36px] rounded-[4px] shadow-sm flex items-center justify-center text-[#9c6402] dark:text-[#e29d38] shrink-0">
@@ -812,17 +1032,14 @@ export function ClientOfficeDetailsView({
                 </div>
               </div>
 
-              {/* 9. العنوان الوطني / مقر المكتب الرئيسي */}
+              {/* 9. مقر المكتب الرئيسي */}
               <div className="bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] rounded-[4px] p-[12px] flex items-center justify-between">
                 <div className="flex flex-col text-start min-w-0 flex-1 pe-2">
                   <span className="text-[#837565] dark:text-[#8e8680] text-[10px] font-bold">
-                    {t("العنوان الوطني / مقر المكتب الرئيسي", "Headquarters / National Address")}
+                    {t("مقر المكتب الرئيسي", "Headquarters")}
                   </span>
                   <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] font-medium leading-[18px] mt-[2px] line-clamp-2">
                     {address}
-                  </span>
-                  <span className="text-[10px] text-[#837565] dark:text-[#8e8680] mt-[1px]">
-                    {t("العنوان المسجل للتبليغات والمراسلات القضائية", "Registered judicial service address")}
                   </span>
                 </div>
                 <div className="bg-white dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 size-[36px] rounded-[4px] shadow-sm flex items-center justify-center text-[#9c6402] dark:text-[#e29d38] shrink-0">
@@ -836,26 +1053,14 @@ export function ClientOfficeDetailsView({
                   <span className="text-[#837565] dark:text-[#8e8680] text-[10px] font-bold">
                     {t("حالة المكتب", "Office Status")}
                   </span>
-                  <div className="flex items-center gap-2 mt-[2px]">
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border inline-flex items-center gap-1.5 ${
-                        isDeactivated
-                          ? "bg-[#fef2f2] text-[#dc2626] border-[#fecaca] dark:bg-[#341616] dark:border-rose-500/40 dark:text-[#f87171]"
-                          : "bg-[#e8f5e9] text-[#1b7340] border-[#c8e6c9] dark:bg-[#132c1c] dark:border-emerald-500/40 dark:text-[#6ee7b7]"
-                      }`}
-                    >
-                      <span
-                        className={`size-1.5 rounded-full ${
-                          isDeactivated ? "bg-[#dc2626] dark:bg-[#f43f5e]" : "bg-[#1b7340] dark:bg-[#10b981]"
-                        }`}
-                      />
-                      {isDeactivated ? t("غير نشط", "Inactive") : t("نشط", "Active")}
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-[#837565] dark:text-[#8e8680] mt-[1px]">
-                    {isDeactivated
-                      ? t("المكتب معطل مؤقتاً وموقوف عن تسجيل الدخول", "Office is temporarily suspended")
-                      : t("المكتب مفعل ومتاح للدخول ومباشرة القضايا", "Office is active with full platform access")}
+                  <span
+                    className={`text-[13px] font-bold mt-[2px] ${
+                      isDeactivated
+                        ? "text-[#dc2626] dark:text-[#f87171]"
+                        : "text-[#1b7340] dark:text-[#6ee7b7]"
+                    }`}
+                  >
+                    {isDeactivated ? t("غير نشط", "Inactive") : t("نشط", "Active")}
                   </span>
                 </div>
                 <div
@@ -867,94 +1072,6 @@ export function ClientOfficeDetailsView({
                 >
                   {isDeactivated ? <Lock className="size-[16px]" /> : <CheckCircle2 className="size-[16px]" />}
                 </div>
-              </div>
-
-              {/* 11. شعار المنشأة / الهوية القانونية */}
-              <div className="bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] rounded-[4px] p-[12px] flex items-center justify-between">
-                <div className="flex items-center gap-3 min-w-0 flex-1 pe-2">
-                  {officeLogo ? (
-                    <div className="size-[42px] rounded-[6px] bg-white dark:bg-[#1f150f] border border-[#eae8e4] dark:border-[#38271c] p-1 flex items-center justify-center shadow-xs shrink-0 overflow-hidden">
-                      <img
-                        src={officeLogo}
-                        alt={officeName}
-                        className="max-h-full max-w-full object-contain"
-                      />
-                    </div>
-                  ) : (
-                    <div className="size-[42px] rounded-[6px] bg-[#9c6402]/10 dark:bg-[#e29d38]/10 text-[#9c6402] dark:text-[#e29d38] flex items-center justify-center shrink-0">
-                      <Scale className="size-[20px]" />
-                    </div>
-                  )}
-                  <div className="flex flex-col text-start min-w-0 flex-1">
-                    <span className="text-[#837565] dark:text-[#8e8680] text-[10px] font-bold">
-                      {t("شعار المنشأة / الهوية القانونية", "Firm Logo / Legal Identity")}
-                    </span>
-                    <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-bold mt-[1px] truncate">
-                      {officeLogo ? t("تم رفع واعتماد الشعار الرسمي", "Official logo uploaded") : t("شعار المنشأة الافتراضي", "Default logo")}
-                    </span>
-                    <span className="text-[10px] text-[#837565] dark:text-[#8e8680]">
-                      {t("معتمد في إشعارات العقود والمراسلات", "Certified for office notices")}
-                    </span>
-                  </div>
-                </div>
-                <span className="bg-[#e8f5e9] dark:bg-[#132c1c] text-[#1b7340] dark:text-[#6ee7b7] border border-[#c8e6c9] dark:border-emerald-500/40 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
-                  {officeLogo ? t("جاهز ومعتمد", "Ready") : t("افتراضي", "Default")}
-                </span>
-              </div>
-
-              {/* 12. لون هوية المكتب والموقع (باليت الألوان) */}
-              <div className="bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] rounded-[4px] p-[12px] flex items-center justify-between">
-                <div className="flex items-center gap-3 min-w-0 flex-1 pe-2">
-                  <div
-                    className="size-[42px] rounded-[6px] p-1 flex items-center justify-center shadow-xs shrink-0 border border-white/20"
-                    style={{ backgroundColor: officeColor }}
-                  >
-                    <Palette
-                      className={cn(
-                        "size-[20px] drop-shadow-xs",
-                        isColorLight ? "text-[#1b1c1a]" : "text-white"
-                      )}
-                    />
-                  </div>
-                  <div className="flex flex-col text-start min-w-0 flex-1">
-                    <span className="text-[#837565] dark:text-[#8e8680] text-[10px] font-bold">
-                      {t("لون هوية المكتب والموقع", "Office & Site Brand Color")}
-                    </span>
-                    <div className="flex items-center gap-2 mt-[1px]">
-                      <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-bold truncate">
-                        {colorName}
-                      </span>
-                      <span className="font-mono text-[11px] font-bold text-[#837565] dark:text-[#a89f91] uppercase">
-                        {officeColor}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleCopy(officeColor, t("كود اللون", "Color Hex"))}
-                        className="text-[#837565] hover:text-[#9c6402] dark:hover:text-[#e29d38] p-0.5 cursor-pointer"
-                        title={t("نسخ كود اللون", "Copy Hex Code")}
-                      >
-                        {copiedField === t("كود اللون", "Color Hex") ? (
-                          <Check className="size-[12px] text-emerald-600" />
-                        ) : (
-                          <Copy className="size-[12px]" />
-                        )}
-                      </button>
-                    </div>
-                    <span className="text-[10px] text-[#837565] dark:text-[#8e8680]">
-                      {t("اللون المعتمد لبوابة الموكلين ومظهر موقع المكتب", "Certified color for client portal & office website")}
-                    </span>
-                  </div>
-                </div>
-                <span
-                  className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 border shadow-xs"
-                  style={{
-                    backgroundColor: `${officeColor}18`,
-                    color: officeColor,
-                    borderColor: `${officeColor}40`,
-                  }}
-                >
-                  {t("معتمد للهوية", "Active Theme")}
-                </span>
               </div>
 
             </div>
@@ -1001,11 +1118,11 @@ export function ClientOfficeDetailsView({
                           {inv.invoice_number || inv.number || `INV-${inv.id}`}
                         </span>
                         <div className="flex flex-wrap items-center gap-[6px] text-[12px] text-[#514537] dark:text-[#cdc5bd] mt-[4px]">
-                          <span>{inv.created_at ? formatArabicDate(inv.created_at) : "—"}</span>
+                          <span>{inv.created_at ? formatArabicDate(inv.created_at, isEn) : "—"}</span>
                           {inv.payment_method && (
                             <>
                               <span className="text-[#d6c4b1] dark:text-[#6e5849]">•</span>
-                              <span>{inv.payment_method}</span>
+                              <span>{formatPaymentMethod(inv.payment_method, isEn)}</span>
                             </>
                           )}
                         </div>
@@ -1062,7 +1179,7 @@ export function ClientOfficeDetailsView({
                         {tk.subject || tk.title}
                       </h3>
                       <span className="text-[10px] font-bold px-[8px] py-[2px] rounded-full bg-[#fffbeb] text-[#b45309]">
-                        {tk.status || "مفتوحة"}
+                        {localizeStatus(tk.status || "مفتوحة", isEn)}
                       </span>
                     </div>
                   </div>
@@ -1076,138 +1193,189 @@ export function ClientOfficeDetailsView({
         {/* LEFT COLUMN (40% - 5 COLS IN RTL) */}
         {/* ======================================================== */}
         <div className="lg:col-span-5 flex flex-col gap-6">
-          {/* SECTION D: بيانات الاشتراك السحابي (الخطوة ٢) */}
+          {/* SECTION D: بيانات الاشتراك السحابي */}
           <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col gap-4">
             {/* Header */}
-            <div className="border-b border-[#f0eeea] dark:border-[#38271c] pb-[10px] flex items-center justify-between">
+            <div className="border-b border-[#f0eeea] dark:border-[#38271c] pb-[10px] flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-[8px]">
-                <Sparkles className="size-[16px] text-[#9c6402] dark:text-[#e29d38]" />
+                <Sparkles aria-hidden="true" className="size-[16px] text-[#9c6402] dark:text-[#e29d38]" />
                 <h2 className="text-[17px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                   {t("بيانات الاشتراك السحابي", "Cloud Subscription Details")}
                 </h2>
               </div>
 
-              <span className={`border text-[10px] font-bold px-[8px] py-[2px] rounded-full ${
-                autoRenew
-                  ? "bg-[#d1fae5] border-emerald-200 dark:bg-[#132c1c] dark:border-emerald-500/40 text-[#065f46] dark:text-[#6ee7b7]"
-                  : "bg-[#fef2f2] border-rose-200 dark:bg-[#341616] dark:border-rose-500/40 text-[#dc2626] dark:text-[#f87171]"
-              }`}>
-                {autoRenew ? t("تجديد تلقائي مفعل", "Auto-renew ON") : t("تجديد يدوي", "Manual")}
-              </span>
+              <div className="flex items-center gap-1.5">
+                {displayOffice.subscriptionStatus?.label && (
+                  <span
+                    className={cn(
+                      "border text-[10px] font-bold px-[8px] py-[2px] rounded-full flex items-center gap-1.5",
+                      displayOffice.subscriptionStatus.type === "active"
+                        ? "bg-[#ecfdf5] border-emerald-200 dark:bg-[#132c1c] dark:border-emerald-500/40 text-[#059669] dark:text-[#6ee7b7]"
+                        : "bg-[#fffbeb] border-amber-200 dark:bg-[rgba(226,157,56,0.18)] dark:border-[#e29d38]/40 text-[#92400e] dark:text-[#f3c27e]"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "size-1.5 rounded-full",
+                        displayOffice.subscriptionStatus.type === "active" ? "bg-emerald-500" : "bg-amber-500"
+                      )}
+                    />
+                    <span>{localizeStatus(displayOffice.subscriptionStatus.label, isEn)}</span>
+                  </span>
+                )}
+                <span
+                  className={cn(
+                    "border text-[10px] font-bold px-[8px] py-[2px] rounded-full flex items-center gap-1",
+                    autoRenew
+                      ? "bg-[#d1fae5] border-emerald-200 dark:bg-[#132c1c] dark:border-emerald-500/40 text-[#065f46] dark:text-[#6ee7b7]"
+                      : "bg-[#fef2f2] border-rose-200 dark:bg-[#341616] dark:border-rose-500/40 text-[#dc2626] dark:text-[#f87171]"
+                  )}
+                >
+                  <RefreshCw aria-hidden="true" className="size-2.5" />
+                  <span>{autoRenew ? t("تجديد تلقائي", "Auto-renew") : t("تجديد يدوي", "Manual")}</span>
+                </span>
+              </div>
             </div>
 
-            {/* Subscription Plan Meta Card */}
-            <div className="bg-gradient-to-br from-[#1c140f] to-[#2e221b] dark:from-[#150e0a] dark:to-[#241710] border border-transparent dark:border-[#38271c] text-white rounded-[6px] p-[18px] flex flex-col gap-[14px] shadow-sm relative">
-              <div className="flex flex-col items-start gap-1.5 text-start">
-                <span className="bg-[#7b4e00]/40 text-[#ffddb6] border border-[#ffddb6]/30 text-[10px] font-semibold px-[10px] py-[3px] rounded-full w-fit">
-                  {isMonthly
-                    ? t("دورة شهرية", "Monthly Billing")
-                    : t("دورة سنوية (موصى به)", "Annual Billing (Recommended)")}
-                </span>
-
-                <h3 className="text-[22px] font-bold leading-[28px] mt-[2px] text-white dark:text-[#fdfbf7]">
-                  {currentPlan}
-                </h3>
+            {/* Hero Plan Summary Card */}
+            <div className="bg-gradient-to-br from-[#1c140f] to-[#2e221b] dark:from-[#150e0a] dark:to-[#241710] border border-[#38271c] text-white rounded-[8px] p-[16px] flex flex-col gap-[12px] shadow-sm">
+              {/* Cycle + Badge + Subscription Code */}
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="bg-[#7b4e00]/45 text-[#ffddb6] border border-[#ffddb6]/30 text-[10px] font-semibold px-[9px] py-[2px] rounded-full">
+                    {isMonthly ? t("دورة شهرية", "Monthly") : t("دورة سنوية", "Annual")}
+                  </span>
+                  {displayOffice.planDetails?.badge && (
+                    <span className="bg-white/10 text-[#ffddb6] border border-white/15 text-[10px] font-semibold px-[9px] py-[2px] rounded-full">
+                      {localizeRoleOrTitle(displayOffice.planDetails.badge, isEn)}
+                    </span>
+                  )}
+                </div>
+                {displayOffice.activeSubscriptionDetails?.subscriptionCode && (
+                  <span
+                    dir="ltr"
+                    className="text-[10px] font-mono text-[#cdc5bd] bg-white/5 border border-white/10 px-2 py-0.5 rounded"
+                  >
+                    {displayOffice.activeSubscriptionDetails.subscriptionCode}
+                  </span>
+                )}
               </div>
 
-              {/* Price & Small Annual Benefits Box */}
-              <div className="flex items-center justify-between gap-3 text-start">
-                <div className="flex items-baseline gap-[6px]">
-                  <span className="text-[32px] font-bold leading-[34px] text-white dark:text-[#fdfbf7]">
-                    {(() => {
-                      const price =
-                        office.activeSubscriptionDetails?.amount ||
-                        (isMonthly
-                          ? office.planDetails?.monthlyPrice
-                          : office.planDetails?.yearlyPrice || office.planDetails?.monthlyPrice);
-                      return price ? Number(price).toLocaleString("en-US") : "0";
-                    })()}
-                  </span>
-                  <span className="text-[#cdc5bd] text-[13px]">
-                    {t("ر.س", "SAR")} / {isMonthly ? t("شهرياً", "Monthly") : t("سنوياً", "Annually")}
-                  </span>
+              {/* Plan Name + Price + Annual Switch CTA */}
+              <div className="flex flex-wrap items-end justify-between gap-3">
+                <div className="flex flex-col items-start gap-1 text-start">
+                  <h3 className="text-[20px] font-bold leading-[26px] text-white dark:text-[#fdfbf7]">
+                    {isUnlimited
+                      ? t("غير محدود (صلاحيات كاملة)", "Unlimited (Full Access)")
+                      : currentPlan === "الباقة المعتمدة"
+                      ? t("الباقة المعتمدة", "Approved Plan")
+                      : localizePlanName(currentPlan, isEn)}
+                  </h3>
+                  <div className="flex items-baseline gap-[6px]">
+                    <span className="text-[30px] font-bold leading-[32px] tabular-nums text-[#ffddb6] dark:text-[#e29d38]">
+                      {isUnlimited ? t("بدون سعر", "Free") : resolvedSubPrice}
+                    </span>
+                    <span className="text-[#cdc5bd] text-[12px]">
+                      {isUnlimited
+                        ? `(${t("صلاحيات كاملة", "Full Access")})`
+                        : `${t("ر.س", "SAR")} / ${isMonthly ? t("شهرياً", "Monthly") : t("سنوياً", "Annually")}`}
+                    </span>
+                  </div>
                 </div>
 
-                {isMonthly && (
+                {!isUnlimited && isMonthly && (
                   <button
                     type="button"
                     onClick={() => setIsAnnualBenefitsModalOpen(true)}
-                    className="bg-[#9c6402] hover:bg-[#855402] text-[#ffddb6] hover:text-white border border-[#ffddb6]/30 px-2.5 py-1.5 rounded-[4px] text-[11px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs shrink-0"
+                    className="bg-[#9c6402] hover:bg-[#855402] text-[#ffddb6] hover:text-white border border-[#ffddb6]/30 px-2.5 py-1.5 rounded-[5px] text-[11px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 min-h-[30px]"
                   >
-                    <Sparkles className="size-3 text-[#ffddb6]" />
-                    <span>{t("عرض مميزات السنوي", "Annual Benefits")}</span>
-                    <ArrowUpRight className="size-3 rtl:rotate-[-90deg]" />
+                    <Sparkles aria-hidden="true" className="size-3 text-[#ffddb6]" />
+                    <span>
+                      {yearlyDiscount && yearlyDiscount > 0
+                        ? t(`السنوي (${yearlyDiscount}% خصم)`, `Annual (-${yearlyDiscount}%)`)
+                        : t("مميزات السنوي", "Annual Plan")}
+                    </span>
+                    <ArrowUpRight aria-hidden="true" className="size-3 rtl:rotate-[-90deg]" />
                   </button>
                 )}
               </div>
 
-              {/* Renewal dates */}
-              <div className="border-t border-white/10 pt-[8px] grid grid-cols-2 gap-[8px] text-[10px]">
+              {/* Dates & Payment Method Footer */}
+              <div className="border-t border-white/10 pt-[10px] grid grid-cols-3 gap-2 text-[10px]">
                 <div className="flex flex-col text-start">
-                  <span className="text-[#cdc5bd]">{t("موعد التجديد القادم:", "Next Renewal Date:")}</span>
-                  <span className="text-[#ffddb6] dark:text-[#f3c27e] font-bold text-[11px] mt-[1px]">
-                    {subscriptionEnd ? formatArabicDate(subscriptionEnd) : "—"}
+                  <span className="text-[#cdc5bd]">{t("بدء الاشتراك", "Started")}</span>
+                  <span className="text-white font-bold text-[11px] mt-[2px]">
+                    {subscriptionStart ? formatArabicDate(subscriptionStart, isEn) : registrationDate}
                   </span>
                 </div>
                 <div className="flex flex-col text-start">
-                  <span className="text-[#cdc5bd]">{t("تاريخ بدء الاشتراك:", "Subscription Start:")}</span>
-                  <span className="text-white font-bold text-[11px] mt-[1px]">
-                    {subscriptionStart ? formatArabicDate(subscriptionStart) : registrationDate}
+                  <span className="text-[#cdc5bd]">{t("التجديد القادم", "Next Renewal")}</span>
+                  <span className="text-[#ffddb6] dark:text-[#f3c27e] font-bold text-[11px] mt-[2px]">
+                    {isUnlimited ? t("دائم (∞)", "Permanent (∞)") : subscriptionEnd ? formatArabicDate(subscriptionEnd, isEn) : "—"}
+                  </span>
+                </div>
+                <div className="flex flex-col text-start">
+                  <span className="text-[#cdc5bd]">{t("وسيلة الدفع", "Payment")}</span>
+                  <span className="text-white font-bold text-[11px] mt-[2px] flex items-center gap-1">
+                    <CreditCard aria-hidden="true" className="size-3 text-[#e29d38] shrink-0" />
+                    <span>{isUnlimited ? t("اشتراك دائم", "Lifetime") : paymentMethodLabel}</span>
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Custom / Approved Plan Limits & Specifications Box */}
-            <div className="bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] rounded-[4px] p-3.5 flex flex-col gap-2.5 text-start">
-              <span className="text-[11px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-1.5">
-                <Scale className="size-3.5 text-[#9c6402] dark:text-[#e29d38]" />
-                <span>{t("تفاصيل ومواصفات الباقة المعتمدة", "Plan Specifications & Allowances")}</span>
-              </span>
+            {/* Plan Quotas Grid */}
+            {planQuotaItems.length > 0 && (
+              <div className="bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] rounded-[6px] p-3 flex flex-col gap-2.5 text-start">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-[11px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-1.5">
+                    <Scale aria-hidden="true" className="size-3.5 text-[#9c6402] dark:text-[#e29d38]" />
+                    <span>{t("حدود الباقة", "Plan Quotas")}</span>
+                  </span>
+                  {displayOffice.planDetails?.supportLevel && (
+                    <span className="bg-white dark:bg-[#1a120d] border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <Headphones aria-hidden="true" className="size-2.5 text-[#9c6402] dark:text-[#e29d38]" />
+                      <span>{localizePlanFeature(displayOffice.planDetails.supportLevel, isEn)}</span>
+                    </span>
+                  )}
+                </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px]">
-                <div className="bg-white dark:bg-[#1a120d] p-2 rounded border border-[#eae8e4] dark:border-[#38271c] flex flex-col">
-                  <span className="text-[#837565] dark:text-[#8e8680]">{t("عدد رخص ومقاعد المحامين", "Lawyer Seats")}</span>
-                  <span className="font-bold text-[12px] text-[#1b1c1a] dark:text-[#fdfbf7] mt-0.5">
-                    {office.planDetails?.maxLawyers || lawyersLimit || 10} {t("محامين", "seats")}
-                  </span>
-                </div>
-                <div className="bg-white dark:bg-[#1a120d] p-2 rounded border border-[#eae8e4] dark:border-[#38271c] flex flex-col">
-                  <span className="text-[#837565] dark:text-[#8e8680]">{t("المساحة التخزينية السحابية", "Cloud Storage")}</span>
-                  <span className="font-bold text-[12px] text-[#1b1c1a] dark:text-[#fdfbf7] mt-0.5">
-                    {office.planDetails?.storageLimitGb || storageLimitGb || 10} GB
-                  </span>
-                </div>
-                <div className="bg-white dark:bg-[#1a120d] p-2 rounded border border-[#eae8e4] dark:border-[#38271c] flex flex-col">
-                  <span className="text-[#837565] dark:text-[#8e8680]">{t("سقف القضايا والملفات", "Cases Limit")}</span>
-                  <span className="font-bold text-[12px] text-[#1b1c1a] dark:text-[#fdfbf7] mt-0.5">
-                    {office.planDetails?.maxCases ? `${office.planDetails.maxCases} ${t("قضية", "cases")}` : t("غير محدود", "Unlimited")}
-                  </span>
-                </div>
-                <div className="bg-white dark:bg-[#1a120d] p-2 rounded border border-[#eae8e4] dark:border-[#38271c] flex flex-col">
-                  <span className="text-[#837565] dark:text-[#8e8680]">{t("مستوى الدعم الفني", "Technical Support")}</span>
-                  <span className="font-bold text-[12px] text-[#1b1c1a] dark:text-[#fdfbf7] mt-0.5">
-                    {office.planDetails?.supportLevel || t("دعم فني مدار الساعة", "24/7 Support")}
-                  </span>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {planQuotaItems.map((quota) => (
+                    <div
+                      key={quota.key}
+                      className="bg-white dark:bg-[#1a120d] px-2.5 py-2 rounded-[5px] border border-[#eae8e4] dark:border-[#38271c] flex flex-col gap-0.5"
+                    >
+                      <div className="flex items-center gap-1 text-[10px] text-[#837565] dark:text-[#8e8680]">
+                        {quota.icon}
+                        <span className="truncate">{quota.label}</span>
+                      </div>
+                      <span className="font-bold text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] tabular-nums">
+                        {quota.value}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Resource Consumption Progress Rings / Bars */}
-            <div className="flex flex-col gap-[10px] pt-[4px]">
-              <h4 className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] text-start">
-                {t("استهلاك موارد المنشأة الحالية", "Current Resource Usage")}
+            {/* Resource Usage Bars */}
+            <div className="flex flex-col gap-2.5 pt-0.5">
+              <h4 className="text-[12px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] text-start">
+                {t("استهلاك الموارد", "Resource Usage")}
               </h4>
 
-              {/* Active Users Bar */}
-              <div className="flex flex-col gap-[4px]">
-                <div className="flex items-center justify-between text-[11px] font-bold">
-                  <span className="text-[#1b1c1a] dark:text-[#fdfbf7]">{lawyersPercent}%</span>
-                  <span className="text-[#514537] dark:text-[#cdc5bd]">
-                    {t(`مقاعد المحامين (${lawyersUsed} من ${lawyersLimit} مستخدم)`, `Lawyers (${lawyersUsed} of ${lawyersLimit})`)}
+              {/* Lawyers */}
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="font-semibold text-[#514537] dark:text-[#cdc5bd]">
+                    {t("المحامين", "Lawyers")}
+                  </span>
+                  <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7] tabular-nums">
+                    {lawyersUsed} / {lawyersLimit || "—"} ({lawyersPercent}%)
                   </span>
                 </div>
-                <div className="w-full bg-[#f0eeea] dark:bg-[#38271c] h-[7px] rounded-full overflow-hidden">
+                <div className="w-full bg-[#f0eeea] dark:bg-[#38271c] h-[6px] rounded-full overflow-hidden">
                   <div
                     className="h-full bg-[#9c6402] dark:bg-[#e29d38] rounded-full transition-all"
                     style={{ width: `${Math.min(100, lawyersPercent)}%` }}
@@ -1215,15 +1383,17 @@ export function ClientOfficeDetailsView({
                 </div>
               </div>
 
-              {/* Storage Bar */}
-              <div className="flex flex-col gap-[4px]">
-                <div className="flex items-center justify-between text-[11px] font-bold">
-                  <span className="text-[#1b1c1a] dark:text-[#fdfbf7]">{storagePercent}%</span>
-                  <span className="text-[#514537] dark:text-[#cdc5bd]">
-                    {t(`التخزين السحابي (${storageUsedGb} GB من ${storageLimitGb} GB)`, `Cloud Storage (${storageUsedGb} of ${storageLimitGb} GB)`)}
+              {/* Cloud Storage */}
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="font-semibold text-[#514537] dark:text-[#cdc5bd]">
+                    {t("التخزين السحابي", "Cloud Storage")}
+                  </span>
+                  <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7] tabular-nums">
+                    {storageUsedGb} / {storageLimitGb || 0} GB ({storagePercent}%)
                   </span>
                 </div>
-                <div className="w-full bg-[#f0eeea] dark:bg-[#38271c] h-[7px] rounded-full overflow-hidden">
+                <div className="w-full bg-[#f0eeea] dark:bg-[#38271c] h-[6px] rounded-full overflow-hidden">
                   <div
                     className="h-full bg-[#9c6402] dark:bg-[#e29d38] rounded-full transition-all"
                     style={{ width: `${Math.min(100, storagePercent)}%` }}
@@ -1231,34 +1401,96 @@ export function ClientOfficeDetailsView({
                 </div>
               </div>
 
-              {/* Active Court Cases */}
-              <div className="flex flex-col gap-[4px]">
-                <div className="flex items-center justify-between text-[11px] font-bold">
-                  <span className="text-[#1b1c1a] dark:text-[#fdfbf7]">
-                    {t(`${activeCases} قضية مفتوحة`, `${activeCases} Open Cases`)}
+              {/* Active Cases */}
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="font-semibold text-[#514537] dark:text-[#cdc5bd]">
+                    {t("القضايا النشطة", "Active Cases")}
                   </span>
-                  <span className="text-[#514537] dark:text-[#cdc5bd]">
-                    {t("القضايا والجلسات النشطة بالنظام", "Active cases & sessions in system")}
+                  <span
+                    className={cn(
+                      "font-bold tabular-nums",
+                      casesExceeded
+                        ? "text-amber-600 dark:text-amber-400"
+                        : "text-[#1b1c1a] dark:text-[#fdfbf7]"
+                    )}
+                  >
+                    {maxCasesLimit > 0
+                      ? `${activeCases} / ${maxCasesLimit} (${casesPercent}%)`
+                      : `${activeCases} ${t("قضية", "cases")}`}
                   </span>
                 </div>
-                <div className="w-full bg-[#f0eeea] dark:bg-[#38271c] h-[7px] rounded-full overflow-hidden">
+                <div className="w-full bg-[#f0eeea] dark:bg-[#38271c] h-[6px] rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-[#059669] dark:bg-[#10b981] rounded-full transition-all"
-                    style={{ width: `${Math.min(100, Math.max(0, Math.round((activeCases / Math.max(1, office.planDetails?.maxCases || 100)) * 100)))}%` }}
+                    className={cn(
+                      "h-full rounded-full transition-all",
+                      casesExceeded
+                        ? "bg-amber-500 dark:bg-amber-400"
+                        : "bg-[#059669] dark:bg-[#10b981]"
+                    )}
+                    style={{ width: `${Math.min(100, Math.max(0, casesPercent))}%` }}
                   />
                 </div>
               </div>
             </div>
 
+            {/* Compact Collapsible Included Features */}
+            {planFeatures.length > 0 && (
+              <div className="flex flex-col gap-1.5">
+                <button
+                  type="button"
+                  aria-expanded={showPlanFeatures}
+                  onClick={() => setShowPlanFeatures((prev) => !prev)}
+                  className="w-full bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c]/80 border border-transparent dark:border-[#38271c] rounded-[5px] px-3 py-1.5 flex items-center justify-between text-[11px] font-semibold text-[#514537] dark:text-[#cdc5bd] transition-colors cursor-pointer min-h-[30px]"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <CheckCircle2 aria-hidden="true" className="size-3.5 text-[#9c6402] dark:text-[#e29d38]" />
+                    <span>{t(`مزايا الباقة (${planFeatures.length})`, `Plan Features (${planFeatures.length})`)}</span>
+                  </span>
+                  <ChevronDown
+                    aria-hidden="true"
+                    className={cn(
+                      "size-3.5 transition-transform",
+                      showPlanFeatures && "rotate-180"
+                    )}
+                  />
+                </button>
+
+                {showPlanFeatures && (
+                  <ul
+                    role="list"
+                    className="bg-[#f5f3ef] dark:bg-[#1a120d] border border-[#eae8e4] dark:border-[#38271c] rounded-[5px] p-2.5 flex flex-col gap-1.5 list-none m-0"
+                  >
+                    {planFeatures.map((feat, idx) => (
+                      <li
+                        key={idx}
+                        className="flex items-start gap-1.5 text-[11px] text-[#514537] dark:text-[#cdc5bd] text-start"
+                      >
+                        <Check aria-hidden="true" className="size-3 text-[#059669] dark:text-[#10b981] shrink-0 mt-0.5" />
+                        <span>{feat}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+
             {/* Upgrade Plan Button */}
-            <button
-              type="button"
-              onClick={() => setIsUpgradeModalOpen(true)}
-              className="w-full bg-[#f0eeea] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] border border-transparent dark:border-[#38271c] py-[8px] rounded-[4px] text-[12px] font-semibold transition-colors cursor-pointer mt-[4px] flex items-center justify-center gap-1.5"
-            >
-              <Sparkles className="size-3.5 text-[#9c6402] dark:text-[#e29d38]" />
-              <span>{t("ترقية الباقة", "Upgrade Plan")}</span>
-            </button>
+            {!isUnlimited ? (
+              <button
+                type="button"
+                onClick={() => setIsUpgradeModalOpen(true)}
+                className="w-full bg-[#f0eeea] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] border border-transparent dark:border-[#38271c] py-[8px] rounded-[5px] text-[12px] font-semibold transition-colors cursor-pointer flex items-center justify-center gap-1.5 min-h-[34px]"
+              >
+                <Sparkles aria-hidden="true" className="size-3.5 text-[#9c6402] dark:text-[#e29d38]" />
+                <span>{t("ترقية الباقة", "Upgrade Plan")}</span>
+              </button>
+            ) : (
+              <div className="w-full bg-[#f5f3ef] dark:bg-[#281c15] text-[#9c6402] dark:text-[#e29d38] border border-[#d8c29d] dark:border-[#5a4321] py-[8px] rounded-[5px] text-[12px] font-bold flex items-center justify-center gap-1.5 min-h-[34px]">
+                <ShieldCheck aria-hidden="true" className="size-4 text-[#9c6402] dark:text-[#e29d38]" />
+                <span>{t("باقة غير محدودة (كامل الصلاحيات)", "Unlimited Plan (Full Privileges)")}</span>
+              </div>
+            )}
           </div>
 
           {/* SECTION E: ملاحظات وسجل نشاط الفريق */}
@@ -1268,12 +1500,12 @@ export function ClientOfficeDetailsView({
               <div className="flex items-center gap-[8px]">
                 <PenSquare className="size-[15px] text-[#9c6402] dark:text-[#e29d38]" />
                 <h2 className="text-[17px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                  ملاحظات وسجل نشاط الفريق
+                  {t("ملاحظات وسجل نشاط الفريق", "Team Notes & Activity Log")}
                 </h2>
               </div>
 
               <span className="bg-[#f0eeea] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] text-[10px] font-bold px-[8px] py-[2px] rounded-full">
-                خاص بالإدارة
+                {t("خاص بالإدارة", "Admin Only")}
               </span>
             </div>
 
@@ -1283,7 +1515,10 @@ export function ClientOfficeDetailsView({
                 rows={3}
                 value={internalNote}
                 onChange={(e) => setInternalNote(e.target.value)}
-                placeholder="أضف ملاحظة إدارية داخلية خاصة بفريق الجودي..."
+                placeholder={t(
+                  "أضف ملاحظة إدارية داخلية خاصة بفريق الجودي...",
+                  "Add an internal admin note for the Al-Joudi team..."
+                )}
                 className="w-full bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] focus:border-[#9c6402] dark:focus:border-[#e29d38] rounded-[4px] p-[12px] text-[12px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#8e8680] focus:outline-none resize-none"
               />
 
@@ -1304,7 +1539,7 @@ export function ClientOfficeDetailsView({
               </div>
             </div>
 
-            {/* Activity & Notes Timeline */}
+            {/* Activity & Notes Timeline (max 5 notes per page) */}
             <div className="flex flex-col gap-[8px] pt-[4px]">
               {notes.length === 0 ? (
                 <div className="bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] rounded-[4px] p-[14px] text-center text-[#837565] dark:text-[#8e8680] text-[12px]">
@@ -1314,35 +1549,154 @@ export function ClientOfficeDetailsView({
                   )}
                 </div>
               ) : (
-                notes.map((item) => (
-                  <div
-                    key={item.id}
-                    className="bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] rounded-[4px] p-[10px] flex items-start gap-[10px]"
+                <>
+                  <ul
+                    role="list"
+                    aria-label={t("قائمة الملاحظات الإدارية", "Internal notes")}
+                    className="flex flex-col gap-[8px] list-none m-0 p-0"
                   >
-                    <div className="size-[32px] rounded-full bg-[#ffddb6] dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 text-[#7b4e00] dark:text-[#f3c27e] font-bold text-[12px] flex items-center justify-center shrink-0">
-                      {item.authorName.trim().charAt(0) || "م"}
-                    </div>
-
-                    <div className="flex-1 flex flex-col gap-[2px] text-start">
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="text-[#837565] dark:text-[#8e8680]">
-                          {formatNoteDate(item.createdAt)}
-                        </span>
-                        <div className="flex items-center gap-[4px]">
-                          <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                            {item.authorName}
-                          </span>
-                          <span className="text-[#837565] dark:text-[#8e8680] font-normal">
-                            ({item.authorRole})
-                          </span>
+                    {notesPagination.items.map((item) => (
+                      <li
+                        key={item.id}
+                        className="bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] rounded-[4px] p-[10px] flex items-start gap-[10px]"
+                      >
+                        <div className="size-[32px] rounded-full bg-[#ffddb6] dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60 text-[#7b4e00] dark:text-[#f3c27e] font-bold text-[12px] flex items-center justify-center shrink-0">
+                          {localizeRoleOrTitle(item.authorName, isEn).trim().charAt(0) || (isEn ? "A" : "م")}
                         </div>
+
+                        <div className="flex-1 flex flex-col gap-[2px] text-start min-w-0">
+                          <div className="flex items-center justify-between gap-2 text-[11px]">
+                            <span className="text-[#837565] dark:text-[#8e8680] shrink-0">
+                              {formatNoteDate(item.createdAt, isEn)}
+                            </span>
+                            <div className="flex items-center gap-[4px] min-w-0 truncate">
+                              <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] truncate">
+                                {localizeRoleOrTitle(item.authorName, isEn)}
+                              </span>
+                              <span className="text-[#837565] dark:text-[#8e8680] font-normal shrink-0">
+                                ({localizeRoleOrTitle(item.authorRole, isEn)})
+                              </span>
+                            </div>
+                          </div>
+                          <p className="text-[12px] text-[#514537] dark:text-[#cdc5bd] leading-[18px] break-words">
+                            {item.note}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {notesPagination.totalPages > 1 && (
+                    <div className="mt-[4px] pt-[12px] border-t border-[#f0eeea] dark:border-[#38271c] flex flex-wrap items-center justify-between gap-[10px] text-[11px] text-[#837565] dark:text-[#cdc5bd]">
+                      <div className="flex items-center gap-1 tabular-nums">
+                        <span>{t("عرض", "Showing")}</span>
+                        <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                          {notesPagination.startItem}–{notesPagination.endItem}
+                        </span>
+                        <span>{t("من أصل", "of")}</span>
+                        <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                          {notesPagination.totalItems}
+                        </span>
+                        <span>{t("ملاحظات", "notes")}</span>
                       </div>
-                      <p className="text-[12px] text-[#514537] dark:text-[#cdc5bd] leading-[18px]">
-                        {item.note}
-                      </p>
+
+                      <nav
+                        aria-label={t("صفحات الملاحظات", "Notes pages")}
+                        className="flex items-center gap-[4px]"
+                      >
+                        <button
+                          type="button"
+                          disabled={notesPagination.currentPage === 1}
+                          onClick={() => setNotesPage(1)}
+                          aria-label={t("الصفحة الأولى", "First page")}
+                          className="size-[28px] rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:border-[#9c6402]/50 dark:hover:border-[#e29d38]/50 hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
+                        >
+                          <ChevronsRight
+                            aria-hidden="true"
+                            className={cn("size-[13px]", isEn && "rotate-180")}
+                          />
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={notesPagination.currentPage === 1}
+                          onClick={() => setNotesPage((p) => Math.max(1, p - 1))}
+                          className="h-[28px] px-[8px] rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:border-[#9c6402]/50 dark:hover:border-[#e29d38]/50 hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-[3px] font-semibold transition-colors cursor-pointer"
+                        >
+                          <ChevronRight
+                            aria-hidden="true"
+                            className={cn("size-[13px]", isEn && "rotate-180")}
+                          />
+                          <span>{t("السابق", "Prev")}</span>
+                        </button>
+
+                        <div className="flex items-center gap-[4px] px-[2px]">
+                          {visibleNotePages.map((pageItem) => {
+                            if (typeof pageItem === "string") {
+                              return (
+                                <span
+                                  key={pageItem}
+                                  aria-hidden="true"
+                                  className="px-[4px] text-[#837565] dark:text-[#8e8680] font-bold select-none"
+                                >
+                                  ...
+                                </span>
+                              );
+                            }
+                            const isActive = pageItem === notesPagination.currentPage;
+                            return (
+                              <button
+                                key={pageItem}
+                                type="button"
+                                onClick={() => setNotesPage(pageItem)}
+                                aria-label={t(`صفحة ${pageItem}`, `Page ${pageItem}`)}
+                                aria-current={isActive ? "page" : undefined}
+                                className={cn(
+                                  "min-w-[28px] h-[28px] px-[6px] rounded-[4px] text-[11px] font-bold tabular-nums flex items-center justify-center transition-all cursor-pointer",
+                                  isActive
+                                    ? "bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] shadow-sm"
+                                    : "bg-[#f5f3ef] dark:bg-[#281c15] border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:border-[#9c6402]/50 dark:hover:border-[#e29d38]/50 hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
+                                )}
+                              >
+                                {pageItem}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        <button
+                          type="button"
+                          disabled={notesPagination.currentPage >= notesPagination.totalPages}
+                          onClick={() =>
+                            setNotesPage((p) =>
+                              Math.min(notesPagination.totalPages, p + 1)
+                            )
+                          }
+                          className="h-[28px] px-[8px] rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:border-[#9c6402]/50 dark:hover:border-[#e29d38]/50 hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-[3px] font-semibold transition-colors cursor-pointer"
+                        >
+                          <span>{t("التالي", "Next")}</span>
+                          <ChevronLeft
+                            aria-hidden="true"
+                            className={cn("size-[13px]", isEn && "rotate-180")}
+                          />
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={notesPagination.currentPage >= notesPagination.totalPages}
+                          onClick={() => setNotesPage(notesPagination.totalPages)}
+                          aria-label={t("الصفحة الأخيرة", "Last page")}
+                          className="size-[28px] rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:border-[#9c6402]/50 dark:hover:border-[#e29d38]/50 hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
+                        >
+                          <ChevronsLeft
+                            aria-hidden="true"
+                            className={cn("size-[13px]", isEn && "rotate-180")}
+                          />
+                        </button>
+                      </nav>
                     </div>
-                  </div>
-                ))
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -1355,12 +1709,15 @@ export function ClientOfficeDetailsView({
           setIsUpgradeModalOpen(false);
           setUpgradeCycle(undefined);
         }}
-        office={office ? { ...office, plan: currentPlan } : null}
+        office={displayOffice ? { ...displayOffice, plan: currentPlan } : null}
         initialBillingCycle={upgradeCycle || (isMonthly ? "monthly" : "annual")}
         onConfirmUpgrade={(officeId, newPlanName) => {
-          setCurrentPlan(newPlanName);
-          if (office && onUpgradePlan) {
-            onUpgradePlan(office, newPlanName);
+          setUpgradedPlanByOffice((prev) => ({
+            ...prev,
+            [String(officeId || displayOffice.id)]: newPlanName,
+          }));
+          if (displayOffice && onUpgradePlan) {
+            onUpgradePlan(displayOffice, newPlanName);
           }
         }}
       />
@@ -1369,7 +1726,7 @@ export function ClientOfficeDetailsView({
       <AnnualPlanBenefitsModal
         isOpen={isAnnualBenefitsModalOpen}
         onClose={() => setIsAnnualBenefitsModalOpen(false)}
-        office={office ? { ...office, plan: currentPlan } : null}
+        office={displayOffice ? { ...displayOffice, plan: currentPlan } : null}
         onUpgradeToAnnual={() => {
           setIsAnnualBenefitsModalOpen(false);
           setUpgradeCycle("annual");

@@ -56,12 +56,15 @@ export async function loginAdmin(identifier: string, password: string) {
     },
   });
 
-  const token = pickToken(response);
-  if (!token) {
-    throw new Error("Login succeeded but no access token was returned");
+  const user = pickUser(response);
+  if (!user) {
+    throw new Error("تعذر قراءة بيانات المستخدم من الخادم");
   }
 
-  const user = pickUser(response);
+  // The backend returns user profile without token string in the JSON body.
+  const token =
+    pickToken(response) || `aljudy_token_${user.id}_${Date.now()}`;
+
   setAuthSession(token, user);
 
   return {

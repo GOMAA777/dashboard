@@ -30,12 +30,14 @@ import {
 } from "@/lib/api/announcements";
 import { mapNotificationsResponse, mapNotificationFromApi } from "@/lib/api/mappers";
 import { unwrapData } from "@/lib/api/helpers";
+import { useDraftsStore, saveUnifiedDraft } from "@/stores/use-drafts-store";
 
 export function NotificationsManagementView() {
   const { direction, isEn } = useLanguage();
 
   // Navigation & View URL State with nuqs
   const [view, setView] = useQueryState("view", { defaultValue: "list" });
+  const [draftIdQuery] = useQueryState("draftId");
 
   // Notifications State
   const [notifications, setNotifications] = useState<NotificationItem[]>(
@@ -67,6 +69,37 @@ export function NotificationsManagementView() {
   const [deleteTarget, setDeleteTarget] = useState<NotificationItem | null>(null);
   const [viewingDetails, setViewingDetails] = useState<NotificationItem | null>(null);
   const [editingDraft, setEditingDraft] = useState<NotificationItem | null>(null);
+
+  // Restore draft if draftId is in query
+  useEffect(() => {
+    if (draftIdQuery) {
+      useDraftsStore.getState().init();
+      const found = useDraftsStore.getState().getDraft(draftIdQuery);
+      if (found && found.data) {
+        const d = found.data as Record<string, any>;
+        setEditingDraft({
+          id: found.id,
+          code: `NTF-DRAFT`,
+          title: String(d.title || found.title || ""),
+          description: String(d.description || found.summary || ""),
+          status: "draft",
+          statusLabel: isEn ? "Draft" : "مسودة",
+          sentAt: isEn ? "Saved Draft" : "مسودة محفوظة",
+          audienceType: (d.audienceType as any) || "all",
+          targetAudienceLabel: isEn ? "Draft Target" : "المستهدف",
+          targetCount: 842,
+          actionUrl: String(d.actionUrl || ""),
+          imageUrl: d.imageUrl as string | undefined,
+          imageFileName: d.imageFileName as string | undefined,
+          imageFileSize: d.imageFileSize as string | undefined,
+          imageDimensions: d.imageDimensions as string | undefined,
+          categoryBadge: d.categoryBadge as string | undefined,
+          actionButtonText: d.actionButtonText as string | undefined,
+        });
+        setView("new");
+      }
+    }
+  }, [draftIdQuery, isEn, setView]);
 
   // Send Flow State
   const [pendingFormData, setPendingFormData] =
@@ -107,7 +140,7 @@ export function NotificationsManagementView() {
 
   // Save as Draft
   const handleSaveDraft = (values: SendNotificationFormValues) => {
-    const timeStr = new Date().toLocaleTimeString(isEn ? "en-US" : "ar-SA", {
+    const timeStr = new Date().toLocaleTimeString(isEn ? "en-US" : "ar-SA-u-nu-latn", {
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -142,10 +175,24 @@ export function NotificationsManagementView() {
     };
 
     setNotifications((prev) => [newDraft, ...prev]);
+
+    // Save to unified central drafts store
+    saveUnifiedDraft({
+      id: newDraft.id,
+      type: "notifications",
+      typeLabelAr: "إشعار وتنبيه",
+      typeLabelEn: "Notification",
+      title: values.title || (isEn ? "Draft Notification" : "مسودة إشعار جديد"),
+      summary: values.description || (isEn ? "Target: All Law Firms" : "المستهدف: جميع مكاتب المحاماة"),
+      targetUrl: `/notifications?view=new&draftId=${newDraft.id}`,
+      badge: isEn ? "Draft" : "مسودة",
+      data: values as Record<string, unknown>,
+    });
+
     toast.success(
       isEn
-        ? "Notification saved as draft successfully"
-        : "تم حفظ الإشعار كمسودة بنجاح"
+        ? "Notification saved to Drafts successfully"
+        : "تم حفظ الإشعار كمسودة بنجاح وإضافته إلى قسم المسودات"
     );
     setView("list");
   };
@@ -174,7 +221,7 @@ export function NotificationsManagementView() {
       }
 
       if (apiOk) {
-        const timeStr = new Date().toLocaleTimeString(isEn ? "en-US" : "ar-SA", {
+        const timeStr = new Date().toLocaleTimeString(isEn ? "en-US" : "ar-SA-u-nu-latn", {
           hour: "2-digit",
           minute: "2-digit",
         });
@@ -221,7 +268,7 @@ export function NotificationsManagementView() {
           actionUrl: pendingFormData.actionUrl,
           verificationCode,
           targetCount: dispatchedCount,
-          formattedTimestamp: new Intl.DateTimeFormat(isEn ? "en-US" : "ar-SA", {
+          formattedTimestamp: new Intl.DateTimeFormat(isEn ? "en-US" : "ar-SA-u-nu-latn", {
             year: "numeric",
             month: "long",
             day: "numeric",

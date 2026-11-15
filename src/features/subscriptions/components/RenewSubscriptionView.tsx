@@ -23,6 +23,7 @@ import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { renewSubscription } from "@/lib/api/subscriptions";
 import { LuxuryAlertDialog } from "@/components/shared/LuxuryAlertDialog";
+import { saveUnifiedDraft } from "@/stores/use-drafts-store";
 
 interface RenewSubscriptionViewProps {
   subscription?: SubscriptionRecord | null;
@@ -43,13 +44,21 @@ export function RenewSubscriptionView({
       "مكتب د. خالد بن عبد العزيز العجلان للمحاماة والاستشارات (ترخيص: 38/412)"
   );
   const [resolutionOption, setResolutionOption] = useState<"scheduled" | "override">("scheduled");
-  const [selectedPlan, setSelectedPlan] = useState("الباقة الذهبية - 12,000 ر.س / سنوياً (الأكثر طلباً)");
+  const [selectedPlan, setSelectedPlan] = useState(
+    isEn
+      ? "Gold Plan - 12,000 SAR / yr (Most Popular)"
+      : "الباقة الذهبية - 12,000 ر.س / سنوياً (الأكثر طلباً)"
+  );
   const [billingCycle, setBillingCycle] = useState<"annual" | "monthly">("annual");
   const [startDate, setStartDate] = useState(isEn ? "15 Nov 2024" : "15 نوفمبر 2024");
   const [endDate, setEndDate] = useState(isEn ? "14 Nov 2025" : "14 نوفمبر 2025");
   const [paymentMethod, setPaymentMethod] = useState<"transfer" | "manual" | "gateway">("transfer");
   const [referenceNumber, setReferenceNumber] = useState("TRX-BNK-982341-SA");
-  const [bankAccount, setBankAccount] = useState("مصرف الراجحي - الحساب الرئيسي لمنصة الجودي");
+  const [bankAccount, setBankAccount] = useState(
+    isEn
+      ? "Al Rajhi Bank - Al-Joudi Platform Main Account"
+      : "مصرف الراجحي - الحساب الرئيسي لمنصة الجودي"
+  );
   const [depositDate, setDepositDate] = useState(isEn ? "24 Oct 2024" : "24 أكتوبر 2024");
   const [activationState, setActivationState] = useState<"pending" | "active">("pending");
   const [notifySmsEmail, setNotifySmsEmail] = useState(true);
@@ -64,6 +73,38 @@ export function RenewSubscriptionView({
 
   const handleOpenConfirm = () => {
     setShowConfirmDialog(true);
+  };
+
+  const handleSaveDraft = () => {
+    const draftId = `draft_sub_${Date.now()}`;
+    const firmName = subscription?.firm?.name || (isEn ? "Law Firm" : "مكتب محاماة");
+    saveUnifiedDraft({
+      id: draftId,
+      type: "subscriptions",
+      typeLabelAr: "تجديد اشتراك",
+      typeLabelEn: "Subscription Renewal",
+      title: `${isEn ? "Renewal Draft:" : "مسودة تجديد:"} ${firmName}`,
+      summary: `${selectedPlan} • ${billingCycle === "annual" ? "سنوي" : "شهري"} • ${paymentMethod}`,
+      targetUrl: `/subscriptions?tab=renew&draftId=${draftId}`,
+      badge: t("مسودة", "Draft"),
+      data: {
+        subscriptionId: subscription?.id,
+        firmName,
+        selectedPlan,
+        billingCycle,
+        startDate,
+        endDate,
+        paymentMethod,
+        referenceNumber,
+        notes,
+      },
+    });
+    toast.success(
+      t(
+        "تم حفظ مسودة تجديد الاشتراك بنجاح في قسم المسودات",
+        "Subscription renewal draft saved to Drafts successfully"
+      )
+    );
   };
 
   const handleExecuteSave = async () => {
@@ -795,7 +836,7 @@ export function RenewSubscriptionView({
           </button>
           <button
             type="button"
-            onClick={handleOpenConfirm}
+            onClick={handleSaveDraft}
             className="px-4 py-2 rounded-[6px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] font-semibold transition-colors cursor-pointer"
           >
             {t("حفظ كمسودة", "Save as Draft")}

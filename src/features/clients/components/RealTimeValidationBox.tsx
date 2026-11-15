@@ -3,6 +3,7 @@
 import React from "react";
 import { Check, X, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
 import { FieldValidationStatus, OfficeFormValues } from "./office.schema";
 
 export const VALIDATION_FIELD_KEYS: (keyof OfficeFormValues)[] = [
@@ -31,6 +32,7 @@ export function RealTimeValidationBox({
   onSelectField,
   isShaking = false,
 }: RealTimeValidationBoxProps) {
+  const { t, isEn } = useLanguage();
   // Map fields by name for quick O(1) lookup
   const statusMap = React.useMemo(() => {
     const map = new Map<keyof OfficeFormValues, FieldValidationStatus>();
@@ -50,20 +52,20 @@ export function RealTimeValidationBox({
 
   return (
     <div
-      dir="rtl"
+      dir={isEn ? "ltr" : "rtl"}
       className={cn(
         "bg-white dark:bg-[#1a120d] border border-[#EFF0F5] dark:border-[#38271c] rounded-[16px] p-3 sm:p-3.5 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.04)] flex flex-col justify-between w-full transition-all text-start",
         isShaking && "animate-subtle-shake ring-2 ring-[#B82128]/50 dark:ring-[#ef4444]/60"
       )}
     >
       <div>
-        {/* Top Header: مراجعة البيانات (Right) | X من 10 حقول صحيحة (Left) */}
+        {/* Top Header */}
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-[15px] sm:text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-none">
-            مراجعة البيانات
+            {t("مراجعة البيانات", "Data Review")}
           </h3>
           <span className="text-[11.5px] sm:text-[12px] font-normal text-[#64748b] dark:text-[#94a3b8]">
-            {validCount} من 10 حقول صحيحة
+            {t(`${validCount} من 10 حقول صحيحة`, `${validCount} of 10 fields valid`)}
           </span>
         </div>
 
@@ -186,12 +188,12 @@ export function RealTimeValidationBox({
         {validCount < 10 ? (
           <span className="text-[#b45309] dark:text-[#f59e0b] font-medium flex items-center gap-1.5">
             <AlertCircle className="size-3.5 shrink-0" />
-            يرجى إكمال البيانات لمواصلة التسجيل
+            {t("يرجى إكمال البيانات لمواصلة التسجيل", "Please complete required fields to proceed")}
           </span>
         ) : (
           <span className="text-[#147F3E] dark:text-[#34d399] font-medium flex items-center gap-1.5">
             <Check className="size-3.5 stroke-[2.5] shrink-0" />
-            اكتملت جميع البيانات، يمكنك مواصلة التسجيل
+            {t("اكتملت جميع البيانات، يمكنك مواصلة التسجيل", "All fields valid, ready to proceed")}
           </span>
         )}
       </div>

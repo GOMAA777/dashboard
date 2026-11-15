@@ -27,6 +27,7 @@ import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { fetchSystemPermissions, fetchRoleById } from "@/lib/api/roles";
 import { unwrapList, unwrapData, asString } from "@/lib/api/helpers";
+import { saveUnifiedDraft } from "@/stores/use-drafts-store";
 
 interface AddRoleViewProps {
   onBack: () => void;
@@ -237,6 +238,25 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
       iconBg: "bg-[#f0eeea]",
       permissions: Array.from(selectedPermissions),
     };
+
+    if (isDraft) {
+      saveUnifiedDraft({
+        id: `draft_role_${newRole.id}`,
+        type: "roles",
+        typeLabelAr: "دور وصلاحيات",
+        typeLabelEn: "Role & Permissions",
+        title: newRole.name || t("مسودة دور جديد", "New Draft Role"),
+        summary: newRole.description || `${selectedPermissions.size} ${t("صلاحيات محددة", "selected permissions")}`,
+        targetUrl: `/permissions?tab=roles&action=new-role&draftId=draft_role_${newRole.id}`,
+        badge: t("مسودة", "Draft"),
+        data: {
+          name: roleName,
+          slug: roleSlug,
+          description: newRole.description || roleSlug,
+          permissions: Array.from(selectedPermissions),
+        },
+      });
+    }
 
     onSaveRole(newRole);
     toast.success(

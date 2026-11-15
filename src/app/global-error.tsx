@@ -12,8 +12,14 @@ export default function GlobalError({
 }) {
   void _error;
   const [countdown, setCountdown] = useState(4);
+  const [isEn, setIsEn] = useState(false);
 
   useEffect(() => {
+    try {
+      setIsEn(localStorage.getItem("app-language") === "en");
+    } catch {
+      // Ignore
+    }
     const started = Date.now();
     const total = 4000;
     const tick = window.setInterval(() => {
@@ -28,7 +34,7 @@ export default function GlobalError({
   }, []);
 
   return (
-    <html lang="ar" dir="rtl">
+    <html lang={isEn ? "en" : "ar"} dir={isEn ? "ltr" : "rtl"}>
       <body
         style={{
           margin: 0,
@@ -71,10 +77,12 @@ export default function GlobalError({
             ⚖️
           </div>
           <h1 style={{ fontSize: "20px", fontWeight: 800, margin: "0 0 10px 0" }}>
-            حدث خلل مؤقت
+            {isEn ? "Temporary Error" : "حدث خلل مؤقت"}
           </h1>
           <p style={{ fontSize: "13px", color: "#a89f91", lineHeight: 1.6, margin: "0 0 12px 0" }}>
-            نعيد تهيئة الصفحة الآن. سيتم التوجيه خلال {countdown} ث...
+            {isEn
+              ? `Reinitializing the page. Redirecting in ${countdown}s...`
+              : `نعيد تهيئة الصفحة الآن. سيتم التوجيه خلال ${countdown} ث...`}
           </p>
           <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
             <button
@@ -91,7 +99,7 @@ export default function GlobalError({
                 cursor: "pointer",
               }}
             >
-              إعادة المحاولة
+              {isEn ? "Retry" : "إعادة المحاولة"}
             </button>
             <button
               type="button"
@@ -109,7 +117,7 @@ export default function GlobalError({
                 cursor: "pointer",
               }}
             >
-              الرئيسية
+              {isEn ? "Home" : "الرئيسية"}
             </button>
           </div>
         </div>

@@ -11,27 +11,29 @@ describe("enterOfficeAsAdmin", () => {
   it("generates a handoff URL with real session when login-as-firm succeeds", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue(
-        new Response(
-          JSON.stringify({
-            status: "success",
-            token: "real_sanctum_token_123",
-            user: {
-              id: 99,
-              name: "مالك المكتب",
-              email: "owner@doussary.sa",
-              role: "owner",
-              company_id: 29,
-            },
-            firm: {
-              id: 29,
-              name: "مكتب الدوسري",
-            },
-          }),
-          {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-          }
+      vi.fn().mockImplementation(() =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify({
+              status: "success",
+              token: "real_sanctum_token_123",
+              user: {
+                id: 99,
+                name: "مالك المكتب",
+                email: "owner@doussary.sa",
+                role: "owner",
+                company_id: 29,
+              },
+              firm: {
+                id: 29,
+                name: "مكتب الدوسري",
+              },
+            }),
+            {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            }
+          )
         )
       )
     );
@@ -55,11 +57,13 @@ describe("enterOfficeAsAdmin", () => {
   it("throws error and does not produce a fake session when login-as-firm fails", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue(
-        new Response(JSON.stringify({ message: "Unauthenticated" }), {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        })
+      vi.fn().mockImplementation(() =>
+        Promise.resolve(
+          new Response(JSON.stringify({ message: "Unauthenticated" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          })
+        )
       )
     );
 
@@ -75,16 +79,18 @@ describe("enterOfficeAsAdmin", () => {
   it("recovers with resilient bypass session when backend crashes with 500 SaasImpersonationLog", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue(
-        new Response(
-          JSON.stringify({
-            message: 'Class "App\\Models\\Saas\\SaasImpersonationLog" not found',
-            exception: "Error",
-          }),
-          {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-          }
+      vi.fn().mockImplementation(() =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify({
+              message: 'Class "App\\Models\\Saas\\SaasImpersonationLog" not found',
+              exception: "Error",
+            }),
+            {
+              status: 500,
+              headers: { "Content-Type": "application/json" },
+            }
+          )
         )
       )
     );

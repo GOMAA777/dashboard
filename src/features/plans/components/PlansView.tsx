@@ -29,13 +29,14 @@ import { ApiError } from "@/lib/api/http";
 
 function firmToClientOffice(
   firm: DetailedSubscribedFirm | null,
-  planName = "الباقة الفضية"
+  planName = "الباقة الفضية",
+  isEn = false
 ): ClientOffice {
   if (!firm) {
     return (
       initialOffices[0] || {
         id: "1",
-        initial: "م",
+        initial: isEn ? "F" : "م",
         initialBg: "bg-[#ffddb6] dark:bg-[#2d1f16]",
         initialText: "text-[#7b4e00] dark:text-[#f3c27e]",
         name: "—",
@@ -48,14 +49,14 @@ function firmToClientOffice(
         planBadgeClass: "bg-[#ffddb6]/40 text-[#7b4e00]",
         registrationDate: "—",
         accountStatus: {
-          label: "نشط",
+          label: isEn ? "Active" : "نشط",
           type: "active",
           bgClass: "bg-[#e8f5e9]",
           textClass: "text-[#1b7340]",
           dotClass: "bg-[#1b7340]",
         },
         subscriptionStatus: {
-          label: "نشط",
+          label: isEn ? "Active" : "نشط",
           type: "active",
           bgClass: "bg-[#e8f5e9]",
           textClass: "text-[#1b7340]",
@@ -69,7 +70,7 @@ function firmToClientOffice(
   }
   return {
     id: firm.id,
-    initial: firm.initial || firm.name[0] || "م",
+    initial: firm.initial || firm.name[0] || (isEn ? "F" : "م"),
     initialBg: "bg-[#ffddb6] dark:bg-[#2d1f16] border border-transparent dark:border-[#4d3627]/60",
     initialText: "text-[#7b4e00] dark:text-[#f3c27e]",
     themeColor:
@@ -77,9 +78,9 @@ function firmToClientOffice(
       getLocalCustomThemeColor(firm.id) ||
       "#9c6402",
     name: firm.name,
-    licenseNumber: firm.licenseNumber.startsWith("ترخيص")
+    licenseNumber: firm.licenseNumber.startsWith("ترخيص") || firm.licenseNumber.startsWith("License")
       ? firm.licenseNumber
-      : `ترخيص عدلي: ${firm.licenseNumber}`,
+      : (isEn ? `Judicial License: ${firm.licenseNumber}` : `ترخيص عدلي: ${firm.licenseNumber}`),
     city: firm.city,
     owner: firm.owner,
     email: firm.contact.includes("@") ? firm.contact : "",
@@ -160,7 +161,7 @@ export function PlansView() {
                 merged[idx].yearlyDiscountPercent ?? lp.yearlyDiscountPercent,
               colorTheme: lp.colorTheme || merged[idx].colorTheme,
             };
-          } else if (mapped.length === 0) {
+          } else {
             merged.push(lp);
           }
         });
@@ -672,7 +673,7 @@ export function PlansView() {
           {viewMode === "firm-details" && (
             <div className="relative z-10 animate-in fade-in duration-200">
               <ClientOfficeDetailsView
-                office={firmToClientOffice(selectedFirm, selectedPlan?.name || "الباقة")}
+                office={firmToClientOffice(selectedFirm, selectedPlan?.name || (isEn ? "Plan" : "الباقة"), isEn)}
                 onBack={() => navigateToView("subscribed-firms", selectedPlan?.id || "silver")}
                 onEdit={() => router.push(`/accounts?officeId=${selectedFirm?.id || "1"}&action=edit`)}
                 onUpgradePlan={(_office, newPlan) => {

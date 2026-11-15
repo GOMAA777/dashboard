@@ -1,5 +1,5 @@
 export type AccountStatusType = "active" | "suspended" | "inactive" | "trial";
-export type SubscriptionStatusType = "active" | "expiring" | "trial" | "overdue" | "expired";
+export type SubscriptionStatusType = "active" | "expiring" | "trial" | "overdue" | "expired" | "unlimited";
 
 export interface OfficeResourceUsage {
   lawyersUsed: number;
@@ -9,6 +9,7 @@ export interface OfficeResourceUsage {
   storageLimitGb: number;
   storagePercent: number;
   activeCases: number;
+  maxCasesLimit?: number;
 }
 
 export interface OfficeInternalNote {
@@ -65,6 +66,8 @@ export interface ClientOffice {
   color?: string;
   primaryColor?: string;
   secondaryColor?: string;
+  backgroundColor?: string;
+  fontColor?: string;
   name: string;
   licenseNumber: string;
   city: string;
@@ -76,6 +79,7 @@ export interface ClientOffice {
   address?: string;
   taxNumber?: string;
   logo?: string;
+  updatedAt?: string;
   password?: string;
   initialPassword?: string;
   plan: string;
