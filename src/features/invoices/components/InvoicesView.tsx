@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
+import { useQueryState } from "nuqs";
 import { toast } from "sonner";
 import { AlertTriangle, RotateCcw } from "lucide-react";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
@@ -14,7 +15,7 @@ import { InvoicesKpiCards } from "./InvoicesKpiCards";
 import { InvoicesTable } from "./InvoicesTable";
 import { InvoicesEmptyState } from "./InvoicesEmptyState";
 import { InvoiceDetailsModal } from "./InvoiceDetailsModal";
-import { CreateInvoiceModal } from "./CreateInvoiceModal";
+import { CreateInvoiceView } from "./CreateInvoiceView";
 import { CancelInvoiceModal } from "./CancelInvoiceModal";
 import { RecordPaymentModal } from "./RecordPaymentModal";
 import { initialInvoicesList } from "../data/initialInvoices";
@@ -25,14 +26,17 @@ import {
   PaymentMethodType,
 } from "../types/invoices.types";
 import { useLanguage } from "@/lib/i18n";
+import { usePermissions } from "@/lib/permissions";
 import { DashboardSelect } from "@/components/shared/DashboardSelect";
-import { fetchInvoices, fetchInvoiceById } from "@/lib/api/payments";
+import { fetchInvoiceById } from "@/lib/api/payments";
 import { mapInvoicesResponse, mapInvoiceFromApi } from "@/lib/api/mappers";
 import { unwrapData } from "@/lib/api/helpers";
-import { API_COMPANY_ID } from "@/lib/api/config";
+import { useQueryClient } from "@tanstack/react-query";
+import { useInvoicesQuery, invalidateInvoicesQueries } from "@/features/invoices/hooks/useInvoicesQuery";
 
 export function InvoicesView() {
   const { isEn, direction, t } = useLanguage();
+  const { hasPermission } = usePermissions();
 
   // Invoices data list
   const [invoices, setInvoices] = useState<InvoiceItem[]>(initialInvoicesList);
@@ -43,7 +47,7 @@ export function InvoicesView() {
   const activeCompanyId =
     searchParams?.get("company_id") ||
     searchParams?.get("companyId") ||
-    API_COMPANY_ID;
+    "";
 
   // Filter state
   const [filterTab, setFilterTab] = useState<InvoiceFilterTab>("all");
@@ -59,32 +63,35 @@ export function InvoicesView() {
   // Modals state
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceItem | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const loadInvoices = useCallback(async () => {
-    setIsLoading(true);
-    setErrorMessage(null);
-    try {
-      const payload = await fetchInvoices({
-        company_id: activeCompanyId,
-      });
-      const mapped = mapInvoicesResponse(payload);
-      setInvoices(mapped);
-    } catch (err: unknown) {
-      const msg =
-        err instanceof Error
-          ? err.message
-          : t("تعذر تحميل فواتير الاشتراكات من الخادم", "Failed to load invoices");
-      setErrorMessage(msg);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [activeCompanyId, t]);
+  const queryClient = useQueryClient();
+  const invoicesQueryParams = useMemo(
+    () => (activeCompanyId ? { company_id: activeCompanyId } : {}),
+    [activeCompanyId]
+  );
+  const invoicesQuery = useInvoicesQuery(invoicesQueryParams);
 
   useEffect(() => {
-    loadInvoices();
-  }, [loadInvoices]);
+    if (invoicesQuery.data) {
+      const mapped = mapInvoicesResponse(invoicesQuery.data);
+      setInvoices(mapped);
+    }
+  }, [invoicesQuery.data]);
+
+  const effectiveInvoices = useMemo(() => {
+    if (invoices.length > 0) return invoices;
+    if (invoicesQuery.data) {
+      return mapInvoicesResponse(invoicesQuery.data);
+    }
+    return [];
+  }, [invoices, invoicesQuery.data]);
+
+  const isLoading = invoicesQuery.isLoading && effectiveInvoices.length === 0;
+  const errorMessage = invoicesQuery.error instanceof Error ? invoicesQuery.error.message : null;
+
+  const loadInvoices = useCallback(async () => {
+    await invoicesQuery.refetch();
+  }, [invoicesQuery]);
 
   useEffect(() => {
     if (searchParam) {
@@ -107,26 +114,28 @@ export function InvoicesView() {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [selectedInvoiceForPayment, setSelectedInvoiceForPayment] = useState<InvoiceItem | null>(null);
   const [isRecordPaymentOpen, setIsRecordPaymentOpen] = useState(false);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [view, setView] = useQueryState("view", { defaultValue: "list" });
 
   // Dynamic KPI Metrics calculations
   const metrics: InvoiceKpiMetrics = useMemo(() => {
-    const paidInvoices = invoices.filter((i) => i.status === "paid");
-    const pendingInvoices = invoices.filter((i) => i.status === "pending");
-    const overdueInvoices = invoices.filter((i) => i.status === "overdue");
-    const refundedInvoices = invoices.filter((i) => i.status === "refunded");
+    const paidInvoices = effectiveInvoices.filter((i) => i.status === "paid");
+    const partialInvoices = effectiveInvoices.filter((i) => i.status === "partial");
+    const pendingInvoices = effectiveInvoices.filter(
+      (i) => i.status === "pending" || i.status === "partial"
+    );
+    const overdueInvoices = effectiveInvoices.filter((i) => i.status === "overdue");
+    const refundedInvoices = effectiveInvoices.filter((i) => i.status === "refunded");
 
-    const totalRevenueSar = paidInvoices.reduce((sum, i) => sum + i.totalAmount, 0);
-    const totalRevenueUsd = Math.round(totalRevenueSar / 3.75);
-    const pendingAmountSar = pendingInvoices.reduce((sum, i) => sum + i.totalAmount, 0);
-    const overdueAmountSar = overdueInvoices.reduce((sum, i) => sum + i.totalAmount, 0);
+    const totalRevenueSar = effectiveInvoices.reduce((sum, i) => sum + i.paidAmount, 0);
+    const pendingAmountSar = pendingInvoices.reduce((sum, i) => sum + i.remainingAmount, 0);
+    const overdueAmountSar = overdueInvoices.reduce((sum, i) => sum + i.remainingAmount, 0);
     const paidPercentage =
-      invoices.length > 0 ? Math.round((paidInvoices.length / invoices.length) * 100) : 0;
+      effectiveInvoices.length > 0 ? Math.round((paidInvoices.length / effectiveInvoices.length) * 100) : 0;
 
     return {
       totalRevenueSar,
-      totalRevenueUsd,
-      totalInvoicesCount: invoices.length,
+      totalRevenueUsd: 0,
+      totalInvoicesCount: effectiveInvoices.length,
       paidCount: paidInvoices.length,
       paidPercentage,
       pendingCount: pendingInvoices.length,
@@ -134,14 +143,16 @@ export function InvoicesView() {
       overdueCount: overdueInvoices.length,
       overdueAmountSar,
       refundedCount: refundedInvoices.length,
+      partialCount: partialInvoices.length,
     };
-  }, [invoices]);
+  }, [effectiveInvoices]);
 
   // Primary filter options for UnifiedFilterBar
   const primaryFilterOptions: PrimaryFilterOption[] = useMemo(
     () => [
       { label: isEn ? "All Invoices" : "كافة الفواتير", value: "all" },
       { label: isEn ? "Paid" : "المسددة", value: "paid" },
+      { label: isEn ? "Partial" : "المسددة جزئياً", value: "partial" },
       { label: isEn ? "Pending" : "المعلقة", value: "pending" },
       { label: isEn ? "Overdue" : "المتأخرة", value: "overdue" },
       { label: isEn ? "Refunded" : "المستردة", value: "refunded" },
@@ -164,7 +175,7 @@ export function InvoicesView() {
 
   // Filtered invoices
   const filteredInvoices = useMemo(() => {
-    return invoices.filter((inv) => {
+    return effectiveInvoices.filter((inv) => {
       // 1. Status Filter Tab
       if (filterTab !== "all" && inv.status !== filterTab) {
         return false;
@@ -202,7 +213,7 @@ export function InvoicesView() {
 
       return true;
     });
-  }, [invoices, filterTab, searchQuery, paymentMethodFilter, minAmount, maxAmount]);
+  }, [effectiveInvoices, filterTab, searchQuery, paymentMethodFilter, minAmount, maxAmount]);
 
   // Paginated slice
   const paginatedInvoices = useMemo(() => {
@@ -215,7 +226,7 @@ export function InvoicesView() {
     setSelectedInvoice(invoice);
     setIsDetailsOpen(true);
     try {
-      const payload = await fetchInvoiceById(invoice.id, activeCompanyId);
+      const payload = await fetchInvoiceById(invoice.id, invoice.lawFirmId || activeCompanyId);
       const raw = (unwrapData<Record<string, unknown>>(payload) ||
         payload) as Record<string, unknown>;
       if (raw?.id || raw?.invoice_number || raw?.number) {
@@ -291,6 +302,7 @@ export function InvoicesView() {
     );
     setIsCancelModalOpen(false);
     setSelectedInvoiceForCancel(null);
+    invalidateInvoicesQueries(queryClient);
 
     toast.success(
       action === "refund"
@@ -331,6 +343,7 @@ export function InvoicesView() {
     );
     setIsRecordPaymentOpen(false);
     setSelectedInvoiceForPayment(null);
+    invalidateInvoicesQueries(queryClient);
 
     toast.success(
       isEn
@@ -346,7 +359,8 @@ export function InvoicesView() {
 
   const handleSaveNewInvoice = (newInvoice: InvoiceItem) => {
     setInvoices((prev) => [newInvoice, ...prev]);
-    setIsCreateModalOpen(false);
+    void setView("list");
+    invalidateInvoicesQueries(queryClient);
     toast.success(
       isEn
         ? `Tax Invoice ${newInvoice.invoiceNumber} issued successfully!`
@@ -359,10 +373,16 @@ export function InvoicesView() {
     );
   };
 
-  const breadcrumbs = [
-    { label: t("الفواتير والمالية", "Invoices & Finance"), href: "/invoices" },
-    { label: t("سجل الفواتير الضريبية", "Tax Invoices") },
-  ];
+  const breadcrumbs =
+    view === "new"
+      ? [
+          { label: t("الفواتير والمالية", "Invoices & Finance"), href: "/invoices" },
+          { label: t("إصدار فاتورة ضريبية جديدة", "Issue New Tax Invoice") },
+        ]
+      : [
+          { label: t("الفواتير والمالية", "Invoices & Finance"), href: "/invoices" },
+          { label: t("سجل الفواتير الضريبية", "Tax Invoices") },
+        ];
 
   return (
     <div
@@ -380,7 +400,12 @@ export function InvoicesView() {
         {/* Scrollable Page Body */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden w-full p-4 sm:p-6 lg:p-8 max-w-[1360px] mx-auto space-y-6 scrollbar-thin">
           <DashboardPageTransition>
-            {isLoading ? (
+            {view === "new" ? (
+              <CreateInvoiceView
+                onBack={() => void setView("list")}
+                onSave={handleSaveNewInvoice}
+              />
+            ) : isLoading ? (
               <DashboardPageSkeleton />
             ) : errorMessage ? (
               <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-red-200 dark:border-red-900/50 p-8 text-center flex flex-col items-center justify-center my-4">
@@ -406,8 +431,8 @@ export function InvoicesView() {
             <>
               {/* Header Banner */}
               <InvoicesManagementHeader
-                onCreateInvoice={() => setIsCreateModalOpen(true)}
-                onExportReport={handleExportReport}
+                onCreateInvoice={hasPermission("invoices.view") ? () => void setView("new") : undefined}
+                onExportReport={hasPermission("invoices.export") ? handleExportReport : undefined}
               />
 
               {/* KPI Metrics Cards */}
@@ -460,6 +485,9 @@ export function InvoicesView() {
                         <option value="apple_pay">Apple Pay</option>
                         <option value="bank_transfer">{isEn ? "Bank Wire Transfer" : "تحويل بنكي"}</option>
                         <option value="stripe">Stripe</option>
+                        <option value="credit_card">{isEn ? "Credit Card" : "بطاقة ائتمان"}</option>
+                        <option value="check">{isEn ? "Check" : "شيك"}</option>
+                        <option value="cash">{isEn ? "Cash" : "نقداً"}</option>
                       </DashboardSelect>
                     </div>
 
@@ -535,7 +563,7 @@ export function InvoicesView() {
                     hasActiveAdvancedFilters
                   }
                   onResetFilters={handleResetFilters}
-                  onCreateInvoice={() => setIsCreateModalOpen(true)}
+                  onCreateInvoice={() => void setView("new")}
                 />
               )}
             </>
@@ -554,13 +582,6 @@ export function InvoicesView() {
           setSelectedInvoice(null);
         }}
         onResendEmail={handleResendEmail}
-      />
-
-      {/* Create New Tax Invoice */}
-      <CreateInvoiceModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSave={handleSaveNewInvoice}
       />
 
       {/* Record Payment Receipt Modal */}

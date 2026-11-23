@@ -14,15 +14,14 @@ import {
   Cloud,
   Scale,
   Monitor,
-  ChevronRight,
-  ChevronLeft,
-  ChevronsRight,
-  ChevronsLeft,
+  KeyRound,
+  Copy,
+  Check,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Employee, IconType, isEmployeeAdmin } from "../types/staff.types";
-import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
+import { UnifiedPagination } from "@/components/shared/UnifiedPagination";
 import { useLanguage } from "@/lib/i18n";
-import { cn } from "@/lib/utils";
 
 interface StaffTableProps {
   employees: Employee[];
@@ -30,9 +29,9 @@ interface StaffTableProps {
   onEdit?: (employee: Employee) => void;
   onDelete?: (employee: Employee) => void;
   onLoginAsEmployee?: (employee: Employee) => void;
-  onDeactivate: (employee: Employee) => void;
-  onActivate: (employee: Employee) => void;
-  onResetPassword: (employee: Employee) => void;
+  onDeactivate?: (employee: Employee) => void;
+  onActivate?: (employee: Employee) => void;
+  onResetPassword?: (employee: Employee) => void;
 }
 
 export function StaffTable({
@@ -45,17 +44,28 @@ export function StaffTable({
   onActivate,
   onResetPassword,
 }: StaffTableProps) {
-  const { t, isEn, direction } = useLanguage();
+  const { t, direction } = useLanguage();
   const [pageSize, setPageSize] = useState(5);
   const [pageIndex, setPageIndex] = useState(0);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  const handleCopy = async (text: string, key: string, label: string) => {
+    if (!text || text === "—") return;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedKey(key);
+      toast.success(t(`تم نسخ ${label}`, `${label} copied`));
+      setTimeout(() => setCopiedKey(null), 2000);
+    } catch {
+      toast.error(t("تعذر النسخ", "Copy failed"));
+    }
+  };
 
   const totalItems = employees.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const safePageIndex = Math.min(pageIndex, totalPages - 1);
   const startIndex = safePageIndex * pageSize;
   const paginatedEmployees = employees.slice(startIndex, startIndex + pageSize);
-  const startItem = totalItems === 0 ? 0 : startIndex + 1;
-  const endItem = Math.min(startIndex + pageSize, totalItems);
 
   const getRoleIcon = (iconType: IconType) => {
     switch (iconType) {
@@ -109,9 +119,6 @@ export function StaffTable({
               <th className="py-3 px-4 font-semibold min-w-[110px] text-center whitespace-nowrap">
                 {t("حالة الحساب", "Status")}
               </th>
-              <th className="py-3 px-4 font-semibold min-w-[170px] text-center whitespace-nowrap">
-                {t("آخر تسجيل دخول", "Last Login")}
-              </th>
               <th className="py-3 px-4 font-semibold text-center whitespace-nowrap w-[100px]">
                 {t("الإجراءات", "Actions")}
               </th>
@@ -122,7 +129,7 @@ export function StaffTable({
           <tbody className="divide-y divide-[#f0eeea] dark:divide-[#38271c]" data-node-id="1:9010">
             {employees.length === 0 ? (
               <tr>
-                <td colSpan={7} className="py-12 text-center text-[#79716b] dark:text-[#8e8680]">
+                <td colSpan={6} className="py-12 text-center text-[#79716b] dark:text-[#8e8680]">
                   {t("لا توجد نتائج مطابقة لخيارات البحث المحددة.", "No matching results found for search filters.")}
                 </td>
               </tr>
@@ -157,13 +164,37 @@ export function StaffTable({
 
                         {/* Name & Code */}
                         <div className="flex flex-col text-start">
-                          <button
-                            type="button"
-                            onClick={() => onViewDetails(emp)}
-                            className="font-bold text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] hover:text-[#9c6402] dark:hover:text-[#e29d38] transition-colors text-start leading-[20px]"
-                          >
-                            {emp.name}
-                          </button>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <button
+                              type="button"
+                              onClick={() => onViewDetails(emp)}
+                              className="font-bold text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] hover:text-[#9c6402] dark:hover:text-[#e29d38] transition-colors text-start leading-[20px]"
+                            >
+                              {emp.name}
+                            </button>
+                            {emp.id ? (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  void handleCopy(
+                                    String(emp.id),
+                                    `${emp.id}-id`,
+                                    t("معرّف الموظف", "Staff ID")
+                                  );
+                                }}
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#f4efe6] dark:bg-[#271d15] text-[#78644f] dark:text-[#c4b3a3] border border-[#dfd7cc] dark:border-[#423122] shrink-0 hover:border-[#9c6402] dark:hover:border-[#e29d38] transition-colors cursor-pointer"
+                                title={t("معرّف الموظف (انقر للنسخ)", "Staff ID (Click to copy)")}
+                              >
+                                {copiedKey === `${emp.id}-id` ? (
+                                  <Check className="size-[10px] text-emerald-600" />
+                                ) : (
+                                  <Copy className="size-[10px] opacity-70" />
+                                )}
+                                <span>ID: #{emp.id}</span>
+                              </button>
+                            ) : null}
+                          </div>
                           <span className="text-[11px] text-[#79716b] dark:text-[#a89f91] leading-[16px] mt-0.5">
                             {emp.empCode} • {emp.department}
                           </span>
@@ -173,12 +204,60 @@ export function StaffTable({
 
                     {/* Email */}
                     <td className="py-3.5 px-4 text-[13px] text-[#514537] dark:text-[#cdc5bd] font-mono text-center">
-                      <span dir="ltr">{emp.email}</span>
+                      <div className="inline-flex items-center justify-center gap-1.5 max-w-full">
+                        <span dir="ltr" className="truncate">
+                          {emp.email}
+                        </span>
+                        {emp.email ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void handleCopy(
+                                emp.email,
+                                `${emp.id}-email`,
+                                t("البريد الإلكتروني", "Email")
+                              )
+                            }
+                            className="shrink-0 p-0.5 rounded-[3px] text-[#837565] hover:text-[#9c6402] dark:text-[#a89f91] dark:hover:text-[#e29d38] transition-colors cursor-pointer"
+                            title={t("نسخ البريد", "Copy Email")}
+                          >
+                            {copiedKey === `${emp.id}-email` ? (
+                              <Check className="size-[12px] text-emerald-600" />
+                            ) : (
+                              <Copy className="size-[12px]" />
+                            )}
+                          </button>
+                        ) : null}
+                      </div>
                     </td>
 
                     {/* Phone */}
                     <td className="py-3.5 px-4 text-[13px] text-[#514537] dark:text-[#cdc5bd] font-mono text-center">
-                      <span dir="ltr">{emp.phone}</span>
+                      <div className="inline-flex items-center justify-center gap-1.5 max-w-full">
+                        <span dir="ltr" className="truncate">
+                          {emp.phone}
+                        </span>
+                        {emp.phone ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void handleCopy(
+                                emp.phone,
+                                `${emp.id}-phone`,
+                                t("رقم الجوال", "Phone")
+                              )
+                            }
+                            className="shrink-0 p-0.5 rounded-[3px] text-[#837565] hover:text-[#9c6402] dark:text-[#a89f91] dark:hover:text-[#e29d38] transition-colors cursor-pointer"
+                            title={t("نسخ رقم الجوال", "Copy Phone")}
+                          >
+                            {copiedKey === `${emp.id}-phone` ? (
+                              <Check className="size-[12px] text-emerald-600" />
+                            ) : (
+                              <Copy className="size-[12px]" />
+                            )}
+                          </button>
+                        ) : null}
+                      </div>
                     </td>
 
                     {/* Role Badge */}
@@ -197,38 +276,38 @@ export function StaffTable({
                     <td className="py-3.5 px-4 text-center">
                       <div className="flex justify-center">
                         {isSuspended ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-semibold bg-[#fff5ea] dark:bg-[rgba(217,119,6,0.18)] text-[#d97706] dark:text-[#fbbf24] border border-[#fed7aa] dark:border-[#d97706]/40">
-                            <span className="size-[6px] rounded-full bg-[#d97706] dark:bg-[#fbbf24]" />
-                            {t("موقوف", "Suspended")}
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-semibold bg-[#e8f5e9] dark:bg-[#132c1c] text-[#1b7340] dark:text-[#6ee7b7] border border-[#c8e6c9] dark:border-emerald-500/40">
-                            <span className="size-[6px] rounded-full bg-[#1b7340] dark:bg-[#10b981]" />
-                            {t("نشط", "Active")}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-
-                    {/* Last Login */}
-                    <td className="py-3.5 px-4 text-center">
-                      <div className="flex flex-col items-center justify-center">
-                        {emp.lastLogin?.time && emp.lastLogin.time !== "—" ? (
-                          <>
-                            <span className="text-[12px] font-medium text-[#1b1c1a] dark:text-[#fdfbf7] font-mono leading-[18px]">
-                              {emp.lastLogin.time}
+                          onActivate ? (
+                            <button
+                              type="button"
+                              onClick={() => onActivate(emp)}
+                              title={t("انقر لتفعيل حساب الموظف", "Click to activate employee account")}
+                              aria-label={t("تفعيل حساب الموظف", "Activate employee account")}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-semibold bg-[#fff5ea] dark:bg-[rgba(217,119,6,0.18)] text-[#d97706] dark:text-[#fbbf24] border border-[#fed7aa] dark:border-[#d97706]/40 hover:bg-[#fed7aa]/60 dark:hover:bg-[rgba(217,119,6,0.3)] transition-all cursor-pointer hover:scale-[1.04] active:scale-[0.96] shadow-2xs outline-none focus-visible:ring-1 focus-visible:ring-[#d97706]/50"
+                            >
+                              <span className="size-[6px] rounded-full bg-[#d97706] dark:bg-[#fbbf24]" />
+                              <span>{t("موقوف", "Suspended")}</span>
+                            </button>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-semibold bg-[#fff5ea] dark:bg-[rgba(217,119,6,0.18)] text-[#d97706] dark:text-[#fbbf24] border border-[#fed7aa] dark:border-[#d97706]/40 select-none">
+                              <span className="size-[6px] rounded-full bg-[#d97706] dark:bg-[#fbbf24]" />
+                              <span>{t("موقوف", "Suspended")}</span>
                             </span>
-                            {(emp.lastLogin.city || emp.lastLogin.ip) && (
-                              <span className="text-[10px] text-[#79716b] dark:text-[#a89f91] leading-[14px] mt-0.5" dir="ltr">
-                                {[emp.lastLogin.city, emp.lastLogin.ip ? `IP: ${emp.lastLogin.ip}` : null]
-                                  .filter(Boolean)
-                                  .join(" • ")}
-                              </span>
-                            )}
-                          </>
+                          )
+                        ) : onDeactivate ? (
+                          <button
+                            type="button"
+                            onClick={() => onDeactivate(emp)}
+                            title={t("انقر لإيقاف حساب الموظف", "Click to suspend / deactivate employee account")}
+                            aria-label={t("إيقاف حساب الموظف", "Suspend employee account")}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-semibold bg-[#e8f5e9] dark:bg-[#132c1c] text-[#1b7340] dark:text-[#6ee7b7] border border-[#c8e6c9] dark:border-emerald-500/40 hover:bg-[#c8e6c9]/60 dark:hover:bg-emerald-900/40 transition-all cursor-pointer hover:scale-[1.04] active:scale-[0.96] shadow-2xs outline-none focus-visible:ring-1 focus-visible:ring-emerald-500/50"
+                          >
+                            <span className="size-[6px] rounded-full bg-[#1b7340] dark:bg-[#10b981]" />
+                            <span>{t("نشط", "Active")}</span>
+                          </button>
                         ) : (
-                          <span className="text-[11px] text-[#837565] dark:text-[#a89f91]">
-                            {t("لم يسجل بعد", "Never logged in")}
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-semibold bg-[#e8f5e9] dark:bg-[#132c1c] text-[#1b7340] dark:text-[#6ee7b7] border border-[#c8e6c9] dark:border-emerald-500/40 select-none">
+                            <span className="size-[6px] rounded-full bg-[#1b7340] dark:bg-[#10b981]" />
+                            <span>{t("نشط", "Active")}</span>
                           </span>
                         )}
                       </div>
@@ -257,6 +336,17 @@ export function StaffTable({
                             <Pencil className="size-[16px]" />
                           </button>
                         )}
+                        {onResetPassword && (
+                          <button
+                            type="button"
+                            aria-label={t("تغيير كلمة المرور", "Change Password")}
+                            title={t("تغيير كلمة المرور", "Change Password")}
+                            onClick={() => onResetPassword(emp)}
+                            className="p-[6px] rounded-[4px] border border-transparent hover:bg-[#fff9ee] dark:hover:bg-[#342711] text-[#9c6402] dark:text-[#e29d38] transition-colors cursor-pointer outline-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[#9c6402]/50 dark:focus-visible:ring-[#e29d38]/40"
+                          >
+                            <KeyRound className="size-[16px]" />
+                          </button>
+                        )}
                         {!isEmployeeAdmin(emp) && onDelete && (
                           <button
                             type="button"
@@ -278,98 +368,14 @@ export function StaffTable({
         </table>
       </div>
 
-      {/* Pagination Footer */}
-      <div className="bg-[#fcfaf7] dark:bg-[#1a120d] p-[16px] border-t border-[#f0eeea] dark:border-[#38271c] flex flex-col sm:flex-row items-center justify-between gap-[12px] text-[12px] text-[#514537] dark:text-[#cdc5bd] font-['Cairo']">
-        <div className="flex flex-wrap items-center gap-4">
-          <div>
-            <span>{t("عرض ", "Showing ")}</span>
-            <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{startItem}</span>
-            <span>{t(" إلى ", " to ")}</span>
-            <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{endItem}</span>
-            <span>{t(" من أصل ", " of ")}</span>
-            <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{totalItems}</span>
-            <span>{t(" موظف", " employees")}</span>
-          </div>
-
-          <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
-            <span className="text-[11px] text-[#837565] dark:text-[#8e8680]">{t("صفوف بالصفحة:", "Rows per page:")}</span>
-            <PageSizeDropdown
-              value={pageSize}
-              onChange={(newSize) => {
-                setPageSize(newSize);
-                setPageIndex(0);
-              }}
-              options={[5, 10, 20, 50]}
-              dropdownPlacement="top"
-            />
-          </div>
-        </div>
-
-        {/* Page Controls */}
-        <div className="flex items-center gap-[4px]">
-          <button
-            type="button"
-            disabled={safePageIndex === 0 || totalItems === 0}
-            onClick={() => setPageIndex(0)}
-            title={t("الصفحة الأولى", "First Page")}
-            className="size-[30px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
-          >
-            <ChevronsRight className={cn("size-[14px]", isEn && "rotate-180")} />
-          </button>
-
-          <button
-            type="button"
-            disabled={safePageIndex === 0 || totalItems === 0}
-            onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
-            title={t("الصفحة السابقة", "Previous Page")}
-            className="px-[10px] py-[6px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-[4px] transition-colors cursor-pointer"
-          >
-            <ChevronRight className={cn("size-[13px]", isEn && "rotate-180")} />
-            <span>{t("السابق", "Prev")}</span>
-          </button>
-
-          <div className="flex items-center gap-[4px] px-1">
-            {Array.from({ length: totalPages }).map((_, i) => {
-              const isCurrent = i === safePageIndex;
-              return (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setPageIndex(i)}
-                  className={`size-[30px] rounded-[4px] text-[12px] font-semibold transition-colors cursor-pointer flex items-center justify-center ${
-                    isCurrent
-                      ? "bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] font-bold shadow-sm"
-                      : "border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15]"
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              );
-            })}
-          </div>
-
-          <button
-            type="button"
-            disabled={safePageIndex >= totalPages - 1 || totalItems === 0}
-            onClick={() => setPageIndex((p) => Math.min(totalPages - 1, p + 1))}
-            title={t("الصفحة التالية", "Next Page")}
-            className="px-[10px] py-[6px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#1b1c1a] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-[4px] transition-colors cursor-pointer"
-          >
-            <span>{t("التالي", "Next")}</span>
-            <ChevronLeft className={cn("size-[13px]", isEn && "rotate-180")} />
-          </button>
-
-          <button
-            type="button"
-            disabled={safePageIndex >= totalPages - 1 || totalItems === 0}
-            onClick={() => setPageIndex(totalPages - 1)}
-            title={t("الصفحة الأخيرة", "Last Page")}
-            className="size-[30px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
-          >
-            <ChevronsLeft className={cn("size-[14px]", isEn && "rotate-180")} />
-          </button>
-        </div>
-      </div>
+      <UnifiedPagination
+        pageIndex={safePageIndex}
+        pageSize={pageSize}
+        totalItems={totalItems}
+        onPageChange={setPageIndex}
+        onPageSizeChange={setPageSize}
+        itemLabel={t("موظف", "employees")}
+      />
     </div>
   );
 }

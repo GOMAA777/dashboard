@@ -98,17 +98,8 @@ export function ConfirmCloseTicketModal({
               onClick={onConfirm}
               className="px-6 py-2.5 bg-[#9c6402] hover:bg-[#855402] text-white rounded-[6px] text-[13px] font-bold shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors cursor-pointer flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? (
-                <>
-                  <div className="size-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>{t("جاري الإغلاق...", "Closing...")}</span>
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="size-[16px]" />
-                  <span>{t("تأكيد الإغلاق", "Confirm Close")}</span>
-                </>
-              )}
+              <CheckCircle2 className="size-[16px]" />
+              <span>{t("تأكيد الإغلاق", "Confirm Close")}</span>
             </button>
           </div>
         </div>

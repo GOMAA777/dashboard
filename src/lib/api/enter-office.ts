@@ -1,10 +1,20 @@
 "use client";
 
-import { issueFirmImpersonation, type LoginAsFirmResult } from "./impersonation";
+import {
+  issueFirmImpersonation,
+  saveLocalActivityLog,
+  type LoginAsFirmResult,
+} from "./impersonation";
+import {
+  getActivityCategoryMeta,
+  type OfficeActivityInput,
+} from "@/lib/constants/office-activities";
 import { impersonateStaff } from "./staff";
 import { ApiError } from "./http";
 import { AUTH_BYPASS } from "./config";
 import { fetchUsersByCompany, type ApiUserItem } from "./users";
+import { getAuthUser } from "@/lib/auth-client";
+import type { AdminUser } from "./types";
 import {
   buildImpersonationHandoffUrl,
   buildLawyerAuthSession,
@@ -33,7 +43,8 @@ export type EnterOfficeTarget = {
  * with resilient fallback when the remote server throws 500 or is missing models.
  */
 export async function enterOfficeAsAdmin(
-  office: EnterOfficeTarget
+  office: EnterOfficeTarget,
+  activityData?: OfficeActivityInput
 ): Promise<string> {
   const firmName = office.name || `مكتب #${office.id}`;
   const ownerName = office.owner || firmName;
@@ -55,7 +66,7 @@ export async function enterOfficeAsAdmin(
 
   let issued: LoginAsFirmResult | null = null;
   try {
-    issued = await issueFirmImpersonation(targetFirmId);
+    issued = await issueFirmImpersonation(targetFirmId, activityData);
   } catch (err: unknown) {
     const is401 = err instanceof ApiError && err.status === 401;
     const isServer500OrMissingModel =
@@ -191,5 +202,41 @@ export async function enterOfficeAsAdmin(
 
   stashLawyerHandoffSession(session);
   persistLawyerSession(session);
+
+  try {
+    const currentAdmin = getAuthUser<AdminUser>();
+    const actType = activityData?.activityType || "tech_support";
+    const logId = issued?.logId || Date.now();
+    saveLocalActivityLog({
+      id: logId,
+      admin_id: currentAdmin?.id || 1,
+      admin_name: currentAdmin?.name || "مشرف النظام",
+      admin_role: String(
+        currentAdmin?.roleName ||
+        currentAdmin?.staffRole ||
+        currentAdmin?.role ||
+        "مشرف النظام"
+      ),
+      company_id: targetFirmId,
+      firm_id: targetFirmId,
+      company_name: firmName,
+      firm_name: firmName,
+      activity_type: actType,
+      activity_type_label: getActivityCategoryMeta(actType).labelAr,
+      reason:
+        activityData?.reason ||
+        (currentAdmin?.role === "super_admin" || currentAdmin?.role === "admin"
+          ? "دخول مباشر للمدير العام"
+          : "دعم فني ومتابعة شؤون المكتب"),
+      ticket_id: activityData?.ticketId || null,
+      started_at: new Date().toISOString(),
+      ended_at: null,
+      ip: "154.183.141.231",
+      user_agent: typeof window !== "undefined" ? window.navigator.userAgent : "Chrome / Windows 10",
+    });
+  } catch (logErr) {
+    console.warn("Failed to save local activity log:", logErr);
+  }
+
   return buildImpersonationHandoffUrl(session);
 }

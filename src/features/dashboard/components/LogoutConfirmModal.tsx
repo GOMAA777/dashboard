@@ -2,9 +2,7 @@
 
 import React, { useEffect, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
-import Image from "next/image";
 import { X, LogOut, ShieldAlert } from "lucide-react";
-import userAvatarImg from "../../../../public/figma/user-avatar.png";
 import { useUIStore } from "@/stores/use-ui-store";
 
 interface LogoutConfirmModalProps {
@@ -13,14 +11,16 @@ interface LogoutConfirmModalProps {
   onConfirm: () => void;
   userName?: string;
   userRole?: string;
+  userAvatar?: string | null;
 }
 
 export function LogoutConfirmModal({
   isOpen,
   onClose,
   onConfirm,
-  userName = "م. عبد العزيز بن فهد",
+  userName = "مستخدم",
   userRole = "مشرف النظام العام",
+  userAvatar = null,
 }: LogoutConfirmModalProps) {
   const language = useUIStore((state) => state.language);
   const isMounted = useSyncExternalStore(
@@ -31,8 +31,9 @@ export function LogoutConfirmModal({
 
   const currentLang = isMounted ? language : "ar";
 
-  const displayName = currentLang === "en" ? "Eng. Abdulaziz Bin Fahad" : userName;
-  const displayRole = currentLang === "en" ? "General System Admin" : userRole;
+  const displayName = userName || (currentLang === "en" ? "User" : "مستخدم");
+  const displayRole = userRole || (currentLang === "en" ? "System Super Admin" : "مشرف النظام العام");
+  const initialChar = displayName.trim().charAt(0) || "م";
 
   // Prevent background scrolling and movement while modal is open
   useEffect(() => {
@@ -120,14 +121,17 @@ export function LogoutConfirmModal({
           {/* User Preview Card */}
           <div className="bg-[#faf8f5] dark:bg-[#1a120d] rounded-[10px] p-3 border border-[#ede8e1] dark:border-[#352419] flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="relative size-[36px] rounded-full overflow-hidden border border-[#9c6402]/30 shrink-0">
-                <Image
-                  src={userAvatarImg}
-                  alt={displayName}
-                  width={36}
-                  height={36}
-                  className="w-full h-full object-cover"
-                />
+              <div className="relative size-[36px] rounded-full overflow-hidden border border-[#9c6402]/30 shrink-0 flex items-center justify-center bg-[#f5e6d3] dark:bg-[#342217] text-[#8e5927] dark:text-[#f3b353] font-bold text-[14px]">
+                {userAvatar ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={userAvatar}
+                    alt={displayName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span>{initialChar}</span>
+                )}
               </div>
               <div className="text-start">
                 <div className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">

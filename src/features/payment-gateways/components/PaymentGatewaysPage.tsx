@@ -17,6 +17,11 @@ import { DisableGatewayModal } from "./DisableGatewayModal";
 import { GatewaySettingsModal } from "./GatewaySettingsModal";
 import { AddCustomGatewayModal } from "./AddCustomGatewayModal";
 import { useLanguage } from "@/lib/i18n";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  usePaymentGatewaysQuery,
+  invalidatePaymentGatewaysQueries,
+} from "@/features/payment-gateways/hooks/usePaymentGatewaysQuery";
 import {
   fetchPaymentGateways,
   fetchPaymentGateway,
@@ -79,38 +84,31 @@ export function PaymentGatewaysPage() {
   const [filter, setFilter] = useState<GatewayFilterStatus>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [isCheckingPing, setIsCheckingPing] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Modal states
   const [disablingGateway, setDisablingGateway] = useState<PaymentGatewayItem | null>(null);
   const [activeSettingsGateway, setActiveSettingsGateway] = useState<PaymentGatewayItem | null>(null);
   const [isAddCustomOpen, setIsAddCustomOpen] = useState(false);
 
-  const loadGateways = useCallback(async () => {
-    setIsLoading(true);
-    setErrorMessage(null);
-    try {
-      const payload = await fetchPaymentGateways();
-      if (payload?.stats) {
-        setStats(payload.stats);
-      }
-      const mapped = unwrapList<Record<string, unknown>>(payload).map(mapGatewayFromApi);
-      setGateways(mapped);
-    } catch (err: unknown) {
-      const msg =
-        err instanceof Error
-          ? err.message
-          : t("تعذر تحميل بوابات الدفع من الخادم", "Failed to load payment gateways");
-      setErrorMessage(msg);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [t]);
+  const queryClient = useQueryClient();
+  const gatewaysQuery = usePaymentGatewaysQuery();
 
   useEffect(() => {
-    loadGateways();
-  }, [loadGateways]);
+    if (gatewaysQuery.data) {
+      if (gatewaysQuery.data.stats) {
+        setStats(gatewaysQuery.data.stats);
+      }
+      const mapped = unwrapList<Record<string, unknown>>(gatewaysQuery.data).map(mapGatewayFromApi);
+      if (mapped.length > 0) setGateways(mapped);
+    }
+  }, [gatewaysQuery.data]);
+
+  const isLoading = gatewaysQuery.isLoading && gateways.length === 0;
+  const errorMessage = gatewaysQuery.error instanceof Error ? gatewaysQuery.error.message : null;
+
+  const loadGateways = useCallback(async () => {
+    await gatewaysQuery.refetch();
+  }, [gatewaysQuery]);
 
   // Counts
   const totalCount = stats?.total_gateways ?? gateways.length;
@@ -205,7 +203,7 @@ export function PaymentGatewaysPage() {
             ),
           }
         );
-        await loadGateways();
+        invalidatePaymentGatewaysQueries(queryClient);
       } catch (err: unknown) {
         toast.error(
           err instanceof Error
@@ -228,7 +226,7 @@ export function PaymentGatewaysPage() {
       toast.success(t("تم تعطيل البوابة بنجاح", "Gateway disabled successfully"), {
         description: isEn ? `Disable reason: ${reason}` : `تم تسجيل سبب التعطيل: ${reason}`,
       });
-      await loadGateways();
+      invalidatePaymentGatewaysQueries(queryClient);
     } catch (err: unknown) {
       toast.error(
         err instanceof Error
@@ -274,7 +272,7 @@ export function PaymentGatewaysPage() {
           ? `Settings for "${target?.name || gatewayKey}" updated successfully!`
           : `تم تحديث إعدادات بوابة "${target?.name || gatewayKey}" بنجاح!`
       );
-      await loadGateways();
+      invalidatePaymentGatewaysQueries(queryClient);
     } catch (err: unknown) {
       toast.error(
         err instanceof Error
@@ -287,6 +285,7 @@ export function PaymentGatewaysPage() {
   // Handler: Add Custom Gateway
   const handleAddCustomGateway = (newGateway: PaymentGatewayItem) => {
     setGateways((prev) => [...prev, newGateway]);
+    invalidatePaymentGatewaysQueries(queryClient);
   };
 
   const breadcrumbs = [
@@ -333,7 +332,7 @@ export function PaymentGatewaysPage() {
                   className="bg-[#9c6402] hover:bg-[#855401] active:scale-[0.98] drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] text-white text-[14px] font-semibold rounded-[4px] px-4 py-2 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-70 self-start sm:self-auto shrink-0"
                 >
                   <RefreshCw
-                    className={`size-3.5 ${isCheckingPing ? "animate-spin" : ""}`}
+                    className="size-3.5"
                   />
                   <span>{t("فحص حالة الاتصال", "Test Connection")}</span>
                 </button>

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { X, Trash2, Tag, Loader2 } from "lucide-react";
+import { X, Trash2, Tag } from "lucide-react";
 import { toast } from "sonner";
 import { PricingPlanItem } from "../types/plan.types";
 import { useLanguage } from "@/lib/i18n";
@@ -130,12 +130,8 @@ export function DeletePlanDialog({
             disabled={isLoading}
             className="px-[20px] py-[9px] rounded-[6px] bg-[#b91c1c] hover:bg-[#991b1b] text-white text-[13px] font-bold flex items-center gap-[6px] shadow-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? (
-              <Loader2 className="size-[15px] animate-spin" />
-            ) : (
-              <Trash2 className="size-[15px]" />
-            )}
-            <span>{isLoading ? t("جاري الحذف...", "Deleting...") : t("حذف الباقة", "Delete Plan")}</span>
+            <Trash2 className="size-[15px]" />
+            <span>{t("حذف الباقة", "Delete Plan")}</span>
           </button>
         </div>
       </div>

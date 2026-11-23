@@ -1,15 +1,15 @@
 import { z } from "zod";
 import { SAUDI_CITIES, normalizeArabicDigits, getLocalizedCityName } from "../constants/saudi-cities";
 
-// Regex for Arabic & English letters and spaces only (NO numbers, NO punctuation)
+// Regex for Arabic & English letters, spaces, and dots (allows abbreviations like د.محمد or د. خالد)
 // Note: \u0621-\u064A covers Arabic alphabet without Arabic numerals \u0660-\u0669
-export const LETTERS_AND_SPACES_REGEX = /^[\u0621-\u064Aa-zA-Z ]+$/;
+export const LETTERS_AND_SPACES_REGEX = /^[\u0621-\u064Aa-zA-Z .]+$/;
 
 // License: digits and / only, 1-15 chars, must contain at least one digit
 export const LICENSE_REGEX = /^[\d/]{1,15}$/;
 
-// Saudi mobile: 05 followed by 8 digits (total 10 digits)
-export const SAUDI_PHONE_REGEX = /^05\d{8}$/;
+// Saudi mobile: 9 digits starting with 5 (without leading zero)
+export const SAUDI_PHONE_REGEX = /^5\d{8}$/;
 
 // Saudi landline: 01 + [1,2,3,4,6,7] + 6 or 7 digits (total 9 or 10 digits)
 export const SAUDI_LANDLINE_REGEX = /^01[123467]\d{6,7}$/;
@@ -21,8 +21,8 @@ export const CONTAINS_LETTER_REGEX = /[a-zA-Z\u0621-\u064A]/;
 // Has at least one digit
 export const CONTAINS_DIGIT_REGEX = /\d/;
 
-// Has at least one symbol (non-alphanumeric, non-space)
-export const CONTAINS_SYMBOL_REGEX = /[^a-zA-Z0-9\u0621-\u064A\s]/;
+// Has at least one symbol (non-alphanumeric, non-space, non-dot)
+export const CONTAINS_SYMBOL_REGEX = /[^a-zA-Z0-9\u0621-\u064A\s.]/;
 
 // Office ID / Slug: alphanumeric and hyphens only (e.g. alajlan-law-101)
 export const OFFICE_ID_REGEX = /^[a-zA-Z0-9-]+$/;
@@ -49,11 +49,14 @@ export function createOfficeSchema(isEn = false) {
       .refine((val) => val.length > 0, {
         message: m("اسم صاحب المكتب مطلوب", "Owner name is required"),
       })
-      .refine((val) => val.length >= 5 && val.length <= 30, {
-        message: m("اسم صاحب المكتب يجب أن يكون من 5 إلى 30 حرفاً", "Owner name must be between 5 and 30 characters"),
+      .refine((val) => val.length >= 4 && val.length <= 40, {
+        message: m("اسم صاحب المكتب يجب أن يكون من 4 إلى 40 حرفاً", "Owner name must be between 4 and 40 characters"),
+      })
+      .refine((val) => CONTAINS_LETTER_REGEX.test(val), {
+        message: m("اسم صاحب المكتب يجب أن يحتوي على حروف", "Owner name must contain letters"),
       })
       .refine((val) => LETTERS_AND_SPACES_REGEX.test(val), {
-        message: m("اسم صاحب المكتب يقبل حروفاً ومسافات فقط، بدون أرقام أو رموز", "Owner name accepts letters and spaces only"),
+        message: m("اسم صاحب المكتب يقبل حروفاً ومسافات ونقاط فقط، بدون أرقام أو رموز خاصة", "Owner name accepts letters, spaces, and dots only"),
       }),
 
     firmName: z
@@ -62,11 +65,14 @@ export function createOfficeSchema(isEn = false) {
       .refine((val) => val.length > 0, {
         message: m("اسم المكتب مطلوب", "Law office name is required"),
       })
-      .refine((val) => val.length >= 5 && val.length <= 40, {
-        message: m("اسم المكتب يجب أن يكون من 5 إلى 40 حرفاً", "Law office name must be between 5 and 40 characters"),
+      .refine((val) => val.length >= 4 && val.length <= 40, {
+        message: m("اسم المكتب يجب أن يكون من 4 إلى 40 حرفاً", "Law office name must be between 4 and 40 characters"),
+      })
+      .refine((val) => CONTAINS_LETTER_REGEX.test(val), {
+        message: m("اسم المكتب يجب أن يحتوي على حروف", "Law office name must contain letters"),
       })
       .refine((val) => LETTERS_AND_SPACES_REGEX.test(val), {
-        message: m("اسم المكتب يقبل حروفاً ومسافات فقط، بدون أرقام أو رموز", "Law office name accepts letters and spaces only"),
+        message: m("اسم المكتب يقبل حروفاً ومسافات ونقاط فقط، بدون أرقام أو رموز خاصة", "Law office name accepts letters, spaces, and dots only"),
       }),
 
     licenseNumber: z
@@ -132,17 +138,19 @@ export function createOfficeSchema(isEn = false) {
       .transform((val) => {
         let norm = normalizeArabicDigits(val.trim()).replace(/\s+/g, "");
         if (norm.startsWith("+966")) norm = norm.slice(4);
-        if (/^5\d{8}$/.test(norm)) norm = `0${norm}`;
+        if (norm.startsWith("00966")) norm = norm.slice(5);
+        if (norm.startsWith("966")) norm = norm.slice(3);
+        if (norm.startsWith("0")) norm = norm.slice(1);
         return norm;
       })
       .refine((val) => val.length > 0, {
         message: m("رقم الجوال مطلوب", "Mobile phone is required"),
       })
-      .refine((val) => val.startsWith("05"), {
-        message: m("رقم الجوال يجب أن يبدأ بـ 05", "Mobile phone must start with 05"),
+      .refine((val) => val.startsWith("5"), {
+        message: m("رقم الجوال يجب أن يبدأ بـ 5 (بدون الصفر)", "Mobile phone must start with 5 (without zero)"),
       })
       .refine((val) => SAUDI_PHONE_REGEX.test(val), {
-        message: m("رقم الجوال يجب أن يكون 10 أرقام بالضبط ويبدأ بـ 05 (مثال: 0512345678)", "Mobile phone must be 10 digits starting with 05 (e.g. 0512345678)"),
+        message: m("رقم الجوال يجب أن يتكون من 9 أرقام ويبدأ بـ 5 بدون الصفر (مثال: 512345678)", "Mobile phone must be 9 digits starting with 5 without zero (e.g. 512345678)"),
       }),
 
     landline: z
@@ -317,13 +325,13 @@ export function evaluateFieldRules(
   switch (fieldName) {
     case "ownerName": {
       const len = raw.trim().length;
-      const r1 = len >= 5 && len <= 30;
-      const r2 = LETTERS_AND_SPACES_REGEX.test(raw.trim());
+      const r1 = len >= 4 && len <= 40;
+      const r2 = LETTERS_AND_SPACES_REGEX.test(raw.trim()) && CONTAINS_LETTER_REGEX.test(raw.trim());
       const r3 = !/\d/.test(raw) && !CONTAINS_SYMBOL_REGEX.test(raw);
-      const isValid = isFilled && r1 && r2;
+      const isValid = isFilled && r1 && r2 && r3;
       let errorMessage: string | undefined;
-      if (isFilled && !r1) errorMessage = m("يجب أن يكون الاسم من 5 إلى 30 حرفاً", "Name must be between 5 and 30 characters");
-      else if (isFilled && !r2) errorMessage = m("حروف عربي وإنجليزي ومسافات فقط بدون أرقام أو رموز", "Letters and spaces only, no digits or symbols");
+      if (isFilled && !r1) errorMessage = m("يجب أن يكون الاسم من 4 إلى 40 حرفاً", "Name must be between 4 and 40 characters");
+      else if (isFilled && !r2) errorMessage = m("حروف عربي وإنجليزي ومسافات ونقاط فقط بدون أرقام أو رموز خاصة", "Letters, spaces and dots only, no digits or symbols");
       
       const detailHeader = !isFilled
         ? m("صاحب المكتب: بانتظار الإدخال", "Owner Name: Waiting for input")
@@ -341,12 +349,12 @@ export function evaluateFieldRules(
         isValid,
         errorMessage,
         rules: [
-          { id: "char", label: m("حروف ومسافات فقط", "Letters & spaces only"), isValid: isFilled && r2 },
+          { id: "char", label: m("حروف ومسافات ونقاط فقط", "Letters, spaces & dots only"), isValid: isFilled && r2 },
           {
             id: "len",
             label: isEn
-              ? `Must be between 5 and 30 characters${len < 5 ? ` (${5 - len} more needed)` : len > 30 ? ` (${len - 30} extra)` : ""}`
-              : `يجب أن يكون بين 5 و 30 حرفًا${len < 5 ? formatArabicDiff(5, len, "حرف") : len > 30 ? formatArabicDiff(30, len, "حرف") : ""}`,
+              ? `Must be between 4 and 40 characters${len < 4 ? ` (${4 - len} more needed)` : len > 40 ? ` (${len - 40} extra)` : ""}`
+              : `يجب أن يكون بين 4 و 40 حرفًا${len < 4 ? formatArabicDiff(4, len, "حرف") : len > 40 ? formatArabicDiff(40, len, "حرف") : ""}`,
             isValid: isFilled && r1,
           },
           { id: "no_symbols", label: m("بدون أرقام أو رموز", "No digits or symbols"), isValid: isFilled && r3 },
@@ -356,13 +364,13 @@ export function evaluateFieldRules(
 
     case "firmName": {
       const len = raw.trim().length;
-      const r1 = len >= 5 && len <= 40;
-      const r2 = LETTERS_AND_SPACES_REGEX.test(raw.trim());
+      const r1 = len >= 4 && len <= 40;
+      const r2 = LETTERS_AND_SPACES_REGEX.test(raw.trim()) && CONTAINS_LETTER_REGEX.test(raw.trim());
       const r3 = !CONTAINS_SYMBOL_REGEX.test(raw);
-      const isValid = isFilled && r1 && r2;
+      const isValid = isFilled && r1 && r2 && r3;
       let errorMessage: string | undefined;
-      if (isFilled && !r1) errorMessage = m("يجب أن يكون اسم المكتب من 5 إلى 40 حرفاً", "Office name must be between 5 and 40 characters");
-      else if (isFilled && !r2) errorMessage = m("حروف ومسافات فقط بدون أرقام أو رموز", "Letters and spaces only, no digits or symbols");
+      if (isFilled && !r1) errorMessage = m("يجب أن يكون اسم المكتب من 4 إلى 40 حرفاً", "Office name must be between 4 and 40 characters");
+      else if (isFilled && !r2) errorMessage = m("حروف ومسافات ونقاط فقط بدون أرقام أو رموز خاصة", "Letters, spaces and dots only, no digits or special symbols");
 
       const detailHeader = !isFilled
         ? m("اسم المكتب: بانتظار الإدخال", "Office Name: Waiting for input")
@@ -380,12 +388,12 @@ export function evaluateFieldRules(
         isValid,
         errorMessage,
         rules: [
-          { id: "char", label: m("حروف ومسافات فقط", "Letters & spaces only"), isValid: isFilled && r2 },
+          { id: "char", label: m("حروف ومسافات ونقاط فقط", "Letters, spaces & dots only"), isValid: isFilled && r2 },
           {
             id: "len",
             label: isEn
-              ? `Must be between 5 and 40 characters${len < 5 ? ` (${5 - len} more needed)` : len > 40 ? ` (${len - 40} extra)` : ""}`
-              : `يجب أن يكون بين 5 و 40 حرفًا${len < 5 ? formatArabicDiff(5, len, "حرف") : len > 40 ? formatArabicDiff(40, len, "حرف") : ""}`,
+              ? `Must be between 4 and 40 characters${len < 4 ? ` (${4 - len} more needed)` : len > 40 ? ` (${len - 40} extra)` : ""}`
+              : `يجب أن يكون بين 4 و 40 حرفًا${len < 4 ? formatArabicDiff(4, len, "حرف") : len > 40 ? formatArabicDiff(40, len, "حرف") : ""}`,
             isValid: isFilled && r1,
           },
           { id: "no_symbols", label: m("بدون رموز خاصة", "No special symbols"), isValid: isFilled && r3 },
@@ -518,15 +526,17 @@ export function evaluateFieldRules(
     case "phone": {
       let normDigits = norm.replace(/\s+/g, "");
       if (normDigits.startsWith("+966")) normDigits = normDigits.slice(4);
-      if (/^5\d{8}$/.test(normDigits)) normDigits = `0${normDigits}`;
+      if (normDigits.startsWith("00966")) normDigits = normDigits.slice(5);
+      if (normDigits.startsWith("966")) normDigits = normDigits.slice(3);
+      if (normDigits.startsWith("0")) normDigits = normDigits.slice(1);
 
-      const starts05 = normDigits.startsWith("05");
-      const isExact10 = normDigits.length === 10 && /^\d+$/.test(normDigits);
+      const starts5 = normDigits.startsWith("5");
+      const isExact9 = normDigits.length === 9 && /^\d+$/.test(normDigits);
       const noSpacesOrSymbols = !/[^\d\u0660-\u0669\s+]/.test(raw);
-      const isValid = isFilled && starts05 && isExact10;
+      const isValid = isFilled && starts5 && isExact9;
       let errorMessage: string | undefined;
-      if (isFilled && !starts05) errorMessage = m("رقم الجوال يجب أن يبدأ بـ 05", "Mobile number must start with 05");
-      else if (isFilled && normDigits.length !== 10) errorMessage = m(`10 أرقام بالضبط (المكتوب: ${normDigits.length})`, `Exactly 10 digits (entered: ${normDigits.length})`);
+      if (isFilled && !starts5) errorMessage = m("رقم الجوال يجب أن يبدأ بـ 5 (بدون الصفر)", "Mobile number must start with 5 (without zero)");
+      else if (isFilled && normDigits.length !== 9) errorMessage = m(`9 أرقام بالضبط بدون الصفر (المكتوب: ${normDigits.length})`, `Exactly 9 digits without zero (entered: ${normDigits.length})`);
 
       const detailHeader = !isFilled
         ? m("رقم الجوال: بانتظار الإدخال", "Mobile: Waiting for input")
@@ -544,13 +554,13 @@ export function evaluateFieldRules(
         isValid,
         errorMessage,
         rules: [
-          { id: "prefix", label: m("يبدأ بـ 05", "Starts with 05"), isValid: isFilled && starts05 },
+          { id: "prefix", label: m("يبدأ بـ 5 (بدون 0)", "Starts with 5 (without 0)"), isValid: isFilled && starts5 },
           {
             id: "len",
             label: isEn
-              ? `Must be exactly 10 digits${normDigits.length < 10 ? ` (${10 - normDigits.length} left)` : normDigits.length > 10 ? ` (${normDigits.length - 10} extra)` : ""}`
-              : `يجب أن يتكوّن من 10 أرقام بالضبط${formatArabicDiff(10, normDigits.length, "رقم")}`,
-            isValid: isFilled && isExact10,
+              ? `Must be exactly 9 digits${normDigits.length < 9 ? ` (${9 - normDigits.length} left)` : normDigits.length > 9 ? ` (${normDigits.length - 9} extra)` : ""}`
+              : `يجب أن يتكوّن من 9 أرقام بالضبط${formatArabicDiff(9, normDigits.length, "رقم")}`,
+            isValid: isFilled && isExact9,
           },
           { id: "no_symbols", label: m("أرقام فقط بدون رموز خاصة", "Digits only, no symbols"), isValid: isFilled && noSpacesOrSymbols },
         ],

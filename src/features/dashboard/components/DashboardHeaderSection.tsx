@@ -90,7 +90,7 @@ export function DashboardHeaderSection({
           </span>
           <div className="size-[12px] flex items-center justify-center shrink-0">
             <RefreshCw
-              className={cn("size-[12px] block text-[#514537] dark:text-[#cdc5bd]", isRefreshing && "animate-spin")}
+              className="size-[12px] block text-[#514537] dark:text-[#cdc5bd]"
             />
           </div>
         </button>

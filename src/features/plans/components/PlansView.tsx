@@ -22,7 +22,12 @@ import { initialOffices } from "@/features/clients/data/initialOffices";
 import { ClientOffice } from "@/features/clients/types/client.types";
 import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 import { DashboardPageSkeleton } from "@/components/shared/DashboardPageSkeleton";
+import { PlansPageSkeleton } from "./PlansPageSkeleton";
+import { useQueryClient } from "@tanstack/react-query";
+import { usePlansQuery, invalidatePlansQueries } from "../hooks/usePlansQuery";
+import { InvalidationGraph } from "@/lib/query-keys";
 import { useLanguage } from "@/lib/i18n";
+import { usePermissions } from "@/lib/permissions";
 import { fetchPlans, deletePlan, updatePlanStatus, getLocalCustomPlans, saveLocalCustomPlan, removeLocalCustomPlan } from "@/lib/api/plans";
 import { mapPlansResponse, getLocalCustomThemeColor } from "@/lib/api/mappers";
 import { ApiError } from "@/lib/api/http";
@@ -113,6 +118,7 @@ export function PlansView() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t, isEn } = useLanguage();
+  const { hasPermission } = usePermissions();
 
   const viewParam = searchParams?.get("view") as PlanViewMode | null;
   const planIdParam = searchParams?.get("planId");
@@ -120,76 +126,29 @@ export function PlansView() {
 
   const [viewMode, setViewMode] = useState<PlanViewMode>(viewParam || "list");
   const [plans, setPlans] = useState<PricingPlanItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const plansQuery = usePlansQuery();
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<PricingPlanItem | null>(null);
 
-  const loadData = React.useCallback(() => {
-    let cancelled = false;
-    setIsLoading(true);
-    setError(null);
-    const localPlans = getLocalCustomPlans();
-    fetchPlans()
-      .then((payload) => {
-        if (cancelled) return;
-        const mapped = mapPlansResponse(payload);
-        const merged = [...mapped];
-        localPlans.forEach((lp) => {
-          const idx = merged.findIndex(
-            (m) => String(m.id) === String(lp.id) || m.name === lp.name
-          );
-          if (idx !== -1) {
-            const apiLimits = merged[idx].limits || {};
-            const localLimits = lp.limits || {};
-            merged[idx] = {
-              ...lp,
-              ...merged[idx],
-              limits: {
-                ...localLimits,
-                ...apiLimits,
-                lawyers: apiLimits.lawyers && apiLimits.lawyers !== "—" ? apiLimits.lawyers : (localLimits.lawyers || apiLimits.lawyers),
-                cases: apiLimits.cases && apiLimits.cases !== "—" ? apiLimits.cases : (localLimits.cases || apiLimits.cases),
-                agents: apiLimits.agents && apiLimits.agents !== "—" ? apiLimits.agents : (localLimits.agents || apiLimits.agents),
-                assistants: apiLimits.assistants && apiLimits.assistants !== "—" ? apiLimits.assistants : (localLimits.assistants || apiLimits.assistants),
-                clients: apiLimits.clients && apiLimits.clients !== "—" ? apiLimits.clients : (localLimits.clients || apiLimits.clients),
-                documents: apiLimits.documents && apiLimits.documents !== "—" ? apiLimits.documents : (localLimits.documents || apiLimits.documents),
-                storage: apiLimits.storage && apiLimits.storage !== "—" ? apiLimits.storage : (localLimits.storage || apiLimits.storage),
-                support: apiLimits.support && apiLimits.support !== "—" ? apiLimits.support : (localLimits.support || apiLimits.support),
-              },
-              yearlyDiscountPercent:
-                merged[idx].yearlyDiscountPercent ?? lp.yearlyDiscountPercent,
-              colorTheme: lp.colorTheme || merged[idx].colorTheme,
-            };
-          } else {
-            merged.push(lp);
-          }
-        });
-        setPlans(merged);
-        if (planIdParam) {
-          const found = merged.find((p) => String(p.id) === String(planIdParam));
-          if (found) setSelectedPlan(found);
-          else if (merged.length > 0) setSelectedPlan(merged[0]);
-        } else if (merged.length > 0) {
-          setSelectedPlan(merged[0]);
-        }
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : "فشل تحميل الباقات والأسعار");
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [planIdParam]);
-
   useEffect(() => {
-    return loadData();
-  }, [loadData]);
+    if (!plansQuery.data) return;
+    const mapped = mapPlansResponse(plansQuery.data);
+    setPlans(mapped);
+    if (planIdParam) {
+      const found = mapped.find((p) => String(p.id) === String(planIdParam));
+      if (found) setSelectedPlan(found);
+      else if (mapped.length > 0) setSelectedPlan(mapped[0]);
+    } else if (mapped.length > 0 && !selectedPlan) {
+      setSelectedPlan(mapped[0]);
+    }
+  }, [plansQuery.data, planIdParam]);
+
+  const isLoading = plansQuery.isLoading && plans.length === 0;
+  const error = plansQuery.error instanceof Error ? plansQuery.error.message : null;
+  const loadData = React.useCallback(() => {
+    void plansQuery.refetch();
+  }, [plansQuery]);
 
   const initialFirm = useMemo(() => {
     if (firmIdParam) {
@@ -384,10 +343,12 @@ export function PlansView() {
               : freshSelected
           );
         }
+        void InvalidationGraph.onPlanMutation(queryClient);
       })
       .catch(() => {
         // Keep optimistic saved plan if refresh fails.
       });
+    void InvalidationGraph.onPlanMutation(queryClient);
     navigateToView("list");
   };
 
@@ -400,6 +361,7 @@ export function PlansView() {
           prev.map((p) => (String(p.id) === String(targetPlan.id) ? { ...p, isActive: true } : p))
         );
         toast.success(t("تم تفعيل الباقة بنجاح وأصبحت متاحة للاشتراك.", "Plan activated successfully."));
+        void InvalidationGraph.onPlanMutation(queryClient);
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : t("فشل تفعيل الباقة", "Failed to activate plan");
         toast.error(msg);
@@ -420,6 +382,7 @@ export function PlansView() {
         prev.map((p) => (String(p.id) === String(planId) ? { ...p, isActive: false } : p))
       );
       toast.success(t("تم تعطيل الباقة بنجاح ولم تعد متاحة للاشتراكات الجديدة.", "Plan deactivated successfully."));
+      void InvalidationGraph.onPlanMutation(queryClient);
       setIsDeactivateDialogOpen(false);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : t("فشل تعطيل الباقة", "Failed to deactivate plan");
@@ -445,6 +408,7 @@ export function PlansView() {
       removeLocalCustomPlan(planId);
       setPlans((prev) => prev.filter((p) => String(p.id) !== String(planId)));
       toast.success(t("تم حذف الباقة نهائياً من النظام.", "Plan deleted successfully."));
+      void InvalidationGraph.onPlanMutation(queryClient);
       setIsDeleteDialogOpen(false);
     } catch (err: unknown) {
       const isBlocked =
@@ -549,7 +513,7 @@ export function PlansView() {
           {/* View Mode Switching */}
           {viewMode === "list" && (
             isLoading && plans.length === 0 ? (
-              <DashboardPageSkeleton />
+              <PlansPageSkeleton />
             ) : error && plans.length === 0 ? (
               <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-red-200 dark:border-red-900/40 p-[48px] text-center shadow-2xs space-y-4">
                 <p className="text-[14px] text-red-600 dark:text-red-400 font-medium">
@@ -567,8 +531,10 @@ export function PlansView() {
             <div className="space-y-6 relative z-10 animate-in fade-in duration-200">
               {/* Header (Figma 1:2463) */}
               <PlansManagementHeader
-                onCreatePlan={() => navigateToView("create")}
+                onCreatePlan={hasPermission("plans.create") ? () => navigateToView("create") : undefined}
                 onViewSubscribedFirms={() => navigateToView("subscribed-firms", selectedPlan?.id || plans[0]?.id || "silver")}
+                onRefresh={loadData}
+                isRefreshing={plansQuery.isFetching}
               />
 
               {/* KPI Metrics Summary (Figma 1:2464) */}
@@ -595,11 +561,15 @@ export function PlansView() {
                       key={plan.id}
                       plan={plan}
                       billingCycle={billingCycle}
-                      onEdit={handleEditPlan}
+                      onEdit={hasPermission("plans.edit") ? handleEditPlan : undefined}
                       onViewDetails={handleViewPlanDetails}
                       onViewSubscribers={handleViewSubscribedFirms}
-                      onToggleActive={handleOpenDeactivateDialog}
-                      onDelete={handleOpenDeleteDialog}
+                      onToggleActive={
+                        hasPermission("plans.status_change") || hasPermission("plans.edit")
+                          ? handleOpenDeactivateDialog
+                          : undefined
+                      }
+                      onDelete={hasPermission("plans.delete") ? handleOpenDeleteDialog : undefined}
                     />
                   ))}
                 </div>

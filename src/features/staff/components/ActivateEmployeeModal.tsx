@@ -7,8 +7,6 @@ import {
   ShieldCheck,
   Check,
   UserCheck,
-  Shield,
-  Lock,
 } from "lucide-react";
 import { Employee } from "../types/staff.types";
 import { useLanguage } from "@/lib/i18n";
@@ -19,6 +17,7 @@ interface ActivateEmployeeModalProps {
   onClose: () => void;
   employee: Employee | null;
   onConfirm: () => void;
+  isSubmitting?: boolean;
 }
 
 export function ActivateEmployeeModal({
@@ -26,6 +25,7 @@ export function ActivateEmployeeModal({
   onClose,
   employee,
   onConfirm,
+  isSubmitting = false,
 }: ActivateEmployeeModalProps) {
   const { t, direction } = useLanguage();
 
@@ -130,7 +130,8 @@ export function ActivateEmployeeModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2.5 bg-[#f0eeea] dark:bg-[#281c15] hover:bg-[#e6e2dc] text-[#514537] dark:text-[#a89f91] rounded-[6px] text-[13px] font-semibold transition-colors cursor-pointer"
+            disabled={isSubmitting}
+            className="px-5 py-2.5 bg-[#f0eeea] dark:bg-[#281c15] hover:bg-[#e6e2dc] text-[#514537] dark:text-[#a89f91] rounded-[6px] text-[13px] font-semibold transition-colors cursor-pointer disabled:opacity-50"
           >
             {t("إلغاء", "Cancel")}
           </button>
@@ -138,7 +139,8 @@ export function ActivateEmployeeModal({
           <button
             type="button"
             onClick={onConfirm}
-            className="px-5 py-2.5 bg-[#1b7340] hover:bg-[#145a32] text-white rounded-[6px] text-[13px] font-bold shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
+            disabled={isSubmitting}
+            className="px-5 py-2.5 bg-[#1b7340] hover:bg-[#145a32] text-white rounded-[6px] text-[13px] font-bold shadow-xs transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <Check className="size-[15px]" />
             <span>{t("تأكيد تفعيل الحساب", "Confirm Account Activation")}</span>

@@ -10,13 +10,7 @@ import {
 } from "@tanstack/react-table";
 import { SubscriptionRecord, SubscriptionStatus } from "../types/subscription.types";
 import { SubscriptionRowActionMenu } from "./SubscriptionRowActionMenu";
-import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
-import {
-  ChevronRight,
-  ChevronLeft,
-  ChevronsRight,
-  ChevronsLeft,
-} from "lucide-react";
+import { UnifiedPagination } from "@/components/shared/UnifiedPagination";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -51,7 +45,7 @@ export function SubscriptionManagementTable({
   onPageSizeChange,
   className,
 }: SubscriptionManagementTableProps) {
-  const { t, isEn } = useLanguage();
+  const { t } = useLanguage();
 
   const getStatusBadge = useCallback((status: SubscriptionStatus, label: string) => {
     switch (status) {
@@ -330,27 +324,23 @@ export function SubscriptionManagementTable({
     pageCount: Math.ceil(totalItems / pageSize),
   });
 
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-  const startItem = totalItems === 0 ? 0 : pageIndex * pageSize + 1;
-  const endItem = Math.min((pageIndex + 1) * pageSize, totalItems);
-
   return (
     <div
       className={cn(
-        "bg-white dark:bg-[#221812] flex flex-col rounded-[8px] border border-[#f0eeea] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] w-full font-['Cairo',sans-serif]",
+        "bg-white dark:bg-[#221812] flex flex-col rounded-[8px] border border-[#f0eeea] dark:border-[#38271c] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] overflow-hidden w-full shrink-0 font-['Cairo',sans-serif]",
         className
       )}
       data-node-id="1:5392"
       data-name="Main Table Container"
     >
       {/* Table Body Area */}
-      <div className="overflow-x-auto w-full max-w-full">
+      <div className="overflow-x-auto overflow-y-hidden scrollbar-none w-full max-w-full">
         <table className="w-full border-collapse text-start">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr
                 key={headerGroup.id}
-                className="bg-[#f0eeea] dark:bg-[#281c15] border-b border-[#e5e2dc] dark:border-[#38271c] h-[52px]"
+                className="bg-[#f5f3ef] dark:bg-[#281c15] border-b border-[#eae8e4] dark:border-[#38271c] h-[52px] text-[12px] leading-[18px] font-bold"
               >
                 {headerGroup.headers.map((header) => (
                   <th key={header.id} className="py-2.5 px-3 font-normal">
@@ -404,141 +394,14 @@ export function SubscriptionManagementTable({
         </table>
       </div>
 
-      {/* Pagination Footer */}
-      <div
-        className="bg-white dark:bg-[#221812] flex flex-col sm:flex-row items-center justify-between p-4 border-t border-[#f0eeea] dark:border-[#38271c] gap-4"
-        data-node-id="1:5737"
-        data-name="Pagination Footer"
-      >
-        {/* Right in RTL: Count Summary and Custom Rows Per Page Dropdown */}
-        <div className="flex flex-wrap items-center gap-4 text-[12px] text-[#514537] dark:text-[#a89f91] font-['Cairo']">
-          <div>
-            <span>{t("عرض ", "Showing ")}</span>
-            <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{startItem}</span>
-            <span>{t(" إلى ", " to ")}</span>
-            <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{endItem}</span>
-            <span>{t(" من أصل ", " of ")}</span>
-            <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{totalItems}</span>
-            <span>{t(" مكتب محاماة", " law firms")}</span>
-          </div>
-
-          {onPageSizeChange && (
-            <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
-              <span className="text-[11px] text-[#837565] dark:text-[#a89f91]">
-                {t("صفوف بالصفحة:", "Rows per page:")}
-              </span>
-              <PageSizeDropdown
-                value={pageSize}
-                onChange={onPageSizeChange}
-                options={[5, 10, 20, 50]}
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Left in RTL: Page Navigation Controls */}
-        <div className="flex items-center gap-1.5" data-node-id="1:5738">
-          <button
-            type="button"
-            disabled={pageIndex === 0}
-            onClick={() => onPageChange(0)}
-            title={t("الصفحة الأولى", "First Page")}
-            className="size-8 rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] flex items-center justify-center transition-colors cursor-pointer"
-          >
-            <ChevronsRight className={cn("w-4 h-4", isEn && "rotate-180")} />
-          </button>
-
-          <button
-            type="button"
-            disabled={pageIndex === 0}
-            onClick={() => onPageChange(pageIndex - 1)}
-            title={t("الصفحة السابقة", "Previous Page")}
-            className="bg-[#f5f3ef] dark:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] px-2.5 py-1.5 rounded-[4px] font-['Cairo'] font-semibold text-[12px] flex items-center gap-1 transition-colors cursor-pointer"
-          >
-            <ChevronRight className={cn("w-3.5 h-3.5", isEn && "rotate-180")} />
-            <span>{t("السابق", "Previous")}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => onPageChange(0)}
-            className={`size-8 rounded-[4px] font-['Cairo'] text-[12px] flex items-center justify-center transition-colors cursor-pointer ${
-              pageIndex === 0
-                ? "bg-[#9c6402] text-[#fff3e9] font-bold shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-                : "bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] font-semibold hover:bg-[#eae8e4]"
-            }`}
-          >
-            1
-          </button>
-
-          {totalPages > 1 && (
-            <button
-              type="button"
-              onClick={() => onPageChange(1)}
-              className={`size-8 rounded-[4px] font-['Cairo'] text-[12px] flex items-center justify-center transition-colors cursor-pointer ${
-                pageIndex === 1
-                  ? "bg-[#9c6402] text-[#fff3e9] font-bold shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-                  : "bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] font-semibold hover:bg-[#eae8e4]"
-              }`}
-            >
-              2
-            </button>
-          )}
-
-          {totalPages > 2 && (
-            <button
-              type="button"
-              onClick={() => onPageChange(2)}
-              className={`size-8 rounded-[4px] font-['Cairo'] text-[12px] flex items-center justify-center transition-colors cursor-pointer ${
-                pageIndex === 2
-                  ? "bg-[#9c6402] text-[#fff3e9] font-bold shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-                : "bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] font-semibold hover:bg-[#eae8e4]"
-              }`}
-            >
-              3
-            </button>
-          )}
-
-          {totalPages > 4 && (
-            <span className="px-1 text-[#837565] font-semibold text-[12px]">...</span>
-          )}
-
-          {totalPages > 3 && (
-            <button
-              type="button"
-              onClick={() => onPageChange(totalPages - 1)}
-              className={`size-8 rounded-[4px] font-['Cairo'] text-[12px] flex items-center justify-center transition-colors cursor-pointer ${
-                pageIndex === totalPages - 1
-                  ? "bg-[#9c6402] text-[#fff3e9] font-bold shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-                  : "bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] font-semibold hover:bg-[#eae8e4]"
-              }`}
-            >
-              {totalPages}
-            </button>
-          )}
-
-          <button
-            type="button"
-            disabled={pageIndex >= totalPages - 1}
-            onClick={() => onPageChange(pageIndex + 1)}
-            title={t("الصفحة التالية", "Next Page")}
-            className="bg-[#f5f3ef] dark:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] px-2.5 py-1.5 rounded-[4px] font-['Cairo'] font-semibold text-[12px] flex items-center gap-1 transition-colors cursor-pointer"
-          >
-            <span>{t("التالي", "Next")}</span>
-            <ChevronLeft className={cn("w-3.5 h-3.5", isEn && "rotate-180")} />
-          </button>
-
-          <button
-            type="button"
-            disabled={pageIndex >= totalPages - 1}
-            onClick={() => onPageChange(totalPages - 1)}
-            title={t("الصفحة الأخيرة", "Last Page")}
-            className="size-8 rounded-[4px] bg-[#f5f3ef] dark:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] flex items-center justify-center transition-colors cursor-pointer"
-          >
-            <ChevronsLeft className={cn("w-4 h-4", isEn && "rotate-180")} />
-          </button>
-        </div>
-      </div>
+      <UnifiedPagination
+        pageIndex={pageIndex}
+        pageSize={pageSize}
+        totalItems={totalItems}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange ?? (() => {})}
+        itemLabel={t("اشتراك", "subscriptions")}
+      />
     </div>
   );
 }

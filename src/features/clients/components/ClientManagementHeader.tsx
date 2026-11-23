@@ -5,7 +5,7 @@ import { Plus } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 
 interface ClientManagementHeaderProps {
-  onAddOffice: () => void;
+  onAddOffice?: () => void;
 }
 
 export function ClientManagementHeader({ onAddOffice }: ClientManagementHeaderProps) {
@@ -35,14 +35,16 @@ export function ClientManagementHeader({ onAddOffice }: ClientManagementHeaderPr
       </div>
 
       {/* Left Column: + إضافة مكتب جديد button */}
-      <button
-        type="button"
-        onClick={onAddOffice}
-        className="bg-[#9c6402] hover:bg-[#855402] text-white px-[20px] py-[10px] rounded-[4px] text-[14px] font-semibold leading-[20px] flex items-center justify-center gap-[8px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors cursor-pointer shrink-0 self-start sm:self-auto"
-      >
-        <Plus className="size-[16px] shrink-0 stroke-[2.5]" />
-        <span>{t("إضافة مكتب جديد", "Add New Office")}</span>
-      </button>
+      {onAddOffice && (
+        <button
+          type="button"
+          onClick={onAddOffice}
+          className="bg-[#9c6402] hover:bg-[#855402] text-white px-[20px] py-[10px] rounded-[4px] text-[14px] font-semibold leading-[20px] flex items-center justify-center gap-[8px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors cursor-pointer shrink-0 self-start sm:self-auto"
+        >
+          <Plus className="size-[16px] shrink-0 stroke-[2.5]" />
+          <span>{t("إضافة مكتب جديد", "Add New Office")}</span>
+        </button>
+      )}
     </div>
   );
 }

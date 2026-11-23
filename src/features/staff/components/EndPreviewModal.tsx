@@ -2,6 +2,8 @@
 
 import React from "react";
 import { X, Shield, LogOut, Info } from "lucide-react";
+import { getAuthUser } from "@/lib/auth-client";
+import type { AdminUser } from "@/lib/api/types";
 
 interface EndPreviewModalProps {
   isOpen: boolean;
@@ -65,7 +67,7 @@ export function EndPreviewModal({
             <div className="flex items-center justify-between text-[13px]">
               <span className="text-[#79716b]">الحساب المستعاد:</span>
               <span className="font-bold text-[#1b1c1a] flex items-center gap-1.5">
-                <span>م. عبد العزيز بن فهد (مشرف النظام العام)</span>
+                <span>{getAuthUser<AdminUser>()?.name || "مشرف النظام"} (مشرف النظام العام)</span>
                 <Shield className="size-[14px] text-[#9c6402]" />
               </span>
             </div>

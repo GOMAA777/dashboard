@@ -184,7 +184,7 @@ export function PaymentGatewaysTabContent() {
           disabled={isCheckingPing}
           className="bg-[#9c6402] hover:bg-[#855401] active:scale-[0.98] drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] text-white text-[13px] font-semibold rounded-[6px] px-4 py-2 flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-70 shrink-0 self-start sm:self-auto"
         >
-          <RefreshCw className={`size-3.5 ${isCheckingPing ? "animate-spin" : ""}`} />
+          <RefreshCw className="size-3.5" />
           <span>{isEn ? "Test Connectivity" : "فحص حالة الاتصال"}</span>
         </button>
       </div>

@@ -9,7 +9,7 @@ import {
   Hourglass,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
-import { fetchFirmsStats } from "@/lib/api/firms";
+import { useFirmStatsQuery } from "../hooks/useClientsQuery";
 import { unwrapData, asNumber } from "@/lib/api/helpers";
 import { ClientOffice } from "../types/client.types";
 
@@ -32,63 +32,44 @@ interface ClientKpiMetricsProps {
 export function ClientKpiMetrics({
   offices,
   isLoading: propIsLoading,
-  refreshTrigger = 0,
 }: ClientKpiMetricsProps = {}) {
   const { t } = useLanguage();
-  const [apiStats, setApiStats] = useState<FirmStatsState>({
-    total: 0,
-    active: 0,
-    activePct: 0,
-    trial: 0,
-    trialAvgDaysLeft: 0,
-    suspended: 0,
-    suspendedAwaitingPayment: 0,
-  });
-  const [isApiLoading, setIsApiLoading] = useState(true);
+  const statsQuery = useFirmStatsQuery();
 
-  useEffect(() => {
-    let cancelled = false;
-    setIsApiLoading(true);
+  const apiStats = useMemo<FirmStatsState>(() => {
+    if (!statsQuery.data) {
+      return {
+        total: 0,
+        active: 0,
+        activePct: 0,
+        trial: 0,
+        trialAvgDaysLeft: 0,
+        suspended: 0,
+        suspendedAwaitingPayment: 0,
+      };
+    }
+    const data = (unwrapData<Record<string, unknown>>(statsQuery.data) || {}) as Record<string, unknown>;
+    const rawTotal = asNumber(data.total_firms ?? data.total, 0);
+    const suspended = asNumber(data.suspended_firms ?? data.suspended, 0);
+    const rawActive = asNumber(data.active_firms ?? data.active, 0);
+    const active = rawTotal > 0 ? Math.max(rawActive, rawTotal - suspended) : rawActive;
+    const activePct = rawTotal > 0 ? Math.round((active / rawTotal) * 100) : 0;
+    const trial = asNumber(data.trial_firms ?? data.trial, 0);
+    const trialAvgDaysLeft = asNumber(data.trial_avg_days_left, 0);
+    const suspendedAwaitingPayment = asNumber(data.suspended_awaiting_payment, 0);
 
-    fetchFirmsStats()
-      .then((payload) => {
-        if (cancelled) return;
-        const data = (unwrapData<Record<string, unknown>>(payload) || {}) as Record<string, unknown>;
-        const rawTotal = asNumber(data.total_firms ?? data.total, 0);
-        const suspended = asNumber(data.suspended_firms ?? data.suspended, 0);
-        // Every firm is either active or suspended. A trial firm is a plan type, not a third status.
-        // Therefore, active firms = total - suspended (or the server's active count if already accurate).
-        const rawActive = asNumber(data.active_firms ?? data.active, 0);
-        const active = rawTotal > 0 ? Math.max(rawActive, rawTotal - suspended) : rawActive;
-        const activePct = rawTotal > 0 ? Math.round((active / rawTotal) * 100) : 0;
-        const trial = asNumber(data.trial_firms ?? data.trial, 0);
-        const trialAvgDaysLeft = asNumber(data.trial_avg_days_left, 0);
-        const suspendedAwaitingPayment = asNumber(
-          data.suspended_awaiting_payment,
-          0
-        );
-
-        setApiStats({
-          total: rawTotal,
-          active,
-          activePct,
-          trial,
-          trialAvgDaysLeft,
-          suspended,
-          suspendedAwaitingPayment,
-        });
-      })
-      .catch((err) => {
-        console.warn("Failed to fetch firms stats:", err);
-      })
-      .finally(() => {
-        if (!cancelled) setIsApiLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
+    return {
+      total: rawTotal,
+      active,
+      activePct,
+      trial,
+      trialAvgDaysLeft,
+      suspended,
+      suspendedAwaitingPayment,
     };
-  }, [refreshTrigger]);
+  }, [statsQuery.data]);
+
+  const isApiLoading = statsQuery.isLoading && !statsQuery.data;
 
   // Authoritative server stats from /admin/firms/stats endpoint (Single source of truth)
   const stats = useMemo<FirmStatsState>(() => {

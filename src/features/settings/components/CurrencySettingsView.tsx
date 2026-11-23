@@ -31,6 +31,11 @@ import {
   setDefaultCurrency,
 } from "@/lib/api/settings";
 import { mapCurrenciesResponse } from "@/lib/api/mappers";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  useCurrenciesQuery,
+  invalidateSettingsQueries,
+} from "@/features/settings/hooks/useSettingsQuery";
 
 export function CurrencySettingsView() {
   const { direction, isEn } = useLanguage();
@@ -44,21 +49,15 @@ export function CurrencySettingsView() {
   const [currencyToDelete, setCurrencyToDelete] = useState<CurrencyItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const queryClient = useQueryClient();
+  const currenciesQuery = useCurrenciesQuery();
+
   useEffect(() => {
-    let cancelled = false;
-    fetchCurrencies()
-      .then((payload) => {
-        if (cancelled) return;
-        const mapped = mapCurrenciesResponse(payload);
-        if (mapped.length > 0) setCurrencies(mapped);
-      })
-      .catch(() => {
-        // Keep mock currencies if API unavailable.
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    if (currenciesQuery.data) {
+      const mapped = mapCurrenciesResponse(currenciesQuery.data);
+      if (mapped.length > 0) setCurrencies(mapped);
+    }
+  }, [currenciesQuery.data]);
 
   // Tab count stats
   const activeCount = useMemo(() => currencies.filter((c) => c.status === "active").length, [currencies]);
@@ -111,6 +110,7 @@ export function CurrencySettingsView() {
       // Keep local delete.
     }
     setCurrencies((prev) => prev.filter((c) => c.id !== currency.id));
+    invalidateSettingsQueries(queryClient, "currencies");
     setIsDeleting(false);
     setCurrencyToDelete(null);
     toast.success(isEn ? `Currency "${currency.name}" deleted successfully` : `تم حذف العملة «${currency.name}» بنجاح`);
@@ -132,6 +132,7 @@ export function CurrencySettingsView() {
       // Keep local create.
     }
     setCurrencies((prev) => [newCurrency, ...prev]);
+    invalidateSettingsQueries(queryClient, "currencies");
   };
 
   const hasActiveFilters =

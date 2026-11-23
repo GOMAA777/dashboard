@@ -23,6 +23,23 @@ export function NotificationDetailsModal({
   const { direction, isEn } = useLanguage();
   const [copied, setCopied] = React.useState(false);
 
+  const formatDateTime = (dateStr?: string) => {
+    if (!dateStr || dateStr === "—") return "—";
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    try {
+      return new Intl.DateTimeFormat(isEn ? "en-US" : "ar-SA-u-nu-latn", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(d);
+    } catch {
+      return dateStr;
+    }
+  };
+
   if (!isOpen || !notification) return null;
 
   const handleCopyLink = () => {
@@ -151,7 +168,7 @@ export function NotificationDetailsModal({
                 <span>{isEn ? "Broadcast Date & Time" : "تاريخ وتوقيت البث"}</span>
               </div>
               <p className="text-[13px] font-bold text-[#1b1c1a]">
-                {notification.sentAt}
+                {formatDateTime(notification.sentAt)}
               </p>
               <p className="text-[11px] text-[#514537]">
                 {isEn ? "Riyadh Time (UTC+3)" : "توقيت مكة المكرمة (الرياض)"}

@@ -3,10 +3,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Building2,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
   Clock,
   DoorOpen,
   Eye,
@@ -21,6 +17,8 @@ import {
   Calendar,
   ClipboardList,
   AlertCircle,
+  Ticket,
+  Activity,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -29,9 +27,12 @@ import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTop
 import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 import { DashboardPageSkeleton } from "@/components/shared/DashboardPageSkeleton";
 import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
-import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
+import { UnifiedPagination } from "@/components/shared/UnifiedPagination";
 import { DashboardSelect } from "@/components/shared/DashboardSelect";
-import { EnterOfficeConfirmModal } from "@/features/clients/components/EnterOfficeConfirmModal";
+import {
+  EnterOfficeConfirmModal,
+  type OfficeEntryActivityPayload,
+} from "@/features/clients/components/EnterOfficeConfirmModal";
 import type { ClientOffice } from "@/features/clients/types/client.types";
 import type { FirmListItem } from "@/lib/api/types";
 import { fetchFirms } from "@/lib/api/firms";
@@ -39,12 +40,19 @@ import {
   fetchImpersonationLogs,
   type ImpersonationLog,
 } from "@/lib/api/impersonation";
+import {
+  OFFICE_ACTIVITY_CATEGORIES,
+  getActivityCategoryMeta,
+} from "@/lib/constants/office-activities";
 import { enterOfficeAsAdmin } from "@/lib/api/enter-office";
 import { buildInitialHandoffUrl, openInstantHandoffTab } from "@/lib/api/lawyer-session";
 import { useLanguage } from "@/lib/i18n";
 import { localizePlanName, getLocalizedCityName, localizeRoleOrTitle } from "@/lib/localize";
-import { ImpersonationLogDetailsModal } from "./ImpersonationLogDetailsModal";
+import { ImpersonationLogDetailsModal, calculateDurationText } from "./ImpersonationLogDetailsModal";
 import { ImpersonationRowActionMenu } from "./ImpersonationRowActionMenu";
+import { useImpersonationLogsQuery } from "@/features/impersonation-logs/hooks/useImpersonationLogsQuery";
+import { useFirmsQuery } from "@/features/clients/hooks/useClientsQuery";
+import { cn } from "@/lib/utils";
 
 export type ExtendedImpersonationLog = ImpersonationLog & {
   logo?: string | null;
@@ -100,15 +108,14 @@ export function ImpersonationLogsView() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<TabFilter>("all");
   const [officeFilter, setOfficeFilter] = useState("all");
+  const [activityFilter, setActivityFilter] = useState("all");
+  const [staffFilter, setStaffFilter] = useState("all");
   const [cityFilter, setCityFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | "name">("newest");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(5);
-  const [isLoading, setIsLoading] = useState(true);
-  const [logsError, setLogsError] = useState<string | null>(null);
-  const [reloadKey, setReloadKey] = useState(0);
   const [openActionMenuId, setOpenActionMenuId] = useState<string | number | null>(null);
 
   // Modals state
@@ -129,128 +136,129 @@ export function ImpersonationLogsView() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Fetch offices list for drawer dropdown
+  const firmsQuery = useFirmsQuery({ status: "all", page: 1, per_page: 100 });
+  const impersonationQuery = useImpersonationLogsQuery({
+    firm_id: officeFilter === "all" ? undefined : officeFilter,
+    activity_type: activityFilter === "all" ? undefined : activityFilter,
+    admin_id: staffFilter === "all" ? undefined : staffFilter,
+    from: dateFrom || undefined,
+    to: dateTo || undefined,
+    page: 1,
+    per_page: 100,
+  });
+
   useEffect(() => {
-    let cancelled = false;
-    fetchFirms({ status: "all", page: 1, per_page: 100 })
-      .then(({ items }) => {
-        if (cancelled) return;
-        setFirmsList(items);
-        setOffices(
-          items.map((firm) => ({
-            value: String(firm.id),
-            label: firm.name || `مكتب #${firm.id}`,
-          }))
-        );
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setFirmsList([]);
-          setOffices([]);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    if (firmsQuery.data?.items) {
+      const items = firmsQuery.data.items;
+      setFirmsList(items);
+      setOffices(
+        items.map((firm) => ({
+          value: String(firm.id),
+          label: firm.name || `مكتب #${firm.id}`,
+        }))
+      );
+    }
+  }, [firmsQuery.data]);
 
-  // Fetch impersonation logs
   useEffect(() => {
-    let cancelled = false;
-    setIsLoading(true);
-    setLogsError(null);
-
-    fetchImpersonationLogs({
-      firm_id: officeFilter === "all" ? undefined : officeFilter,
-      from: dateFrom || undefined,
-      to: dateTo || undefined,
-      page: 1,
-      per_page: 100,
-    })
-      .then((result) => {
-        if (cancelled) return;
-        const enriched = (result.items || []).map((item, idx) => {
-          const fid = item.company_id || item.firm_id;
-          const matchedFirm = firmsList.find(
-            (f) =>
-              (fid && String(f.id) === String(fid)) ||
-              (item.company_name && f.name?.includes(item.company_name)) ||
-              (item.firm_name && f.name?.includes(item.firm_name))
-          );
-          const firmName = item.company_name || item.firm_name || matchedFirm?.name || `مكتب #${fid ?? item.id}`;
-
-          return {
-            ...item,
-            company_name: firmName,
-            firm_name: firmName,
-            logo: (item as ExtendedImpersonationLog).logo || matchedFirm?.logo || undefined,
-            initial: (firmName || "م").trim().charAt(0),
-            initialBg: idx % 2 === 0 ? "bg-white dark:bg-[#1a120d]" : "bg-[#fff6e8] dark:bg-[#342711]",
-            initialText: "text-[#9c6402] dark:text-[#e29d38]",
-            licenseNumber: (item as ExtendedImpersonationLog).licenseNumber || matchedFirm?.license_number || "ترخيص معتمد",
-            city: (item as ExtendedImpersonationLog).city || matchedFirm?.city || "الرياض",
-            adminEmail: (item as ExtendedImpersonationLog).adminEmail || matchedFirm?.email || "admin@aljoudi.sa",
-            adminRole: (item as ExtendedImpersonationLog).adminRole || "مشرف عام للنظام",
-            phone: (item as ExtendedImpersonationLog).phone || matchedFirm?.phone,
-            plan: (item as ExtendedImpersonationLog).plan || matchedFirm?.subscription_plan || "باقة التميز العدلي",
-            autoRenew: (item as ExtendedImpersonationLog).autoRenew ?? matchedFirm?.auto_renew ?? true,
-          };
-        });
-        setLogs(enriched);
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        setLogs([]);
-        const raw =
-          err && typeof err === "object" && "message" in err
-            ? String((err as { message: unknown }).message)
-            : "";
-        const isMissingRoute =
-          /impersonation-logs|could not be found|not found|404/i.test(raw);
-        setLogsError(
-          isMissingRoute
-            ? t(
-                "تعذر تحميل سجل الدخول. المسار غير متاح حالياً على الخادم، جرّب مرة أخرى لاحقاً.",
-                "Could not load impersonation logs. Route currently unavailable on server, please try again later."
-              )
-            : raw || t("تعذر تحميل سجل الدخول. تحقق من الاتصال ثم أعد المحاولة.", "Could not load logs. Check your connection and retry.")
+    if (impersonationQuery.data) {
+      const enriched = (impersonationQuery.data.items || []).map((item, idx) => {
+        const fid = item.company_id || item.firm_id;
+        const matchedFirm = firmsList.find(
+          (f) =>
+            (fid && String(f.id) === String(fid)) ||
+            (item.company_name && f.name?.includes(item.company_name)) ||
+            (item.firm_name && f.name?.includes(item.firm_name))
         );
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false);
-      });
+        const firmName =
+          item.company_name ||
+          item.firm_name ||
+          matchedFirm?.name ||
+          `مكتب #${fid ?? item.id}`;
 
-    return () => {
-      cancelled = true;
-    };
-  }, [officeFilter, dateFrom, dateTo, activeTab, searchQuery, firmsList, reloadKey]);
+        return {
+          ...item,
+          company_name: firmName,
+          firm_name: firmName,
+          logo: (item as ExtendedImpersonationLog).logo || matchedFirm?.logo || undefined,
+          initial: (firmName || "م").trim().charAt(0),
+          initialBg:
+            idx % 2 === 0
+              ? "bg-white dark:bg-[#1a120d]"
+              : "bg-[#fff6e8] dark:bg-[#342711]",
+          initialText: "text-[#9c6402] dark:text-[#e29d38]",
+          licenseNumber:
+            (item as ExtendedImpersonationLog).licenseNumber ||
+            matchedFirm?.license_number ||
+            "ترخيص معتمد",
+          city:
+            (item as ExtendedImpersonationLog).city ||
+            matchedFirm?.city ||
+            "الرياض",
+          adminEmail:
+            (item as ExtendedImpersonationLog).adminEmail ||
+            matchedFirm?.email ||
+            "admin@aljoudi.sa",
+          adminRole:
+            (item as ExtendedImpersonationLog).adminRole || "مشرف عام للنظام",
+          phone:
+            (item as ExtendedImpersonationLog).phone || matchedFirm?.phone,
+          plan:
+            (item as ExtendedImpersonationLog).plan ||
+            matchedFirm?.subscription_plan ||
+            "باقة التميز العدلي",
+          autoRenew:
+            (item as ExtendedImpersonationLog).autoRenew ??
+            matchedFirm?.auto_renew ??
+            true,
+        };
+      });
+      setLogs(enriched);
+    }
+  }, [impersonationQuery.data, firmsList]);
+
+  const isLoading = impersonationQuery.isLoading && logs.length === 0;
+  const logsError = impersonationQuery.error instanceof Error ? impersonationQuery.error.message : null;
 
   // Handle entering office as admin
-  const handleConfirmEnterOffice = async () => {
+  const handleConfirmEnterOffice = async (activityData?: OfficeEntryActivityPayload) => {
     if (!officeToEnter || isEnteringOffice) return;
     setIsEnteringOffice(true);
     const office = officeToEnter;
+
+    // Open handoff tab synchronously in a new tab (_blank) on user click to prevent popup blockers
+    const handoff = openInstantHandoffTab({
+      id: office.id,
+      firm_name: office.name,
+      name: office.owner,
+    });
+
     try {
-      const handoffUrl = await enterOfficeAsAdmin({
-        id: office.id,
-        name: office.name,
-        owner: office.owner,
-        email: office.email,
-        phone: office.phone,
-      });
+      const handoffUrl = await enterOfficeAsAdmin(
+        {
+          id: office.id,
+          name: office.name,
+          owner: office.owner,
+          email: office.email,
+          phone: office.phone,
+        },
+        activityData
+      );
       toast.success(
         t(
-          `جاري الربط وفتح لوحة مكتب «${office.name}»...`,
-          `Connecting and opening "${office.name}" dashboard...`
+          `جاري الربط وفتح لوحة مكتب «${office.name}» في تبويب جديد...`,
+          `Connecting and opening "${office.name}" dashboard in a new tab...`
         )
       );
       setOfficeToEnter(null);
-      // Open in the EXACT SAME TAB as requested by user
-      window.location.href = handoffUrl;
+      // Commit handoff url directly to the opened new tab
+      handoff.commit(handoffUrl);
     } catch {
+      handoff.abort();
       toast.error(
         t(`تعذر الدخول إلى مكتب «${office.name}»`, `Could not access office "${office.name}"`)
       );
+    } finally {
       setIsEnteringOffice(false);
     }
   };
@@ -316,32 +324,37 @@ export function ImpersonationLogsView() {
   const [isQuickEnterModalOpen, setIsQuickEnterModalOpen] = useState(false);
   const [selectedQuickEnterOfficeId, setSelectedQuickEnterOfficeId] = useState("");
 
-  const handleQuickEnterSubmit = async () => {
+  const handleQuickEnterSubmit = () => {
     if (!selectedQuickEnterOfficeId || isEnteringOffice) return;
     const targetOffice = offices.find((o) => o.value === selectedQuickEnterOfficeId);
-    const officeName = targetOffice?.label || (isEn ? `Firm #${selectedQuickEnterOfficeId}` : `مكتب #${selectedQuickEnterOfficeId}`);
-    setIsEnteringOffice(true);
-    try {
-      const handoffUrl = await enterOfficeAsAdmin({
-        id: selectedQuickEnterOfficeId,
-        name: officeName,
-      });
-      toast.success(
-        t(
-          `جاري الربط وفتح لوحة مكتب «${officeName}»...`,
-          `Connecting and opening "${officeName}" dashboard...`
-        )
-      );
-      setIsQuickEnterModalOpen(false);
-      setSelectedQuickEnterOfficeId("");
-      // Open in the EXACT SAME TAB as requested by user
-      window.location.href = handoffUrl;
-    } catch {
-      toast.error(
-        t(`تعذر الدخول إلى مكتب «${officeName}»`, `Could not access office "${officeName}"`)
-      );
-      setIsEnteringOffice(false);
-    }
+    const matchedFirm = firmsList.find((f) => String(f.id) === selectedQuickEnterOfficeId);
+    const officeName = targetOffice?.label || matchedFirm?.name || (isEn ? `Firm #${selectedQuickEnterOfficeId}` : `مكتب #${selectedQuickEnterOfficeId}`);
+
+    setIsQuickEnterModalOpen(false);
+    setSelectedQuickEnterOfficeId("");
+
+    // Open EnterOfficeConfirmModal to enforce activity logging
+    setOfficeToEnter({
+      id: selectedQuickEnterOfficeId,
+      name: officeName,
+      initial: (officeName || "م").charAt(0),
+      initialBg: "bg-white dark:bg-[#1a120d]",
+      initialText: "text-[#9c6402] dark:text-[#e29d38]",
+      planBadgeClass: "bg-[#fff6e8] dark:bg-[rgba(226,157,56,0.12)] text-[#9c6402] dark:text-[#e29d38] border-[#ffddb6] dark:border-[#e29d38]/40",
+      registrationDate: "2026-01-15",
+      owner: matchedFirm?.owner_name || "رئيس المكتب",
+      licenseNumber: matchedFirm?.license_number || "911",
+      email: matchedFirm?.email || "office@test.com",
+      phone: matchedFirm?.phone || "+966 0500000000",
+      city: matchedFirm?.city || "الرياض",
+      plan: matchedFirm?.subscription_plan || "باقة التميز العدلي",
+      accountStatus: {
+        label: "نشط",
+        type: "active",
+        bgClass: "bg-[#e8f5e9] dark:bg-[#132c1c]",
+        textClass: "text-[#1b7340] dark:text-[#6ee7b7]",
+      },
+    } as ClientOffice);
   };
 
   // Filtered and sorted data
@@ -360,6 +373,20 @@ export function ImpersonationLogsView() {
       result = result.filter((l) => l.city === cityFilter);
     }
 
+    // Filter by activity type
+    if (activityFilter !== "all") {
+      result = result.filter((l) => (l.activity_type || "tech_support") === activityFilter);
+    }
+
+    // Filter by executing staff
+    if (staffFilter !== "all") {
+      result = result.filter(
+        (l) =>
+          String(l.admin_id) === staffFilter ||
+          String(l.admin_name).toLowerCase() === staffFilter.toLowerCase()
+      );
+    }
+
     // Filter by search query
     const q = searchQuery.trim().toLowerCase();
     if (q) {
@@ -372,10 +399,14 @@ export function ImpersonationLogsView() {
         const role = String(l.adminRole || "").toLowerCase();
         const compId = String(l.company_id || l.firm_id || l.id || "").toLowerCase();
         const ip = String(l.ip || "").toLowerCase();
+        const reason = String(l.reason || "").toLowerCase();
+        const ticket = String(l.ticket_id || "").toLowerCase();
         return (
           firm.includes(q) ||
           admin.includes(q) ||
           role.includes(q) ||
+          reason.includes(q) ||
+          ticket.includes(q) ||
           phone.includes(q) ||
           email.includes(q) ||
           license.includes(q) ||
@@ -405,17 +436,27 @@ export function ImpersonationLogsView() {
   const totalItems = filteredLogs.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const safePageIndex = Math.min(pageIndex, totalPages - 1);
-  const startItem = totalItems === 0 ? 0 : safePageIndex * pageSize + 1;
-  const endItem = Math.min((safePageIndex + 1) * pageSize, totalItems);
 
   const paginatedLogs = useMemo(() => {
     return filteredLogs.slice(safePageIndex * pageSize, safePageIndex * pageSize + pageSize);
   }, [filteredLogs, safePageIndex, pageSize]);
 
+  const staffOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    logs.forEach((l) => {
+      if (l.admin_name) {
+        map.set(String(l.admin_id || l.admin_name), l.admin_name);
+      }
+    });
+    return Array.from(map.entries()).map(([value, label]) => ({ value, label }));
+  }, [logs]);
+
   const hasActiveFilters =
     activeTab !== "all" ||
     searchQuery.trim().length > 0 ||
     officeFilter !== "all" ||
+    activityFilter !== "all" ||
+    staffFilter !== "all" ||
     cityFilter !== "all" ||
     dateFrom !== "" ||
     dateTo !== "" ||
@@ -425,6 +466,8 @@ export function ImpersonationLogsView() {
     setSearchQuery("");
     setActiveTab("all");
     setOfficeFilter("all");
+    setActivityFilter("all");
+    setStaffFilter("all");
     setCityFilter("all");
     setSortOrder("newest");
     setDateFrom("");
@@ -446,7 +489,7 @@ export function ImpersonationLogsView() {
         <DashboardTopNavbar
           customBreadcrumbs={[
             { label: t("إدارة العملاء", "Client Management"), href: "/accounts" },
-            { label: t("سجل الدخول إلى المكاتب", "Office Impersonation Logs") },
+            { label: t("النشاطات", "Activities") },
           ]}
         />
 
@@ -457,7 +500,7 @@ export function ImpersonationLogsView() {
               <DashboardPageSkeleton cardsCount={4} tableRowsCount={6} />
             ) : (
               <div className="flex flex-col gap-6 w-full">
-                {/* 1. Top Header (Identical design to Client Management Header) */}
+                {/* 1. Top Header */}
                 <div
                   className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full shrink-0"
                 >
@@ -469,16 +512,16 @@ export function ImpersonationLogsView() {
                     <div className="flex flex-col items-start">
                       <div className="flex items-center gap-[10px] flex-wrap">
                         <h1 className="text-[26px] leading-[36px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                          {t("سجل الدخول إلى المكاتب", "Office Impersonation Logs")}
+                          {t("نشاطات ودخول المكاتب", "Office Activities & Entry")}
                         </h1>
-                        <span className="bg-[#eae8e4] dark:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[11px] leading-[16px] font-bold px-[10px] py-[3px] rounded-full">
-                          {t("جلسات المشرفين", "Admin Sessions")}
+                        <span className="bg-[#fff6e8] dark:bg-[#342711] text-[#9c6402] dark:text-[#e29d38] border border-[#ffddb6] dark:border-[#e29d38]/40 text-[11px] leading-[16px] font-bold px-[10px] py-[3px] rounded-full">
+                          {t("سجل النشاطات والتدقيق الأمني", "Activity Logs & Audit Trail")}
                         </span>
                       </div>
                       <p className="text-[#514537] dark:text-[#a89f91] text-[13px] leading-[20px] font-normal mt-[4px]">
                         {t(
-                          "متابعة جلسات دخول مشرفي النظام إلى حسابات مكاتب المحاماة",
-                          "Track system administrator sessions into law firm accounts"
+                          "سجل متابعة وتدقيق أنشطة دخول الموظفين والمشرفين إلى مكاتب المحاماة لأغراض الدعم الفني والصيانة وحل المشكلات",
+                          "Track and audit staff and supervisor entry activities and sessions into law firm accounts"
                         )}
                       </p>
                     </div>
@@ -514,9 +557,7 @@ export function ImpersonationLogsView() {
                     <button
                       type="button"
                       onClick={() => {
-                        setLogsError(null);
-                        setIsLoading(true);
-                        setReloadKey((k) => k + 1);
+                        void impersonationQuery.refetch();
                       }}
                       className="mt-2 px-5 py-2.5 rounded-[6px] bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#855402] dark:hover:bg-[#d4922f] text-white dark:text-[#1c140f] text-[13px] font-bold transition-colors cursor-pointer"
                     >
@@ -614,9 +655,7 @@ export function ImpersonationLogsView() {
                   </div>
                 </div>
 
-                {/* 3. Table Container */}
-                <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#eae8e4] dark:border-[#38271c] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] overflow-hidden w-full shrink-0">
-                {/* 1. Unified Filter Bar with 3 Pills + Comprehensive Drawer (EXACT MATCH TO SCREENSHOT) */}
+                {/* Standalone Filter Bar — separate from KPIs and from the table card */}
                 <UnifiedFilterBar
                   searchQuery={searchQuery}
                   onSearchChange={(val) => {
@@ -686,6 +725,52 @@ export function ImpersonationLogsView() {
                           {offices.map((off) => (
                             <option key={off.value} value={off.value} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
                               {off.label}
+                            </option>
+                          ))}
+                        </DashboardSelect>
+                      </div>
+
+                      {/* 3. Activity Type Filter */}
+                      <div className="space-y-2">
+                        <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
+                          {t("نوع النشاط / التصنيف", "Activity Type / Category")}
+                        </label>
+                        <DashboardSelect
+                          value={activityFilter}
+                          onChange={(e) => {
+                            setActivityFilter(e.target.value);
+                            setPageIndex(0);
+                          }}
+                        >
+                          <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+                            {t("كافة أنواع الأنشطة (الكل)", "All Activity Types (All)")}
+                          </option>
+                          {(OFFICE_ACTIVITY_CATEGORIES || []).map((cat) => (
+                            <option key={cat.id} value={cat.id} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+                              {isEn ? cat.labelEn : cat.labelAr}
+                            </option>
+                          ))}
+                        </DashboardSelect>
+                      </div>
+
+                      {/* 4. Executing Staff Filter */}
+                      <div className="space-y-2">
+                        <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
+                          {t("الموظف / المشرف المنفذ", "Executing Staff / Supervisor")}
+                        </label>
+                        <DashboardSelect
+                          value={staffFilter}
+                          onChange={(e) => {
+                            setStaffFilter(e.target.value);
+                            setPageIndex(0);
+                          }}
+                        >
+                          <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+                            {t("كافة المشرفين والموظفين", "All Staff & Supervisors")}
+                          </option>
+                          {staffOptions.map((st) => (
+                            <option key={st.value} value={st.value} className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+                              {st.label}
                             </option>
                           ))}
                         </DashboardSelect>
@@ -804,27 +889,28 @@ export function ImpersonationLogsView() {
                       </div>
                     </div>
                   }
-                  className="rounded-b-none border-b-0"
                 />
 
-                {/* 2. Main Data Table (EXACT MATCH TO SCREENSHOT COLUMNS & STYLING) */}
+                {/* Separate Data Table & Pagination Card */}
+                <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#f0eeea] dark:border-[#38271c] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] overflow-hidden w-full shrink-0">
                 <div className="overflow-x-auto scrollbar-none w-full">
                   <table className="w-full text-start border-collapse">
                     <thead>
                       <tr className="bg-[#f5f3ef] dark:bg-[#281c15] border-b border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[18px] font-semibold">
                         <th className="py-[12px] px-[12px] w-[50px] text-center font-bold">#</th>
                         <th className="py-[12px] px-[16px] whitespace-nowrap">{t("اسم المكتب والترخيص", "Firm Name & License")}</th>
-                        <th className="py-[12px] px-[16px] whitespace-nowrap">{t("المسؤول المنفذ (المسمى)", "Executing Admin (Title)")}</th>
-                        <th className="py-[12px] px-[16px] whitespace-nowrap">{t("عنوان IP", "IP Address")}</th>
+                        <th className="py-[12px] px-[16px] whitespace-nowrap">{t("المسؤول المنفذ (المسمى)", "Executing Staff (Title)")}</th>
+                        <th className="py-[12px] px-[16px] whitespace-nowrap">{t("نوع النشاط", "Activity Type")}</th>
+                        <th className="py-[12px] px-[16px] whitespace-nowrap">{t("مبرر الدخول والتذكرة", "Reason & Ticket #")}</th>
                         <th className="py-[12px] px-[16px] whitespace-nowrap">{t("توقيت وتاريخ الدخول", "Entry Time & Date")}</th>
-                        <th className="py-[12px] px-[16px] whitespace-nowrap">{t("باقة العميل", "Client Plan")}</th>
+                        <th className="py-[12px] px-[16px] whitespace-nowrap">{t("حالة الجلسة والمدة", "Session Status & Duration")}</th>
                         <th className="py-[12px] px-[16px] text-center whitespace-nowrap">{t("الإجراءات", "Actions")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#f0eeea] dark:divide-[#38271c]">
                       {paginatedLogs.length === 0 ? (
                         <tr>
-                          <td colSpan={7} className="py-[48px] text-center text-[#837565] dark:text-[#8e8680] text-[14px]">
+                          <td colSpan={8} className="py-[48px] text-center text-[#837565] dark:text-[#8e8680] text-[14px]">
                             {logsError
                               ? t("تعذر عرض السجلات بسبب خطأ في التحميل", "Could not display logs due to a loading error")
                               : t("لا توجد سجلات تطابق معايير البحث الحالية", "No logs matching current search criteria")}
@@ -834,7 +920,8 @@ export function ImpersonationLogsView() {
                         paginatedLogs.map((log, index) => {
                           const isLive = !log.ended_at;
                           const firmName = log.company_name || log.firm_name || (isEn ? `Firm #${log.firm_id ?? log.id}` : `مكتب #${log.firm_id ?? log.id}`);
-                          const ownerName = log.admin_name || "Cameron Fox";
+                          const ownerName = log.admin_name || "مشرف النظام";
+                          const actCat = getActivityCategoryMeta(log.activity_type);
 
                           return (
                             <tr
@@ -906,30 +993,39 @@ export function ImpersonationLogsView() {
                                 </div>
                               </td>
 
-                              {/* 3. عنوان IP */}
-                              <td className="py-[16px] px-[16px]">
-                                <div className="flex items-center gap-1.5 font-mono text-[12px] direction-ltr">
-                                  <span className="px-2 py-0.5 rounded bg-[#f5f3ef] dark:bg-[#20150e] border border-[#e4ded5] dark:border-[#38271c] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                                    {log.ip || "—"}
-                                  </span>
-                                  {log.ip && (
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        navigator.clipboard.writeText(log.ip || "");
-                                        toast.success(t(`تم نسخ عنوان IP (${log.ip})`, `IP address (${log.ip}) copied`));
-                                      }}
-                                      className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#837565] dark:text-[#8e8680] transition-colors cursor-pointer"
-                                      title={t("نسخ عنوان IP", "Copy IP Address")}
-                                    >
-                                      <Copy className="size-3" />
-                                    </button>
+                              {/* 3. نوع النشاط */}
+                              <td className="py-[16px] px-[16px] whitespace-nowrap">
+                                <span
+                                  className={cn(
+                                    "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border shadow-2xs",
+                                    actCat.badgeClass
                                   )}
+                                >
+                                  <Activity className="size-3" />
+                                  <span>{isEn ? actCat.labelEn : actCat.labelAr}</span>
+                                </span>
+                              </td>
+
+                              {/* 4. مبرر الدخول والتذكرة */}
+                              <td className="py-[16px] px-[16px] max-w-[260px]">
+                                <div className="flex flex-col items-start gap-1">
+                                  {log.ticket_id && (
+                                    <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#f5f3ef] dark:bg-[#1f1610] text-[#9c6402] dark:text-[#e29d38] border border-[#e4ded5] dark:border-[#38271c] inline-flex items-center gap-1">
+                                      <Ticket className="size-2.5" />
+                                      {log.ticket_id}
+                                    </span>
+                                  )}
+                                  <p
+                                    className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] font-medium line-clamp-2 leading-[18px] text-start"
+                                    title={log.reason || ""}
+                                  >
+                                    {log.reason || t("دخول مباشر للمدير العام", "Direct Super Admin Access")}
+                                  </p>
                                 </div>
                               </td>
 
-                              {/* 4. توقيت وتاريخ الدخول */}
-                              <td className="py-[16px] px-[16px]">
+                              {/* 5. توقيت وتاريخ الدخول */}
+                              <td className="py-[16px] px-[16px] whitespace-nowrap">
                                 <div className="flex flex-col items-start gap-1">
                                   <div className="flex items-center gap-1.5 text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] font-semibold">
                                     <Calendar className="size-3.5 text-[#837565] dark:text-[#8e8680] shrink-0" />
@@ -938,34 +1034,30 @@ export function ImpersonationLogsView() {
                                   <div className="flex items-center gap-1.5 text-[#837565] dark:text-[#8e8680] text-[11px]">
                                     <Clock className="size-3 text-[#837565] dark:text-[#8e8680] shrink-0" />
                                     <span dir="ltr">{formatArabicTime(log.started_at, isEn)}</span>
-                                    {isLive ? (
-                                      <span className="inline-flex items-center gap-1 text-[10px] text-[#10b981] font-bold ms-1 bg-[#ecfdf5] dark:bg-[#132c1c] border border-emerald-200 dark:border-emerald-500/30 px-1.5 py-0.2 rounded-full">
-                                        <span className="size-1.5 rounded-full bg-[#10b981] animate-pulse" />
-                                        {t("نشط الآن", "Active Now")}
-                                      </span>
-                                    ) : (
-                                      <span className="inline-flex items-center text-[10px] text-[#837565] dark:text-[#8e8680] ms-1">
-                                        {t("مكتمل", "Completed")}
-                                      </span>
-                                    )}
                                   </div>
                                 </div>
                               </td>
 
-                              {/* 5. باقة العميل */}
-                              <td className="py-[16px] px-[16px]">
-                                <div className="flex flex-col gap-1 items-start">
-                                  <span className="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap border bg-[#fff6e8] dark:bg-[rgba(226,157,56,0.12)] text-[#9c6402] dark:text-[#e29d38] border-[#ffddb6] dark:border-[#e29d38]/40">
-                                    {localizePlanName(log.plan || "باقة التميز العدلي", isEn)}
-                                  </span>
-                                  <span className="text-[10px] font-semibold inline-flex items-center gap-1 text-[#065f46] dark:text-[#6ee7b7]">
-                                    <span className="size-1.5 rounded-full bg-[#10b981]" />
-                                    {log.autoRenew ? t("تجديد تلقائي", "Auto Renewal") : t("اشتراك معتمد", "Active Subscription")}
+                              {/* 6. حالة الجلسة والمدة */}
+                              <td className="py-[16px] px-[16px] whitespace-nowrap">
+                                <div className="flex flex-col items-start gap-1">
+                                  {isLive ? (
+                                    <span className="inline-flex items-center gap-1 text-[10px] text-[#10b981] font-bold bg-[#ecfdf5] dark:bg-[#132c1c] border border-emerald-200 dark:border-emerald-500/30 px-2 py-0.5 rounded-full">
+                                      <span className="size-1.5 rounded-full bg-[#10b981] animate-pulse" />
+                                      {t("نشطة الآن", "Active Now")}
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#f5f3ef] dark:bg-[#281c15] text-[#514537] dark:text-[#cdc5bd] border border-[#eae8e4] dark:border-[#38271c]">
+                                      {t("مكتملة", "Completed")}
+                                    </span>
+                                  )}
+                                  <span className="text-[11px] font-mono text-[#837565] dark:text-[#a89f91]">
+                                    {calculateDurationText(log.started_at, log.ended_at, isEn)}
                                   </span>
                                 </div>
                               </td>
 
-                              {/* 6. الإجراءات (عين , باب) */}
+                              {/* 7. الإجراءات (عين , باب) */}
                               <td className="py-[16px] px-[16px] text-center">
                                 <div className="flex items-center justify-center gap-2">
                                   {/* 1. دخول المكتب كمسؤول (باب) */}
@@ -999,117 +1091,14 @@ export function ImpersonationLogsView() {
                   </table>
                 </div>
 
-                {/* 3. Pagination Footer (EXACT MATCH TO SCREENSHOT) */}
-                <div className="bg-[#fcfaf7] dark:bg-[#1a120d] p-[16px] border-t border-[#f0eeea] dark:border-[#38271c] flex flex-col sm:flex-row items-center justify-between gap-[12px] text-[12px] text-[#514537] dark:text-[#cdc5bd] font-['Cairo']">
-                  {/* Right in RTL: Count Summary & Rows per page */}
-                  <div className="flex flex-wrap items-center gap-4">
-                    <div>
-                      <span>{t("عرض ", "Showing ")}</span>
-                      <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{startItem}</span>
-                      <span>{t(" إلى ", " to ")}</span>
-                      <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{endItem}</span>
-                      <span>{t(" من أصل ", " of ")}</span>
-                      <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{totalItems}</span>
-                      <span>{t(" جلسة مسجلة", " recorded sessions")}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
-                      <span className="text-[11px] text-[#837565] dark:text-[#8e8680]">{t("صفوف بالصفحة:", "Rows per page:")}</span>
-                      <PageSizeDropdown
-                        value={pageSize}
-                        onChange={(newSize) => {
-                          setPageSize(newSize);
-                          setPageIndex(0);
-                        }}
-                        options={[5, 10, 20, 50]}
-                        dropdownPlacement="top"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Left in RTL: Page Controls (Matching Screenshot: >>, السابق, 1, التالي, >>) */}
-                  <div className="flex items-center gap-[4px]">
-                    <button
-                      type="button"
-                      disabled={safePageIndex === 0 || totalItems === 0}
-                      onClick={() => setPageIndex(0)}
-                      title={t("الصفحة الأولى", "First Page")}
-                      className="size-[30px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center cursor-pointer"
-                    >
-                      <ChevronsRight className="size-[14px] rtl:rotate-0 rotate-180" />
-                    </button>
-
-                    <button
-                      type="button"
-                      disabled={safePageIndex === 0 || totalItems === 0}
-                      onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
-                      title={t("الصفحة السابقة", "Previous Page")}
-                      className="px-[10px] py-[6px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-[4px] cursor-pointer"
-                    >
-                      <ChevronRight className="size-[13px] rtl:rotate-0 rotate-180" />
-                      <span>{t("السابق", "Previous")}</span>
-                    </button>
-
-                    {totalItems === 0 ? (
-                      <button
-                        type="button"
-                        disabled
-                        className="size-[30px] rounded-[4px] font-semibold text-[12px] flex items-center justify-center border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#8e8680] opacity-40 cursor-not-allowed"
-                      >
-                        1
-                      </button>
-                    ) : (
-                      Array.from({ length: totalPages }, (_, i) => i).map((p) => {
-                        if (totalPages > 5 && Math.abs(p - safePageIndex) > 2 && p !== 0 && p !== totalPages - 1) {
-                          if (p === 1 || p === totalPages - 2) {
-                            return (
-                              <span key={p} className="px-[2px] text-[#837565] dark:text-[#8e8680]">
-                                ...
-                              </span>
-                            );
-                          }
-                          return null;
-                        }
-                        const isActive = safePageIndex === p;
-                        return (
-                          <button
-                            key={p}
-                            type="button"
-                            onClick={() => setPageIndex(p)}
-                            className={`size-[30px] rounded-[4px] font-semibold text-[12px] flex items-center justify-center cursor-pointer transition-colors ${
-                              isActive
-                                ? "bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] shadow-xs"
-                                : "border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15]"
-                            }`}
-                          >
-                            {p + 1}
-                          </button>
-                        );
-                      })
-                    )}
-
-                    <button
-                      type="button"
-                      disabled={safePageIndex >= totalPages - 1 || totalItems === 0}
-                      onClick={() => setPageIndex((p) => Math.min(totalPages - 1, p + 1))}
-                      title={t("الصفحة التالية", "Next Page")}
-                      className="px-[10px] py-[6px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-[4px] cursor-pointer"
-                    >
-                      <span>{t("التالي", "Next")}</span>
-                      <ChevronLeft className="size-[13px] rtl:rotate-0 rotate-180" />
-                    </button>
-
-                    <button
-                      type="button"
-                      disabled={safePageIndex >= totalPages - 1 || totalItems === 0}
-                      onClick={() => setPageIndex(totalPages - 1)}
-                      title={t("الصفحة الأخيرة", "Last Page")}
-                      className="size-[30px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center cursor-pointer"
-                    >
-                      <ChevronsLeft className="size-[14px] rtl:rotate-0 rotate-180" />
-                    </button>
-                  </div>
-                </div>
+                <UnifiedPagination
+                  pageIndex={safePageIndex}
+                  pageSize={pageSize}
+                  totalItems={totalItems}
+                  onPageChange={setPageIndex}
+                  onPageSizeChange={setPageSize}
+                  itemLabel={t("جلسة مسجلة", "recorded sessions")}
+                />
               </div>
             </div>
             )}
@@ -1192,7 +1181,7 @@ export function ImpersonationLogsView() {
                 className="bg-[#9c6402] hover:bg-[#855402] disabled:opacity-50 text-white px-5 py-2 rounded-[4px] text-[13px] font-bold flex items-center gap-2 cursor-pointer transition-colors"
               >
                 <DoorOpen className="size-4" />
-                <span>{isEnteringOffice ? t("جارٍ تسجيل الدخول...", "Logging in...") : t("دخول فوري كمسؤول", "Instant Admin Login")}</span>
+                <span>{t("دخول فوري كمسؤول", "Instant Admin Login")}</span>
               </button>
             </div>
           </div>

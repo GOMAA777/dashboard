@@ -13,9 +13,18 @@ import { SubscriptionDetailsView } from "./SubscriptionDetailsView";
 import { RenewSubscriptionView } from "./RenewSubscriptionView";
 import { ChangeSubscriptionPlanModal } from "./ChangeSubscriptionPlanModal";
 import { CancelSubscriptionModal } from "./CancelSubscriptionModal";
-import { AddSubscriptionModal } from "./AddSubscriptionModal";
+import { AddSubscriptionView } from "./AddSubscriptionView";
 import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 import { DashboardPageSkeleton } from "@/components/shared/DashboardPageSkeleton";
+import { SubscriptionsPageSkeleton } from "./SubscriptionsPageSkeleton";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  useSubscriptionsQuery,
+  useSubscriptionsStatsQuery,
+  invalidateSubscriptionsQueries,
+} from "../hooks/useSubscriptionsQuery";
+import { useFirmsQuery } from "@/features/clients/hooks/useClientsQuery";
+import { InvalidationGraph } from "@/lib/query-keys";
 import { LuxuryAlertDialog } from "@/components/shared/LuxuryAlertDialog";
 import {
   SubscriptionRecord,
@@ -23,6 +32,7 @@ import {
   SubscriptionTabFilter,
 } from "../types/subscription.types";
 import { useLanguage } from "@/lib/i18n";
+import { usePermissions } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 import {
   fetchSubscriptions,
@@ -35,11 +45,12 @@ import { fetchFirms } from "@/lib/api/firms";
 import { mapSubscriptionsResponse, mapSubscriptionFromApi, getLocalCustomFirmPlan } from "@/lib/api/mappers";
 import { readStats } from "@/lib/api/helpers";
 import { toast } from "sonner";
-import { AlertTriangle, RefreshCw, CheckCircle2, XCircle, X, Loader2 } from "lucide-react";
+import { AlertTriangle, RefreshCw, CheckCircle2, XCircle, X } from "lucide-react";
 import { ModalPortal } from "@/components/shared/ModalPortal";
 
 export function SubscriptionManagementView() {
   const { direction, t } = useLanguage();
+  const { hasPermission } = usePermissions();
   const router = useRouter();
   // URL Query State using nuqs
   const [view, setView] = useQueryState("view", { defaultValue: "list" });
@@ -65,7 +76,6 @@ export function SubscriptionManagementView() {
 
   // Subscriptions list state (zero mock data)
   const [subscriptions, setSubscriptions] = useState<SubscriptionRecord[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [apiError, setApiError] = useState<{ status?: number; message: string } | null>(null);
 
   const [kpiStats, setKpiStats] = useState({
@@ -76,7 +86,6 @@ export function SubscriptionManagementView() {
   });
 
   // Modal dialog states
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isChangePlanModalOpen, setIsChangePlanModalOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [selectedSubForAction, setSelectedSubForAction] =
@@ -95,160 +104,140 @@ export function SubscriptionManagementView() {
   const [quickRejectError, setQuickRejectError] = useState("");
   const [isSubmittingQuickAction, setIsSubmittingQuickAction] = useState(false);
 
-  // Data fetching logic
-  const loadSubscriptions = useCallback(async () => {
-    setIsLoading(true);
-    setApiError(null);
-    try {
-      const [subsPayload, statsPayload, firmsPayload] = await Promise.all([
-        fetchSubscriptions({
-          tab: tab || "all",
-          page: pageIndex + 1,
-          per_page: pageSize,
-          search: search.trim() || undefined,
-          plan: plan !== "all" && plan !== "unlimited" ? plan : undefined,
-          status: status !== "all" ? status : undefined,
-        }),
-        fetchSubscriptionsStats().catch(() => null),
-        fetchFirms({ per_page: 100 }).catch(() => null),
-      ]);
-
-      const mapped = mapSubscriptionsResponse(subsPayload);
-
-      if (firmsPayload) {
-        const payloadObj = firmsPayload as Record<string, unknown>;
-        const rawFirmsList = Array.isArray(firmsPayload)
-          ? firmsPayload
-          : Array.isArray(payloadObj.data)
-          ? (payloadObj.data as unknown[])
-          : Array.isArray(payloadObj.items)
-          ? (payloadObj.items as unknown[])
-          : [];
-
-        rawFirmsList.forEach((fUnknown) => {
-          const f = (fUnknown || {}) as Record<string, unknown>;
-          const fid = f.id ? String(f.id) : "";
-          const localPlan = fid ? getLocalCustomFirmPlan(fid) : undefined;
-          const planStr = String(
-            localPlan?.planType ||
-              localPlan?.plan ||
-              f.plan_type ||
-              f.planType ||
-              f.subscription_plan ||
-              f.subscriptionPlan ||
-              (f.plan as Record<string, unknown> | undefined)?.type ||
-              (f.plan as Record<string, unknown> | undefined)?.name ||
-              f.plan ||
-              ""
-          ).toLowerCase();
-
-          const isUnlim = planStr.includes("unlimited") || planStr.includes("غير محدود");
-          if (isUnlim) {
-            const alreadyExists = mapped.some(
-              (m) => (fid && String(m.firm.id) === fid) || m.firm.name === f.name
-            );
-            if (!alreadyExists) {
-              const unlimitedSub = mapSubscriptionFromApi({
-                id: `SUB-UNL-${fid || Math.floor(Math.random() * 10000)}`,
-                code: `SUB-UNL-${fid || "0"}`,
-                firm: {
-                  id: fid || "0",
-                  name: String(f.name || f.firm_name || "مكتب محاماة"),
-                  license_number: String(f.license_number || f.licenseNumber || "—"),
-                  city: String(f.city || "—"),
-                  address: String(f.address || "—"),
-                  owner_name: String(f.owner_name || f.director_name || f.owner || "—"),
-                  email: String(f.email || ""),
-                  phone: String(f.phone || ""),
-                },
-                plan_name: "غير محدود",
-                plan_type: "unlimited",
-                subscription_plan: "unlimited",
-                plan_price: "بدون سعر (مجاني)",
-                billing_cycle: "دائم",
-                start_date: f.created_at ? new Date(String(f.created_at)).toLocaleDateString("ar-SA") : "—",
-                renewal_date: "دائم (بدون انتهاء)",
-                remaining_days: "∞",
-                remaining_days_text: "∞",
-                status: "active",
-                status_label: "صلاحيات كاملة",
-              });
-              mapped.unshift(unlimitedSub);
-            }
-          }
-        });
-      }
-
-      setSubscriptions(mapped);
-
-      const metaTotal =
-        (subsPayload as unknown as { data?: { total?: number }; meta?: { total?: number }; total?: number })?.data?.total ??
-        (subsPayload as unknown as { meta?: { total?: number }; total?: number })?.meta?.total ??
-        (subsPayload as unknown as { total?: number })?.total;
-
-      setTotalItems(typeof metaTotal === "number" ? metaTotal : mapped.length);
-
-      if (statsPayload) {
-        setKpiStats({
-          total: readStats(statsPayload, ["total", "total_subscriptions", "all"], mapped.length),
-          active: readStats(statsPayload, ["active", "active_subscriptions"], mapped.filter((s) => s.status === "active").length),
-          expiring: readStats(statsPayload, ["expiring", "expiring_soon", "pending"], mapped.filter((s) => s.status === "pending").length),
-          cancelled: readStats(
-            statsPayload,
-            ["cancelled", "cancelled_expired", "expired"],
-            mapped.filter((s) => s.status === "cancelled" || s.status === "expired" || s.status === "rejected").length
-          ),
-        });
-      } else {
-        setKpiStats({
-          total: mapped.length,
-          active: mapped.filter((s) => s.status === "active").length,
-          expiring: mapped.filter((s) => s.status === "pending").length,
-          cancelled: mapped.filter((s) => s.status === "cancelled" || s.status === "expired" || s.status === "rejected").length,
-        });
-      }
-    } catch (err: unknown) {
-      const status = (err as { status?: number })?.status;
-      if (status === 401) {
-        router.push("/login");
-        return;
-      }
-      setSubscriptions([]);
-      setTotalItems(0);
-      const message =
-        err instanceof Error
-          ? err.message
-          : status === 403
-          ? t("ليس لديك صلاحية لعرض قائمة الاشتراكات.", "You do not have permission to view subscriptions.")
-          : status === 404
-          ? t("لم يتم العثور على أي بيانات للاشتراكات.", "Subscriptions not found.")
-          : status && status >= 500
-          ? t("حدث خطأ في الخادم أثناء تحميل الاشتراكات.", "Server error while loading subscriptions.")
-          : t("فشل في تحميل بيانات الاشتراكات. يرجى التحقق من الاتصال والمحاولة مجدداً.", "Failed to load subscriptions. Please check connection and try again.");
-      setApiError({ status, message });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [tab, pageIndex, pageSize, search, plan, status, t, router]);
+  const queryClient = useQueryClient();
+  const subsQueryParams = useMemo(
+    () => ({
+      tab: tab || "all",
+      page: pageIndex + 1,
+      per_page: pageSize,
+      search: search.trim() || undefined,
+      plan: plan !== "all" && plan !== "unlimited" ? plan : undefined,
+      status: status !== "all" ? status : undefined,
+    }),
+    [tab, pageIndex, pageSize, search, plan, status]
+  );
+  const subsQuery = useSubscriptionsQuery(subsQueryParams);
+  const statsQuery = useSubscriptionsStatsQuery();
+  const firmsQuery = useFirmsQuery({ per_page: 100 });
 
   useEffect(() => {
-    let ignore = false;
-    const timer = setTimeout(() => {
-      if (!ignore) {
-        loadSubscriptions();
-      }
-    }, 0);
-    return () => {
-      ignore = true;
-      clearTimeout(timer);
-    };
-  }, [loadSubscriptions]);
+    if (!subsQuery.data) return;
+    const subsPayload = subsQuery.data;
+    const mapped = mapSubscriptionsResponse(subsPayload);
+    const firmsPayload = firmsQuery.data;
+
+    if (firmsPayload) {
+      const rawFirmsList = Array.isArray(firmsPayload)
+        ? firmsPayload
+        : Array.isArray((firmsPayload as Record<string, unknown>).items)
+        ? ((firmsPayload as Record<string, unknown>).items as unknown[])
+        : Array.isArray((firmsPayload as Record<string, unknown>).data)
+        ? ((firmsPayload as Record<string, unknown>).data as unknown[])
+        : [];
+
+      rawFirmsList.forEach((fUnknown) => {
+        const f = (fUnknown || {}) as Record<string, unknown>;
+        const fid = f.id ? String(f.id) : "";
+        const localPlan = fid ? getLocalCustomFirmPlan(fid) : undefined;
+        const planStr = String(
+          localPlan?.planType ||
+            localPlan?.plan ||
+            f.plan_type ||
+            f.planType ||
+            f.subscription_plan ||
+            f.subscriptionPlan ||
+            (f.plan as Record<string, unknown> | undefined)?.type ||
+            (f.plan as Record<string, unknown> | undefined)?.name ||
+            f.plan ||
+            ""
+        ).toLowerCase();
+
+        const isUnlim = planStr.includes("unlimited") || planStr.includes("غير محدود");
+        if (isUnlim) {
+          const alreadyExists = mapped.some(
+            (m) => (fid && String(m.firm.id) === fid) || m.firm.name === f.name
+          );
+          if (!alreadyExists) {
+            const unlimitedSub = mapSubscriptionFromApi({
+              id: `SUB-UNL-${fid || Math.floor(Math.random() * 10000)}`,
+              code: `SUB-UNL-${fid || "0"}`,
+              firm: {
+                id: fid || "0",
+                name: String(f.name || f.firm_name || "مكتب محاماة"),
+                license_number: String(f.license_number || f.licenseNumber || "—"),
+                city: String(f.city || "—"),
+                address: String(f.address || "—"),
+                owner_name: String(f.owner_name || f.director_name || f.owner || "—"),
+                email: String(f.email || ""),
+                phone: String(f.phone || ""),
+              },
+              plan_name: "غير محدود",
+              plan_type: "unlimited",
+              subscription_plan: "unlimited",
+              plan_price: "بدون سعر (مجاني)",
+              billing_cycle: "دائم",
+              start_date: f.created_at ? new Date(String(f.created_at)).toLocaleDateString("ar-SA") : "—",
+              renewal_date: "دائم (بدون انتهاء)",
+              remaining_days: "∞",
+              remaining_days_text: "∞",
+              status: "active",
+              status_label: "صلاحيات كاملة",
+            });
+            mapped.unshift(unlimitedSub);
+          }
+        }
+      });
+    }
+
+    setSubscriptions(mapped);
+
+    const metaTotal =
+      (subsPayload as unknown as { data?: { total?: number }; meta?: { total?: number }; total?: number })?.data?.total ??
+      (subsPayload as unknown as { meta?: { total?: number }; total?: number })?.meta?.total ??
+      (subsPayload as unknown as { total?: number })?.total;
+
+    setTotalItems(typeof metaTotal === "number" ? metaTotal : mapped.length);
+  }, [subsQuery.data, firmsQuery.data]);
+
+  useEffect(() => {
+    if (statsQuery.data) {
+      const statsPayload = statsQuery.data;
+      setKpiStats({
+        total: readStats(statsPayload, ["total", "total_subscriptions", "all"], subscriptions.length),
+        active: readStats(statsPayload, ["active", "active_subscriptions"], subscriptions.filter((s) => s.status === "active").length),
+        expiring: readStats(statsPayload, ["expiring", "expiring_soon", "pending"], subscriptions.filter((s) => s.status === "pending").length),
+        cancelled: readStats(
+          statsPayload,
+          ["cancelled", "cancelled_expired", "expired"],
+          subscriptions.filter((s) => s.status === "cancelled" || s.status === "expired" || s.status === "rejected").length
+        ),
+      });
+    }
+  }, [statsQuery.data, subscriptions]);
+
+  const effectiveSubscriptions = useMemo(() => {
+    if (subscriptions.length > 0) return subscriptions;
+    if (subsQuery.data) {
+      return mapSubscriptionsResponse(subsQuery.data);
+    }
+    return [];
+  }, [subscriptions, subsQuery.data]);
+
+  const isLoading = subsQuery.isLoading && effectiveSubscriptions.length === 0;
+
+  const reloadSubscriptions = useCallback(async () => {
+    await Promise.all([
+      subsQuery.refetch(),
+      statsQuery.refetch(),
+      firmsQuery.refetch(),
+    ]);
+  }, [subsQuery, statsQuery, firmsQuery]);
 
   // Selected subscription for details view (found in live data)
   const activeSubscription = useMemo<SubscriptionRecord | undefined>(() => {
     if (!selectedSubId) return undefined;
-    return subscriptions.find((s) => s.id === selectedSubId);
-  }, [selectedSubId, subscriptions]);
+    return effectiveSubscriptions.find((s) => s.id === selectedSubId);
+  }, [selectedSubId, effectiveSubscriptions]);
 
   // Tab counts
   const counts = useMemo(() => {
@@ -269,7 +258,7 @@ export function SubscriptionManagementView() {
 
   // Filtered subscriptions (client-side safety check)
   const filteredSubscriptions = useMemo(() => {
-    return subscriptions.filter((sub) => {
+    return effectiveSubscriptions.filter((sub) => {
       // Plan filter for unlimited
       if (plan === "unlimited") {
         const isUnlim =
@@ -305,7 +294,7 @@ export function SubscriptionManagementView() {
   const handleBackToList = () => {
     setSelectedSubId("");
     setView("list");
-    loadSubscriptions();
+    void InvalidationGraph.onSubscriptionMutation(queryClient);
   };
 
   const handleStartRenew = (sub?: SubscriptionRecord) => {
@@ -346,7 +335,7 @@ export function SubscriptionManagementView() {
       await updateSubscriptionStatus(id, newStatus);
       toast.success(t("تم تحديث حالة الاشتراك بنجاح", "Subscription status updated successfully"));
       setPendingStatusChange(null);
-      await loadSubscriptions();
+      void InvalidationGraph.onSubscriptionMutation(queryClient);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : t("حدث خطأ أثناء تحديث حالة الاشتراك", "Error updating subscription status");
       toast.error(msg);
@@ -360,7 +349,7 @@ export function SubscriptionManagementView() {
       await approveSubscription(subToApprove.id);
       toast.success(t("تمت الموافقة وتفعيل الاشتراك بنجاح", "Subscription approved and activated successfully"));
       setSubToApprove(null);
-      await loadSubscriptions();
+      void InvalidationGraph.onSubscriptionMutation(queryClient);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : t("حدث خطأ أثناء اعتماد الاشتراك", "Error approving subscription");
       toast.error(msg);
@@ -382,7 +371,7 @@ export function SubscriptionManagementView() {
       toast.success(t("تم رفض طلب الاشتراك بنجاح", "Subscription request rejected"));
       setSubToReject(null);
       setQuickRejectReason("");
-      await loadSubscriptions();
+      void InvalidationGraph.onSubscriptionMutation(queryClient);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : t("حدث خطأ أثناء رفض الاشتراك", "Error rejecting subscription");
       toast.error(msg);
@@ -398,9 +387,11 @@ export function SubscriptionManagementView() {
       { label: t("إدارة الاشتراكات", "Subscriptions"), href: "/subscriptions" },
       ...(view === "renew"
         ? [{ label: t("تجديد الاشتراك", "Renew Subscription") }]
-        : view === "details"
-          ? [{ label: t("تفاصيل الاشتراك", "Subscription Details") }]
-          : []),
+        : view === "add"
+          ? [{ label: t("إضافة اشتراك جديد", "Add New Subscription") }]
+          : view === "details"
+            ? [{ label: t("تفاصيل الاشتراك", "Subscription Details") }]
+            : []),
     ],
     [view, t]
   );
@@ -418,7 +409,9 @@ export function SubscriptionManagementView() {
         {/* Dynamic Page Content (Scroll Y only, zero horizontal overflow) */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 flex flex-col gap-6 w-full max-w-full scrollbar-thin">
           <DashboardPageTransition>
-            {view === "renew" ? (
+            {view === "add" ? (
+              <AddSubscriptionView onBack={handleBackToList} onSuccess={handleBackToList} />
+            ) : view === "renew" ? (
               <RenewSubscriptionView
                 subscription={selectedSubForAction || activeSubscription}
                 onBack={handleBackToList}
@@ -436,11 +429,11 @@ export function SubscriptionManagementView() {
                 onOpenRenew={handleStartRenew}
                 onOpenChangePlan={handleStartChangePlan}
                 onOpenCancel={handleStartCancel}
-                onRefreshList={loadSubscriptions}
+                onRefreshList={reloadSubscriptions}
               />
-            ) : isLoading && subscriptions.length === 0 ? (
-              <DashboardPageSkeleton />
-            ) : apiError && subscriptions.length === 0 ? (
+            ) : isLoading && effectiveSubscriptions.length === 0 ? (
+              <SubscriptionsPageSkeleton />
+            ) : apiError && effectiveSubscriptions.length === 0 ? (
               <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-red-200 dark:border-red-500/30 p-8 text-center flex flex-col items-center justify-center gap-4">
                 <div className="size-12 rounded-full bg-red-100 dark:bg-red-950/50 flex items-center justify-center text-red-600 dark:text-red-400">
                   <AlertTriangle className="w-6 h-6" />
@@ -455,7 +448,7 @@ export function SubscriptionManagementView() {
                 </div>
                 <button
                   type="button"
-                  onClick={loadSubscriptions}
+                  onClick={reloadSubscriptions}
                   className="bg-[#9c6402] hover:bg-[#825200] text-white px-4 py-2 rounded-[6px] font-semibold text-[13px] flex items-center gap-2 cursor-pointer transition-colors shadow-xs"
                 >
                   <RefreshCw className="w-4 h-4" />
@@ -466,10 +459,14 @@ export function SubscriptionManagementView() {
               <>
                 {/* Command Banner */}
                 <SubscriptionManagementHeader
-                  onAddSubscription={() => setIsAddModalOpen(true)}
+                  onAddSubscription={
+                    hasPermission("subscriptions.approve") || hasPermission("subscriptions.create")
+                      ? () => setView("add")
+                      : undefined
+                  }
                 />
 
-                {/* 4 KPI Cards */}
+                {/* 4 KPI Cards (separate from filter) */}
                 <SubscriptionKpiCards
                   totalCount={kpiStats.total}
                   activeCount={kpiStats.active}
@@ -477,75 +474,69 @@ export function SubscriptionManagementView() {
                   cancelledCount={kpiStats.cancelled}
                 />
 
-                {/* Unified Table Container */}
-                <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#f0eeea] dark:border-[#38271c] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] overflow-hidden w-full font-['Cairo',sans-serif]">
-                  {/* Toolbar */}
-                  <SubscriptionTableToolbar
-                    className="rounded-b-none border-0 border-b border-[#f0eeea] dark:border-[#38271c]"
-                    currentTab={(tab as SubscriptionTabFilter) || "all"}
-                    onTabChange={(newTab) => {
-                      setTab(newTab);
-                      setPageIndex(0);
-                    }}
-                    searchQuery={search}
-                    onSearchChange={(q) => {
-                      setSearch(q);
-                      setPageIndex(0);
-                    }}
-                    planFilter={plan}
-                    onPlanChange={(p) => {
-                      setPlan(p);
-                      setPageIndex(0);
-                    }}
-                    statusFilter={status}
-                    onStatusChange={(s) => {
-                      setStatus(s);
-                      setPageIndex(0);
-                    }}
-                    paymentMethodFilter={paymentMethod}
-                    onPaymentMethodChange={(m) => {
-                      setPaymentMethod(m);
-                      setPageIndex(0);
-                    }}
-                    onResetFilters={handleResetFilters}
-                    counts={counts}
-                  />
+                {/* Standalone Filter Bar — never nested inside the table card */}
+                <SubscriptionTableToolbar
+                  currentTab={(tab as SubscriptionTabFilter) || "all"}
+                  onTabChange={(newTab) => {
+                    setTab(newTab);
+                    setPageIndex(0);
+                  }}
+                  searchQuery={search}
+                  onSearchChange={(q) => {
+                    setSearch(q);
+                    setPageIndex(0);
+                  }}
+                  planFilter={plan}
+                  onPlanChange={(p) => {
+                    setPlan(p);
+                    setPageIndex(0);
+                  }}
+                  statusFilter={status}
+                  onStatusChange={(s) => {
+                    setStatus(s);
+                    setPageIndex(0);
+                  }}
+                  paymentMethodFilter={paymentMethod}
+                  onPaymentMethodChange={(m) => {
+                    setPaymentMethod(m);
+                    setPageIndex(0);
+                  }}
+                  onResetFilters={handleResetFilters}
+                  counts={counts}
+                />
 
-                  {/* Main TanStack Table with Custom Headers and Pagination */}
-                  <SubscriptionManagementTable
-                    className="border-0 shadow-none rounded-none"
-                    data={displayedSubscriptions}
-                    onViewDetails={handleViewDetails}
-                    onEdit={handleStartChangePlan}
-                    onRenew={handleStartRenew}
-                    onCancel={handleStartCancel}
-                    onApprove={(sub) => setSubToApprove(sub)}
-                    onReject={(sub) => {
-                      setSubToReject(sub);
-                      setQuickRejectReason("");
-                      setQuickRejectError("");
-                    }}
-                    pageIndex={pageIndex}
-                    pageSize={pageSize}
-                    totalItems={totalItems || filteredSubscriptions.length}
-                    onPageChange={(p) => setPageIndex(p)}
-                    onPageSizeChange={(newSize) => {
-                      setPageSize(newSize);
-                      setPageIndex(0);
-                    }}
-                  />
-                </div>
+                {/* Separate Data Table & Pagination Card */}
+                <SubscriptionManagementTable
+                  data={displayedSubscriptions}
+                  onViewDetails={handleViewDetails}
+                  onEdit={hasPermission("subscriptions.upgrade") ? handleStartChangePlan : undefined}
+                  onRenew={hasPermission("subscriptions.renew") ? handleStartRenew : undefined}
+                  onCancel={hasPermission("subscriptions.cancel") ? handleStartCancel : undefined}
+                  onApprove={
+                    hasPermission("subscriptions.approve")
+                      ? (sub) => setSubToApprove(sub)
+                      : undefined
+                  }
+                  onReject={
+                    hasPermission("subscriptions.reject")
+                      ? (sub) => {
+                          setSubToReject(sub);
+                          setQuickRejectReason("");
+                          setQuickRejectError("");
+                        }
+                      : undefined
+                  }
+                  pageIndex={pageIndex}
+                  pageSize={pageSize}
+                  totalItems={totalItems || filteredSubscriptions.length}
+                  onPageChange={(p) => setPageIndex(p)}
+                  onPageSizeChange={(newSize) => {
+                    setPageSize(newSize);
+                    setPageIndex(0);
+                  }}
+                />
               </>
             )}
-
-            {/* Add Subscription Quick Modal */}
-            <AddSubscriptionModal
-              isOpen={isAddModalOpen}
-              onClose={() => setIsAddModalOpen(false)}
-              onSubmitSuccess={() => {
-                loadSubscriptions();
-              }}
-            />
 
             {/* Change Subscription Plan Modal */}
             <ChangeSubscriptionPlanModal
@@ -556,7 +547,7 @@ export function SubscriptionManagementView() {
               }}
               subscription={selectedSubForAction}
               onSuccess={() => {
-                loadSubscriptions();
+                void InvalidationGraph.onSubscriptionMutation(queryClient);
               }}
             />
 
@@ -569,7 +560,7 @@ export function SubscriptionManagementView() {
               }}
               subscription={selectedSubForAction}
               onConfirmCancel={() => {
-                loadSubscriptions();
+                void InvalidationGraph.onSubscriptionMutation(queryClient);
               }}
             />
 
@@ -680,11 +671,7 @@ export function SubscriptionManagementView() {
                         disabled={isSubmittingQuickAction}
                         className="bg-rose-600 hover:bg-rose-700 text-white px-5 py-2 rounded-[6px] font-bold text-[12px] flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
                       >
-                        {isSubmittingQuickAction ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <CheckCircle2 className="w-4 h-4" />
-                        )}
+                        <CheckCircle2 className="w-4 h-4" />
                         <span>{t("تأكيد الرفض", "Confirm Rejection")}</span>
                       </button>
                     </div>

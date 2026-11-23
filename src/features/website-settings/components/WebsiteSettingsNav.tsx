@@ -3,7 +3,6 @@
 import React from "react";
 import {
   Palette,
-  Menu,
   Briefcase,
   MoreHorizontal,
   Heading,
@@ -45,7 +44,6 @@ interface NavTabItem {
 
 export const websiteSettingsTabsList: NavTabItem[] = [
   { id: "theme-options", labelAr: "خيارات المظهر", labelEn: "Theme Options", icon: Palette },
-  { id: "menu", labelAr: "القائمة", labelEn: "Menu", icon: Menu },
   { id: "use-case", labelAr: "حالات الاستخدام", labelEn: "Use Case", icon: Briefcase },
   { id: "nav-more", labelAr: "المزيد في شريط التنقل", labelEn: "Nav More", icon: MoreHorizontal },
   { id: "section-titles", labelAr: "عنوان ووصف الأقسام", labelEn: "Section Title Subtitle", icon: Heading },

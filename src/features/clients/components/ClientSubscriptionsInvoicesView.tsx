@@ -31,7 +31,7 @@ import { ClientOffice } from "../types/client.types";
 import { InvoiceItem, PaymentMethodType } from "@/features/invoices/types/invoices.types";
 import { initialInvoicesList } from "@/features/invoices/data/initialInvoices";
 import { InvoiceDetailsModal } from "@/features/invoices/components/InvoiceDetailsModal";
-import { CreateInvoiceModal } from "@/features/invoices/components/CreateInvoiceModal";
+import { CreateInvoiceView } from "@/features/invoices/components/CreateInvoiceView";
 import { RecordPaymentModal } from "@/features/invoices/components/RecordPaymentModal";
 import { UpgradeClientOfficePlanModal } from "./UpgradeClientOfficePlanModal";
 import { useLanguage } from "@/lib/i18n";
@@ -175,6 +175,16 @@ export function ClientSubscriptionsInvoicesView({
           {isEn ? "Back to Clients" : "العودة لقائمة العملاء"}
         </button>
       </div>
+    );
+  }
+
+  if (isCreateInvoiceOpen) {
+    return (
+      <CreateInvoiceView
+        onBack={() => setIsCreateInvoiceOpen(false)}
+        onSave={handleCreateNewInvoice}
+        initialFirmName={officeName !== "—" ? officeName : ""}
+      />
     );
   }
 
@@ -648,12 +658,6 @@ export function ClientSubscriptionsInvoicesView({
         }}
       />
 
-      {/* 4. Create New Invoice Modal */}
-      <CreateInvoiceModal
-        isOpen={isCreateInvoiceOpen}
-        onClose={() => setIsCreateInvoiceOpen(false)}
-        onSave={handleCreateNewInvoice}
-      />
     </div>
   );
 }

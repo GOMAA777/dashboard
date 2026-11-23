@@ -119,7 +119,7 @@ export function TicketQuickViewModal({
           </div>
 
           <Link
-            href="/tickets"
+            href="/tickets/"
             onClick={onClose}
             className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] border border-[#ffddb6] dark:border-[#e29d38]/40 bg-[#fff6e8] dark:bg-[rgba(226,157,56,0.15)] text-[#9c6402] dark:text-[#e29d38] hover:bg-[#ffddb6]/50 text-[12px] font-bold transition-colors cursor-pointer"
           >
@@ -256,7 +256,7 @@ export function TicketQuickViewModal({
         {/* Modal Footer */}
         <div className="p-4 border-t border-[#eae8e4] dark:border-[#38271c] bg-[#faf8f5] dark:bg-[#221812] flex items-center justify-between gap-3 shrink-0">
           <Link
-            href="/tickets"
+            href="/tickets/"
             onClick={onClose}
             className="text-[12px] font-bold text-[#9c6402] dark:text-[#e29d38] hover:underline flex items-center gap-1 cursor-pointer"
           >

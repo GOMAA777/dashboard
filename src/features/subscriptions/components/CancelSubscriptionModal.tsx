@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, AlertCircle, Building2, CheckCheck, Loader2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { X, AlertCircle, Building2, CheckCheck } from "lucide-react";
 import { SubscriptionRecord } from "../types/subscription.types";
 import { toast } from "sonner";
 import { useLanguage } from "@/lib/i18n";
@@ -10,6 +11,7 @@ import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { cancelSubscription } from "@/lib/api/subscriptions";
 import { LuxuryAlertDialog } from "@/components/shared/LuxuryAlertDialog";
 import { ApiError } from "@/lib/api/http";
+import { InvalidationGraph } from "@/lib/query-keys";
 
 interface CancelSubscriptionModalProps {
   isOpen: boolean;
@@ -25,6 +27,7 @@ export function CancelSubscriptionModal({
   onConfirmCancel,
 }: CancelSubscriptionModalProps) {
   const { t, direction, isEn } = useLanguage();
+  const queryClient = useQueryClient();
   const [timingOption, setTimingOption] = useState<"end_of_period" | "immediate">("end_of_period");
   const [reason, setReason] = useState("");
   const [notes, setNotes] = useState("");
@@ -62,6 +65,7 @@ export function CancelSubscriptionModal({
         await cancelSubscription(subId, fullReason);
       }
       toast.success(t(`تم إلغاء اشتراك "${firmName}" وتجميد التجديد التلقائي بنجاح`, `Subscription for "${firmName}" was cancelled successfully`));
+      await InvalidationGraph.onSubscriptionMutation(queryClient);
       onConfirmCancel?.(fullReason, timingOption);
       onClose();
     } catch (err: unknown) {
@@ -301,11 +305,7 @@ export function CancelSubscriptionModal({
                 disabled={isSubmitting}
                 className="bg-[#ba1a1a] hover:bg-[#991b1b] text-white px-5 py-2 rounded-[4px] font-bold text-[12px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
               >
-                {isSubmitting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <CheckCheck className="w-4 h-4" />
-                )}
+                <CheckCheck className="w-4 h-4" />
                 <span>{t("تأكيد إلغاء الاشتراك", "Confirm Subscription Cancellation")}</span>
               </button>
             </div>

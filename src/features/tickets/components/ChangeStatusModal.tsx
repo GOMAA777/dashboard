@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Check, RefreshCw, AlertCircle, Clock, CheckCircle2, Loader2 } from "lucide-react";
+import { X, Check, RefreshCw, AlertCircle, Clock, CheckCircle2 } from "lucide-react";
 import { Ticket, TicketStatus } from "../types/tickets.types";
 import { useLanguage } from "@/lib/i18n";
 
@@ -254,17 +254,8 @@ export function ChangeStatusModal({
             onClick={handleConfirm}
             className="bg-[#9c6403] hover:bg-[#855402] text-white flex items-center gap-[6px] px-[20px] py-[8px] rounded-[4px] font-bold text-[12px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="size-[14px] animate-spin" />
-                <span>{isEn ? "Saving..." : "جاري الحفظ..."}</span>
-              </>
-            ) : (
-              <>
-                <Check className="size-[14px]" />
-                <span>{isEn ? "Save Status" : "حفظ الحالة"}</span>
-              </>
-            )}
+            <Check className="size-[14px]" />
+            <span>{isEn ? "Save Status" : "حفظ الحالة"}</span>
           </button>
         </div>
       </div>

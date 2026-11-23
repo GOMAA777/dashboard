@@ -357,7 +357,7 @@ describe("08. Support Tickets (تذاكر الدعم الفني) - API Integrati
       expect(ticket.status).toBe("in_progress");
       expect(ticket.priority).toBe("urgent");
       expect(ticket.channel).toBe("portal");
-      expect(ticket.channelLabel).toBe("بوابة العملاء (ناجز)");
+      expect(ticket.channelLabel).toBe("الشات المباشر");
       expect(ticket.client.firm).toBe("مكتب دار العدالة للمحاماة");
       expect(ticket.client.name).toBe("عبدالله الشمري");
       expect(ticket.department.code).toBe("DEP-06");

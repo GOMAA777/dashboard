@@ -11,6 +11,7 @@ import { useLanguage } from "@/lib/i18n";
 import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { fetchServerInfo } from "@/lib/api/settings";
 import { unwrapList, asString } from "@/lib/api/helpers";
+import { useServerInfoQuery } from "@/features/utility/hooks/useUtilityQuery";
 
 export function ServerInfoView() {
   const { direction, isEn } = useLanguage();
@@ -18,37 +19,30 @@ export function ServerInfoView() {
   const [activeTab, setActiveTab] = useState<"all" | "compatible" | "needs_review">("all");
   const [searchQuery, setSearchQuery] = useState("");
 
+  const serverInfoQuery = useServerInfoQuery();
+
   useEffect(() => {
-    let cancelled = false;
-    fetchServerInfo()
-      .then((payload) => {
-        if (cancelled) return;
-        const list = unwrapList<Record<string, unknown>>(payload);
-        if (list.length === 0) return;
-        setDirectives(
-          list.map((item, idx) => {
-            const statusRaw = asString(item.status, "compatible").toLowerCase();
-            return {
-              id: asString(item.id, String(idx + 1)),
-              orderNumber: idx + 1,
-              title: asString(item.title || item.name, "Directive"),
-              directiveName: asString(item.directive || item.key, "php.ini"),
-              currentValue: asString(item.current_value || item.value, "—"),
-              recommendedValue: asString(item.recommended_value || item.recommended, "—"),
-              status: statusRaw.includes("review") || statusRaw.includes("warn")
-                ? ("needs_review" as const)
-                : ("compatible" as const),
-            };
-          })
-        );
-      })
-      .catch(() => {
-        // Keep mock directives if API unavailable.
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    if (serverInfoQuery.data) {
+      const list = unwrapList<Record<string, unknown>>(serverInfoQuery.data);
+      if (list.length === 0) return;
+      setDirectives(
+        list.map((item, idx) => {
+          const statusRaw = asString(item.status, "compatible").toLowerCase();
+          return {
+            id: asString(item.id, String(idx + 1)),
+            orderNumber: idx + 1,
+            title: asString(item.title || item.name, "Directive"),
+            directiveName: asString(item.directive || item.key, "php.ini"),
+            currentValue: asString(item.current_value || item.value, "—"),
+            recommendedValue: asString(item.recommended_value || item.recommended, "—"),
+            status: statusRaw.includes("review") || statusRaw.includes("warn")
+              ? ("needs_review" as const)
+              : ("compatible" as const),
+          };
+        })
+      );
+    }
+  }, [serverInfoQuery.data]);
 
   const filteredDirectives = useMemo(() => {
     return directives.filter((d) => {

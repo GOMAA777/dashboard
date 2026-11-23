@@ -531,9 +531,17 @@ export async function loadFullDashboardData(_companyId?: string | number): Promi
   }
 
   // 4. Map Law Offices Table directly from SaaS API
-  const firmsSource = (rawSaas?.latest_firms && rawSaas.latest_firms.length > 0)
+  const rawFirmsSource = (rawSaas?.latest_firms && rawSaas.latest_firms.length > 0)
     ? (rawSaas.latest_firms as unknown as Record<string, unknown>[])
     : (rawFirmsList.length > 0 ? rawFirmsList : []);
+
+  const firmsSource = rawFirmsSource.filter((f) => {
+    const idStr = String(f.id);
+    const nameStr = String(f.name || "");
+    if (idStr === "146" || nameStr.includes("طاقم العمل")) return false;
+    if (idStr === "129") return false;
+    return true;
+  });
 
   const recentOffices: LawOfficeRow[] = firmsSource.map((f, idx) => {
     const id = asString(f.id, String(idx + 1));
@@ -541,7 +549,8 @@ export async function loadFullDashboardData(_companyId?: string | number): Promi
     const ownerName = asString(f.owner_name, "المشرف العام");
     const license = asString(f.license_number, `38/${100 + Number(id)}`);
     const planObj = f.plan as Record<string, unknown> | undefined;
-    const planName = asString(planObj?.name ?? f.subscription_plan, "باقة التميز العدلي");
+    const isSpecial = f.subscription_plan === "special" || f.subscription_plan === "unlimited" || f.plan_type === "special" || f.plan_type === "unlimited" || String(f.plan || "").includes("غير محدود");
+    const planName = isSpecial ? "غير محدود" : asString(planObj?.name ?? f.subscription_plan, "باقة التميز العدلي");
     const subObj = f.active_subscription as Record<string, unknown> | undefined;
     const code = asString(subObj?.subscription_code, `SUB-2026-${id}`);
     const dateFormatted = formatArabicDate(asString(f.created_at));

@@ -13,19 +13,21 @@ import {
   ShieldCheck,
   Clock,
   ArrowUpRight,
-  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import { ClientOffice } from "../types/client.types";
 import { useLanguage } from "@/lib/i18n";
 import { localizePlanFeature, localizePlanName, localizeRoleOrTitle } from "@/lib/localize";
 import { ModalPortal } from "@/components/shared/ModalPortal";
-import { fetchPlans, getLocalCustomPlans } from "@/lib/api/plans";
+import { getLocalCustomPlans } from "@/lib/api/plans";
 import { mapPlansResponse, saveLocalCustomFirmPlan } from "@/lib/api/mappers";
 import { initialPricingPlans } from "@/features/plans/data/initialPlans";
 import type { PricingPlanItem } from "@/features/plans/types/plan.types";
 import { updateFirm } from "@/lib/api/firms";
 import { upgradeSubscription } from "@/lib/api/subscriptions";
+import { usePlansQuery } from "@/features/plans/hooks/usePlansQuery";
+import { InvalidationGraph } from "@/lib/query-keys";
 
 export interface AvailablePlan {
   id: string;
@@ -136,14 +138,37 @@ export function UpgradeClientOfficePlanModal({
   // Determine currently active plan from office
   const currentOfficePlan = office?.plan || currentPlan || "الباقة المعتمدة";
 
-  // Available plans loaded directly from "خانة الباقات" (API + Local storage registry)
-  const [availablePlans, setAvailablePlans] = useState<AvailablePlan[]>(() => {
-    const local = getLocalCustomPlans();
-    const source = local.length > 0 ? local : initialPricingPlans;
-    const mapped = source.map(mapPricingPlanItemToAvailablePlan);
-    return [...mapped, CUSTOM_SLA_PLAN, UNLIMITED_VIP_PLAN];
-  });
-  const [isLoadingPlans, setIsLoadingPlans] = useState(false);
+  const queryClient = useQueryClient();
+  const plansQuery = usePlansQuery();
+
+  // Available plans loaded directly from "خانة الباقات" (usePlansQuery + Local storage registry)
+  const availablePlans = React.useMemo<AvailablePlan[]>(() => {
+    const localPlans = getLocalCustomPlans();
+    const mappedFromApi = plansQuery.data ? mapPlansResponse(plansQuery.data) : [];
+    const merged: PricingPlanItem[] = [...mappedFromApi];
+
+    // Merge local custom plans without duplicate IDs/names
+    localPlans.forEach((lp) => {
+      if (!merged.some((m) => String(m.id) === String(lp.id) || m.name === lp.name)) {
+        merged.push(lp);
+      }
+    });
+
+    const finalPlans = merged.length > 0 ? merged : initialPricingPlans;
+    const activePlans = finalPlans.filter((p) => p.isActive !== false);
+    const sourceList = activePlans.length > 0 ? activePlans : finalPlans;
+    const mappedList = sourceList.map(mapPricingPlanItemToAvailablePlan);
+
+    // Append custom SLA plan and unlimited VIP plan if not present
+    if (!mappedList.some((p) => p.id === "custom" || p.name.includes("مخصصة"))) {
+      mappedList.push(CUSTOM_SLA_PLAN);
+    }
+    if (!mappedList.some((p) => p.id === "unlimited" || p.name === "غير محدود" || p.name.includes("غير محدود"))) {
+      mappedList.push(UNLIMITED_VIP_PLAN);
+    }
+
+    return mappedList;
+  }, [plansQuery.data]);
 
   // Billing cycle state: default according to prop or office billing cycle
   const [billingCycle, setBillingCycle] = useState<"annual" | "monthly">(() => {
@@ -160,11 +185,18 @@ export function UpgradeClientOfficePlanModal({
   const [customAnnualPrice, setCustomAnnualPrice] = useState(22440);
   const [customLawyers, setCustomLawyers] = useState(50);
   const [customCases, setCustomCases] = useState(2000);
+  const [customClients, setCustomClients] = useState(500);
+  const [customDocuments, setCustomDocuments] = useState(1000);
   const [customStorageGb, setCustomStorageGb] = useState(500);
 
   // Synchronize billing cycle when modal opens or initialBillingCycle changes
   useEffect(() => {
     if (!isOpen) return;
+    if (office?.planDetails?.maxClients) setCustomClients(office.planDetails.maxClients);
+    if (office?.planDetails?.maxDocuments) setCustomDocuments(office.planDetails.maxDocuments);
+    if (office?.planDetails?.maxLawyers) setCustomLawyers(office.planDetails.maxLawyers);
+    if (office?.planDetails?.maxCases) setCustomCases(office.planDetails.maxCases);
+    if (office?.planDetails?.storageLimitGb) setCustomStorageGb(office.planDetails.storageLimitGb);
     if (initialBillingCycle) {
       setBillingCycle(initialBillingCycle);
     } else {
@@ -179,88 +211,32 @@ export function UpgradeClientOfficePlanModal({
     }
   }, [isOpen, initialBillingCycle, office?.billingCycle, office?.activeSubscriptionDetails?.billingCycle]);
 
-  // Load real plans from "خانة الباقات" (fetchPlans + getLocalCustomPlans)
+  // Pre-select a plan: prefer next plan after the current office plan
   useEffect(() => {
     if (!isOpen) return;
-    let cancelled = false;
-    setIsLoadingPlans(true);
+    if (selectedPlanId && availablePlans.some((p) => p.id === selectedPlanId)) return;
 
-    const localPlans = getLocalCustomPlans();
+    const currNorm = currentOfficePlan.trim().toLowerCase();
+    const currIndex = availablePlans.findIndex(
+      (p) =>
+        p.name.trim().toLowerCase() === currNorm ||
+        currNorm.includes(p.name.trim().toLowerCase()) ||
+        p.name.trim().toLowerCase().includes(currNorm)
+    );
 
-    fetchPlans()
-      .then((payload) => {
-        if (cancelled) return;
-        const mappedFromApi = mapPlansResponse(payload);
-        const merged: PricingPlanItem[] = [...mappedFromApi];
-
-        // Merge local custom plans without duplicate IDs/names
-        localPlans.forEach((lp) => {
-          if (!merged.some((m) => String(m.id) === String(lp.id) || m.name === lp.name)) {
-            merged.push(lp);
-          }
-        });
-
-        const finalPlans = merged.length > 0 ? merged : initialPricingPlans;
-        const activePlans = finalPlans.filter((p) => p.isActive !== false);
-        const sourceList = activePlans.length > 0 ? activePlans : finalPlans;
-        const mappedList = sourceList.map(mapPricingPlanItemToAvailablePlan);
-
-        // Append custom SLA plan and unlimited VIP plan if not present
-        if (!mappedList.some((p) => p.id === "custom" || p.name.includes("مخصصة"))) {
-          mappedList.push(CUSTOM_SLA_PLAN);
-        }
-        if (!mappedList.some((p) => p.id === "unlimited" || p.name === "غير محدود" || p.name.includes("غير محدود"))) {
-          mappedList.push(UNLIMITED_VIP_PLAN);
-        }
-
-        setAvailablePlans(mappedList);
-
-        // Pre-select a plan: prefer next plan after the current office plan
-        const currNorm = currentOfficePlan.trim().toLowerCase();
-        const currIndex = mappedList.findIndex(
-          (p) =>
-            p.name.trim().toLowerCase() === currNorm ||
-            currNorm.includes(p.name.trim().toLowerCase()) ||
-            p.name.trim().toLowerCase().includes(currNorm)
-        );
-
-        if (currIndex !== -1 && mappedList[currIndex + 1]) {
-          setSelectedPlanId(mappedList[currIndex + 1].id);
-        } else {
-          const candidate = mappedList.find(
-            (p) =>
-              p.name.trim().toLowerCase() !== currNorm &&
-              !currNorm.includes(p.name.trim().toLowerCase()) &&
-              p.id !== "custom" &&
-              p.id !== "unlimited"
-          );
-          setSelectedPlanId(candidate ? candidate.id : mappedList[0]?.id || "custom");
-        }
-      })
-      .catch(() => {
-        if (cancelled) return;
-        const localPlans = getLocalCustomPlans();
-        const fallback = localPlans.length > 0 ? localPlans : initialPricingPlans;
-        const mappedList = fallback.map(mapPricingPlanItemToAvailablePlan);
-        if (!mappedList.some((p) => p.id === "custom" || p.name.includes("مخصصة"))) {
-          mappedList.push(CUSTOM_SLA_PLAN);
-        }
-        if (!mappedList.some((p) => p.id === "unlimited" || p.name === "غير محدود" || p.name.includes("غير محدود"))) {
-          mappedList.push(UNLIMITED_VIP_PLAN);
-        }
-        setAvailablePlans(mappedList);
-        if (mappedList.length > 0) {
-          setSelectedPlanId(mappedList[0].id);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoadingPlans(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isOpen, currentOfficePlan]);
+    if (currIndex !== -1 && availablePlans[currIndex + 1]) {
+      setSelectedPlanId(availablePlans[currIndex + 1].id);
+    } else {
+      const candidate = availablePlans.find(
+        (p) =>
+          p.name.trim().toLowerCase() !== currNorm &&
+          !currNorm.includes(p.name.trim().toLowerCase()) &&
+          p.id !== "custom" &&
+          p.id !== "unlimited"
+      );
+      setSelectedPlanId(candidate ? candidate.id : availablePlans[0]?.id || "custom");
+    }
+  }, [isOpen, currentOfficePlan, availablePlans, selectedPlanId]);
 
   if (!isOpen) return null;
 
@@ -301,13 +277,21 @@ export function UpgradeClientOfficePlanModal({
         const isUnlim = isSelectedUnlimited;
         const numericPlanId = Number(selectedPlan.id);
         const cycleValue = isUnlim ? "unlimited" : billingCycle === "annual" ? "yearly" : "monthly";
-        const targetPlanType = isUnlim ? "unlimited" : "paid";
+        const targetPlanType = isUnlim ? "special" : "paid";
 
         saveLocalCustomFirmPlan(office.id, {
           plan: isUnlim ? "غير محدود" : resolvedPlanName,
           planId: isUnlim ? undefined : (!isNaN(numericPlanId) && selectedPlan.id !== "custom" ? numericPlanId : undefined),
           planType: targetPlanType,
           billingCycle: cycleValue,
+          maxLawyers: isUnlim ? 999999 : selectedPlanId === "custom" ? customLawyers : undefined,
+          maxCases: isUnlim ? 999999 : selectedPlanId === "custom" ? customCases : undefined,
+          maxClients: isUnlim ? 999999 : selectedPlanId === "custom" ? customClients : undefined,
+          maxDocuments: isUnlim ? 999999 : selectedPlanId === "custom" ? customDocuments : undefined,
+          storageLimitGb: isUnlim ? 999999 : selectedPlanId === "custom" ? customStorageGb : undefined,
+          extraLawyers: selectedPlanId === "custom" ? customLawyers : undefined,
+          extraClients: selectedPlanId === "custom" ? customClients : undefined,
+          extraDocuments: selectedPlanId === "custom" ? customDocuments : undefined,
         });
         if (office.companyId) {
           saveLocalCustomFirmPlan(office.companyId, {
@@ -315,15 +299,36 @@ export function UpgradeClientOfficePlanModal({
             planId: isUnlim ? undefined : (!isNaN(numericPlanId) && selectedPlan.id !== "custom" ? numericPlanId : undefined),
             planType: targetPlanType,
             billingCycle: cycleValue,
+            maxLawyers: isUnlim ? 999999 : selectedPlanId === "custom" ? customLawyers : undefined,
+            maxCases: isUnlim ? 999999 : selectedPlanId === "custom" ? customCases : undefined,
+            maxClients: isUnlim ? 999999 : selectedPlanId === "custom" ? customClients : undefined,
+            maxDocuments: isUnlim ? 999999 : selectedPlanId === "custom" ? customDocuments : undefined,
+            storageLimitGb: isUnlim ? 999999 : selectedPlanId === "custom" ? customStorageGb : undefined,
+            extraLawyers: selectedPlanId === "custom" ? customLawyers : undefined,
+            extraClients: selectedPlanId === "custom" ? customClients : undefined,
+            extraDocuments: selectedPlanId === "custom" ? customDocuments : undefined,
           });
         }
         await updateFirm(office.id, {
-          plan_name: isUnlim ? "غير محدود" : resolvedPlanName,
-          plan: isUnlim ? "غير محدود" : resolvedPlanName,
+          plan_name: isUnlim ? "خطة مميزة" : resolvedPlanName,
+          plan: isUnlim ? "خطة مميزة" : resolvedPlanName,
           plan_type: targetPlanType,
-          subscription_plan: isUnlim ? "unlimited" : resolvedPlanName,
-          plan_id: isUnlim ? undefined : (!isNaN(numericPlanId) && selectedPlan.id !== "custom" ? numericPlanId : undefined),
+          subscription_plan: isUnlim ? "special" : "paid",
+          plan_id: isUnlim ? null : (!isNaN(numericPlanId) && selectedPlan.id !== "custom" ? numericPlanId : undefined),
           billing_cycle: cycleValue,
+          ...(selectedPlanId === "custom"
+            ? {
+                max_lawyers: customLawyers,
+                max_cases: customCases,
+                max_clients: customClients,
+                max_documents: customDocuments,
+                storage_limit_gb: customStorageGb,
+                extra_lawyers: customLawyers,
+                extra_cases: customCases,
+                extra_clients: customClients,
+                extra_documents: customDocuments,
+              }
+            : {}),
         }).catch(() => null);
 
         if (office.activeSubscriptionDetails?.id && !isUnlim) {
@@ -332,6 +337,8 @@ export function UpgradeClientOfficePlanModal({
             billing_cycle: cycleValue,
           }).catch(() => null);
         }
+
+        await InvalidationGraph.onFirmMutation(queryClient);
       }
     } catch {
       // Non-blocking for UI update
@@ -463,9 +470,6 @@ export function UpgradeClientOfficePlanModal({
                   )}
                 </span>
                 <div className="flex items-center gap-2">
-                  {isLoadingPlans && (
-                    <Loader2 className="size-3.5 text-[#9c6402] dark:text-[#e29d38] animate-spin" />
-                  )}
                   <h3 className="text-[14px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                     {t("جميع الباقات المتاحة للمكتب:", "All Available Platform Plans:")}
                   </h3>
@@ -615,7 +619,7 @@ export function UpgradeClientOfficePlanModal({
                     "Adjust price and limits for this office without affecting other clients."
                   )}
                 </p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   <div className="flex flex-col gap-1">
                     <label className="text-[11px] font-bold text-[#514537] dark:text-[#cdc5bd]">
                       {t("السعر السنوي", "Annual price")}
@@ -639,6 +643,32 @@ export function UpgradeClientOfficePlanModal({
                       dir="ltr"
                       value={customLawyers}
                       onChange={(e) => setCustomLawyers(Number(e.target.value) || 0)}
+                      className="w-full bg-white dark:bg-[#1a120d] border border-[#eae8e4] dark:border-[#38271c] rounded-[6px] px-3 py-2 text-[12px] focus:border-[#9c6402] focus:outline-none"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-bold text-[#514537] dark:text-[#cdc5bd]">
+                      {t("العملاء والموكلون", "Clients")}
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      dir="ltr"
+                      value={customClients}
+                      onChange={(e) => setCustomClients(Number(e.target.value) || 0)}
+                      className="w-full bg-white dark:bg-[#1a120d] border border-[#eae8e4] dark:border-[#38271c] rounded-[6px] px-3 py-2 text-[12px] focus:border-[#9c6402] focus:outline-none"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-bold text-[#514537] dark:text-[#cdc5bd]">
+                      {t("المستندات والوثائق", "Documents")}
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      dir="ltr"
+                      value={customDocuments}
+                      onChange={(e) => setCustomDocuments(Number(e.target.value) || 0)}
                       className="w-full bg-white dark:bg-[#1a120d] border border-[#eae8e4] dark:border-[#38271c] rounded-[6px] px-3 py-2 text-[12px] focus:border-[#9c6402] focus:outline-none"
                     />
                   </div>
@@ -775,11 +805,7 @@ export function UpgradeClientOfficePlanModal({
                 disabled={isSubmitting}
                 className="flex-1 sm:flex-initial bg-[#9c6402] hover:bg-[#855402] dark:bg-[#c29547] dark:hover:bg-[#b0833b] text-white dark:text-[#1c140f] px-6 py-2.5 rounded-[4px] text-[13px] font-bold shadow-sm transition-colors cursor-pointer flex items-center justify-center gap-2"
               >
-                <span>
-                  {isSubmitting
-                    ? t("جاري الترقية...", "Upgrading...")
-                    : t("تأكيد ترقية الباقة", "Confirm Plan Upgrade")}
-                </span>
+                <span>{t("تأكيد ترقية الباقة", "Confirm Plan Upgrade")}</span>
                 <ArrowUpRight className="size-4 rtl:rotate-90" />
               </button>
             </div>

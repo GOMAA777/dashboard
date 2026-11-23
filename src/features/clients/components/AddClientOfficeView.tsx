@@ -30,13 +30,14 @@ import {
   ShieldCheck,
   HelpCircle,
   BellRing,
-  Loader2,
+  Copy,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ClientOffice } from "../types/client.types";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { fetchPlans, createPlan, updatePlan, getLocalCustomPlans, saveLocalCustomPlan } from "@/lib/api/plans";
+import { createPlan, updatePlan, getLocalCustomPlans, saveLocalCustomPlan } from "@/lib/api/plans";
+import { usePlansQuery } from "@/features/plans/hooks/usePlansQuery";
 import { unwrapList } from "@/lib/api/helpers";
 import {
   normalizeLogoUrl,
@@ -94,6 +95,12 @@ export interface OfficeFormData {
   billingCycle?: string;
   trialDays?: number;
   autoRenew?: boolean;
+  usedStorageGb?: string;
+  extraLawyers?: number;
+  extraStorageGb?: number;
+  extraCases?: number;
+  extraClients?: number;
+  extraDocuments?: number;
   planDetails?: any;
   password?: string;
   logoFile?: File | null;
@@ -136,10 +143,10 @@ interface AddClientOfficeViewProps {
 export function formatPhoneForInput(rawPhone?: string | null): string {
   if (!rawPhone) return "";
   let clean = rawPhone.replace(/\+966\s?/, "").replace(/\s+/g, "").trim();
-  if (/^5\d{8}$/.test(clean)) {
-    clean = `0${clean}`;
+  if (clean.startsWith("0")) {
+    clean = clean.slice(1);
   }
-  return clean;
+  return clean.slice(0, 9);
 }
 
 export function formatLicenseForInput(rawLicense?: string | null): string {
@@ -201,6 +208,7 @@ export function AddClientOfficeView({
   onSuccess,
 }: AddClientOfficeViewProps) {
   const { t, isEn } = useLanguage();
+  const plansQuery = usePlansQuery();
   const isEditMode = Boolean(officeToEdit);
 
   // Office Status: Active or Inactive only (نشط أو غير نشط فقط)
@@ -292,11 +300,37 @@ export function AddClientOfficeView({
   const [submitStage, setSubmitStage] = useState<number>(1);
 
   const [showPassword, setShowPassword] = useState(false);
+  const [copiedField, setCopiedField] = useState<"email" | "password" | null>(null);
+
+  const handleCopyField = async (text: string, field: "email" | "password") => {
+    if (!text.trim()) {
+      toast.error(
+        field === "email"
+          ? t("أدخل البريد الإلكتروني أولاً", "Enter the email first")
+          : t("أدخل كلمة المرور أولاً", "Enter the password first")
+      );
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(field);
+      toast.success(t("تم النسخ إلى الحافظة", "Copied to clipboard"));
+      setTimeout(() => setCopiedField(null), 2000);
+    } catch {
+      toast.error(t("تعذر النسخ", "Copy failed"));
+    }
+  };
+
   const [selectedPlanType, setSelectedPlanType] = useState<"paid" | "trial" | "unlimited">(() => {
     if (
       officeToEdit?.planType === "unlimited" ||
+      officeToEdit?.planType === "special" ||
       officeToEdit?.subscriptionPlan === "unlimited" ||
+      officeToEdit?.subscriptionPlan === "special" ||
       officeToEdit?.plan === "غير محدود" ||
+      officeToEdit?.plan === "خطة مميزة" ||
+      officeToEdit?.plan?.includes("غير محدود") ||
+      officeToEdit?.plan?.includes("خطة مميزة") ||
       officeToEdit?.subscriptionStatus?.type === "unlimited"
     ) {
       return "unlimited";
@@ -336,9 +370,35 @@ export function AddClientOfficeView({
     }
     return "اشتراك سنوي (موصى به - خصم شهرين مجاناً)";
   });
-  const [availablePlans, setAvailablePlans] = useState<
-    Array<{ id: number | string; name: string; monthlyPrice: string; yearlyPrice: string; isPopular?: boolean }>
-  >([]);
+  type AvailablePlanOption = {
+    id: number | string;
+    name: string;
+    monthlyPrice: string;
+    yearlyPrice: string;
+    isPopular?: boolean;
+    maxLawyers?: number;
+    planApiType?: string;
+  };
+
+  const isUnlimitedPlanOption = (p: {
+    id?: number | string;
+    name?: string;
+    planApiType?: string;
+    type?: string;
+  }) => {
+    const id = String(p.id || "").toLowerCase();
+    const name = String(p.name || "");
+    const type = String(p.planApiType || p.type || "").toLowerCase();
+    return (
+      id === "unlimited" ||
+      type === "unlimited" ||
+      type === "special" ||
+      name === "غير محدود" ||
+      name.includes("غير محدود")
+    );
+  };
+
+  const [availablePlans, setAvailablePlans] = useState<AvailablePlanOption[]>([]);
 
   const isTrial = selectedPlanType === "trial";
   const isUnlimited = selectedPlanType === "unlimited";
@@ -389,6 +449,9 @@ export function AddClientOfficeView({
   const [customAgentsLimit, setCustomAgentsLimit] = useState<string>("5");
   const [customAssistantsLimit, setCustomAssistantsLimit] = useState<string>("5");
   const [customClientsLimit, setCustomClientsLimit] = useState<string>("1000");
+  const [customDocumentsLimit, setCustomDocumentsLimit] = useState<string>(
+    String(officeToEdit?.planDetails?.maxDocuments || "5000")
+  );
   const [customStorageLimit, setCustomStorageLimit] = useState<string>(
     officeToEdit?.planDetails?.storageLimitGb ? String(officeToEdit.planDetails.storageLimitGb) : "50"
   );
@@ -491,8 +554,13 @@ export function AddClientOfficeView({
 
       const isUnlim =
         officeToEdit.planType === "unlimited" ||
+        officeToEdit.planType === "special" ||
         officeToEdit.subscriptionPlan === "unlimited" ||
+        officeToEdit.subscriptionPlan === "special" ||
         officeToEdit.plan === "غير محدود" ||
+        officeToEdit.plan === "خطة مميزة" ||
+        officeToEdit.plan?.includes("غير محدود") ||
+        officeToEdit.plan?.includes("خطة مميزة") ||
         officeToEdit.subscriptionStatus?.type === "unlimited";
 
       const initialType = isUnlim
@@ -614,111 +682,93 @@ export function AddClientOfficeView({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Fetch real plans from server + local storage
+  // Sync real plans from TanStack Query hook + local custom plans (no mock seed)
   const initialOfficePlanLoadedRef = useRef<string | null>(null);
   useEffect(() => {
-    let cancelled = false;
-    const localPlans = getLocalCustomPlans();
+    const localPlans = getLocalCustomPlans().filter((lp) => !isUnlimitedPlanOption(lp));
+    const list = plansQuery.data ? unwrapList<any>(plansQuery.data) : [];
+    const serverMapped: AvailablePlanOption[] = list
+      .map((p) => ({
+        id: p.id,
+        name: String(p.name || ""),
+        monthlyPrice: String(p.monthly_price ?? p.monthlyPrice ?? "0.00"),
+        yearlyPrice: String(p.yearly_price ?? p.yearlyPrice ?? p.annualPrice ?? "0.00"),
+        isPopular: Boolean(p.is_popular ?? p.isPopular),
+        maxLawyers:
+          p.max_lawyers !== undefined && p.max_lawyers !== null
+            ? Number(p.max_lawyers)
+            : p.maxLawyers !== undefined && p.maxLawyers !== null
+            ? Number(p.maxLawyers)
+            : undefined,
+        planApiType: String(p.type || p.plan_type || ""),
+      }))
+      .filter((p) => p.name && !isUnlimitedPlanOption(p));
 
-    fetchPlans()
-      .then((res) => {
-        if (cancelled) return;
-        const list = unwrapList<any>(res);
-        const serverMapped = list.map((p) => ({
-          id: p.id,
-          name: String(p.name),
-          monthlyPrice: String(p.monthly_price || "0.00"),
-          yearlyPrice: String(p.yearly_price || "0.00"),
-          isPopular: Boolean(p.is_popular ?? p.isPopular),
-        }));
-
-        // Merge server plans and local custom plans without duplicate IDs/names
-        const merged = [...serverMapped];
-        localPlans.forEach((lp) => {
-          if (!merged.some((m) => String(m.id) === String(lp.id) || m.name === lp.name)) {
-            merged.push({
-              id: lp.id,
-              name: lp.name,
-              monthlyPrice: String(lp.monthlyPrice || "0.00"),
-              yearlyPrice: String(lp.annualPrice || "0.00"),
-              isPopular: Boolean(lp.isPopular),
-            });
-          }
+    // Prefer API plans; fall back only to local custom plans (never mock catalogs)
+    const merged: AvailablePlanOption[] = [...serverMapped];
+    localPlans.forEach((lp) => {
+      if (!merged.some((m) => String(m.id) === String(lp.id) || m.name === lp.name)) {
+        const lawyersRaw = lp.limits?.lawyers;
+        const lawyersMatch =
+          typeof lawyersRaw === "string" ? lawyersRaw.match(/(\d+)/) : null;
+        merged.push({
+          id: lp.id,
+          name: lp.name,
+          monthlyPrice: String(lp.monthlyPrice || "0.00"),
+          yearlyPrice: String(lp.annualPrice || "0.00"),
+          isPopular: Boolean(lp.isPopular),
+          maxLawyers: lawyersMatch ? Number(lawyersMatch[1]) : undefined,
+          planApiType: String(lp.type || ""),
         });
+      }
+    });
 
-        setAvailablePlans(merged);
-        if (!officeToEdit) {
-          if (merged.length > 0) {
-            setSelectedPlanId((prev) => (prev === "custom" || prev === -1 || isCustomPlan ? "custom" : merged[0].id));
-            setPackageTier((prev) => (prev === "باقة مخصصة" || isCustomPlan ? prev : merged[0].name));
-          } else {
-            // No plans exist in the system yet! Auto-activate custom plan
-            setIsCustomPlan(true);
-            setSelectedPlanId("custom");
-            setPackageTier("باقة مخصصة");
-          }
-        } else {
-          // If editing, find matching plan by id or name only on initial load
-          const currentId = String(officeToEdit.id || officeToEdit.companyId || "");
-          if (initialOfficePlanLoadedRef.current !== currentId) {
-            initialOfficePlanLoadedRef.current = currentId;
-            const isUnlim =
-              officeToEdit.planType === "unlimited" ||
-              officeToEdit.subscriptionPlan === "unlimited" ||
-              officeToEdit.plan === "غير محدود";
-            if (isUnlim) {
-              setSelectedPlanType("unlimited");
-              setSelectedPlanId("unlimited");
-              setPackageTier("غير محدود");
-              setIsCustomPlan(false);
-              return;
-            }
-            const cleanOfficePlan = officeToEdit.plan
-              ? officeToEdit.plan.replace(/\s*-\s*تجربة\s*مجانية/gi, "").replace(/\s*\(تجربة\s*مجانية\)/gi, "").trim()
-              : "";
-            const matching = merged.find(
-              (m) =>
-                String(m.id) === String(officeToEdit.planId) ||
-                m.name === officeToEdit.plan ||
-                m.name === cleanOfficePlan ||
-                (cleanOfficePlan && m.name.includes(cleanOfficePlan))
-            );
-            if (matching) {
-              setSelectedPlanId(matching.id);
-              setPackageTier(matching.name);
-            }
-          }
+    // While the API request is in flight and we have nothing yet, keep an empty list (no mock flash)
+    if (!plansQuery.isLoading || merged.length > 0 || plansQuery.isFetched) {
+      setAvailablePlans(merged);
+    }
+    if (!officeToEdit) {
+      if (merged.length > 0) {
+        setSelectedPlanId((prev) => (prev === "custom" || prev === -1 || isCustomPlan ? "custom" : (prev && prev !== "unlimited" ? prev : merged[0].id)));
+        setPackageTier((prev) => (prev === "باقة مخصصة" || isCustomPlan ? prev : (prev && prev !== "غير محدود" ? prev : merged[0].name)));
+      } else {
+        setIsCustomPlan(true);
+        setSelectedPlanId("custom");
+        setPackageTier("باقة مخصصة");
+      }
+    } else {
+      // If editing, find matching plan by id or name only on initial load
+      const currentId = String(officeToEdit.id || officeToEdit.companyId || "");
+      if (initialOfficePlanLoadedRef.current !== currentId) {
+        initialOfficePlanLoadedRef.current = currentId;
+        const isUnlim =
+          officeToEdit.planType === "unlimited" ||
+          officeToEdit.subscriptionPlan === "unlimited" ||
+          officeToEdit.plan === "غير محدود";
+        if (isUnlim) {
+          setSelectedPlanType("unlimited");
+          setSelectedPlanId("unlimited");
+          setPackageTier("غير محدود");
+          setIsCustomPlan(false);
+          return;
         }
-      })
-      .catch(() => {
-        if (cancelled) return;
-        if (localPlans.length > 0) {
-          const mapped = localPlans.map((lp) => ({
-            id: lp.id,
-            name: lp.name,
-            monthlyPrice: String(lp.monthlyPrice || "0.00"),
-            yearlyPrice: String(lp.annualPrice || "0.00"),
-            isPopular: Boolean(lp.isPopular),
-          }));
-          setAvailablePlans(mapped);
-          if (!officeToEdit) {
-            setSelectedPlanId((prev) => (prev === "custom" || prev === -1 || isCustomPlan ? "custom" : mapped[0].id));
-            setPackageTier((prev) => (prev === "باقة مخصصة" || isCustomPlan ? prev : mapped[0].name));
-          }
-        } else {
-          setAvailablePlans([]);
-          if (!officeToEdit) {
-            setIsCustomPlan(true);
-            setSelectedPlanId("custom");
-            setPackageTier("باقة مخصصة");
-          }
+        const cleanOfficePlan = officeToEdit.plan
+          ? officeToEdit.plan.replace(/\s*-\s*تجربة\s*مجانية/gi, "").replace(/\s*\(تجربة\s*مجانية\)/gi, "").trim()
+          : "";
+        const matching = merged.find(
+          (m) =>
+            String(m.id) === String(officeToEdit.planId) ||
+            m.name === officeToEdit.plan ||
+            m.name === cleanOfficePlan ||
+            (cleanOfficePlan && m.name.includes(cleanOfficePlan))
+        );
+        if (matching) {
+          setSelectedPlanId(matching.id);
+          setPackageTier(matching.name);
         }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [officeToEdit]);
+      }
+    }
+  }, [plansQuery.data, plansQuery.isLoading, plansQuery.isFetched, officeToEdit, isCustomPlan]);
 
   // File Upload State
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -861,6 +911,7 @@ export function AddClientOfficeView({
       const numAgents = customAgentsLimit === "unlimited" ? -1 : Number(customAgentsLimit) || 5;
       const numAssistants = customAssistantsLimit === "unlimited" ? -1 : Number(customAssistantsLimit) || 5;
       const numClients = customClientsLimit === "unlimited" ? -1 : Number(customClientsLimit) || 1000;
+      const numDocuments = customDocumentsLimit === "unlimited" ? -1 : Number(customDocumentsLimit) || 5000;
       const numStorage = customStorageLimit === "unlimited" ? -1 : parseInt(customStorageLimit) || 50;
 
       const activeFeatures: string[] = [];
@@ -899,6 +950,7 @@ export function AddClientOfficeView({
         max_power_of_attorney: numAgents,
         max_assistants: numAssistants,
         max_clients: numClients,
+        max_documents: numDocuments,
         storage_limit_gb: numStorage,
         support_level: supportLevelLabel,
         features: activeFeatures,
@@ -1025,10 +1077,10 @@ export function AddClientOfficeView({
 
     const customPlanDetailsObj = isUnlimited ? {
       id: 0,
-      name: "غير محدود",
-      badge: "صلاحيات كاملة",
+      name: "خطة مميزة",
+      badge: "خطة مميزة (صلاحيات كاملة)",
       badgeColor: "gold",
-      type: "unlimited",
+      type: "special",
       monthlyPrice: "0",
       yearlyPrice: "0",
       maxLawyers: 999999,
@@ -1053,6 +1105,8 @@ export function AddClientOfficeView({
       monthlyPrice: customMonthlyPrice,
       yearlyPrice: customYearlyPrice,
       maxLawyers: customLawyersLimit === "unlimited" ? 999 : Number(customLawyersLimit) || 10,
+      maxClients: customClientsLimit === "unlimited" ? 9999 : Number(customClientsLimit) || 1000,
+      maxDocuments: customDocumentsLimit === "unlimited" ? 99999 : Number(customDocumentsLimit) || 5000,
       storageLimitGb: customStorageLimit === "unlimited" ? 999 : parseInt(customStorageLimit) || 50,
       maxCases: customCasesLimit === "unlimited" ? 9999 : Number(customCasesLimit) || 200,
       supportLevel: customSupportLevel === "vip" ? "دعم مباشر VIP" : customSupportLevel === "priority" ? "دعم ذو أولوية" : "دعم فني قياسي",
@@ -1081,17 +1135,23 @@ export function AddClientOfficeView({
             ? data.licenseNumber
             : `ترخيص عدلي: ${data.licenseNumber}`,
           email: data.email,
-          phone: data.phone.startsWith("+966") ? data.phone : `+966 ${data.phone}`,
+          phone: `+966 ${data.phone.replace(/^\+966\s*0?/, "").replace(/^0/, "").trim()}`,
           landline: data.landline || undefined,
           address: data.address || `المملكة العربية السعودية - ${cleanCity}`,
           taxNumber: data.taxNumber || undefined,
           city: cleanCity,
           plan: isUnlimited ? "غير محدود" : cleanPlanName,
           planId: isUnlimited ? undefined : finalPlanId,
-          planType: selectedPlanType,
-          billingCycle: isUnlimited ? "غير محدود" : billingCycle,
+          planType: isUnlimited ? "special" : selectedPlanType,
+          billingCycle: billingCycle,
           trialDays: isTrial ? trialDurationDays : undefined,
           autoRenew: autoRenew,
+          usedStorageGb: "0.00",
+          extraLawyers: isCustomPlan && customLawyersLimit !== "unlimited" ? Math.max(0, Number(customLawyersLimit) || 0) : 0,
+          extraStorageGb: isCustomPlan && customStorageLimit !== "unlimited" ? Math.max(0, parseInt(customStorageLimit) || 0) : 0,
+          extraCases: isCustomPlan && customCasesLimit !== "unlimited" ? Math.max(0, Number(customCasesLimit) || 0) : 0,
+          extraClients: isCustomPlan && customClientsLimit !== "unlimited" ? Math.max(0, Number(customClientsLimit) || 0) : 0,
+          extraDocuments: isCustomPlan && customDocumentsLimit !== "unlimited" ? Math.max(0, Number(customDocumentsLimit) || 0) : 0,
           planDetails: customPlanDetailsObj || officeToEdit?.planDetails,
           password: data.password && data.password !== "••••••••••••" ? data.password : undefined,
           logoFile: resolvedLogoFile,
@@ -1209,13 +1269,12 @@ export function AddClientOfficeView({
     setValue(fieldName, finalVal, { shouldValidate: true, shouldTouch: true });
   };
 
-  // Phone prefix validator: must start with 05 and digits only, max 10
+  // Phone prefix validator: must start with 5 and digits only, max 9 (without leading 0)
   const validateNextPhoneValue = (nextVal: string): boolean => {
     if (!nextVal) return true;
     if (!/^\d*$/.test(nextVal)) return false;
-    if (nextVal.length >= 1 && nextVal[0] !== "0") return false;
-    if (nextVal.length >= 2 && nextVal[1] !== "5") return false;
-    if (nextVal.length > 10) return false;
+    if (nextVal.length >= 1 && nextVal[0] !== "5") return false;
+    if (nextVal.length > 9) return false;
     return true;
   };
 
@@ -1228,6 +1287,12 @@ export function AddClientOfficeView({
 
     // If key is not a digit, block immediately
     if (!/^\d$/.test(normalizedKey)) {
+      e.preventDefault();
+      return;
+    }
+
+    // If field is empty and user types '0' by habit, prevent it because phone starts with 5
+    if (target.value.length === 0 && normalizedKey === "0") {
       e.preventDefault();
       return;
     }
@@ -1247,15 +1312,14 @@ export function AddClientOfficeView({
 
   const handlePhonePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
-    const raw = normalizeArabicDigits(e.clipboardData.getData("text")).replace(/\D/g, "");
-    const target = e.currentTarget;
-    const start = target.selectionStart ?? target.value.length;
-    const end = target.selectionEnd ?? target.value.length;
-    const nextVal = target.value.slice(0, start) + raw + target.value.slice(end);
-    if (validateNextPhoneValue(nextVal.slice(0, 10))) {
-      setValue("phone", nextVal.slice(0, 10), { shouldValidate: true, shouldTouch: true });
+    let raw = normalizeArabicDigits(e.clipboardData.getData("text")).replace(/\D/g, "");
+    if (raw.startsWith("966")) raw = raw.slice(3);
+    if (raw.startsWith("0")) raw = raw.slice(1);
+    raw = raw.slice(0, 9);
+    if (raw.startsWith("5")) {
+      setValue("phone", raw, { shouldValidate: true, shouldTouch: true });
     } else {
-      toast.error(t("رقم الجوال يجب أن يبدأ بـ 05 ويتكون من 10 أرقام", "Mobile number must start with 05 and be 10 digits"));
+      toast.error(t("رقم الجوال يجب أن يبدأ بـ 5 ويتكون من 9 أرقام (بدون 0)", "Mobile number must start with 5 and be 9 digits (without 0)"));
     }
   };
 
@@ -1389,25 +1453,25 @@ export function AddClientOfficeView({
               <div className="relative">
                 <input
                   type="text"
-                  maxLength={30}
+                  maxLength={40}
                   {...register("ownerName", {
                     onChange: (e) => {
-                      const clean = e.target.value.replace(/[^\u0621-\u064Aa-zA-Z ]/g, "").slice(0, 30);
+                      const clean = e.target.value.replace(/[^\u0621-\u064Aa-zA-Z .]/g, "").slice(0, 40);
                       setValue("ownerName", clean, { shouldValidate: true });
                     },
                   })}
                   onKeyDown={(e) =>
-                    blockDisallowedKey(e, (k) => /^[\u0621-\u064Aa-zA-Z ]$/.test(k), 30)
+                    blockDisallowedKey(e, (k) => /^[\u0621-\u064Aa-zA-Z .]$/.test(k), 40)
                   }
                   onPaste={(e) =>
-                    handlePasteSanitized(e, "ownerName", (t) => t.replace(/[^\u0621-\u064Aa-zA-Z ]/g, ""), 30)
+                    handlePasteSanitized(e, "ownerName", (t) => t.replace(/[^\u0621-\u064Aa-zA-Z .]/g, ""), 40)
                   }
                   onFocus={() => setFocusedField("ownerName")}
                   className={cn(
                     "w-full h-[44px] bg-[#f5f3ef] dark:bg-[#160e0a] rounded-[6px] ps-[38px] pe-[14px] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#9e9286] focus:outline-none transition-colors border",
                     getInputStateClass("ownerName")
                   )}
-                  placeholder={t("أدخل الاسم", "Enter name")}
+                  placeholder={t("أدخل الاسم (مثال: د.محمد أو المحامي فهد)", "Enter name (e.g. Dr. Mohammed)")}
                 />
                 <User className="size-[15px] text-[#837565] dark:text-[#a89f91] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
@@ -1430,22 +1494,22 @@ export function AddClientOfficeView({
                   maxLength={40}
                   {...register("firmName", {
                     onChange: (e) => {
-                      const clean = e.target.value.replace(/[^\u0621-\u064Aa-zA-Z ]/g, "").slice(0, 40);
+                      const clean = e.target.value.replace(/[^\u0621-\u064Aa-zA-Z .]/g, "").slice(0, 40);
                       setValue("firmName", clean, { shouldValidate: true });
                     },
                   })}
                   onKeyDown={(e) =>
-                    blockDisallowedKey(e, (k) => /^[\u0621-\u064Aa-zA-Z ]$/.test(k), 40)
+                    blockDisallowedKey(e, (k) => /^[\u0621-\u064Aa-zA-Z .]$/.test(k), 40)
                   }
                   onPaste={(e) =>
-                    handlePasteSanitized(e, "firmName", (t) => t.replace(/[^\u0621-\u064Aa-zA-Z ]/g, ""), 40)
+                    handlePasteSanitized(e, "firmName", (t) => t.replace(/[^\u0621-\u064Aa-zA-Z .]/g, ""), 40)
                   }
                   onFocus={() => setFocusedField("firmName")}
                   className={cn(
                     "w-full h-[44px] bg-[#f5f3ef] dark:bg-[#160e0a] rounded-[6px] ps-[38px] pe-[14px] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#9e9286] focus:outline-none transition-colors border",
                     getInputStateClass("firmName")
                   )}
-                  placeholder={t("أدخل الاسم", "Enter name")}
+                  placeholder={t("أدخل اسم المكتب (يقبل . للاختصارات)", "Enter law office name")}
                 />
                 <Building2 className="size-[15px] text-[#837565] dark:text-[#a89f91] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
@@ -1575,12 +1639,24 @@ export function AddClientOfficeView({
                   }
                   onFocus={() => setFocusedField("email")}
                   className={cn(
-                    "w-full h-[44px] bg-[#f5f3ef] dark:bg-[#160e0a] rounded-[6px] ps-[38px] pe-[14px] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#9e9286] focus:outline-none text-start transition-colors border font-sans",
+                    "w-full h-[44px] bg-[#f5f3ef] dark:bg-[#160e0a] rounded-[6px] ps-[38px] pe-[40px] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#9e9286] focus:outline-none text-start transition-colors border font-sans",
                     getInputStateClass("email")
                   )}
                   placeholder="info@lawfirm.sa"
                 />
                 <Mail className="size-[15px] text-[#837565] dark:text-[#a89f91] absolute start-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
+                <button
+                  type="button"
+                  onClick={() => void handleCopyField(watch("email") || "", "email")}
+                  className="absolute end-[10px] top-1/2 -translate-y-1/2 p-1 rounded-[4px] text-[#837565] hover:text-[#9c6402] dark:text-[#a89f91] dark:hover:text-[#e29d38] transition-colors cursor-pointer"
+                  title={t("نسخ البريد الإلكتروني", "Copy email")}
+                >
+                  {copiedField === "email" ? (
+                    <Check className="size-[15px] text-[#10b981]" />
+                  ) : (
+                    <Copy className="size-[15px]" />
+                  )}
+                </button>
               </div>
 
               {/* Email Typo Correction Suggestion */}
@@ -1623,16 +1699,20 @@ export function AddClientOfficeView({
                   <input
                     type="tel"
                     dir="ltr"
-                    maxLength={10}
+                    maxLength={9}
                     inputMode="numeric"
                     style={{ textAlign: "right", direction: "ltr" }}
                     {...register("phone", {
                       onChange: (e) => {
-                        const clean = normalizeArabicDigits(e.target.value).replace(/\D/g, "").slice(0, 10);
+                        let clean = normalizeArabicDigits(e.target.value).replace(/\D/g, "");
+                        if (clean.startsWith("0")) {
+                          clean = clean.slice(1);
+                        }
+                        clean = clean.slice(0, 9);
                         if (validateNextPhoneValue(clean)) {
                           setValue("phone", clean, { shouldValidate: true });
                         } else {
-                          const validPrefix = clean.startsWith("05") ? clean : clean.startsWith("0") ? "0" : "";
+                          const validPrefix = clean.startsWith("5") ? clean : "";
                           setValue("phone", validPrefix, { shouldValidate: true });
                         }
                       },
@@ -1644,7 +1724,7 @@ export function AddClientOfficeView({
                       "w-full h-[44px] bg-[#f5f3ef] dark:bg-[#160e0a] rounded-[6px] pr-[40px] pl-[14px] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#9e9286] focus:outline-none !text-right font-mono transition-colors border",
                       getInputStateClass("phone")
                     )}
-                    placeholder="0512345678"
+                    placeholder="512345678"
                   />
                   <Phone className="size-[14px] text-[#837565] dark:text-[#a89f91] absolute right-[14px] top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
@@ -1870,7 +1950,7 @@ export function AddClientOfficeView({
                   }
                   onFocus={() => setFocusedField("password")}
                   className={cn(
-                    "w-full h-[44px] bg-[#f5f3ef] dark:bg-[#160e0a] rounded-[6px] ps-[40px] pe-[14px] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#9e9286] focus:outline-none direction-ltr text-start font-mono transition-colors border",
+                    "w-full h-[44px] bg-[#f5f3ef] dark:bg-[#160e0a] rounded-[6px] ps-[40px] pe-[40px] text-[14px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#9e9286] focus:outline-none direction-ltr text-start font-mono transition-colors border",
                     getInputStateClass("password")
                   )}
                   placeholder={t("أدخل كلمة مرور", "Enter password")}
@@ -1881,6 +1961,18 @@ export function AddClientOfficeView({
                   className="absolute start-[12px] top-1/2 -translate-y-1/2 text-[#514537] dark:text-[#a89f91] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] p-1 cursor-pointer transition-colors"
                 >
                   {showPassword ? <EyeOff className="size-[15px]" /> : <Eye className="size-[15px]" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleCopyField(watch("password") || "", "password")}
+                  className="absolute end-[10px] top-1/2 -translate-y-1/2 p-1 rounded-[4px] text-[#837565] hover:text-[#9c6402] dark:text-[#a89f91] dark:hover:text-[#e29d38] transition-colors cursor-pointer"
+                  title={t("نسخ كلمة المرور", "Copy password")}
+                >
+                  {copiedField === "password" ? (
+                    <Check className="size-[15px] text-[#10b981]" />
+                  ) : (
+                    <Copy className="size-[15px]" />
+                  )}
                 </button>
               </div>
 
@@ -2091,15 +2183,32 @@ export function AddClientOfficeView({
                   {t("نوع وخطة الاشتراك", "Subscription Type & Plan")} <span className="text-[#9c6402] dark:text-[#e29d38] font-bold">*</span>
                 </label>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 items-stretch">
                   {/* Card 1: باقة مدفوعة */}
                   <div
                     onClick={() => {
                       setSelectedPlanType("paid");
                       const currentPlan = availablePlans.find((p) => String(p.id) === String(selectedPlanId));
-                      const isCurrentTrial = currentPlan && (currentPlan.name.includes("تجرب") || Number(currentPlan.monthlyPrice) === 0);
-                      if (!selectedPlanId || selectedPlanId === "custom" || selectedPlanId === "unlimited" || isCurrentTrial || packageTier.includes("تجرب") || packageTier === "غير محدود") {
-                        const paidPlan = availablePlans.find((p) => !p.name.includes("تجرب") && Number(p.monthlyPrice) > 0) || availablePlans[0];
+                      const isCurrentTrial =
+                        currentPlan &&
+                        (currentPlan.planApiType === "trial" ||
+                          currentPlan.name.includes("تجرب") ||
+                          Number(currentPlan.monthlyPrice) === 0);
+                      if (
+                        !selectedPlanId ||
+                        selectedPlanId === "custom" ||
+                        selectedPlanId === "unlimited" ||
+                        isCurrentTrial ||
+                        packageTier.includes("تجرب") ||
+                        packageTier === "غير محدود"
+                      ) {
+                        const paidPlan =
+                          availablePlans.find(
+                            (p) =>
+                              p.planApiType !== "trial" &&
+                              !p.name.includes("تجرب") &&
+                              Number(p.monthlyPrice) > 0
+                          ) || availablePlans[0];
                         if (paidPlan) {
                           setIsCustomPlan(false);
                           setSelectedPlanId(paidPlan.id);
@@ -2109,14 +2218,14 @@ export function AddClientOfficeView({
                         setPackageTier(packageTier.replace(/\s*-\s*تجربة\s*مجانية/gi, "").trim());
                       }
                     }}
-                    className={`rounded-[8px] p-[14px] flex flex-col gap-[8px] cursor-pointer transition-all border ${
+                    className={`rounded-[8px] p-[14px] flex flex-col gap-[8px] h-full min-h-[118px] cursor-pointer transition-all border ${
                       selectedPlanType === "paid"
                         ? "bg-[#f5f3ef] dark:bg-[#261911] border-[#9c6402] dark:border-[#c29547] ring-1 ring-[#9c6402] dark:ring-[#c29547] shadow-sm"
                         : "bg-[#f5f3ef] dark:bg-[#160e0a] border-[#eae8e4] dark:border-[#422e20] opacity-80"
                     }`}
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-[8px]">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-[8px] min-w-0">
                         <div
                           className={`size-[20px] rounded-full flex items-center justify-center shrink-0 ${
                             selectedPlanType === "paid"
@@ -2126,7 +2235,7 @@ export function AddClientOfficeView({
                         >
                           {selectedPlanType === "paid" && <Check className="size-[12px] stroke-[3]" />}
                         </div>
-                        <div className="flex flex-col text-start">
+                        <div className="flex flex-col text-start min-w-0">
                           <span className="text-[15px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[20px]">
                             {t("باقة مدفوعة", "Paid Plan")}
                           </span>
@@ -2136,14 +2245,18 @@ export function AddClientOfficeView({
                         </div>
                       </div>
 
-                      <span className="bg-[#9c6402]/15 dark:bg-[#e29d38]/20 text-[#9c6402] dark:text-[#e29d38] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px]">
+                      <span className="shrink-0 bg-[#9c6402]/15 dark:bg-[#e29d38]/20 text-[#9c6402] dark:text-[#e29d38] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px]">
                         {t("فوري", "Instant")}
                       </span>
                     </div>
 
-                    <div className="bg-white/80 dark:bg-[#1f150f] border border-[#eae8e4] dark:border-[#422e20] rounded-[4px] px-[8px] py-[5px] flex items-center justify-between text-[11px] font-bold text-[#514537] dark:text-[#d5cec5]">
-                      <span>{t("وصول كامل لكافة القضايا", "Full access to all cases")}</span>
-                      <FileCheck className="size-[13px] text-[#9c6402] dark:text-[#e29d38]" />
+                    <div className="mt-auto bg-white/80 dark:bg-[#1f150f] border border-[#eae8e4] dark:border-[#422e20] rounded-[4px] px-[8px] py-[5px] flex items-center justify-between gap-2 text-[11px] font-bold text-[#514537] dark:text-[#d5cec5]">
+                      <span className="truncate text-start">
+                        {selectedPlanType === "paid" && !isCustomPlan && packageTier && packageTier !== "غير محدود"
+                          ? localizePlanName(packageTier.replace(/\s*-\s*تجربة\s*مجانية/gi, "").trim(), isEn)
+                          : t("وصول كامل لكافة القضايا", "Full access to all cases")}
+                      </span>
+                      <FileCheck className="size-[13px] shrink-0 text-[#9c6402] dark:text-[#e29d38]" />
                     </div>
                   </div>
 
@@ -2152,22 +2265,33 @@ export function AddClientOfficeView({
                     onClick={() => {
                       setSelectedPlanType("trial");
                       if (!selectedPlanId || selectedPlanId === "custom" || selectedPlanId === "unlimited") {
-                        const trialPlan = availablePlans.find((p) => p.name.includes("تجرب") || Number(p.monthlyPrice) === 0) || availablePlans[0];
+                        const trialPlan =
+                          availablePlans.find(
+                            (p) =>
+                              p.planApiType === "trial" ||
+                              p.name.includes("تجرب") ||
+                              Number(p.monthlyPrice) === 0
+                          ) || availablePlans[0];
                         if (trialPlan) {
                           setIsCustomPlan(false);
                           setSelectedPlanId(trialPlan.id);
-                          setPackageTier(trialPlan.name.replace(/\s*-\s*تجربة\s*مجانية/gi, "").replace(/\s*\(تجربة\s*مجانية\)/gi, "").trim());
+                          setPackageTier(
+                            trialPlan.name
+                              .replace(/\s*-\s*تجربة\s*مجانية/gi, "")
+                              .replace(/\s*\(تجربة\s*مجانية\)/gi, "")
+                              .trim()
+                          );
                         }
                       }
                     }}
-                    className={`rounded-[8px] p-[14px] flex flex-col gap-[8px] cursor-pointer transition-all border ${
+                    className={`rounded-[8px] p-[14px] flex flex-col gap-[8px] h-full min-h-[118px] cursor-pointer transition-all border ${
                       selectedPlanType === "trial"
                         ? "bg-[#f5f3ef] dark:bg-[#261911] border-[#9c6402] dark:border-[#c29547] ring-1 ring-[#9c6402] dark:ring-[#c29547] shadow-sm"
                         : "bg-[#f5f3ef] dark:bg-[#160e0a] border-[#eae8e4] dark:border-[#422e20] opacity-80"
                     }`}
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-[8px]">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-[8px] min-w-0">
                         <div
                           className={`size-[20px] rounded-full flex items-center justify-center shrink-0 ${
                             selectedPlanType === "trial"
@@ -2177,7 +2301,7 @@ export function AddClientOfficeView({
                         >
                           {selectedPlanType === "trial" && <Check className="size-[12px] stroke-[3]" />}
                         </div>
-                        <div className="flex flex-col text-start">
+                        <div className="flex flex-col text-start min-w-0">
                           <span className="text-[15px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[20px]">
                             {t("تجربة مجانية", "Free Trial")}
                           </span>
@@ -2187,20 +2311,41 @@ export function AddClientOfficeView({
                         </div>
                       </div>
 
-                      <span className="bg-[#eae8e4] dark:bg-[#2c1e15] text-[#514537] dark:text-[#f0e6dc] border border-[#ded5c6] dark:border-[#523b2c] text-[10px] font-semibold px-[8px] py-[2px] rounded-[2px]">
-                        {trialDurationDays} {t("يوماً", "Days")}
+                      <span className="shrink-0 bg-[#eae8e4] dark:bg-[#2c1e15] text-[#514537] dark:text-[#f0e6dc] border border-[#ded5c6] dark:border-[#523b2c] text-[10px] font-semibold px-[8px] py-[2px] rounded-[2px]">
+                        {t("مجاني", "Free")}
                       </span>
                     </div>
 
-                    <div className="bg-white/80 dark:bg-[#1f150f] border border-[#eae8e4] dark:border-[#422e20] rounded-[4px] px-[8px] py-[5px] flex items-center justify-between text-[11px] font-bold text-[#514537] dark:text-[#d5cec5]">
-                      <span>
-                        {isCustomPlan
-                          ? `${t("إمكانية إضافة", "Add up to")} ${customLawyersLimit === "unlimited" ? t("غير محدود من", "Unlimited") : customLawyersLimit} ${t("محامين", "Lawyers")}`
-                          : selectedPlanId
-                          ? `${localizePlanName(packageTier, isEn) || t("الباقة المعتمدة", "Approved Plan")}`
-                          : t("إمكانية إضافة 3 محامين", "Up to 3 lawyers")}
+                    <div className="mt-auto bg-white/80 dark:bg-[#1f150f] border border-[#eae8e4] dark:border-[#422e20] rounded-[4px] px-[8px] py-[5px] flex items-center justify-between gap-2 text-[11px] font-bold text-[#514537] dark:text-[#d5cec5]">
+                      <span className="truncate text-start">
+                        {(() => {
+                          if (isCustomPlan) {
+                            return `${t("إمكانية إضافة", "Add up to")} ${
+                              customLawyersLimit === "unlimited"
+                                ? t("غير محدود من", "Unlimited")
+                                : customLawyersLimit
+                            } ${t("محامين", "Lawyers")}`;
+                          }
+                          const selected = availablePlans.find((p) => String(p.id) === String(selectedPlanId));
+                          if (selected?.maxLawyers !== undefined && selected.maxLawyers >= 0) {
+                            if (selected.maxLawyers <= 0 || selected.maxLawyers >= 99999) {
+                              return t("محامين غير محدودين خلال التجربة", "Unlimited lawyers during trial");
+                            }
+                            return `${t("إمكانية إضافة", "Add up to")} ${selected.maxLawyers} ${t("محامين", "Lawyers")}`;
+                          }
+                          if (selected?.name) {
+                            return localizePlanName(
+                              selected.name
+                                .replace(/\s*-\s*تجربة\s*مجانية/gi, "")
+                                .replace(/\s*\(تجربة\s*مجانية\)/gi, "")
+                                .trim(),
+                              isEn
+                            );
+                          }
+                          return t("إمكانية إضافة محامين حسب الباقة", "Lawyer limit follows selected plan");
+                        })()}
                       </span>
-                      <Hourglass className="size-[13px] text-[#837565] dark:text-[#a89f91]" />
+                      <Hourglass className="size-[13px] shrink-0 text-[#837565] dark:text-[#a89f91]" />
                     </div>
                   </div>
 
@@ -2212,14 +2357,14 @@ export function AddClientOfficeView({
                       setSelectedPlanId("unlimited");
                       setPackageTier("غير محدود");
                     }}
-                    className={`rounded-[8px] p-[14px] flex flex-col gap-[8px] cursor-pointer transition-all border ${
+                    className={`rounded-[8px] p-[14px] flex flex-col gap-[8px] h-full min-h-[118px] cursor-pointer transition-all border ${
                       selectedPlanType === "unlimited"
                         ? "bg-[#f5f3ef] dark:bg-[#261911] border-[#9c6402] dark:border-[#c29547] ring-1 ring-[#9c6402] dark:ring-[#c29547] shadow-sm"
                         : "bg-[#f5f3ef] dark:bg-[#160e0a] border-[#eae8e4] dark:border-[#422e20] opacity-80"
                     }`}
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-[8px]">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-[8px] min-w-0">
                         <div
                           className={`size-[20px] rounded-full flex items-center justify-center shrink-0 ${
                             selectedPlanType === "unlimited"
@@ -2229,24 +2374,26 @@ export function AddClientOfficeView({
                         >
                           {selectedPlanType === "unlimited" && <Check className="size-[12px] stroke-[3]" />}
                         </div>
-                        <div className="flex flex-col text-start">
+                        <div className="flex flex-col text-start min-w-0">
                           <span className="text-[15px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[20px]">
                             {t("غير محدود", "Unlimited")}
                           </span>
                           <span className="text-[11px] text-[#514537] dark:text-[#d5cec5] leading-[15px]">
-                            {t("للعملاء الخاصين وصلاحيات كاملة", "VIP clients with full privileges")}
+                            {t("صلاحيات كاملة بدون قيود أو انتهاء", "Full access with no limits or expiry")}
                           </span>
                         </div>
                       </div>
 
-                      <span className="bg-[#9c6402]/15 dark:bg-[#e29d38]/20 text-[#9c6402] dark:text-[#e29d38] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px]">
-                        {t("صلاحيات كاملة", "Full Access")}
+                      <span className="shrink-0 bg-[#9c6402]/15 dark:bg-[#e29d38]/20 text-[#9c6402] dark:text-[#e29d38] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px]">
+                        {t("VIP", "VIP")}
                       </span>
                     </div>
 
-                    <div className="bg-white/80 dark:bg-[#1f150f] border border-[#eae8e4] dark:border-[#422e20] rounded-[4px] px-[8px] py-[5px] flex items-center justify-between text-[11px] font-bold text-[#514537] dark:text-[#d5cec5]">
-                      <span>{t("بدون أي حدود أو تاريخ انتهاء", "No limits or expiration date")}</span>
-                      <ShieldCheck className="size-[13px] text-[#9c6402] dark:text-[#e29d38]" />
+                    <div className="mt-auto bg-white/80 dark:bg-[#1f150f] border border-[#eae8e4] dark:border-[#422e20] rounded-[4px] px-[8px] py-[5px] flex items-center justify-between gap-2 text-[11px] font-bold text-[#514537] dark:text-[#d5cec5]">
+                      <span className="truncate text-start">
+                        {t("صلاحيات كاملة (∞)", "Full privileges (∞)")}
+                      </span>
+                      <ShieldCheck className="size-[13px] shrink-0 text-[#9c6402] dark:text-[#e29d38]" />
                     </div>
                   </div>
                 </div>
@@ -2317,10 +2464,16 @@ export function AddClientOfficeView({
                     <DashboardSelect
                       aria-label={t("الباقة المعتمدة", "Approved Plan")}
                       value={isCustomPlan ? "custom" : String(selectedPlanId)}
+                      disabled={plansQuery.isLoading && availablePlans.length === 0}
                       placeholder={
-                        isCustomPlan
+                        plansQuery.isLoading && availablePlans.length === 0
+                          ? t("جاري تحميل الباقات من الخادم...", "Loading plans from server...")
+                          : isCustomPlan
                           ? t("باقة مخصصة لهذا المكتب", "Custom Plan")
-                          : localizePlanName(packageTier, isEn) || (availablePlans.length > 0 ? t("اختر الباقة المعتمدة...", "Select approved plan...") : t("باقة مخصصة لهذا المكتب", "Custom Plan"))
+                          : localizePlanName(packageTier, isEn) ||
+                            (availablePlans.length > 0
+                              ? t("اختر الباقة المعتمدة...", "Select approved plan...")
+                              : t("باقة مخصصة لهذا المكتب", "Custom Plan"))
                       }
                       onChange={(e) => {
                         const val = e.target.value;
@@ -2336,18 +2489,30 @@ export function AddClientOfficeView({
                         if (found) {
                           const cleanFound = !isTrial
                             ? found.name.replace(/\s*-\s*تجربة\s*مجانية/gi, "").trim()
-                            : found.name;
+                            : found.name
+                                .replace(/\s*-\s*تجربة\s*مجانية/gi, "")
+                                .replace(/\s*\(تجربة\s*مجانية\)/gi, "")
+                                .trim();
                           setPackageTier(cleanFound);
                         }
                       }}
                       className="bg-white dark:bg-[#1f150f] border-[#eae8e4] dark:border-[#422e20] h-[42px] rounded-[6px]"
                     >
-                      {availablePlans.length > 0 ? (
+                      {plansQuery.isLoading && availablePlans.length === 0 ? (
+                        <option value="" disabled>
+                          {t("جاري تحميل الباقات...", "Loading plans...")}
+                        </option>
+                      ) : availablePlans.length > 0 ? (
                         availablePlans.map((p) => {
-                          const displayName = localizePlanName(p.name.replace(/\s*-\s*تجربة\s*مجانية/gi, "").trim(), isEn);
+                          const displayName = localizePlanName(
+                            p.name.replace(/\s*-\s*تجربة\s*مجانية/gi, "").trim(),
+                            isEn
+                          );
                           return (
                             <option key={p.id} value={String(p.id)}>
-                              {displayName} ({Number(p.monthlyPrice).toLocaleString("en-US")} {t("ر.س / شهرياً", "SAR / mo")}{isTrial ? t(" - تجربة مجانية", " - Free Trial") : ""})
+                              {displayName} ({Number(p.monthlyPrice).toLocaleString("en-US")}{" "}
+                              {t("ر.س / شهرياً", "SAR / mo")}
+                              {isTrial ? t(" - تجربة مجانية", " - Free Trial") : ""})
                             </option>
                           );
                         })
@@ -2357,19 +2522,23 @@ export function AddClientOfficeView({
                         </option>
                       )}
                       <option value="custom" className="font-bold text-[#9c6402] dark:text-[#c29547]">
-                        ✨ {t("باقة مخصصة لهذا المكتب (اتفاق وشروط خاصة / إنشاء باقة)", "Custom Plan for this client (create new)")}
+                        ✨{" "}
+                        {t(
+                          "باقة مخصصة لهذا المكتب (اتفاق وشروط خاصة / إنشاء باقة)",
+                          "Custom Plan for this client (create new)"
+                        )}
                       </option>
                     </DashboardSelect>
                     <span className={cn("text-[11px]", isTrial ? "text-[#9c6402] dark:text-[#c29547] font-medium" : "text-[#514537] dark:text-[#d5cec5]")}>
                       {isTrial
                         ? isCustomPlan
                           ? t(
-                              `تم تفعيل إعداد باقة خاصة ومخصصة لهذا المكتب خلال الفترة التجريبية (${trialDurationDays} يوماً) بدون أي رسوم.`,
-                              `Custom plan active for this client during the free trial (${trialDurationDays} days) at zero cost.`
+                              "تم تفعيل إعداد باقة خاصة ومخصصة لهذا المكتب خلال الفترة التجريبية بدون أي رسوم.",
+                              "Custom plan active for this client during the free trial at zero cost."
                             )
                           : t(
-                              `يحصل المكتب خلال التجربة المجانية (${trialDurationDays} يوماً) على كافة صلاحيات ومزايا باقة "${packageTier || popularPlan?.name || "المعتمدة"}" لاختبار كامل إمكانيات المنظومة.`,
-                              `During the free trial (${trialDurationDays} days), the office receives full features of "${packageTier || popularPlan?.name || "Approved Plan"}" to test the system.`
+                              `يحصل المكتب خلال التجربة المجانية على كافة صلاحيات ومزايا باقة "${packageTier || popularPlan?.name || "المعتمدة"}" لاختبار كامل إمكانيات المنظومة.`,
+                              `During the free trial, the office receives full features of "${packageTier || popularPlan?.name || "Approved Plan"}" to test the system.`
                             )
                         : isCustomPlan
                         ? availablePlans.length === 0
@@ -2386,10 +2555,21 @@ export function AddClientOfficeView({
                     </label>
                     <DashboardSelect
                       aria-label={t("دورة الفوترة والتحصيل", "Billing Cycle")}
-                      value={billingCycle}
-                      onChange={(e) => setBillingCycle(e.target.value)}
+                      value={isTrial ? "trial" : billingCycle}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "trial") {
+                          setSelectedPlanType("trial");
+                        } else {
+                          setBillingCycle(val);
+                          setSelectedPlanType("paid");
+                        }
+                      }}
                       className="bg-white dark:bg-[#1f150f] border-[#eae8e4] dark:border-[#422e20] h-[42px] rounded-[6px]"
                     >
+                      <option value="trial">
+                        {t("تجربة مجانية", "Free Trial")}
+                      </option>
                       <option value="اشتراك سنوي (موصى به - خصم شهرين مجاناً)">
                         {t("اشتراك سنوي (موصى به - خصم شهرين)", "Annual (Recommended - 2 Months Free)")}
                       </option>
@@ -2415,14 +2595,14 @@ export function AddClientOfficeView({
                         <div>
                           <h4 className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                             {isTrial
-                              ? t("تخصيص وإنشاء باقة تجريبية لهذا المكتب (تسمع في تاب الباقات)", "Custom Trial Plan Configuration (Synced to Plans Tab)")
-                              : t("تخصيص وإنشاء باقة متكاملة لهذا المكتب (تسمع في تاب الباقات)", "Custom Plan Configuration (Synced to Plans Tab)")}
+                              ? t("تخصيص وإنشاء باقة تجريبية لهذا المكتب", "Custom Trial Plan Configuration")
+                              : t("تخصيص وإنشاء باقة متكاملة لهذا المكتب", "Custom Plan Configuration")}
                           </h4>
                           <p className="text-[11px] text-[#514537] dark:text-[#d5cec5]">
                             {isTrial
                               ? t(
-                                  `حدد مواصفات وبيانات الباقة المخصصة (المقاعد، السعة، الدعم، والمزايا) لربط المكتب بها واختبارها مجاناً لمدة (${trialDurationDays} يوماً).`,
-                                  `Define custom plan specs (seats, quota, SLA, features) for this client to test free for (${trialDurationDays} days).`
+                                  "حدد مواصفات وبيانات الباقة المخصصة (المقاعد، السعة، الدعم، والمزايا) لربط المكتب بها واختبارها مجاناً.",
+                                  "Define custom plan specs (seats, quota, SLA, features) for this client to test for free."
                                 )
                               : t(
                                   "حدد مواصفات وبيانات الباقة العادية (التسعير، المقاعد، السعة، الدعم، والمزايا) لتثبيتها في تاب الباقات وربط المكتب بها",
@@ -2437,7 +2617,7 @@ export function AddClientOfficeView({
                     </div>
 
                       {/* 1. Basic Plan Info */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-[12px]">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-[12px]">
                         {/* اسم الباقة المخصصة */}
                         <div className="flex flex-col gap-[4px]">
                           <label className="text-[11px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
@@ -2531,7 +2711,7 @@ export function AddClientOfficeView({
                         <span className="text-[11px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block mb-[8px]">
                           {t("حدود واستيعاب الباقة (المقاعد والمساحة)", "Plan Limits & Quotas")}
                         </span>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-[10px]">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-[10px]">
                           {/* عدد المحامين */}
                           <div className="flex flex-col gap-[3px]">
                             <label className="text-[10px] font-semibold text-[#514537] dark:text-[#d5cec5]">
@@ -2598,6 +2778,20 @@ export function AddClientOfficeView({
                               min="1"
                               value={customClientsLimit}
                               onChange={(e) => setCustomClientsLimit(e.target.value)}
+                              className="bg-white dark:bg-[#1f150f] border border-[#eae8e4] dark:border-[#422e20] h-[34px] px-[8px] rounded-[6px] text-[12px] text-[#1b1c1a] dark:text-[#fdfbf7] focus:outline-none focus:border-[#9c6402]"
+                            />
+                          </div>
+
+                          {/* عدد المستندات والوثائق */}
+                          <div className="flex flex-col gap-[3px]">
+                            <label className="text-[10px] font-semibold text-[#514537] dark:text-[#d5cec5]">
+                              {t("المستندات والوثائق", "Documents")}
+                            </label>
+                            <input
+                              type="number"
+                              min="1"
+                              value={customDocumentsLimit}
+                              onChange={(e) => setCustomDocumentsLimit(e.target.value)}
                               className="bg-white dark:bg-[#1f150f] border border-[#eae8e4] dark:border-[#422e20] h-[34px] px-[8px] rounded-[6px] text-[12px] text-[#1b1c1a] dark:text-[#fdfbf7] focus:outline-none focus:border-[#9c6402]"
                             />
                           </div>
@@ -2718,8 +2912,8 @@ export function AddClientOfficeView({
                         </span>
                         <span className="text-[10px] text-[#514537] dark:text-[#d5cec5]">
                           {t(
-                            "تجديد الاشتراك آلياً عبر البطاقة المسجلة لتجنب انقطاع الخدمة",
-                            "Auto renew using registered card"
+                            "يضمن استمرارية الخدمة.",
+                            "Ensures service continuity."
                           )}
                         </span>
                       </div>
@@ -2754,7 +2948,6 @@ export function AddClientOfficeView({
               </div>
               )}
             </div>
-
             {/* ======================================================== */}
             {/* Right Column (Desktop 5 cols): THE REAL-TIME VALIDATION BOX */}
             {/* ======================================================== */}
@@ -2806,168 +2999,19 @@ export function AddClientOfficeView({
               disabled={isSubmitting}
               className={cn(
                 "bg-[#9c6402] hover:bg-[#855402] dark:bg-[#c29547] dark:hover:bg-[#b0833b] text-white dark:text-[#1c140f] px-[32px] py-[10px] rounded-[4px] text-[14px] font-semibold shadow-sm transition-all cursor-pointer flex items-center gap-[8px]",
-                isSubmitting && "opacity-85 cursor-wait pointer-events-none"
+                isSubmitting && "opacity-70 cursor-not-allowed"
               )}
             >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="size-[16px] animate-spin text-white dark:text-[#1c140f]" />
-                  <span>
-                    {isEditMode
-                      ? t("جاري حفظ التعديلات...", "Saving changes...")
-                      : t("جاري تأسيس المنشأة...", "Setting up office...")}
-                  </span>
-                </>
+              <span>{isEditMode ? t("حفظ التعديلات", "Save Changes") : t("إضافة المكتب", "Add Office")}</span>
+              {isEditMode ? (
+                <CheckCircle2 className="size-[15px]" />
               ) : (
-                <>
-                  <span>{isEditMode ? t("حفظ التعديلات", "Save Changes") : t("إضافة المكتب", "Add Office")}</span>
-                  {isEditMode ? (
-                    <CheckCircle2 className="size-[15px]" />
-                  ) : (
-                    <Building2 className="size-[15px]" />
-                  )}
-                </>
+                <Building2 className="size-[15px]" />
               )}
             </button>
           </div>
         </div>
       </form>
-
-      {/* ======================================================== */}
-      {/* Luxury Provisioning / Processing Overlay Modal */}
-      {/* ======================================================== */}
-      {isSubmitting && (
-        <div className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-[4px] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#1a120d] border border-[#e8dfd5] dark:border-[#453022] rounded-[16px] p-6 sm:p-8 max-w-[460px] w-full shadow-2xl flex flex-col items-center text-center gap-5 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            {/* Top decorative gradient bar */}
-            <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-[#9c6402] via-[#e29d38] to-[#9c6402] animate-pulse" />
-
-            {/* Branded Spinning Ring & Icon */}
-            <div className="relative flex items-center justify-center size-20 rounded-full bg-[#9c6402]/10 dark:bg-[#e29d38]/10 text-[#9c6402] dark:text-[#e29d38] ring-8 ring-[#9c6402]/5 dark:ring-[#e29d38]/5">
-              <Building2 className="size-9 animate-pulse" />
-              <div className="absolute inset-0 rounded-full border-2 border-[#9c6402] dark:border-[#e29d38] border-t-transparent animate-spin" />
-            </div>
-
-            {/* Headings */}
-            <div className="flex flex-col gap-1.5">
-              <h3 className="text-[17px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                {isEditMode
-                  ? t("جاري حفظ وتحديث بيانات المكتب...", "Updating Office Data...")
-                  : t("جاري تأسيس وإطلاق بيئة المكتب...", "Provisioning Office Environment...")}
-              </h3>
-              <p className="text-[12px] text-[#716557] dark:text-[#b0a599] leading-relaxed max-w-[360px]">
-                {t(
-                  "يتم الآن تدقيق السجلات، ربط الباقة السحابية، وإعداد مساحة العمل الآمنة للمنشأة. نرجو عدم إغلاق الصفحة.",
-                  "Verifying records, connecting cloud plan, and configuring secure legal workspace. Please do not close this page."
-                )}
-              </p>
-            </div>
-
-            {/* Stages Tracker */}
-            <div className="w-full bg-[#fbf9f6] dark:bg-[#221711] border border-[#f0ece5] dark:border-[#38271c] rounded-[10px] p-3.5 flex flex-col gap-2.5 text-start">
-              {/* Stage 1 */}
-              <div className="flex items-center gap-2.5 text-[12px]">
-                <div
-                  className={cn(
-                    "size-5 rounded-full flex items-center justify-center shrink-0 transition-all",
-                    submitStage >= 1
-                      ? "bg-[#10b981] text-white"
-                      : "bg-[#eae8e4] dark:bg-[#38271c] text-[#716557]"
-                  )}
-                >
-                  <Check className="size-3" />
-                </div>
-                <span
-                  className={cn(
-                    "font-medium",
-                    submitStage >= 1
-                      ? "text-[#1b1c1a] dark:text-[#fdfbf7]"
-                      : "text-[#8d8071] dark:text-[#6b5f54]"
-                  )}
-                >
-                  {t("مطابقة وتدقيق بيانات المنشأة مع السجل العدلي", "Verifying office credentials & license")}
-                </span>
-              </div>
-
-              {/* Stage 2 */}
-              <div className="flex items-center gap-2.5 text-[12px]">
-                <div
-                  className={cn(
-                    "size-5 rounded-full flex items-center justify-center shrink-0 transition-all",
-                    submitStage >= 2
-                      ? "bg-[#10b981] text-white"
-                      : "bg-[#9c6402] text-white animate-pulse"
-                  )}
-                >
-                  {submitStage >= 2 ? (
-                    <Check className="size-3" />
-                  ) : (
-                    <Loader2 className="size-3 animate-spin" />
-                  )}
-                </div>
-                <span
-                  className={cn(
-                    "font-medium",
-                    submitStage >= 2
-                      ? "text-[#1b1c1a] dark:text-[#fdfbf7]"
-                      : "text-[#8d8071] dark:text-[#6b5f54]"
-                  )}
-                >
-                  {t("تجهيز ورفع وسائط وشعار المنشأة", "Uploading logo & media assets")}
-                </span>
-              </div>
-
-              {/* Stage 3 */}
-              <div className="flex items-center gap-2.5 text-[12px]">
-                <div
-                  className={cn(
-                    "size-5 rounded-full flex items-center justify-center shrink-0 transition-all",
-                    submitStage >= 3
-                      ? "bg-[#10b981] text-white"
-                      : submitStage === 2
-                      ? "bg-[#9c6402] text-white animate-pulse"
-                      : "bg-[#eae8e4] dark:bg-[#38271c] text-[#716557]"
-                  )}
-                >
-                  {submitStage >= 3 ? (
-                    <Check className="size-3" />
-                  ) : (
-                    <Loader2 className="size-3 animate-spin" />
-                  )}
-                </div>
-                <span
-                  className={cn(
-                    "font-medium",
-                    submitStage >= 3
-                      ? "text-[#1b1c1a] dark:text-[#fdfbf7]"
-                      : "text-[#8d8071] dark:text-[#6b5f54]"
-                  )}
-                >
-                  {t("تأسيس الخادم السحابي وتفعيل رخص المنظومة", "Provisioning cloud server & activating licenses")}
-                </span>
-              </div>
-            </div>
-
-            {/* Smooth Dynamic Progress Bar */}
-            <div className="w-full flex flex-col gap-1.5">
-              <div className="w-full h-2 bg-[#eae8e4] dark:bg-[#38271c] rounded-full overflow-hidden">
-                <div
-                  className={cn(
-                    "h-full bg-gradient-to-r from-[#9c6402] via-[#e29d38] to-[#9c6402] rounded-full transition-all duration-700 ease-out",
-                    submitStage === 1 && "w-[35%]",
-                    submitStage === 2 && "w-[70%]",
-                    submitStage >= 3 && "w-[94%]"
-                  )}
-                />
-              </div>
-              <div className="flex justify-between items-center text-[10px] text-[#716557] dark:text-[#b0a599] font-medium">
-                <span>{t("جاري المعالجة الآمنة عبر خوادم الجودي...", "Processing securely via Al-Joudi servers...")}</span>
-                <span>{submitStage === 1 ? "35%" : submitStage === 2 ? "70%" : "95%"}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Confirmation Dialog before saving */}
       <LuxuryAlertDialog

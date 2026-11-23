@@ -16,11 +16,17 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { ModalPortal } from "@/components/shared/ModalPortal";
-import { fetchImpersonationSessionReport, endImpersonationSession, type ImpersonationLog } from "@/lib/api/impersonation";
-import { LogOut } from "lucide-react";
+import {
+  fetchImpersonationSessionReport,
+  endImpersonationSession,
+  type ImpersonationLog,
+} from "@/lib/api/impersonation";
+import { getActivityCategoryMeta } from "@/lib/constants/office-activities";
+import { LogOut, Ticket } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useLanguage } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 interface ImpersonationLogDetailsModalProps {
   isOpen: boolean;
@@ -44,7 +50,7 @@ function formatFullArabicDate(dateStr?: string | null, isEn = false): string {
   }).format(d);
 }
 
-function calculateDurationText(started?: string | null, ended?: string | null, isEn = false): string {
+export function calculateDurationText(started?: string | null, ended?: string | null, isEn = false): string {
   if (!started) return "—";
   const start = new Date(started).getTime();
   const end = ended ? new Date(ended).getTime() : Date.now();
@@ -89,6 +95,7 @@ export function ImpersonationLogDetailsModal({
   const adminName = log.admin_name || (isEn ? `Admin #${log.admin_id ?? "—"}` : `مشرف #${log.admin_id ?? "—"}`);
   const firmName = log.company_name || log.firm_name || (isEn ? `Firm #${log.company_id ?? log.firm_id ?? "—"}` : `مكتب #${log.company_id ?? log.firm_id ?? "—"}`);
   const firmId = log.company_id || log.firm_id;
+  const activityCategory = getActivityCategoryMeta(log.activity_type);
 
   const handleCopyIp = () => {
     if (!log.ip) return;
@@ -252,7 +259,42 @@ User Agent: ${log.user_agent || "N/A"}`
               </div>
             </div>
 
-            {/* 2. Timeline and Timestamps */}
+            {/* 2. Activity & Reason Card */}
+            <div className="bg-[#fffdfa] dark:bg-[#1a130e] border border-[#f0debe] dark:border-[#4d3725] rounded-[8px] p-4 space-y-3">
+              <div className="flex items-center justify-between border-b border-[#f5ece0] dark:border-[#2f2015] pb-2 flex-wrap gap-2">
+                <div className="flex items-center gap-2 text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                  <Activity className="size-4 text-[#9c6402] dark:text-[#e29d38]" />
+                  <span>{t("بيانات النشاط ومبرر الدخول", "Activity & Reason Data")}</span>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {log.ticket_id && (
+                    <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-[#f1efe9] dark:bg-[#281c15] text-[#514537] dark:text-[#cdc5bd] border border-[#e5e1d8] dark:border-[#38271c] flex items-center gap-1">
+                      <Ticket className="size-3 text-[#9c6402] dark:text-[#e29d38]" />
+                      {log.ticket_id}
+                    </span>
+                  )}
+                  <span
+                    className={cn(
+                      "text-[11px] font-bold px-2.5 py-0.5 rounded-full border",
+                      activityCategory.badgeClass
+                    )}
+                  >
+                    {isEn ? activityCategory.labelEn : activityCategory.labelAr}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <span className="text-[11px] font-bold text-[#837565] dark:text-[#9e9286] block mb-1">
+                  {t("شرح ومبرر الدخول المسجل:", "Recorded Reason & Purpose:")}
+                </span>
+                <p className="text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7] leading-relaxed bg-white dark:bg-[#150f0b] p-3 rounded-[6px] border border-[#f0eeea] dark:border-[#2f2015] whitespace-pre-wrap">
+                  {log.reason || t("دخول مباشر بصلاحية المدير العام", "Direct Super Admin Access")}
+                </p>
+              </div>
+            </div>
+
+            {/* 3. Timeline and Timestamps */}
             <div className="bg-white dark:bg-[#150f0b] border border-[#f0eeea] dark:border-[#2f2015] rounded-[8px] p-4 space-y-3">
               <div className="flex items-center justify-between border-b border-[#f5f3ef] dark:border-[#261910] pb-2">
                 <div className="flex items-center gap-2 text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
@@ -377,7 +419,7 @@ User Agent: ${log.user_agent || "N/A"}`
                       onClick={handleEndSession}
                       className="px-3 py-1.5 rounded-[6px] bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold transition-colors cursor-pointer disabled:opacity-50"
                     >
-                      {isEnding ? t("جارٍ الإنهاء...", "Ending...") : t("تأكيد إنهاء الجلسة", "Confirm End Session")}
+                      {t("تأكيد إنهاء الجلسة", "Confirm End Session")}
                     </button>
                     <button
                       type="button"

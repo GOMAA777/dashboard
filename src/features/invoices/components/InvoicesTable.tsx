@@ -79,6 +79,15 @@ export function InvoicesTable({
             <div className="bg-[#10b981] shadow-[0_0_8px_#10b981] ring-1 ring-emerald-400/60 rounded-full size-[7px] shrink-0" />
           </div>
         );
+      case "partial":
+        return (
+          <div className="bg-[#fff7ed] border border-orange-200 dark:bg-[#341d11] dark:border-orange-500/40 flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit">
+            <span className="font-bold text-[11px] text-[#9a3412] dark:text-[#fdba74]">
+              {isEn ? "Partial" : "مسددة جزئياً"}
+            </span>
+            <div className="bg-[#f97316] rounded-full size-[7px] shrink-0" />
+          </div>
+        );
       case "pending":
         return (
           <div className="bg-[#fffbeb] border border-amber-200 dark:bg-[#342711] dark:border-amber-500/40 dark:shadow-[0_0_10px_rgba(245,158,11,0.15)] flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit">
@@ -109,7 +118,7 @@ export function InvoicesTable({
     }
   };
 
-  const getPaymentMethodBadge = (method: PaymentMethodType) => {
+  const getPaymentMethodBadge = (method: PaymentMethodType, label?: string) => {
     switch (method) {
       case "mada":
         return (
@@ -145,6 +154,30 @@ export function InvoicesTable({
         return (
           <span className="inline-flex items-center gap-1 bg-[#eef2ff] dark:bg-[#1d1e3d] text-[#3730a3] dark:text-[#a5b4fc] border border-indigo-200 dark:border-indigo-700/40 px-2 py-0.5 rounded-[4px] text-[11px] font-bold font-mono">
             Stripe
+          </span>
+        );
+      case "credit_card":
+        return (
+          <span className="inline-flex items-center gap-1 bg-[#eff6ff] dark:bg-[#15253e] text-[#1e40af] dark:text-[#93c5fd] border border-blue-200 dark:border-blue-700/40 px-2 py-0.5 rounded-[4px] text-[11px] font-bold">
+            {isEn ? "Credit Card" : "بطاقة ائتمان"}
+          </span>
+        );
+      case "check":
+        return (
+          <span className="inline-flex items-center gap-1 bg-[#faf5ff] dark:bg-[#271738] text-[#6b21a8] dark:text-[#d8b4fe] border border-purple-200 dark:border-purple-700/40 px-2 py-0.5 rounded-[4px] text-[11px] font-bold">
+            {isEn ? "Check" : "شيك"}
+          </span>
+        );
+      case "cash":
+        return (
+          <span className="inline-flex items-center gap-1 bg-[#f0fdf4] dark:bg-[#142d1f] text-[#166534] dark:text-[#86efac] border border-emerald-200 dark:border-emerald-700/40 px-2 py-0.5 rounded-[4px] text-[11px] font-bold">
+            {isEn ? "Cash" : "نقداً"}
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 bg-[#f5f3ef] dark:bg-[#281c15] text-[#514537] dark:text-[#cdc5bd] border border-[#eae8e4] dark:border-[#38271c] px-2 py-0.5 rounded-[4px] text-[11px] font-bold">
+            {label || "—"}
           </span>
         );
     }
@@ -189,7 +222,7 @@ export function InvoicesTable({
           <tbody className="divide-y divide-[#f5f3ef] dark:divide-[#2f2219]">
             {data.map((invoice) => {
               const isPaid = invoice.status === "paid";
-              const isPendingOrOverdue = invoice.status === "pending" || invoice.status === "overdue";
+              const isPendingOrOverdue = invoice.status === "pending" || invoice.status === "overdue" || invoice.status === "partial";
               const isRefunded = invoice.status === "refunded";
 
               return (
@@ -223,10 +256,12 @@ export function InvoicesTable({
                           <span className="text-[10px] font-mono text-[#837565] dark:text-[#7d746d]">
                             #{invoice.orderNumber}
                           </span>
-                          <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-[#059669] dark:text-[#10b981]">
-                            <ShieldCheck className="size-3" />
-                            <span>{invoice.zatcaComplianceStatus === "cleared" ? (isEn ? "Cleared" : "معتمد") : (isEn ? "Reported" : "مبلّغ")}</span>
-                          </span>
+                          {invoice.zatcaComplianceStatus ? (
+                            <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-[#059669] dark:text-[#10b981]">
+                              <ShieldCheck className="size-3" />
+                              <span>{invoice.zatcaComplianceStatus === "cleared" ? (isEn ? "Cleared" : "معتمد") : (isEn ? "Reported" : "مبلّغ")}</span>
+                            </span>
+                          ) : null}
                         </div>
                       </div>
                     </div>
@@ -251,17 +286,23 @@ export function InvoicesTable({
                   <td className="py-3.5 px-4 whitespace-nowrap">
                     <div className="flex flex-col">
                       <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px]">
-                        {isEn ? invoice.planNameEn : invoice.planName}
+                        {(isEn ? invoice.planNameEn : invoice.planName) || invoice.description || "—"}
                       </span>
-                      <span className="text-[11px] text-[#837565] dark:text-[#a89f91] mt-0.5">
-                        {invoice.billingPeriod === "annual"
-                          ? isEn
-                            ? "Annual Billing (1 Year)"
-                            : "سداد سنوي (سنة كاملة)"
-                          : isEn
-                          ? "Monthly Billing"
-                          : "سداد شهري"}
-                      </span>
+                      {invoice.billingPeriod !== "unspecified" && (
+                        <span className="text-[11px] text-[#837565] dark:text-[#a89f91] mt-0.5">
+                          {invoice.billingPeriod === "annual"
+                            ? isEn
+                              ? "Annual Billing (1 Year)"
+                              : "سداد سنوي (سنة كاملة)"
+                            : invoice.billingPeriod === "quarterly"
+                            ? isEn
+                              ? "Quarterly Billing"
+                              : "سداد ربع سنوي"
+                            : isEn
+                            ? "Monthly Billing"
+                            : "سداد شهري"}
+                        </span>
+                      )}
                     </div>
                   </td>
 
@@ -290,7 +331,9 @@ export function InvoicesTable({
                         </span>
                       </div>
                       <span className="text-[10px] text-[#837565] dark:text-[#7d746d] font-mono">
-                        {isEn ? "VAT 15%:" : "الضريبة 15%:"} {invoice.taxAmount.toLocaleString()} {isEn ? "SAR" : "ر.س"}
+                        {invoice.hasTaxBreakdown
+                          ? `${isEn ? "VAT:" : "الضريبة:"} ${invoice.taxAmount.toLocaleString()} ${isEn ? "SAR" : "ر.س"}`
+                          : `${isEn ? "Paid" : "المحصّل"} ${invoice.paidAmount.toLocaleString()} • ${isEn ? "Left" : "المتبقي"} ${invoice.remainingAmount.toLocaleString()}`}
                       </span>
                     </div>
                   </td>
@@ -298,10 +341,12 @@ export function InvoicesTable({
                   {/* 6. Payment Method & Ref */}
                   <td className="py-3.5 px-4 whitespace-nowrap">
                     <div className="flex flex-col gap-1">
-                      <div>{getPaymentMethodBadge(invoice.paymentMethod)}</div>
-                      <span className="text-[10px] font-mono text-[#837565] dark:text-[#7d746d] truncate max-w-[120px]">
-                        {invoice.transactionReference}
-                      </span>
+                      <div>{getPaymentMethodBadge(invoice.paymentMethod, invoice.paymentMethodLabel)}</div>
+                      {invoice.transactionReference ? (
+                        <span className="text-[10px] font-mono text-[#837565] dark:text-[#7d746d] truncate max-w-[120px]">
+                          {invoice.transactionReference}
+                        </span>
+                      ) : null}
                     </div>
                   </td>
 

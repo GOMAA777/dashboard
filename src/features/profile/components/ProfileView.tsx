@@ -1,1091 +1,124 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import Image from "next/image";
-import {
-  User,
-  Mail,
-  Lock,
-  ShieldCheck,
-  KeyRound,
-  Smartphone,
-  Laptop,
-  Tablet,
-  Check,
-  RotateCcw,
-  Camera,
-  Calendar,
-  MapPin,
-  Building2,
-  Phone,
-  Eye,
-  EyeOff,
-  Clock,
-  LogOut,
-  Send,
-  Bell,
-  CheckCircle2,
-  AlertCircle,
-  Copy,
-} from "lucide-react";
+import React, { useState } from "react";
+import { Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-import userAvatarImg from "../../../../public/figma/user-avatar.png";
+import { useQueryClient } from "@tanstack/react-query";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
 import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
-import { DashboardStickyActionBar } from "@/components/shared/DashboardStickyActionBar";
-import { initialProfileData, initialActiveSessions } from "../data/initialProfile";
-import { UserProfileData, ActiveSessionItem } from "../types/profile.types";
+import { EmployeeDetailsView } from "@/features/staff/components/EmployeeDetailsView";
+import {
+  EditEmployeeView,
+  type SaveEditEmployeePayload,
+} from "@/features/staff/components/EditEmployeeView";
+import { ResetPasswordModal } from "@/features/staff/components/ResetPasswordModal";
 import { useLanguage } from "@/lib/i18n";
-import { fetchAuditLogs } from "@/lib/api/settings";
-import { unwrapList, asString } from "@/lib/api/helpers";
+import { updateAuthUser } from "@/lib/auth-client";
+import { updateStaff } from "@/lib/api/staff";
+import { ApiError } from "@/lib/api/http";
+import { InvalidationGraph } from "@/lib/query-keys";
+import { withBasePath } from "@/lib/base-path";
+import {
+  invalidateProfileQueries,
+  useProfileStaffQuery,
+} from "../hooks/useProfileQuery";
 
-type ProfileTab = "personal" | "email" | "security" | "sessions";
+type ProfileScreen = "details" | "edit";
 
 export function ProfileView() {
-  const { direction, isEn } = useLanguage();
-  const [activeTab, setActiveTab] = useState<ProfileTab>("personal");
-  const [formData, setFormData] = useState<UserProfileData>(initialProfileData);
-  const [sessions, setSessions] = useState<ActiveSessionItem[]>(initialActiveSessions);
+  const { direction, t } = useLanguage();
+  const queryClient = useQueryClient();
+  const { employee, permissions, isLoading, error, refetch } = useProfileStaffQuery();
+  const [screen, setScreen] = useState<ProfileScreen>("details");
+  const [resetOpen, setResetOpen] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    fetchAuditLogs()
-      .then((payload) => {
-        if (cancelled) return;
-        const logs = unwrapList<Record<string, unknown>>(payload);
-        if (logs.length === 0) return;
-        setSessions(
-          logs.slice(0, 8).map((log, idx) => ({
-            id: asString(log.id, `session-${idx}`),
-            device: asString(log.action || log.event || log.description, "نشاط إداري"),
-            browser: asString(log.browser || log.user_agent, "—"),
-            os: asString(log.os || log.platform, "—"),
-            location: asString(log.location || log.city, "—"),
-            ipAddress: asString(log.ip || log.ip_address, "—"),
-            lastActive: asString(log.created_at || log.timestamp, "—"),
-            isCurrent: idx === 0,
-          }))
-        );
-      })
-      .catch(() => {
-        // Keep mock sessions if audit logs unavailable.
+  const handleUpdate = async ({ id, payload }: SaveEditEmployeePayload) => {
+    await updateStaff(id, payload);
+    if (typeof payload.name === "string" || typeof payload.email === "string") {
+      updateAuthUser({
+        ...(typeof payload.name === "string"
+          ? { name: payload.name, full_name: payload.name }
+          : {}),
+        ...(typeof payload.email === "string" ? { email: payload.email } : {}),
       });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  // Email update state
-  const [newEmail, setNewEmail] = useState("");
-  const [emailVerificationCode, setEmailVerificationCode] = useState("");
-  const [isCodeSent, setIsCodeSent] = useState(false);
-
-  // Password state
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  // Saving state
-  const [isSaving, setIsSaving] = useState(false);
-
-  // Save handler
-  const handleSave = () => {
-    setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
-      toast.success(isEn ? "Profile updates saved successfully" : "تم حفظ تحديثات الملف الشخصي بنجاح");
-    }, 600);
-  };
-
-  // Reset handler
-  const handleReset = () => {
-    setFormData(initialProfileData);
-    setNewEmail("");
-    setEmailVerificationCode("");
-    setIsCodeSent(false);
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-    toast.info(isEn ? "Unsaved changes discarded" : "تم التراجع عن التعديلات غير المحفوظة");
-  };
-
-  // Send verification code handler
-  const handleSendVerificationCode = () => {
-    if (!newEmail.trim() || !newEmail.includes("@")) {
-      toast.error(isEn ? "Please enter a valid email address" : "يرجى إدخال بريد إلكتروني صالح");
-      return;
     }
-    setIsCodeSent(true);
-    toast.success(isEn ? `Verification code sent to: ${newEmail}` : `تم إرسال رمز التحقق إلى: ${newEmail}`);
+    await InvalidationGraph.onStaffMutation(queryClient);
+    await invalidateProfileQueries(queryClient);
+    await refetch();
+    setScreen("details");
+    toast.success(t("تم حفظ بيانات الملف الشخصي بنجاح", "Profile saved successfully"));
   };
-
-  // Confirm verification code handler
-  const handleConfirmEmailChange = () => {
-    if (emailVerificationCode.trim().length !== 6) {
-      toast.error(isEn ? "Please enter the 6-digit verification code" : "يرجى إدخال رمز التحقق المكون من 6 أرقام");
-      return;
-    }
-    setFormData((prev) => ({
-      ...prev,
-      email: newEmail,
-      emailVerified: true,
-      emailVerifiedDate: isEn ? "Just now (Updated)" : "الآن (مُحدّث)",
-    }));
-    setNewEmail("");
-    setEmailVerificationCode("");
-    setIsCodeSent(false);
-    toast.success(isEn ? "Official email address updated and verified" : "تم تحديث البريد الإلكتروني الرسمي بنجاح وتوثيقه");
-  };
-
-  // Terminate other sessions
-  const handleTerminateOtherSessions = () => {
-    setSessions((prev) => prev.filter((s) => s.isCurrent));
-    toast.success(isEn ? "Logged out from all other devices successfully" : "تم تسجيل الخروج بنجاح من جميع الأجهزة الأخرى");
-  };
-
-  // Password strength calculation
-  const getPasswordStrength = (pwd: string) => {
-    if (!pwd) return { score: 0, label: "", color: "bg-gray-200" };
-    let score = 0;
-    if (pwd.length >= 8) score++;
-    if (/[A-Z]/.test(pwd)) score++;
-    if (/[0-9]/.test(pwd)) score++;
-    if (/[^A-Za-z0-9]/.test(pwd)) score++;
-
-    switch (score) {
-      case 1:
-        return { score: 25, label: isEn ? "Very Weak" : "ضعيفة جداً", color: "bg-red-500" };
-      case 2:
-        return { score: 50, label: isEn ? "Fair" : "مقبولة", color: "bg-amber-500" };
-      case 3:
-        return { score: 75, label: isEn ? "Good" : "جيدة", color: "bg-emerald-500" };
-      case 4:
-        return { score: 100, label: isEn ? "Very Strong & Protected" : "قوية جداً ومحمية", color: "bg-[#059669]" };
-      default:
-        return { score: 0, label: "", color: "bg-gray-200" };
-    }
-  };
-
-  const pwdStrength = getPasswordStrength(newPassword);
 
   return (
     <div
       dir={direction}
       className="flex h-screen h-dvh overflow-hidden w-full bg-[#f5f3ef] dark:bg-[#150f0b] text-[#1b1c1a] dark:text-[#fdfbf7] transition-colors duration-200 font-['Cairo',sans-serif]"
     >
-      {/* 1. Global Navigation Sidebar */}
       <DashboardSidebar activeNav="profile" />
 
-      {/* 2. Main Content Area */}
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
-        {/* Top Navbar */}
         <DashboardTopNavbar />
 
-        {/* Dynamic Page Content */}
-        <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 max-w-[1360px] w-full mx-auto space-y-6 scrollbar-thin">
+        <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 sm:px-6 lg:px-8 py-4 max-w-[1360px] w-full mx-auto">
           <DashboardPageTransition>
-            {/* Header Banner */}
-            <div className="bg-white dark:bg-[#221812] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex flex-col text-start">
-                <h1 className="text-[24px] sm:text-[28px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                  {isEn ? "Profile & Account Settings" : "الملف الشخصي وإعدادات الحساب"}
-                </h1>
-                <p className="text-[13px] sm:text-[14px] text-[#514537] dark:text-[#a89f91] mt-0.5">
-                  {isEn
-                    ? "Manage personal information, email verification, password settings, and active sessions for the super admin."
-                    : "إدارة البيانات الشخصية، توثيق البريد الإلكتروني، إعدادات كلمة المرور والجلسات لمشرف النظام العام."}
+            {isLoading ? (
+              <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#eae8e4] dark:border-[#38271c] p-16 flex flex-col items-center gap-3">
+                <Loader2 className="size-8 animate-spin text-[#9c6402]" />
+                <p className="text-sm text-[#837565]">
+                  {t("جاري تحميل الملف الشخصي…", "Loading profile…")}
                 </p>
               </div>
-
-              {/* Status Badge */}
-              <div className="flex items-center gap-2 bg-[#ecfdf5] dark:bg-[#132c21] border border-emerald-200 dark:border-emerald-500/40 px-3.5 py-1.5 rounded-full w-fit shrink-0">
-                <span className="size-2 rounded-full bg-[#10b981] shadow-[0_0_8px_#10b981] ring-1 ring-emerald-400/60" />
-                <span className="font-bold text-[12px] text-[#065f46] dark:text-[#6ee7b7]">
-                  {isEn ? "Active - Verified Admin" : formData.statusLabel}
-                </span>
-              </div>
-            </div>
-
-            {/* Profile Overview Card (Hero) */}
-            <div className="bg-white dark:bg-[#221812] rounded-[8px] p-6 sm:p-7 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] relative overflow-hidden">
-              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-                {/* Avatar with Camera badge */}
-                <div className="relative size-24 sm:size-28 rounded-full overflow-hidden border-3 border-[#9c6402] dark:border-[#f59e0b] shadow-md shrink-0 group">
-                  <Image
-                    src={userAvatarImg}
-                    alt={formData.fullName}
-                    width={112}
-                    height={112}
-                    className="w-full h-full object-cover"
-                    priority
-                  />
-                  <button
-                    type="button"
-                    onClick={() => toast.info(isEn ? "Avatar update will be available in the upcoming release" : "ميزة تحديث الصورة الشخصية ستتاح في التحديث القادم")}
-                    title={isEn ? "Change Profile Picture" : "تغيير الصورة الشخصية"}
-                    className="absolute inset-0 bg-black/40 text-white opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 cursor-pointer"
-                  >
-                    <Camera className="size-5" />
-                    <span className="text-[10px] font-bold">{isEn ? "Change" : "تغيير"}</span>
-                  </button>
-                </div>
-
-                {/* Identity & Badges */}
-                <div className="flex-1 text-center sm:text-start space-y-2.5">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                      <h2 className="text-[22px] sm:text-[24px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                        {formData.fullName}
-                      </h2>
-                      <p className="text-[13px] font-semibold text-[#837565] dark:text-[#a89f91] mt-0.5">
-                        {formData.jobTitle} • {formData.department}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-center sm:justify-start gap-2 self-center sm:self-auto">
-                      <span className="bg-[#f5f3ef] dark:bg-[#281c15] border border-[#eae8e4] dark:border-[#38271c] text-[#9c6402] dark:text-[#f59e0b] text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
-                        <KeyRound className="size-3.5" />
-                        <span>{isEn ? "Global Super Admin" : formData.roleBadge}</span>
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Highlights Bar */}
-                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 pt-1 text-[12px] text-[#514537] dark:text-[#cdc5bd]">
-                    <div className="flex items-center gap-1.5 bg-[#f5f3ef] dark:bg-[#281c15] px-3 py-1 rounded-full border border-[#eae8e4] dark:border-[#38271c]">
-                      <Mail className="size-3.5 text-[#9c6402] dark:text-[#f59e0b]" />
-                      <span className="font-mono text-[11px]" dir="ltr">
-                        {formData.email}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5 bg-[#f5f3ef] dark:bg-[#281c15] px-3 py-1 rounded-full border border-[#eae8e4] dark:border-[#38271c]">
-                      <Phone className="size-3.5 text-[#059669]" />
-                      <span className="font-mono text-[11px]" dir="ltr">
-                        {formData.phone}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5 bg-[#f5f3ef] dark:bg-[#281c15] px-3 py-1 rounded-full border border-[#eae8e4] dark:border-[#38271c]">
-                      <Calendar className="size-3.5 text-[#837565] dark:text-[#a89f91]" />
-                      <span>{isEn ? `Joined: ${formData.joinDate}` : `تاريخ الانضمام: ${formData.joinDate}`}</span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5 bg-[#ecfdf5] dark:bg-[#132c21] border border-emerald-200 dark:border-emerald-500/40 text-[#065f46] dark:text-[#6ee7b7] px-3 py-1 rounded-full font-bold text-[11px]">
-                      <ShieldCheck className="size-3.5" />
-                      <span>{isEn ? "2FA Enabled" : "2FA مفعّل"}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Segmented Pill Navigation Tabs */}
-            <div className="bg-[#f5f3ef] dark:bg-[#281c15] p-1 rounded-[8px] flex flex-wrap items-center gap-1.5 border border-[#eae8e4] dark:border-[#38271c] w-full">
-              <button
-                type="button"
-                onClick={() => setActiveTab("personal")}
-                className={cn(
-                  "flex-1 sm:flex-initial px-4 py-2 rounded-[6px] text-[13px] font-bold transition-all flex items-center justify-center gap-2 cursor-pointer",
-                  activeTab === "personal"
-                    ? "bg-white dark:bg-[#221812] text-[#9c6402] dark:text-[#f59e0b] shadow-[0px_1px_2px_rgba(0,0,0,0.06)]"
-                    : "text-[#514537] dark:text-[#a89f91] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
-                )}
-              >
-                <User className="size-4" />
-                <span>{isEn ? "Personal Information" : "البيانات الشخصية"}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab("email")}
-                className={cn(
-                  "flex-1 sm:flex-initial px-4 py-2 rounded-[6px] text-[13px] font-bold transition-all flex items-center justify-center gap-2 cursor-pointer",
-                  activeTab === "email"
-                    ? "bg-white dark:bg-[#221812] text-[#9c6402] dark:text-[#f59e0b] shadow-[0px_1px_2px_rgba(0,0,0,0.06)]"
-                    : "text-[#514537] dark:text-[#a89f91] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
-                )}
-              >
-                <Mail className="size-4" />
-                <span>{isEn ? "Email & Contact" : "البريد الإلكتروني والاتصال"}</span>
-                <span className="size-2 rounded-full bg-[#10b981]" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab("security")}
-                className={cn(
-                  "flex-1 sm:flex-initial px-4 py-2 rounded-[6px] text-[13px] font-bold transition-all flex items-center justify-center gap-2 cursor-pointer",
-                  activeTab === "security"
-                    ? "bg-white dark:bg-[#221812] text-[#9c6402] dark:text-[#f59e0b] shadow-[0px_1px_2px_rgba(0,0,0,0.06)]"
-                    : "text-[#514537] dark:text-[#a89f91] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
-                )}
-              >
-                <Lock className="size-4" />
-                <span>{isEn ? "Password & Security" : "كلمة المرور والأمان"}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab("sessions")}
-                className={cn(
-                  "flex-1 sm:flex-initial px-4 py-2 rounded-[6px] text-[13px] font-bold transition-all flex items-center justify-center gap-2 cursor-pointer",
-                  activeTab === "sessions"
-                    ? "bg-white dark:bg-[#221812] text-[#9c6402] dark:text-[#f59e0b] shadow-[0px_1px_2px_rgba(0,0,0,0.06)]"
-                    : "text-[#514537] dark:text-[#a89f91] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7]"
-                )}
-              >
-                <Laptop className="size-4" />
-                <span>{isEn ? "Devices & Sessions" : "الأجهزة والجلسات"}</span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-black/5 dark:bg-white/10 text-[#837565] dark:text-[#a89f91]">
-                  {sessions.length}
-                </span>
-              </button>
-            </div>
-
-            {/* TAB 1: Personal Information */}
-            {activeTab === "personal" && (
-              <div className="bg-white dark:bg-[#221812] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] space-y-6">
-                <div className="border-b border-[#eae8e4] dark:border-[#38271c] pb-4 text-start">
-                  <h3 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                    {isEn ? "Personal Information & Details" : "المعلومات والبيانات الشخصية"}
-                  </h3>
-                  <p className="text-[12px] text-[#837565] dark:text-[#a89f91] mt-0.5">
-                    {isEn
-                      ? "Core profile data displayed in platform governance logs and audit reports."
-                      : "البيانات الأساسية التي تظهر في سجلات الحوكمة وتقارير تدقيق المنصة."}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {/* First Name */}
-                  <div className="space-y-1.5 text-start">
-                    <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-1">
-                      <span>{isEn ? "First Name" : "الاسم الأول"}</span>
-                      <span className="text-[#ba1a1a]">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.firstName}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          firstName: e.target.value,
-                          fullName: `${e.target.value} ${formData.lastName}`,
-                        })
-                      }
-                      className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-3.5 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
-                    />
-                  </div>
-
-                  {/* Last Name */}
-                  <div className="space-y-1.5 text-start">
-                    <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-1">
-                      <span>{isEn ? "Last Name" : "اسم العائلة"}</span>
-                      <span className="text-[#ba1a1a]">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.lastName}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          lastName: e.target.value,
-                          fullName: `${formData.firstName} ${e.target.value}`,
-                        })
-                      }
-                      className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-3.5 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
-                    />
-                  </div>
-
-                  {/* Job Title */}
-                  <div className="space-y-1.5 text-start">
-                    <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      {isEn ? "Job Title" : "المسمى الوظيفي"}
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={formData.jobTitle}
-                        onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
-                        className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
-                      />
-                      <Building2 className="size-4 text-[#837565] dark:text-[#a89f91] absolute end-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    </div>
-                  </div>
-
-                  {/* Department */}
-                  <div className="space-y-1.5 text-start">
-                    <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      {isEn ? "Department / Division" : "القسم أو الإدارة التابعة"}
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.department}
-                      onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                      className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-3.5 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
-                    />
-                  </div>
-
-                  {/* National ID */}
-                  <div className="space-y-1.5 text-start">
-                    <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      {isEn ? "National ID / Iqama Number" : "رقم الهوية الوطنية / الإقامة"}
-                    </label>
-                    <input
-                      type="text"
-                      dir="ltr"
-                      value={formData.nationalId}
-                      onChange={(e) => setFormData({ ...formData, nationalId: e.target.value })}
-                      className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] px-3.5 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
-                    />
-                  </div>
-
-                  {/* Phone */}
-                  <div className="space-y-1.5 text-start">
-                    <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-1">
-                      <span>{isEn ? "Verified Phone Number" : "رقم الهاتف المعتمد"}</span>
-                      <span className="text-[#ba1a1a]">*</span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        dir="ltr"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
-                      />
-                      <Phone className="size-4 text-[#837565] dark:text-[#a89f91] absolute end-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    </div>
-                  </div>
-
-                  {/* City */}
-                  <div className="space-y-1.5 text-start">
-                    <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      {isEn ? "City & Country" : "المدينة والدولة"}
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={`${formData.city}، ${formData.country}`}
-                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                        className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
-                      />
-                      <MapPin className="size-4 text-[#837565] dark:text-[#a89f91] absolute end-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    </div>
-                  </div>
-
-                  {/* Timezone */}
-                  <div className="space-y-1.5 text-start">
-                    <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      {isEn ? "Timezone" : "المنطقة الزمنية"}
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={formData.timezone}
-                        readOnly
-                        className="w-full h-[42px] bg-[#f5f3ef]/80 dark:bg-[#281c15]/80 text-[#837565] dark:text-[#a89f91] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38271c] cursor-not-allowed"
-                      />
-                      <Clock className="size-4 text-[#837565] dark:text-[#a89f91] absolute end-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    </div>
-                  </div>
-
-                  {/* Bio */}
-                  <div className="md:col-span-2 space-y-1.5 text-start">
-                    <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      {isEn ? "Biography" : "نبذة تعريفية"}
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={formData.bio}
-                      onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                      className="w-full bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] p-3 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors resize-none"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 2: Email & Communication Settings */}
-            {activeTab === "email" && (
-              <div className="space-y-6">
-                {/* 1. Current Verified Email Card */}
-                <div className="bg-white dark:bg-[#221812] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] text-start space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#eae8e4] dark:border-[#38271c] pb-4">
-                    <div>
-                      <h3 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-2">
-                        <Mail className="size-5 text-[#9c6402] dark:text-[#f59e0b]" />
-                        <span>{isEn ? "Current Verified Email Address" : "البريد الإلكتروني المعتمد الحالي"}</span>
-                      </h3>
-                      <p className="text-[12px] text-[#837565] dark:text-[#a89f91] mt-0.5">
-                        {isEn
-                          ? "This address is the official primary channel for receiving security alerts and system confirmations."
-                          : "هذا العنوان هو القناة الرسمية الوحيدة المعتمدة لاستلام التنبيهات الأمنية وتأكيدات عمليات النظام."}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-2 bg-[#ecfdf5] dark:bg-[#132c21] border border-emerald-200 dark:border-emerald-500/40 text-[#065f46] dark:text-[#6ee7b7] px-3.5 py-1.5 rounded-full w-fit font-bold text-[12px]">
-                      <ShieldCheck className="size-4" />
-                      <span>{isEn ? "Verified & Approved" : "مُتحقق منه ومُعتمد"}</span>
-                      <span className="size-2 rounded-full bg-[#10b981] shadow-[0_0_8px_#10b981]" />
-                    </div>
-                  </div>
-
-                  <div className="bg-[#faf9f7] dark:bg-[#281c15] p-4 rounded-[6px] border border-[#ede8e1] dark:border-[#38271c] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="space-y-1">
-                      <span className="text-[11px] font-bold text-[#837565] dark:text-[#a89f91] block">
-                        {isEn ? "Primary Address" : "العنوان الأساسي"}
-                      </span>
-                      <span className="text-[15px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] font-mono select-all" dir="ltr">
-                        {formData.email}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          navigator.clipboard.writeText(formData.email);
-                          toast.success(isEn ? "Email copied to clipboard" : "تم نسخ البريد الإلكتروني إلى الحافظة");
-                        }}
-                        className="h-[34px] px-3 rounded-[6px] border border-[#ded5c6] dark:border-[#38271c] bg-white dark:bg-[#221812] hover:bg-[#f5f3ef] text-[#514537] dark:text-[#cdc5bd] text-[12px] font-semibold flex items-center gap-1.5 cursor-pointer transition-colors"
-                      >
-                        <Copy className="size-3.5" />
-                        <span>{isEn ? "Copy Address" : "نسخ العنوان"}</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-[12px]">
-                    <div className="p-3 rounded-[6px] bg-[#f5f3ef] dark:bg-[#281c15] border border-[#eae8e4] dark:border-[#38271c] space-y-1">
-                      <span className="text-[10px] font-bold text-[#837565] dark:text-[#a89f91] block">{isEn ? "Verification Date" : "تاريخ التحقق"}</span>
-                      <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">{formData.emailVerifiedDate}</span>
-                    </div>
-                    <div className="p-3 rounded-[6px] bg-[#f5f3ef] dark:bg-[#281c15] border border-[#eae8e4] dark:border-[#38271c] space-y-1">
-                      <span className="text-[10px] font-bold text-[#837565] dark:text-[#a89f91] block">{isEn ? "Security Protocol" : "بروتوكول الأمان"}</span>
-                      <span className="font-semibold text-[#10b981]">{isEn ? "TLS 1.3 Fully Encrypted" : "TLS 1.3 مشفر بالكامل"}</span>
-                    </div>
-                    <div className="p-3 rounded-[6px] bg-[#f5f3ef] dark:bg-[#281c15] border border-[#eae8e4] dark:border-[#38271c] space-y-1">
-                      <span className="text-[10px] font-bold text-[#837565] dark:text-[#a89f91] block">{isEn ? "2FA Linkage" : "الربط بالمصادقة 2FA"}</span>
-                      <span className="font-semibold text-[#059669]">{isEn ? "Enabled & Protected" : "مُفعّل ومحمي"}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 2. Change Email Address Form */}
-                <div className="bg-white dark:bg-[#221812] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] text-start space-y-4">
-                  <div className="border-b border-[#eae8e4] dark:border-[#38271c] pb-4">
-                    <h3 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      {isEn ? "Update & Change Email Address" : "تحديث وتغيير البريد الإلكتروني"}
-                    </h3>
-                    <p className="text-[12px] text-[#837565] dark:text-[#a89f91] mt-0.5">
-                      {isEn
-                        ? "Changing your email requires sending a security verification code to the new address."
-                        : "يتطلب تغيير البريد إرسال رمز أمان إلى العنوان الجديد للتحقق من ملكيته قبل اعتماده."}
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                        {isEn ? "New Email Address" : "البريد الإلكتروني الجديد"}
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="email"
-                          dir="ltr"
-                          placeholder="example@aljoody-law.sa"
-                          value={newEmail}
-                          onChange={(e) => setNewEmail(e.target.value)}
-                          className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder-[#837565] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
-                        />
-                        <Mail className="size-4 text-[#837565] dark:text-[#a89f91] absolute end-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      </div>
-                    </div>
-
-                    <div className="flex items-end">
-                      <button
-                        type="button"
-                        onClick={handleSendVerificationCode}
-                        className="w-full sm:w-auto h-[42px] px-5 rounded-[6px] bg-[#9c6402] hover:bg-[#855401] text-white text-[13px] font-bold flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-colors"
-                      >
-                        <Send className="size-4" />
-                        <span>{isEn ? "Send Verification Code" : "إرسال رمز التحقق"}</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Verification Code Box */}
-                  {isCodeSent && (
-                    <div className="bg-[#fffbeb] dark:bg-[#2c2214] border border-[#fef3c7] dark:border-[#4d3a1f] p-4 rounded-[6px] space-y-3 animate-in fade-in slide-in-from-top-2">
-                      <div className="flex items-center gap-2 text-[#92400e] dark:text-[#fbbf24] text-[12px] font-bold">
-                        <AlertCircle className="size-4 shrink-0" />
-                        <span>{isEn ? "Verification code sent (Demo test code: 123456)" : "تم إرسال رمز التحقق (رمز تجريبي للاختبار: 123456)"}</span>
-                      </div>
-
-                      <div className="flex flex-col sm:flex-row items-center gap-3">
-                        <input
-                          type="text"
-                          dir="ltr"
-                          maxLength={6}
-                          placeholder="123456"
-                          value={emailVerificationCode}
-                          onChange={(e) => setEmailVerificationCode(e.target.value)}
-                          className="w-full sm:w-[160px] h-[40px] tracking-widest text-center bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7] text-[16px] font-mono font-bold rounded-[6px] border border-[#d97706] focus:outline-none focus:ring-2 focus:ring-[#9c6402]"
-                        />
-
-                        <button
-                          type="button"
-                          onClick={handleConfirmEmailChange}
-                          className="w-full sm:w-auto h-[40px] px-4 rounded-[6px] bg-[#059669] hover:bg-[#047857] text-white text-[13px] font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
-                        >
-                          <Check className="size-4" />
-                          <span>{isEn ? "Confirm & Adopt New Email" : "تأكيد واعتماد البريد الجديد"}</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* 3. Recovery Email Card */}
-                <div className="bg-white dark:bg-[#221812] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] text-start space-y-4">
-                  <div className="border-b border-[#eae8e4] dark:border-[#38271c] pb-4">
-                    <h3 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      {isEn ? "Emergency Recovery Email" : "البريد الإلكتروني الاحتياطي للاسترداد"}
-                    </h3>
-                    <p className="text-[12px] text-[#837565] dark:text-[#a89f91] mt-0.5">
-                      {isEn
-                        ? "Used exclusively in high-priority emergencies to recover account privileges."
-                        : "يُستخدم فقط في حالات الطوارئ القصوى لاستعادة صلاحيات الحساب إذا تعذر الوصول للبريد الرئيسي."}
-                    </p>
-                  </div>
-
-                  <div className="space-y-1.5 max-w-xl">
-                    <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      {isEn ? "Recovery Email" : "البريد الاحتياطي"}
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="email"
-                        dir="ltr"
-                        value={formData.recoveryEmail}
-                        onChange={(e) => setFormData({ ...formData, recoveryEmail: e.target.value })}
-                        className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
-                      />
-                      <Mail className="size-4 text-[#837565] dark:text-[#a89f91] absolute end-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* 4. Email Notification Preferences Matrix */}
-                <div className="bg-white dark:bg-[#221812] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] text-start space-y-4">
-                  <div className="border-b border-[#eae8e4] dark:border-[#38271c] pb-4">
-                    <h3 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-2">
-                      <Bell className="size-5 text-[#9c6402] dark:text-[#f59e0b]" />
-                      <span>{isEn ? "Email Notification Preferences" : "تفضيلات إشعارات البريد الإلكتروني"}</span>
-                    </h3>
-                    <p className="text-[12px] text-[#837565] dark:text-[#a89f91] mt-0.5">
-                      {isEn
-                        ? "Configure which transactional alerts and periodic digests you want to receive."
-                        : "تحديد نوعية الرسائل والتقارير الدورية التي ترغب في استلامها عبر بريدك الإلكتروني المعتمد."}
-                    </p>
-                  </div>
-
-                  <div className="divide-y divide-[#eae8e4] dark:divide-[#38271c]">
-                    {/* Item 1: Subscriptions */}
-                    <div className="py-3.5 flex items-center justify-between gap-4">
-                      <div>
-                        <span className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-                          {isEn ? "Subscriptions & Licensure Notifications" : "إشعارات الاشتراكات والتراخيص"}
-                        </span>
-                        <span className="text-[12px] text-[#837565] dark:text-[#a89f91]">
-                          {isEn ? "Immediate alert upon new subscriptions, renewals, or plan upgrades." : "استلام تنبيه فوري عند تسجيل اشتراك جديد، طلب تجديد، أو ترقية باقة."}
-                        </span>
-                      </div>
-                      <input
-                        type="checkbox"
-                        checked={formData.emailNotifications.subscriptions}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            emailNotifications: {
-                              ...formData.emailNotifications,
-                              subscriptions: e.target.checked,
-                            },
-                          })
-                        }
-                        className="size-5 rounded border-[#eae8e4] text-[#9c6402] focus:ring-[#9c6402] cursor-pointer"
-                      />
-                    </div>
-
-                    {/* Item 2: Invoices */}
-                    <div className="py-3.5 flex items-center justify-between gap-4">
-                      <div>
-                        <span className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-                          {isEn ? "Invoices & Payment Operations" : "إشعارات الفواتير وعمليات الدفع"}
-                        </span>
-                        <span className="text-[12px] text-[#837565] dark:text-[#a89f91]">
-                          {isEn ? "Confirmations for settled e-invoices and payment transaction failures." : "تأكيدات سداد الفواتير الإلكترونية المعتمدة وإشعارات فشل العمليات المالية."}
-                        </span>
-                      </div>
-                      <input
-                        type="checkbox"
-                        checked={formData.emailNotifications.invoices}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            emailNotifications: {
-                              ...formData.emailNotifications,
-                              invoices: e.target.checked,
-                            },
-                          })
-                        }
-                        className="size-5 rounded border-[#eae8e4] text-[#9c6402] focus:ring-[#9c6402] cursor-pointer"
-                      />
-                    </div>
-
-                    {/* Item 3: Security Alerts */}
-                    <div className="py-3.5 flex items-center justify-between gap-4">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                            {isEn ? "Critical Security & Login Alerts" : "تنبيهات الأمان والدخول الحساس"}
-                          </span>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#fef2f2] text-[#991b1b] dark:bg-[#311616] dark:text-[#f87171]">
-                            {isEn ? "Mandatory for Security" : "إجباري للأمان"}
-                          </span>
-                        </div>
-                        <span className="text-[12px] text-[#837565] dark:text-[#a89f91]">
-                          {isEn ? "Immediate notice when logging in from a new device or changing sensitive account settings." : "إشعار فوري عند تسجيل الدخول من جهاز جديد أو تغيير إعدادات الحساب الحساسة."}
-                        </span>
-                      </div>
-                      <input
-                        type="checkbox"
-                        checked={true}
-                        disabled
-                        className="size-5 rounded border-[#eae8e4] text-[#9c6402] opacity-60 cursor-not-allowed"
-                      />
-                    </div>
-
-                    {/* Item 4: Weekly Digest */}
-                    <div className="py-3.5 flex items-center justify-between gap-4">
-                      <div>
-                        <span className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
-                          {isEn ? "Comprehensive Weekly Administrative Digest" : "التقرير الإداري الأسبوعي الشامل"}
-                        </span>
-                        <span className="text-[12px] text-[#837565] dark:text-[#a89f91]">
-                          {isEn ? "Weekly summary delivered Thursday mornings with law firm metrics, billing, and support stats." : "ملخص أسبوعي يصل صباح كل خميس بإحصائيات المكاتب، الفواتير، ونشاط الدعم الفني."}
-                        </span>
-                      </div>
-                      <input
-                        type="checkbox"
-                        checked={formData.emailNotifications.weeklyDigest}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            emailNotifications: {
-                              ...formData.emailNotifications,
-                              weeklyDigest: e.target.checked,
-                            },
-                          })
-                        }
-                        className="size-5 rounded border-[#eae8e4] text-[#9c6402] focus:ring-[#9c6402] cursor-pointer"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 3: Security & Password */}
-            {activeTab === "security" && (
-              <div className="space-y-6">
-                {/* 1. Change Password Card */}
-                <div className="bg-white dark:bg-[#221812] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] text-start space-y-4">
-                  <div className="border-b border-[#eae8e4] dark:border-[#38271c] pb-4">
-                    <h3 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-2">
-                      <Lock className="size-5 text-[#9c6402] dark:text-[#f59e0b]" />
-                      <span>{isEn ? "Update Password" : "تحديث كلمة المرور"}</span>
-                    </h3>
-                    <p className="text-[12px] text-[#837565] dark:text-[#a89f91] mt-0.5">
-                      {isEn
-                        ? "Use a strong password combining uppercase, lowercase, numbers, and special symbols."
-                        : "احرص على استخدام كلمة مرور قوية تحتوي على أحرف كبيرة وصغيرة وأرقام ورموز خاصة."}
-                    </p>
-                  </div>
-
-                  <div className="space-y-4 max-w-xl">
-                    {/* Current Password */}
-                    <div className="space-y-1.5">
-                      <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                        {isEn ? "Current Password" : "كلمة المرور الحالية"}
-                      </label>
-                      <div className="relative">
-                        <input
-                          type={showCurrentPassword ? "text" : "password"}
-                          value={currentPassword}
-                          onChange={(e) => setCurrentPassword(e.target.value)}
-                          className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                          className="absolute end-3.5 top-1/2 -translate-y-1/2 text-[#837565] dark:text-[#a89f91] hover:text-[#1b1c1a] cursor-pointer"
-                        >
-                          {showCurrentPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* New Password */}
-                    <div className="space-y-1.5">
-                      <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                        {isEn ? "New Password" : "كلمة المرور الجديدة"}
-                      </label>
-                      <div className="relative">
-                        <input
-                          type={showNewPassword ? "text" : "password"}
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowNewPassword(!showNewPassword)}
-                          className="absolute end-3.5 top-1/2 -translate-y-1/2 text-[#837565] dark:text-[#a89f91] hover:text-[#1b1c1a] cursor-pointer"
-                        >
-                          {showNewPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                        </button>
-                      </div>
-
-                      {/* Password strength meter */}
-                      {newPassword && (
-                        <div className="space-y-1 pt-1">
-                          <div className="flex items-center justify-between text-[11px] font-bold">
-                            <span className="text-[#837565] dark:text-[#a89f91]">{isEn ? "Password Strength:" : "قوة كلمة المرور:"}</span>
-                            <span className={cn(pwdStrength.score >= 75 ? "text-[#059669]" : "text-[#d97706]")}>
-                              {pwdStrength.label}
-                            </span>
-                          </div>
-                          <div className="w-full h-1.5 bg-[#eae8e4] dark:bg-[#38271c] rounded-full overflow-hidden">
-                            <div
-                              className={cn("h-full transition-all duration-300", pwdStrength.color)}
-                              style={{ width: `${pwdStrength.score}%` }}
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Confirm Password */}
-                    <div className="space-y-1.5">
-                      <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                        {isEn ? "Confirm New Password" : "تأكيد كلمة المرور الجديدة"}
-                      </label>
-                      <div className="relative">
-                        <input
-                          type={showConfirmPassword ? "text" : "password"}
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          className="w-full h-[42px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold rounded-[6px] ps-3.5 pe-10 border border-[#eae8e4] dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] transition-colors"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute end-3.5 top-1/2 -translate-y-1/2 text-[#837565] dark:text-[#a89f91] hover:text-[#1b1c1a] cursor-pointer"
-                        >
-                          {showConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 2. Two-Factor Authentication (2FA) */}
-                <div className="bg-white dark:bg-[#221812] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] text-start space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#eae8e4] dark:border-[#38271c] pb-4">
-                    <div>
-                      <h3 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-2">
-                        <ShieldCheck className="size-5 text-[#059669]" />
-                        <span>{isEn ? "Two-Factor Authentication (2FA)" : "المصادقة الثنائية (2FA)"}</span>
-                      </h3>
-                      <p className="text-[12px] text-[#837565] dark:text-[#a89f91] mt-0.5">
-                        {isEn
-                          ? "Extra layer of security requiring a temporary security code from your phone each time you sign in."
-                          : "حماية إضافية تطلب رمز أمان مؤقت من هاتفك في كل مرة تسجل فيها الدخول."}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-2 bg-[#ecfdf5] dark:bg-[#132c21] border border-emerald-200 dark:border-emerald-500/40 text-[#065f46] dark:text-[#6ee7b7] px-3.5 py-1.5 rounded-full w-fit font-bold text-[12px]">
-                      <CheckCircle2 className="size-4" />
-                      <span>{isEn ? "Enabled via Authenticator" : "مفعلة بواسطة التطبيق"}</span>
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-[6px] bg-[#faf9f7] dark:bg-[#281c15] border border-[#ede8e1] dark:border-[#38271c] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="space-y-1">
-                      <span className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                        {isEn ? "Authenticator App" : "تطبيق المصادقة (Authenticator App)"}
-                      </span>
-                      <span className="text-[12px] text-[#837565] dark:text-[#a89f91] block">
-                        {isEn ? `Linked with ${formData.twoFactorMethod}.` : `مرتبط بتطبيق ${formData.twoFactorMethod}.`}
-                      </span>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => toast.info(isEn ? "Backup recovery keys are securely stored" : "مفاتيح الاسترداد الاحتياطية محفوظة بأمان")}
-                      className="h-[36px] px-4 rounded-[6px] border border-[#ded5c6] dark:border-[#38271c] bg-white dark:bg-[#221812] hover:bg-[#f5f3ef] text-[#514537] dark:text-[#cdc5bd] text-[12px] font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
-                    >
-                      <KeyRound className="size-3.5" />
-                      <span>{isEn ? "View Recovery Keys" : "عرض مفاتيح الاسترداد"}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 4: Active Devices & Sessions */}
-            {activeTab === "sessions" && (
-              <div className="bg-white dark:bg-[#221812] rounded-[8px] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] border border-[#eae8e4] dark:border-[#38271c] text-start space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#eae8e4] dark:border-[#38271c] pb-4">
-                  <div>
-                    <h3 className="text-[16px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-2">
-                      <Laptop className="size-5 text-[#9c6402] dark:text-[#f59e0b]" />
-                      <span>{isEn ? "Currently Active Devices & Sessions" : "الأجهزة والجلسات النشطة حالياً"}</span>
-                    </h3>
-                    <p className="text-[12px] text-[#837565] dark:text-[#a89f91] mt-0.5">
-                      {isEn
-                        ? "List of all devices currently possessing an active authorization to this administrative account."
-                        : "قائمة بجميع الأجهزة التي يتوفر لديها تصريح دخول نشط إلى هذا الحساب الإداري."}
-                    </p>
-                  </div>
-
-                  {sessions.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={handleTerminateOtherSessions}
-                      className="h-[36px] px-3.5 rounded-[6px] bg-[#ba1a1a]/10 hover:bg-[#ba1a1a]/20 text-[#ba1a1a] dark:text-[#f87171] border border-[#ba1a1a]/20 text-[12px] font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
-                    >
-                      <LogOut className="size-3.5" />
-                      <span>{isEn ? "Log Out Other Devices" : "تسجيل الخروج من باقي الأجهزة"}</span>
-                    </button>
-                  )}
-                </div>
-
-                <div className="divide-y divide-[#eae8e4] dark:divide-[#38271c]">
-                  {sessions.length === 0 ? (
-                    <div className="py-8 text-center text-xs text-[#837565] dark:text-[#a89f91]">
-                      {isEn ? "No active sessions" : "لا توجد جلسات نشطة"}
-                    </div>
-                  ) : (
-                    sessions.map((session) => {
-                    const isMac = session.os.toLowerCase().includes("mac");
-                    const isPhone = session.device.toLowerCase().includes("phone");
-                    return (
-                      <div
-                        key={session.id}
-                        className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                      >
-                        <div className="flex items-center gap-3.5">
-                          <div className="size-11 rounded-[8px] bg-[#f5f3ef] dark:bg-[#281c15] border border-[#eae8e4] dark:border-[#38271c] flex items-center justify-center text-[#9c6402] dark:text-[#f59e0b] shrink-0">
-                            {isPhone ? (
-                              <Smartphone className="size-5" />
-                            ) : isMac ? (
-                              <Laptop className="size-5" />
-                            ) : (
-                              <Tablet className="size-5" />
-                            )}
-                          </div>
-
-                          <div className="space-y-0.5">
-                            <div className="flex items-center gap-2">
-                              <span className="text-[14px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                                {session.device}
-                              </span>
-                              {session.isCurrent && (
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#ecfdf5] dark:bg-[#132c21] text-[#065f46] dark:text-[#6ee7b7] border border-emerald-200 dark:border-emerald-500/40">
-                                  {isEn ? "Current Device" : "الجهاز الحالي"}
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-[12px] text-[#837565] dark:text-[#a89f91]">
-                              {session.browser} • {session.os}
-                            </p>
-                            <div className="flex items-center gap-2 text-[11px] text-[#514537] dark:text-[#cdc5bd] pt-0.5">
-                              <MapPin className="size-3 text-[#837565]" />
-                              <span>{session.location}</span>
-                              <span>•</span>
-                              <span className="font-mono">{session.ipAddress}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between sm:justify-end gap-3">
-                          <span className="text-[12px] font-semibold text-[#837565] dark:text-[#a89f91]">
-                            {session.lastActive}
-                          </span>
-
-                          {!session.isCurrent && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSessions((prev) => prev.filter((s) => s.id !== session.id));
-                                toast.success(isEn ? `Session ended on ${session.device}` : `تم إنهاء الجلسة على ${session.device}`);
-                              }}
-                              className="size-8 rounded-[4px] hover:bg-[#ba1a1a]/10 text-[#837565] hover:text-[#ba1a1a] flex items-center justify-center transition-colors cursor-pointer"
-                              title={isEn ? "Revoke this session" : "إنهاء هذه الجلسة"}
-                            >
-                              <LogOut className="size-4" />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* 3. Sticky Action Bar */}
-            <DashboardStickyActionBar>
-              <div className="flex items-center gap-2 text-[12px] text-[#837565] dark:text-[#a89f91]">
-                <ShieldCheck className="size-4 text-[#059669]" />
-                <span>{isEn ? "All updates are encrypted and recorded in administrative audit logs." : "يتم حفظ جميع التعديلات في سجل تدقيق العمليات الإدارية المشفر."}</span>
-              </div>
-
-              <div className="flex items-center gap-3 w-full sm:w-auto">
+            ) : error ? (
+              <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-red-200 dark:border-red-900/40 p-8 text-center space-y-3">
+                <p className="text-sm text-red-600 dark:text-red-300">{error}</p>
                 <button
                   type="button"
-                  onClick={handleReset}
-                  disabled={isSaving}
-                  className="flex-1 sm:flex-initial h-[40px] px-4 rounded-[6px] border border-[#ded5c6] dark:border-[#38271c] bg-white dark:bg-[#221812] hover:bg-[#f5f3ef] text-[#514537] dark:text-[#cdc5bd] text-[13px] font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                  onClick={() => void refetch()}
+                  className="h-[38px] px-4 rounded-[6px] bg-[#9c6402] text-white text-[13px] font-bold inline-flex items-center gap-2 cursor-pointer"
                 >
-                  <RotateCcw className="size-4" />
-                  <span>{isEn ? "Discard Changes" : "إلغاء التراجع"}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="flex-1 sm:flex-initial h-[40px] px-6 rounded-[6px] bg-[#9c6402] hover:bg-[#855401] text-white text-[13px] font-bold flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-colors disabled:opacity-50"
-                >
-                  <Check className="size-4" />
-                  <span>{isSaving ? (isEn ? "Saving..." : "جاري الحفظ...") : (isEn ? "Save Changes" : "حفظ التعديلات")}</span>
+                  <RefreshCw className="size-4" />
+                  {t("إعادة المحاولة", "Retry")}
                 </button>
               </div>
-            </DashboardStickyActionBar>
+            ) : !employee ? (
+              <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#eae8e4] dark:border-[#38271c] p-8 text-center space-y-2">
+                <p className="font-bold">
+                  {t(
+                    "لا يوجد سجل موظف مرتبط بهذا الحساب",
+                    "No staff record is linked to this account"
+                  )}
+                </p>
+              </div>
+            ) : screen === "edit" ? (
+              <EditEmployeeView
+                employee={employee}
+                onBack={() => setScreen("details")}
+                onSave={handleUpdate}
+              />
+            ) : (
+              <EmployeeDetailsView
+                employee={employee}
+                permissions={permissions}
+                editLabel={t("تعديل البيانات", "Edit Profile")}
+                backLabel={t("العودة للرئيسية", "Back to Home")}
+                onBack={() => {
+                  const home = withBasePath("/");
+                  window.location.assign(home.endsWith("/") ? home : `${home}/`);
+                }}
+                onEdit={() => setScreen("edit")}
+                onResetPassword={() => setResetOpen(true)}
+              />
+            )}
           </DashboardPageTransition>
         </main>
       </div>
+
+      <ResetPasswordModal
+        isOpen={resetOpen}
+        onClose={() => setResetOpen(false)}
+        employee={employee}
+      />
     </div>
   );
 }

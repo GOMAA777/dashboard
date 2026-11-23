@@ -13,4 +13,5 @@ export const initialInvoicesKpis: InvoiceKpiMetrics = {
   overdueCount: 0,
   overdueAmountSar: 0,
   refundedCount: 0,
+  partialCount: 0,
 };

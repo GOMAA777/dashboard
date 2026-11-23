@@ -6,6 +6,15 @@ import { DashboardSidebar } from "@/features/dashboard/components/DashboardSideb
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
 import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 import { DashboardPageSkeleton } from "@/components/shared/DashboardPageSkeleton";
+import { StaffPageSkeleton } from "./StaffPageSkeleton";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  useStaffQuery,
+  useStaffStatsQuery,
+  useRolesQuery,
+  invalidateStaffQueries,
+} from "../hooks/useStaffQuery";
+import { InvalidationGraph } from "@/lib/query-keys";
 import { StaffKpiMetrics } from "./StaffKpiMetrics";
 import { StaffToolbar } from "./StaffToolbar";
 import { StaffTable } from "./StaffTable";
@@ -19,13 +28,13 @@ import { EndPreviewModal } from "./EndPreviewModal";
 import { DeactivateEmployeeModal } from "./DeactivateEmployeeModal";
 import { ActivateEmployeeModal } from "./ActivateEmployeeModal";
 import { ResetPasswordModal } from "./ResetPasswordModal";
+import { TempPasswordRevealModal } from "./TempPasswordRevealModal";
 import { EmployeePreviewModeView } from "./EmployeePreviewModeView";
 import { Employee, isEmployeeAdmin } from "../types/staff.types";
 import { LuxuryAlertDialog } from "@/components/shared/LuxuryAlertDialog";
-import { initialStaffMembers, initialStaffKpis } from "../data/initialStaff";
+import { initialStaffKpis } from "../data/initialStaff";
 import { Plus } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
-import { cn } from "@/lib/utils";
 import {
   fetchStaff,
   fetchStaffStats,
@@ -40,9 +49,15 @@ import { fetchRoles } from "@/lib/api/roles";
 import { mapStaffResponse, mapStaffFromApi } from "@/lib/api/mappers";
 import { readStats, unwrapData, unwrapList } from "@/lib/api/helpers";
 import { ApiError } from "@/lib/api/http";
+import { usePermissions, cacheRolesPermissions } from "@/lib/permissions";
+import {
+  applyEmployeePermissionSession,
+  restoreAdminPermissionSession,
+} from "@/lib/api/auth";
 
 export function StaffManagementView() {
   const { t, isEn, direction } = useLanguage();
+  const { hasPermission } = usePermissions();
 
   // Navigation & View States
   const [currentView, setCurrentView] = useState<
@@ -50,42 +65,51 @@ export function StaffManagementView() {
   >("list");
 
   // Staff State
-  const [employees, setEmployees] = useState<Employee[]>(initialStaffMembers);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [listError, setListError] = useState<string | null>(null);
 
   const [apiStaffStats, setApiStaffStats] = useState<{
     total?: number;
     active?: number;
     suspended?: number;
+    loggedToday?: number;
   } | null>(null);
   const [roleOptions, setRoleOptions] = useState<{ id: string; name: string }[]>([]);
 
-  const reloadStaff = async () => {
-    setIsLoading(true);
-    setListError(null);
-    try {
-      const [payload, statsPayload, rolesPayload] = await Promise.all([
-        fetchStaff(),
-        fetchStaffStats(),
-        fetchRoles().catch(() => null),
-      ]);
-      const mapped = mapStaffResponse(payload);
+  const queryClient = useQueryClient();
+  const staffQuery = useStaffQuery();
+  const staffStatsQuery = useStaffStatsQuery();
+  const rolesQuery = useRolesQuery();
+
+  useEffect(() => {
+    if (staffQuery.data) {
+      const mapped = mapStaffResponse(staffQuery.data);
       setEmployees(mapped);
       setSelectedEmployee((prev) => {
         if (!prev) return mapped[0] || null;
         return mapped.find((e) => e.id === prev.id) || mapped[0] || null;
       });
-      if (rolesPayload) {
-        const mappedRoles = unwrapList<Record<string, unknown>>(rolesPayload).map((r) => ({
+      setCurrentView((prev) => (prev === "empty" || prev === "list" ? (mapped.length === 0 ? "empty" : "list") : prev));
+    }
+  }, [staffQuery.data]);
+
+  useEffect(() => {
+    if (rolesQuery.data) {
+      const mappedRoles = unwrapList<Record<string, unknown>>(rolesQuery.data)
+        .map((r) => ({
           id: String(r.id ?? ""),
           name: String(r.name ?? ""),
-        })).filter((r) => r.id && r.name);
-        if (mappedRoles.length > 0) {
-          setRoleOptions(mappedRoles);
-        }
+        }))
+        .filter((r) => r.id && r.name);
+      if (mappedRoles.length > 0) {
+        setRoleOptions(mappedRoles);
       }
+    }
+  }, [rolesQuery.data]);
+
+  useEffect(() => {
+    if (staffStatsQuery.data) {
+      const statsPayload = staffStatsQuery.data;
       setApiStaffStats({
         total: readStats(statsPayload, ["total", "total_staff", "staff_count"], 0),
         active: readStats(statsPayload, ["active", "active_staff"], 0),
@@ -94,24 +118,29 @@ export function StaffManagementView() {
           ["suspended", "inactive_staff", "suspended_staff"],
           0
         ),
+        loggedToday: readStats(statsPayload, ["logged_in_today", "logged_today"], 0),
       });
-      setCurrentView(mapped.length === 0 ? "empty" : "list");
-    } catch (err: unknown) {
-      const message =
-        err instanceof ApiError
-          ? err.message
-          : t("تعذر تحميل طاقم العمل.", "Failed to load staff.");
-      setListError(message);
-      setEmployees([]);
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [staffStatsQuery.data]);
 
-  useEffect(() => {
-    void reloadStaff();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only load
-  }, []);
+  const effectiveEmployees = useMemo(() => {
+    if (employees.length > 0) return employees;
+    if (staffQuery.data) {
+      return mapStaffResponse(staffQuery.data);
+    }
+    return [];
+  }, [employees, staffQuery.data]);
+
+  const isLoading = staffQuery.isLoading && effectiveEmployees.length === 0;
+  const listError = staffQuery.error instanceof Error ? staffQuery.error.message : null;
+
+  const reloadStaff = async () => {
+    await Promise.all([
+      staffQuery.refetch(),
+      staffStatsQuery.refetch(),
+      rolesQuery.refetch(),
+    ]);
+  };
 
   // Filters State
   const [searchQuery, setSearchQuery] = useState("");
@@ -125,8 +154,16 @@ export function StaffManagementView() {
   const [deactivateModalEmployee, setDeactivateModalEmployee] = useState<Employee | null>(null);
   const [activateModalEmployee, setActivateModalEmployee] = useState<Employee | null>(null);
   const [resetPasswordModalEmployee, setResetPasswordModalEmployee] = useState<Employee | null>(null);
+  const [tempPasswordReveal, setTempPasswordReveal] = useState<{
+    password: string;
+    name: string;
+    email: string;
+  } | null>(null);
   const [deleteModalEmployee, setDeleteModalEmployee] = useState<Employee | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeactivating, setIsDeactivating] = useState(false);
+  const [isActivating, setIsActivating] = useState(false);
+  const [isImpersonating, setIsImpersonating] = useState(false);
   const [endPreviewModalOpen, setEndPreviewModalOpen] = useState(false);
 
   // Active Simulated Employee
@@ -134,7 +171,7 @@ export function StaffManagementView() {
 
   // Filtered employees
   const filteredEmployees = useMemo(() => {
-    return employees.filter((emp) => {
+    return effectiveEmployees.filter((emp) => {
       // Search
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
@@ -170,21 +207,23 @@ export function StaffManagementView() {
 
       return true;
     });
-  }, [employees, searchQuery, selectedRole, selectedStatus, selectedLastLogin]);
+  }, [effectiveEmployees, searchQuery, selectedRole, selectedStatus, selectedLastLogin]);
 
   // Dynamic KPIs
   const currentKpis = useMemo(() => {
-    const total = apiStaffStats?.total || employees.length;
+    const total = apiStaffStats?.total ?? effectiveEmployees.length;
     const activeCount =
-      apiStaffStats?.active ?? employees.filter((e) => e.status === "active").length;
+      apiStaffStats?.active ?? effectiveEmployees.filter((e) => e.status === "active").length;
     const suspendedCount =
-      apiStaffStats?.suspended ?? total - activeCount;
+      apiStaffStats?.suspended ?? Math.max(0, total - activeCount);
+    const loggedToday = apiStaffStats?.loggedToday ?? 0;
     return {
       ...initialStaffKpis,
       totalStaff: total,
       activeStaff: activeCount,
       activePercentage: total > 0 ? Number(((activeCount / total) * 100).toFixed(1)) : 0,
       suspendedStaff: suspendedCount,
+      loggedToday,
     };
   }, [employees, apiStaffStats]);
 
@@ -221,6 +260,12 @@ export function StaffManagementView() {
         ? `Employee "${created.name}" added and activated successfully.`
         : `تمت إضافة الموظف "${created.name}" بنجاح وتفعيل حسابه.`
     );
+    setTempPasswordReveal({
+      password,
+      name: created.name,
+      email: created.email,
+    });
+    void InvalidationGraph.onStaffMutation(queryClient);
     await reloadStaff();
     setSelectedEmployee(created);
     setCurrentView("details");
@@ -255,6 +300,7 @@ export function StaffManagementView() {
           : `تم حذف حساب الموظف "${deleteModalEmployee.name}" بنجاح.`
       );
       setDeleteModalEmployee(null);
+      void InvalidationGraph.onStaffMutation(queryClient);
       await reloadStaff();
       if (currentView === "details" || currentView === "edit") {
         setCurrentView("list");
@@ -282,6 +328,7 @@ export function StaffManagementView() {
         ? "Employee details updated successfully."
         : "تم حفظ وتحديث بيانات الموظف بنجاح."
     );
+    void InvalidationGraph.onStaffMutation(queryClient);
     await reloadStaff();
     if (updated) {
       setSelectedEmployee(updated);
@@ -299,24 +346,76 @@ export function StaffManagementView() {
 
   const handleConfirmStartSimulation = async () => {
     if (loginModalEmployee) {
+      setIsImpersonating(true);
       try {
         await impersonateStaff(loginModalEmployee.id);
-      } catch {
-        // Continue local preview mode.
+        let permissions = loginModalEmployee.permissions || [];
+        let roleSlug = "";
+        try {
+          const detail = await fetchStaffById(loginModalEmployee.id);
+          const mapped = mapStaffFromApi(
+            (unwrapData<Record<string, unknown>>(detail) || detail) as Record<string, unknown>
+          );
+          if (mapped.permissions?.length) permissions = mapped.permissions;
+        } catch {
+          // keep list-row permissions
+        }
+        try {
+          const rolesPayload = await fetchRoles();
+          const roleRows = unwrapList<Record<string, unknown>>(rolesPayload).map((raw) => ({
+            id: typeof raw.id === "string" || typeof raw.id === "number" ? raw.id : String(raw.id ?? ""),
+            name: String(raw.name || ""),
+            slug: String(raw.slug || ""),
+            permissions: Array.isArray(raw.permissions)
+              ? raw.permissions.map((p) =>
+                  typeof p === "string" ? p : String((p as { name?: string }).name || "")
+                )
+              : [],
+          }));
+          cacheRolesPermissions(roleRows);
+          const roleId = String(loginModalEmployee.roleId || loginModalEmployee.role.id);
+          const matched = roleRows.find((r) => String(r.id) === roleId);
+          if (matched) {
+            roleSlug = matched.slug;
+            if ((!permissions || permissions.length === 0) && matched.permissions.length > 0) {
+              permissions = matched.permissions;
+            }
+          }
+        } catch {
+          // ignore roles cache failures
+        }
+        applyEmployeePermissionSession({
+          staffId: loginModalEmployee.id,
+          email: loginModalEmployee.email,
+          name: loginModalEmployee.name,
+          roleId: loginModalEmployee.roleId || loginModalEmployee.role.id,
+          roleName: loginModalEmployee.role.name,
+          roleSlug,
+          permissions,
+        });
+        setPreviewEmployee({ ...loginModalEmployee, permissions });
+        setLoginModalEmployee(null);
+        setCurrentView("preview");
+        toast.success(
+          isEn
+            ? `Preview mode as employee "${loginModalEmployee.name}" started — UI now follows their permissions.`
+            : `تم بدء وضع المعاينة بصفة "${loginModalEmployee.name}" — الواجهة الآن تتبع صلاحياته فقط.`
+        );
+      } catch (err: unknown) {
+        toast.error(
+          err instanceof ApiError
+            ? err.message
+            : t("تعذر الدخول بصفة الموظف.", "Failed to impersonate employee.")
+        );
+      } finally {
+        setIsImpersonating(false);
       }
-      setPreviewEmployee(loginModalEmployee);
-      setLoginModalEmployee(null);
-      setCurrentView("preview");
-      toast.success(
-        isEn
-          ? `Preview mode as employee "${loginModalEmployee.name}" started successfully.`
-          : `تم بدء وضع المعاينة بصفة الموظف "${loginModalEmployee.name}" بنجاح.`
-      );
     }
   };
 
   const handleConfirmDeactivate = async (reason: string) => {
     if (!deactivateModalEmployee) return;
+    setIsDeactivating(true);
     try {
       await updateStaffStatus(deactivateModalEmployee.id, "suspended");
       toast.success(
@@ -325,6 +424,7 @@ export function StaffManagementView() {
           : `تم إيقاف حساب الموظف "${deactivateModalEmployee.name}" فورياً.`
       );
       setDeactivateModalEmployee(null);
+      void InvalidationGraph.onStaffMutation(queryClient);
       await reloadStaff();
       if (reason.trim()) {
         toast.info(
@@ -339,11 +439,14 @@ export function StaffManagementView() {
           ? err.message
           : t("تعذر إيقاف الموظف.", "Failed to suspend employee.")
       );
+    } finally {
+      setIsDeactivating(false);
     }
   };
 
   const handleConfirmActivate = async () => {
     if (!activateModalEmployee) return;
+    setIsActivating(true);
     try {
       await updateStaffStatus(activateModalEmployee.id, "active");
       toast.success(
@@ -352,6 +455,7 @@ export function StaffManagementView() {
           : `تم استعادة وتفعيل حساب الموظف "${activateModalEmployee.name}".`
       );
       setActivateModalEmployee(null);
+      void InvalidationGraph.onStaffMutation(queryClient);
       await reloadStaff();
     } catch (err: unknown) {
       toast.error(
@@ -359,6 +463,8 @@ export function StaffManagementView() {
           ? err.message
           : t("تعذر تفعيل الموظف.", "Failed to activate employee.")
       );
+    } finally {
+      setIsActivating(false);
     }
   };
 
@@ -394,15 +500,17 @@ export function StaffManagementView() {
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setCurrentView("add")}
-                className="bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#855402] dark:hover:bg-[#d4922f] text-white dark:text-[#1c140f] px-5 py-2.5 rounded-[6px] font-semibold text-[14px] flex items-center gap-2 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors shrink-0"
-                data-node-id="1:8705"
-              >
-                <Plus className="size-[16px]" />
-                <span>{t("إضافة موظف", "Add Employee")}</span>
-              </button>
+              {hasPermission("staff.create") && (
+                <button
+                  type="button"
+                  onClick={() => setCurrentView("add")}
+                  className="bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#855402] dark:hover:bg-[#d4922f] text-white dark:text-[#1c140f] px-5 py-2.5 rounded-[6px] font-semibold text-[14px] flex items-center gap-2 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors shrink-0"
+                  data-node-id="1:8705"
+                >
+                  <Plus className="size-[16px]" />
+                  <span>{t("إضافة موظف", "Add Employee")}</span>
+                </button>
+              )}
             </div>
           )}
 
@@ -418,14 +526,14 @@ export function StaffManagementView() {
                   {t("العودة للجدول المكتمل", "Back to Full Table")}
                 </button>
               </div>
-              <StaffEmptyState onAddEmployee={() => setCurrentView("add")} />
+              <StaffEmptyState onAddEmployee={hasPermission("staff.create") ? () => setCurrentView("add") : () => {}} />
             </div>
           )}
 
           {/* VIEW: Staff Table (Figma 1:8875) */}
           {currentView === "list" && (
-            isLoading && employees.length === 0 ? (
-              <DashboardPageSkeleton />
+            isLoading && effectiveEmployees.length === 0 ? (
+              <StaffPageSkeleton />
             ) : listError ? (
               <div className="rounded-[8px] border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-[#2c1313] p-6 text-center space-y-3">
                 <p className="text-[14px] font-semibold text-red-700 dark:text-red-300">
@@ -483,12 +591,12 @@ export function StaffManagementView() {
                       // Keep list employee.
                     });
                 }}
-                onEdit={handleEditEmployee}
-                onDelete={handleDeleteEmployeeClick}
-                onLoginAsEmployee={handleStartLoginAsEmployee}
-                onDeactivate={(emp) => setDeactivateModalEmployee(emp)}
-                onActivate={(emp) => setActivateModalEmployee(emp)}
-                onResetPassword={(emp) => setResetPasswordModalEmployee(emp)}
+                onEdit={hasPermission("staff.edit") ? handleEditEmployee : undefined}
+                onDelete={hasPermission("staff.delete") ? handleDeleteEmployeeClick : undefined}
+                onLoginAsEmployee={hasPermission("staff.impersonate") ? handleStartLoginAsEmployee : undefined}
+                onDeactivate={hasPermission("staff.edit") ? (emp) => setDeactivateModalEmployee(emp) : undefined}
+                onActivate={hasPermission("staff.edit") ? (emp) => setActivateModalEmployee(emp) : undefined}
+                onResetPassword={hasPermission("staff.edit") ? (emp) => setResetPasswordModalEmployee(emp) : undefined}
               />
             </div>
             )
@@ -497,6 +605,7 @@ export function StaffManagementView() {
           {/* VIEW: Add Employee (Figma 1:9529) */}
           {currentView === "add" && (
             <AddEmployeeView
+              existingEmployees={employees}
               onBack={() => setCurrentView("list")}
               onSave={handleSaveNewEmployee}
             />
@@ -506,6 +615,7 @@ export function StaffManagementView() {
           {currentView === "edit" && selectedEmployee && (
             <EditEmployeeView
               employee={selectedEmployee}
+              existingEmployees={employees}
               onBack={() => setCurrentView("list")}
               onSave={handleUpdateEmployee}
             />
@@ -516,12 +626,12 @@ export function StaffManagementView() {
             <EmployeeDetailsView
               employee={selectedEmployee}
               onBack={() => setCurrentView("list")}
-              onEdit={() => setCurrentView("edit")}
-              onDelete={() => handleDeleteEmployeeClick(selectedEmployee)}
-              onLoginAsEmployee={() => handleStartLoginAsEmployee(selectedEmployee)}
-              onDeactivate={() => setDeactivateModalEmployee(selectedEmployee)}
-              onActivate={() => setActivateModalEmployee(selectedEmployee)}
-              onResetPassword={() => setResetPasswordModalEmployee(selectedEmployee)}
+              onEdit={hasPermission("staff.edit") ? () => setCurrentView("edit") : undefined}
+              onDelete={hasPermission("staff.delete") ? () => handleDeleteEmployeeClick(selectedEmployee) : undefined}
+              onLoginAsEmployee={hasPermission("staff.impersonate") ? () => handleStartLoginAsEmployee(selectedEmployee) : undefined}
+              onDeactivate={hasPermission("staff.edit") ? () => setDeactivateModalEmployee(selectedEmployee) : undefined}
+              onActivate={hasPermission("staff.edit") ? () => setActivateModalEmployee(selectedEmployee) : undefined}
+              onResetPassword={hasPermission("staff.edit") ? () => setResetPasswordModalEmployee(selectedEmployee) : undefined}
             />
           )}
 
@@ -542,6 +652,7 @@ export function StaffManagementView() {
         onClose={() => setLoginModalEmployee(null)}
         employee={loginModalEmployee}
         onConfirm={handleConfirmStartSimulation}
+        isSubmitting={isImpersonating}
       />
 
       {/* DIALOG 2: Preview Blocked Error (Figma 1:10821) */}
@@ -564,8 +675,10 @@ export function StaffManagementView() {
         onClose={() => setEndPreviewModalOpen(false)}
         employeeName={previewEmployee?.name || (isEn ? "Employee" : "الموظف")}
         onConfirmEnd={() => {
+          restoreAdminPermissionSession();
+          setPreviewEmployee(null);
           setEndPreviewModalOpen(false);
-          setCurrentView("details");
+          setCurrentView("list");
           toast.success(
             t(
               "تم إنهاء جلسة المعاينة والعودة بنجاح إلى حساب المشرف العام.",
@@ -581,6 +694,7 @@ export function StaffManagementView() {
         onClose={() => setDeactivateModalEmployee(null)}
         employee={deactivateModalEmployee}
         onConfirm={handleConfirmDeactivate}
+        isSubmitting={isDeactivating}
       />
 
       {/* DIALOG 5: Activate Employee (Figma 1:11022) */}
@@ -589,13 +703,22 @@ export function StaffManagementView() {
         onClose={() => setActivateModalEmployee(null)}
         employee={activateModalEmployee}
         onConfirm={handleConfirmActivate}
+        isSubmitting={isActivating}
       />
 
-      {/* DIALOG 6: Reset Password (Figma 1:11114 & 1:11216) */}
+      {/* DIALOG 6: Reset Password */}
       <ResetPasswordModal
         isOpen={!!resetPasswordModalEmployee}
         onClose={() => setResetPasswordModalEmployee(null)}
         employee={resetPasswordModalEmployee}
+      />
+
+      <TempPasswordRevealModal
+        isOpen={!!tempPasswordReveal}
+        password={tempPasswordReveal?.password || ""}
+        employeeName={tempPasswordReveal?.name || ""}
+        employeeEmail={tempPasswordReveal?.email}
+        onClose={() => setTempPasswordReveal(null)}
       />
 
       {/* DIALOG 7: Delete Employee Confirmation */}
@@ -610,11 +733,7 @@ export function StaffManagementView() {
           "تحذير: سيتم حذف حساب الموظف نهائياً من طاقم العمل وإلغاء كافة صلاحياته بالمنصة. لا يمكن التراجع عن هذا الإجراء بعد تنفيذه.",
           "Warning: The employee account will be permanently deleted and all permissions revoked. This action cannot be undone."
         )}
-        confirmLabel={
-          isDeleting
-            ? t("جاري الحذف...", "Deleting...")
-            : t("نعم، احذف الموظف", "Yes, Delete Employee")
-        }
+        confirmLabel={t("نعم، احذف الموظف", "Yes, Delete Employee")}
         cancelLabel={t("إلغاء", "Cancel")}
         variant="danger"
         itemDetails={

@@ -6,6 +6,8 @@ import {
   createStaff,
   updateStaff,
   updateStaffStatus,
+  impersonateStaff,
+  resetStaffPassword,
   deleteStaff,
 } from "./staff";
 import { isEmployeeAdmin, Employee } from "@/features/staff/types/staff.types";
@@ -25,9 +27,32 @@ vi.mock("./http", () => ({
   },
 }));
 
+vi.mock("./config", () => ({ STAFF_LOGIN_COMPANY_ID: 146 }));
+
 import { apiRequest } from "./http";
 
 const mockApiRequest = vi.mocked(apiRequest);
+
+type MockRoute = (options?: { method?: string; body?: unknown }) => unknown;
+
+/** Routes `apiRequest` by "METHOD path" so login-user sync calls can be asserted. */
+function routeApi(routes: Record<string, MockRoute>) {
+  mockApiRequest.mockImplementation(async (path, options) => {
+    const opts = options as { method?: string; body?: unknown } | undefined;
+    const key = `${opts?.method ?? "GET"} ${path}`;
+    const handler = routes[key];
+    if (!handler) throw new Error(`unexpected request ${key}`);
+    return handler(opts);
+  });
+}
+
+const staffRow = {
+  id: 2,
+  name: "راكان",
+  email: "rakan@aljudy.sa",
+  phone: "+966571120049",
+  status: "active",
+};
 
 describe("Staff API & Permissions Suite", () => {
   beforeEach(() => {
@@ -128,50 +153,266 @@ describe("Staff API & Permissions Suite", () => {
       expect(res).toBeDefined();
     });
 
-    it("calls PUT /admin/staff/:id with update body", async () => {
+    it("PUT /admin/staff/:id also updates the login user found by the old email", async () => {
       const updateData = {
         name: "راكان بن كمال",
+        email: "rakan.new@aljudy.sa",
         phone: "+966571129999",
         department_id: 6,
         role_id: 3,
         status: "active",
       };
-      mockApiRequest.mockResolvedValueOnce({
-        status: "success",
-        message: "Staff updated",
-        data: { id: 2, ...updateData },
+      routeApi({
+        "GET /admin/staff/2": () => ({ status: true, data: staffRow }),
+        "PUT /admin/staff/2": () => ({ status: true, data: { id: 2, ...updateData } }),
+        "GET /users": () => ({ data: [{ id: 316, email: "rakan@aljudy.sa" }] }),
+        "PUT /users/316": () => ({ status: true }),
       });
+
       const res = await updateStaff(2, updateData);
+
       expect(mockApiRequest).toHaveBeenCalledWith("/admin/staff/2", {
         method: "PUT",
         body: updateData,
       });
-      expect(res).toBeDefined();
+      expect(mockApiRequest).toHaveBeenCalledWith("/users", {
+        method: "GET",
+        query: { company_id: 146 },
+      });
+      expect(mockApiRequest).toHaveBeenCalledWith("/users/316", {
+        method: "PUT",
+        body: {
+          company_id: 146,
+          full_name: "راكان بن كمال",
+          email: "rakan.new@aljudy.sa",
+          phone: "+966571129999",
+          status: "active",
+        },
+      });
+      expect(res).toEqual({ status: true, data: { id: 2, ...updateData } });
     });
 
-    it("calls DELETE /admin/staff/:id", async () => {
-      mockApiRequest.mockResolvedValueOnce({
-        status: "success",
-        message: "Staff deleted",
+    it("DELETE /admin/staff/:id also deletes the login user", async () => {
+      routeApi({
+        "GET /admin/staff/2": () => ({ status: true, data: staffRow }),
+        "DELETE /admin/staff/2": () => ({ status: "success", message: "Staff deleted" }),
+        "GET /users": () => ({ data: [{ id: 316, email: "RAKAN@aljudy.sa" }] }),
+        "DELETE /users/316": () => ({ status: true }),
       });
+
       const res = await deleteStaff(2);
-      expect(mockApiRequest).toHaveBeenCalledWith("/admin/staff/2", {
-        method: "DELETE",
-      });
+
+      expect(mockApiRequest).toHaveBeenCalledWith("/admin/staff/2", { method: "DELETE" });
+      expect(mockApiRequest).toHaveBeenCalledWith("/users/316", { method: "DELETE" });
       expect(res).toEqual({ status: "success", message: "Staff deleted" });
     });
 
-    it("calls PATCH /admin/staff/:id/status", async () => {
-      mockApiRequest.mockResolvedValueOnce({
-        status: "success",
-        message: "Status updated",
+    it("PATCH /admin/staff/:id/status suspends the login user as inactive", async () => {
+      routeApi({
+        "PATCH /admin/staff/2/status": () => ({ status: true, message: "Status updated" }),
+        "GET /admin/staff/2": () => ({ status: true, data: staffRow }),
+        "GET /users": () => ({ data: [{ id: 316, email: "rakan@aljudy.sa" }] }),
+        "PUT /users/316": () => ({ status: true }),
       });
-      const res = await updateStaffStatus(2, "suspended");
+
+      await updateStaffStatus(2, "suspended");
+
       expect(mockApiRequest).toHaveBeenCalledWith("/admin/staff/2/status", {
         method: "PATCH",
         body: { status: "suspended" },
       });
+      expect(mockApiRequest).toHaveBeenCalledWith("/users/316", {
+        method: "PUT",
+        body: { company_id: 146, email: "rakan@aljudy.sa", status: "inactive" },
+      });
+    });
+
+    it("POST /admin/staff also creates an admin login user with the same password", async () => {
+      const newStaffBody = {
+        name: "عبدالله الشمري",
+        emp_code: "EMP-999",
+        email: "abdullah@aljudy.sa",
+        phone: "+966500000999",
+        password: "SecurePassword123",
+        department_id: 1,
+        role_id: 3,
+        status: "active" as const,
+      };
+      routeApi({
+        "POST /admin/staff": () => ({ status: true, data: { id: 99, ...newStaffBody } }),
+        "GET /users": () => ({ data: [] }),
+        "POST /users": () => ({ status: true, data: { id: 400 } }),
+      });
+
+      const res = await createStaff(newStaffBody);
+
+      expect(mockApiRequest).toHaveBeenCalledWith("/admin/staff", {
+        method: "POST",
+        body: newStaffBody,
+      });
+      expect(mockApiRequest).toHaveBeenCalledWith("/users", {
+        method: "POST",
+        body: {
+          company_id: 146,
+          full_name: "عبدالله الشمري",
+          email: "abdullah@aljudy.sa",
+          phone: "+966500000999",
+          password: "SecurePassword123",
+          role: "admin",
+          status: "active",
+        },
+      });
       expect(res).toBeDefined();
+    });
+
+    it("rolls back the staff row when the login user cannot be created", async () => {
+      routeApi({
+        "POST /admin/staff": () => ({ status: true, data: { id: 99 } }),
+        "GET /users": () => ({ data: [] }),
+        "POST /users": () => {
+          throw new Error("The email has already been taken.");
+        },
+        "DELETE /admin/staff/99": () => ({ status: true }),
+      });
+
+      await expect(
+        createStaff({
+          name: "x",
+          emp_code: "EMP-1",
+          email: "taken@aljudy.sa",
+          phone: "+966500000001",
+          password: "Secret#2026",
+          department_id: 1,
+          role_id: 3,
+          status: "active",
+        })
+      ).rejects.toBeDefined();
+      expect(mockApiRequest).toHaveBeenCalledWith("/admin/staff/99", { method: "DELETE" });
+    });
+
+    it("calls POST /admin/staff/:id/impersonate", async () => {
+      mockApiRequest.mockResolvedValueOnce({
+        status: "success",
+        data: { token: "fake-sanctum-token", staff: { id: 2, name: "Emp" } },
+      });
+      const res = await impersonateStaff(2);
+      expect(mockApiRequest).toHaveBeenCalledWith("/admin/staff/2/impersonate", {
+        method: "POST",
+      });
+      expect(res).toBeDefined();
+    });
+
+    it("reset-password creates the login user when an old staff row has none", async () => {
+      routeApi({
+        "POST /admin/staff/2/reset-password": () => ({ status: true, message: "ok" }),
+        "GET /admin/staff/2": () => ({ status: true, data: staffRow }),
+        "GET /users": () => ({ data: [] }),
+        "POST /users": () => ({ status: true, data: { id: 401 } }),
+      });
+
+      const res = await resetStaffPassword(2, "NewTempSecret123");
+
+      expect(mockApiRequest).toHaveBeenCalledWith("/admin/staff/2/reset-password", {
+        method: "POST",
+        body: { password: "NewTempSecret123" },
+      });
+      expect(mockApiRequest).toHaveBeenCalledWith("/users", {
+        method: "POST",
+        body: {
+          company_id: 146,
+          full_name: "راكان",
+          email: "rakan@aljudy.sa",
+          phone: "+966571120049",
+          password: "NewTempSecret123",
+          role: "admin",
+          status: "active",
+        },
+      });
+      expect(res).toEqual({ status: true, message: "ok" });
+    });
+
+    it("reset-password updates the existing login user's password", async () => {
+      routeApi({
+        "POST /admin/staff/2/reset-password": () => ({ status: true }),
+        "GET /admin/staff/2": () => ({ status: true, data: staffRow }),
+        "GET /users": () => ({ data: [{ id: 316, email: "rakan@aljudy.sa" }] }),
+        "PUT /users/316": () => ({ status: true }),
+      });
+
+      await resetStaffPassword(2, "NewTempSecret123");
+
+      expect(mockApiRequest).toHaveBeenCalledWith("/users/316", {
+        method: "PUT",
+        body: {
+          company_id: 146,
+          full_name: "راكان",
+          email: "rakan@aljudy.sa",
+          phone: "+966571120049",
+          password: "NewTempSecret123",
+          status: "active",
+        },
+      });
+    });
+  });
+
+  describe("Mandatory 4 Test Cases (AGENTS.md Rule 6)", () => {
+    it("Case 1: Success - handles successful response with data", async () => {
+      const mockSuccessData = {
+        status: "success",
+        data: [
+          {
+            id: 1,
+            name: "سارة المهندس",
+            emp_code: "EMP-001",
+            email: "sara@aljudy.sa",
+            status: "active",
+          },
+        ],
+      };
+      mockApiRequest.mockResolvedValueOnce(mockSuccessData);
+      const res = await fetchStaff();
+      expect(res).toEqual(mockSuccessData);
+    });
+
+    it("Case 2: Validation Error (422) - rejects with validation error message and field errors", async () => {
+      const validationError = new (class extends Error {
+        status = 422;
+        body = {
+          message: "The email has already been taken.",
+          errors: { email: ["The email has already been taken."] },
+        };
+      })("The email has already been taken.");
+      mockApiRequest.mockRejectedValueOnce(validationError);
+
+      await expect(
+        createStaff({
+          name: "سارة",
+          email: "existing@aljudy.sa",
+          phone: "+966500000000",
+          password: "password123",
+          department_id: 1,
+          role_id: 1,
+        })
+      ).rejects.toThrow("The email has already been taken.");
+    });
+
+    it("Case 3: Server Error (500) - rejects cleanly when server encounters an error", async () => {
+      const serverError = new (class extends Error {
+        status = 500;
+        body = { message: "Internal Server Error" };
+      })("Internal Server Error");
+      mockApiRequest.mockRejectedValueOnce(serverError);
+
+      await expect(fetchStaffStats()).rejects.toThrow("Internal Server Error");
+    });
+
+    it("Case 4: Empty Data - handles empty staff list gracefully", async () => {
+      mockApiRequest.mockResolvedValueOnce({
+        status: "success",
+        data: [],
+      });
+      const res = await fetchStaff();
+      expect(res).toEqual({ status: "success", data: [] });
     });
   });
 

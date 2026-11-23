@@ -6,6 +6,7 @@ import { Home, LogIn, RotateCcw, Scale } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { withBasePath } from "@/lib/base-path";
 import { useLanguage } from "@/lib/i18n";
+import { getAuthSession } from "@/lib/auth-client";
 
 type StatusKind = "error" | "not-found";
 
@@ -17,13 +18,12 @@ interface AppStatusScreenProps {
   descriptionEn?: string;
   digest?: string;
   onRetry?: () => void;
-  /** Auto-navigate home after N ms (soft recovery so users don't stay stuck). */
+  /** Auto-navigate home after N ms (optional). */
   autoRedirectMs?: number;
 }
 
 /**
- * Soft branded status screen (error / 404) — same visual language as PageLoadingPanel.
- * Avoids the harsh full-page 500/404 flash on first entry.
+ * Branded status screen for error / 404 — shown to guests and logged-in users.
  */
 export function AppStatusScreen({
   kind,
@@ -39,6 +39,11 @@ export function AppStatusScreen({
   const [countdown, setCountdown] = useState(
     autoRedirectMs > 0 ? Math.ceil(autoRedirectMs / 1000) : 0
   );
+  const [isAuthed, setIsAuthed] = useState(false);
+
+  useEffect(() => {
+    setIsAuthed(getAuthSession());
+  }, []);
 
   useEffect(() => {
     if (!autoRedirectMs || autoRedirectMs <= 0) return;
@@ -70,12 +75,12 @@ export function AppStatusScreen({
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] h-[420px] bg-[#c29547]/10 dark:bg-[#e29d38]/10 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-[440px]">
-        <div className="bg-white dark:bg-[#221812] border border-[#eae8e4] dark:border-[#38271c] rounded-[16px] shadow-[0px_12px_36px_rgba(0,0,0,0.08)] dark:shadow-[0px_16px_40px_rgba(0,0,0,0.4)] px-8 py-10 flex flex-col items-center text-center overflow-hidden">
+        <div className="bg-white dark:bg-[#221812] border border-[#eae8e4] dark:border-[#38271c] rounded-[16px] shadow-[0px_12px_36px_rgba(0,0,0,0.08)] dark:shadow-[0px_16px_40px_rgba(0,0,0,0.4)] px-8 py-10 flex flex-col items-center text-center overflow-hidden relative">
           <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-l from-transparent via-[#c29547] dark:via-[#e29d38] to-transparent opacity-80" />
 
           <div className="relative w-[96px] h-[96px] flex items-center justify-center mb-5">
             <div
-              className="absolute inset-0 rounded-full border border-dashed border-[#c29547]/35 dark:border-[#e29d38]/35 animate-spin"
+              className="absolute inset-0 rounded-full border border-dashed border-[#c29547]/35 dark:border-[#e29d38]/35"
               style={{ animationDuration: "14s" }}
             />
             <div className="relative z-10 size-[64px] rounded-full bg-[#faf5eb] dark:bg-[#2d1f16] border border-[#eeddbb] dark:border-[#4d3627] flex items-center justify-center shadow-[0_6px_18px_-4px_rgba(194,149,71,0.28)]">
@@ -128,13 +133,15 @@ export function AppStatusScreen({
               <Home className="size-4" />
               {t("الرئيسية", "Home")}
             </Link>
-            <Link
-              href="/login"
-              className="flex-1 h-11 rounded-[10px] border border-[#eae8e4] dark:border-[#38271c] bg-white dark:bg-[#1a120d] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-bold flex items-center justify-center gap-2 hover:border-[#9c6402] dark:hover:border-[#e29d38] transition-colors"
-            >
-              <LogIn className="size-4" />
-              {t("تسجيل الدخول", "Sign In")}
-            </Link>
+            {!isAuthed && (
+              <Link
+                href="/login/"
+                className="flex-1 h-11 rounded-[10px] border border-[#eae8e4] dark:border-[#38271c] bg-white dark:bg-[#1a120d] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-bold flex items-center justify-center gap-2 hover:border-[#9c6402] dark:hover:border-[#e29d38] transition-colors"
+              >
+                <LogIn className="size-4" />
+                {t("تسجيل الدخول", "Sign In")}
+              </Link>
+            )}
           </div>
         </div>
       </div>

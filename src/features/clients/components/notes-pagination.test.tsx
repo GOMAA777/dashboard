@@ -1,6 +1,7 @@
 import React, { act } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   ClientOfficeDetailsView,
   NOTES_PER_PAGE,
@@ -83,6 +84,7 @@ function buildOffice(notes: OfficeInternalNote[], id = "office-116"): ClientOffi
 describe("Notes Card Pagination (max 5 notes)", () => {
   let container: HTMLDivElement;
   let root: Root;
+  let queryClient: QueryClient;
 
   beforeEach(() => {
     (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -90,6 +92,11 @@ describe("Notes Card Pagination (max 5 notes)", () => {
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+      },
+    });
   });
 
   afterEach(async () => {
@@ -137,11 +144,13 @@ describe("Notes Card Pagination (max 5 notes)", () => {
 
     await act(async () => {
       root.render(
-        <ClientOfficeDetailsView
-          office={office}
-          onBack={() => {}}
-          onEdit={() => {}}
-        />
+        <QueryClientProvider client={queryClient}>
+          <ClientOfficeDetailsView
+            office={office}
+            onBack={() => {}}
+            onEdit={() => {}}
+          />
+        </QueryClientProvider>
       );
     });
 
@@ -176,11 +185,13 @@ describe("Notes Card Pagination (max 5 notes)", () => {
     const office3 = buildOffice(buildNotes(3), "office-3");
     await act(async () => {
       root.render(
-        <ClientOfficeDetailsView
-          office={office3}
-          onBack={() => {}}
-          onEdit={() => {}}
-        />
+        <QueryClientProvider client={queryClient}>
+          <ClientOfficeDetailsView
+            office={office3}
+            onBack={() => {}}
+            onEdit={() => {}}
+          />
+        </QueryClientProvider>
       );
     });
     expect(container.querySelectorAll('ul[aria-label="قائمة الملاحظات الإدارية"] li')).toHaveLength(3);
@@ -189,11 +200,13 @@ describe("Notes Card Pagination (max 5 notes)", () => {
     const office0 = buildOffice([], "office-0");
     await act(async () => {
       root.render(
-        <ClientOfficeDetailsView
-          office={office0}
-          onBack={() => {}}
-          onEdit={() => {}}
-        />
+        <QueryClientProvider client={queryClient}>
+          <ClientOfficeDetailsView
+            office={office0}
+            onBack={() => {}}
+            onEdit={() => {}}
+          />
+        </QueryClientProvider>
       );
     });
     expect(container.textContent).toContain("لا توجد ملاحظات إدارية مضافة بعد");
@@ -282,11 +295,13 @@ describe("Notes Card Pagination (max 5 notes)", () => {
 
     await act(async () => {
       root.render(
-        <ClientOfficeDetailsView
-          office={mapped}
-          onBack={() => {}}
-          onEdit={() => {}}
-        />
+        <QueryClientProvider client={queryClient}>
+          <ClientOfficeDetailsView
+            office={mapped}
+            onBack={() => {}}
+            onEdit={() => {}}
+          />
+        </QueryClientProvider>
       );
     });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   ArrowRight,
   Check,
@@ -11,6 +11,13 @@ import {
   X,
   Loader2,
   AlertCircle,
+  MessageSquare,
+  MessageCircle,
+  Phone,
+  Mail,
+  ExternalLink,
+  Clock,
+  Hash,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -25,6 +32,12 @@ import type { CreateTicketPayload } from "@/lib/api/tickets";
 import { useLanguage } from "@/lib/i18n";
 import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { ModalPortal } from "@/components/shared/ModalPortal";
+import {
+  LuxuryTimePicker,
+  CustomTimeValue,
+  formatCustomTime,
+  getDefaultTimeFromNow,
+} from "@/components/shared/LuxuryTimePicker";
 import { cn } from "@/lib/utils";
 
 interface CreateTicketViewProps {
@@ -37,6 +50,8 @@ interface CreateTicketViewProps {
     assigneeId?: string,
     attachments?: TicketAttachment[]
   ) => Promise<boolean>;
+  initialCompanyId?: string | number;
+  isCompanyFixed?: boolean;
 }
 
 const fieldClass =
@@ -85,18 +100,52 @@ export function CreateTicketView({
   clients,
   onBack,
   onSaveTicket,
+  initialCompanyId,
+  isCompanyFixed = false,
 }: CreateTicketViewProps) {
   const { direction, isEn, t } = useLanguage();
-  const [selectedClientId, setSelectedClientId] = useState(clients[0]?.id || "");
+  const [selectedClientId, setSelectedClientId] = useState(
+    initialCompanyId ? String(initialCompanyId) : (clients[0]?.id || "")
+  );
   const [selectedDeptId, setSelectedDeptId] = useState(departments[0]?.id || "");
   const [selectedAssigneeId, setSelectedAssigneeId] = useState(assignees[0]?.id || "");
-  const [channel, setChannel] = useState<TicketChannel>("portal");
-  const [priority, setPriority] = useState<TicketPriority>("urgent");
+  const [channel, setChannel] = useState<TicketChannel>("whatsapp");
+  const [priority, setPriority] = useState<TicketPriority | "custom">("urgent");
+  const [customTime, setCustomTime] = useState<CustomTimeValue>(() =>
+    getDefaultTimeFromNow(2)
+  );
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [attachedFiles, setAttachedFiles] = useState<TicketAttachment[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Channel-specific inputs
+  const [whatsappNumber, setWhatsappNumber] = useState("");
+  const [chatSessionId, setChatSessionId] = useState("");
+  const [ourPhoneNumber, setOurPhoneNumber] = useState("920002144");
+  const [customOurPhone, setCustomOurPhone] = useState("");
+  const [callerNumber, setCallerNumber] = useState("");
+  const [callDuration, setCallDuration] = useState("");
+  const [senderEmail, setSenderEmail] = useState("");
+  const [emailSubjectRef, setEmailSubjectRef] = useState("");
+
+  const selectedClientObj = clients.find((c) => String(c.id) === String(selectedClientId)) || clients[0];
+  const selectedDeptObj = departments.find((d) => String(d.id) === String(selectedDeptId)) || departments[0];
+  const customTimeDisplay = formatCustomTime(customTime, isEn);
+
+  // Auto-fill channel fields when selected client changes
+  useEffect(() => {
+    if (selectedClientObj) {
+      if (selectedClientObj.phone) {
+        setWhatsappNumber((prev) => prev || selectedClientObj.phone);
+        setCallerNumber((prev) => prev || selectedClientObj.phone);
+      }
+      if (selectedClientObj.email) {
+        setSenderEmail((prev) => prev || selectedClientObj.email);
+      }
+    }
+  }, [selectedClientId, selectedClientObj]);
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -149,12 +198,61 @@ export function CreateTicketView({
     const companyIdNum = Number(selectedClientId) || 1;
     const deptIdNum = Number(selectedDeptId) || 1;
 
+    // Build structured channel context header
+    const channelNotes: string[] = [];
+    if (priority === "custom") {
+      channelNotes.push(
+        isEn
+          ? `Custom SLA / Response Time: ${customTimeDisplay}`
+          : `وقت الاستجابة المحدد: ${customTimeDisplay}`
+      );
+    }
+    if (channel === "whatsapp") {
+      channelNotes.push("واتساب الأعمال");
+      if (whatsappNumber.trim()) {
+        channelNotes.push(`رقم الواتساب: ${whatsappNumber.trim()}`);
+      }
+    } else if (channel === "portal") {
+      channelNotes.push("الشات المباشر / المحادثة الفورية");
+      if (chatSessionId.trim()) {
+        channelNotes.push(`معرف الجلسة: ${chatSessionId.trim()}`);
+      }
+    } else if (channel === "phone") {
+      channelNotes.push("مكالمة هاتفية عبر رقمنا");
+      const activeOurPhone = ourPhoneNumber === "other" ? customOurPhone.trim() : ourPhoneNumber;
+      if (activeOurPhone) {
+        channelNotes.push(`خط الاستقبال: ${activeOurPhone}`);
+      }
+      if (callerNumber.trim()) {
+        channelNotes.push(`رقم المتصل: ${callerNumber.trim()}`);
+      }
+      if (callDuration.trim()) {
+        channelNotes.push(`مدة المكالمة: ${callDuration.trim()}`);
+      }
+    } else if (channel === "email") {
+      channelNotes.push("البريد الإلكتروني");
+      if (senderEmail.trim()) {
+        channelNotes.push(`البريد: ${senderEmail.trim()}`);
+      }
+      if (emailSubjectRef.trim()) {
+        channelNotes.push(`معرف الرسالة: ${emailSubjectRef.trim()}`);
+      }
+    }
+
+    const header = channelNotes.length > 0 ? `[قناة الورود: ${channelNotes.join(" | ")}]` : "";
+    const enrichedDescription = header
+      ? `${header}\n\n${description.trim()}`
+      : description.trim();
+
+    const effectivePriority: TicketPriority =
+      priority === "custom" ? "medium" : priority;
+
     const payload: CreateTicketPayload = {
       company_id: companyIdNum,
       subject: title.trim(),
-      description: description.trim(),
+      description: enrichedDescription,
       department_id: deptIdNum,
-      priority,
+      priority: effectivePriority,
       channel,
     };
 
@@ -261,9 +359,6 @@ export function CreateTicketView({
     setAttachedFiles((prev) => prev.filter((f) => f.id !== id));
   };
 
-  const selectedClientObj = clients.find((c) => String(c.id) === String(selectedClientId)) || clients[0];
-  const selectedDeptObj = departments.find((d) => String(d.id) === String(selectedDeptId)) || departments[0];
-
   return (
     <div dir={direction} className="flex flex-col gap-[24px] w-full">
       {/* Main Identity & Command Banner */}
@@ -313,12 +408,15 @@ export function CreateTicketView({
               </div>
               <DashboardSelect
                 value={selectedClientId}
+                disabled={isCompanyFixed}
                 onChange={(e) => {
+                  if (isCompanyFixed) return;
                   setSelectedClientId(e.target.value);
                   setFieldErrors((prev) => ({ ...prev, company_id: "" }));
                 }}
                 className={cn(
                   selectClass,
+                  isCompanyFixed && "opacity-80 cursor-not-allowed",
                   fieldErrors.company_id && "border-[#ba1a1a] dark:border-[#f87171]"
                 )}
               >
@@ -391,7 +489,7 @@ export function CreateTicketView({
                 ) : (
                   assignees.map((a) => (
                     <option key={a.id} value={a.id}>
-                      {a.name} ({a.role})
+                      {a.name} ({typeof a.role === "object" && a.role !== null ? ((a.role as Record<string, unknown>).name as string) || "موظف" : a.role})
                     </option>
                   ))
                 )}
@@ -399,95 +497,469 @@ export function CreateTicketView({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-[20px] pt-[8px]">
-            {/* Field: Channel */}
-            <div className="flex flex-col gap-[6px]">
-              <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-[4px]">
-                <span>{isEn ? "Communication Channel" : "قناة التواصل"}</span>
-                <span className="text-[#ba1a1a] dark:text-[#f87171]">*</span>
-              </label>
-              <DashboardSelect
-                value={channel}
-                onChange={(e) => setChannel(e.target.value as TicketChannel)}
-                className={selectClass}
+          {/* Priority Level */}
+          <div className="flex flex-col gap-[6px] pt-[8px]">
+            <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-[4px]">
+              <span>{isEn ? "Priority Level" : "مستوى الأولوية"}</span>
+              <span className="text-[#ba1a1a] dark:text-[#f87171]">*</span>
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[10px]">
+              <button
+                type="button"
+                onClick={() => setPriority("low")}
+                className={cn(
+                  "flex items-center justify-between p-[12px] rounded-[6px] border transition-all cursor-pointer",
+                  priority === "low"
+                    ? "border-[#61564f] dark:border-[#a89f91] bg-[#f5f3ef] dark:bg-[#281c15] shadow-xs"
+                    : "border-[#eae8e4] dark:border-[#38271c] bg-white dark:bg-[#1a120d] hover:bg-[#faf9f6] dark:hover:bg-[#281c15]"
+                )}
               >
-                <option value="portal">{isEn ? "Client Portal (Najiz)" : "بوابة العملاء (ناجز)"}</option>
-                <option value="email">{isEn ? "Email" : "البريد الإلكتروني"}</option>
-                <option value="phone">{isEn ? "Direct Phone Call" : "الاتصال الهاتفي المباشر"}</option>
-                <option value="whatsapp">{isEn ? "Business WhatsApp" : "واتساب الأعمال"}</option>
-              </DashboardSelect>
+                <div className="flex items-center gap-[6px]">
+                  <div className="size-[8px] rounded-full bg-[#61564f] dark:bg-[#a89f91]" />
+                  <span className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                    {isEn ? "Low" : "منخفضة"}
+                  </span>
+                </div>
+                <span className="text-[10px] text-[#625d5d] dark:text-[#a89f91]">
+                  {isEn ? "Within 48h" : "خلال 48 ساعة"}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPriority("medium")}
+                className={cn(
+                  "flex items-center justify-between p-[12px] rounded-[6px] border transition-all cursor-pointer",
+                  priority === "medium"
+                    ? "border-[#d97706] dark:border-[#e29d38] bg-[#fff8e1] dark:bg-[#2b1f0c] shadow-xs"
+                    : "border-[#eae8e4] dark:border-[#38271c] bg-white dark:bg-[#1a120d] hover:bg-[#faf9f6] dark:hover:bg-[#281c15]"
+                )}
+              >
+                <div className="flex items-center gap-[6px]">
+                  <div className="size-[8px] rounded-full bg-[#d97706] dark:bg-[#e29d38]" />
+                  <span className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                    {isEn ? "Medium" : "متوسطة"}
+                  </span>
+                </div>
+                <span className="text-[10px] text-[#b76e00] dark:text-[#e29d38]">
+                  {isEn ? "Within 24h" : "خلال 24 ساعة"}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPriority("urgent")}
+                className={cn(
+                  "flex items-center justify-between p-[12px] rounded-[6px] border transition-all cursor-pointer",
+                  priority === "urgent"
+                    ? "border-[#ba1a1a] dark:border-[#f87171] bg-[#ffdad6]/50 dark:bg-[#381616] shadow-xs"
+                    : "border-[#eae8e4] dark:border-[#38271c] bg-white dark:bg-[#1a120d] hover:bg-[#faf9f6] dark:hover:bg-[#281c15]"
+                )}
+              >
+                <div className="flex items-center gap-[6px]">
+                  <div className="size-[8px] rounded-full bg-[#ba1a1a] dark:bg-[#f87171]" />
+                  <span className="text-[13px] font-bold text-[#ba1a1a] dark:text-[#fca5a5]">
+                    {isEn ? "Urgent" : "عاجلة"}
+                  </span>
+                </div>
+                <span className="text-[10px] font-bold text-[#93000a] dark:text-[#f87171]">
+                  {isEn ? "Immediate Response" : "استجابة فورية"}
+                </span>
+              </button>
+
+              {/* Option 4: Custom (Time Picker) */}
+              <button
+                type="button"
+                onClick={() => setPriority("custom")}
+                className={cn(
+                  "flex items-center justify-between p-[12px] rounded-[6px] border transition-all cursor-pointer relative",
+                  priority === "custom"
+                    ? "border-[#9c6402] dark:border-[#e29d38] bg-[#fff8e1]/80 dark:bg-[#2e1d0f] shadow-xs ring-1 ring-[#9c6402] dark:ring-[#e29d38]"
+                    : "border-[#eae8e4] dark:border-[#38271c] bg-white dark:bg-[#1a120d] hover:bg-[#faf9f6] dark:hover:bg-[#281c15]"
+                )}
+              >
+                <div className="flex items-center gap-[6px]">
+                  <div className="size-[8px] rounded-full bg-[#9c6402] dark:bg-[#e29d38]" />
+                  <span
+                    className={cn(
+                      "text-[13px] font-bold",
+                      priority === "custom"
+                        ? "text-[#9c6402] dark:text-[#f3c27e]"
+                        : "text-[#1b1c1a] dark:text-[#fdfbf7]"
+                    )}
+                  >
+                    {isEn ? "Custom" : "مخصصة"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-[4px]">
+                  <Clock className="size-[12px] text-[#9c6402] dark:text-[#e29d38]" />
+                  <span
+                    dir="ltr"
+                    className="text-[10px] font-bold text-[#9c6402] dark:text-[#e29d38]"
+                  >
+                    {customTimeDisplay}
+                  </span>
+                </div>
+              </button>
             </div>
 
-            {/* Field: Priority */}
-            <div className="md:col-span-2 flex flex-col gap-[6px]">
-              <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-[4px]">
-                <span>{isEn ? "Priority Level" : "مستوى الأولوية"}</span>
+            {/* Custom Time Picker Component */}
+            {priority === "custom" && (
+              <div className="pt-[4px]">
+                <LuxuryTimePicker
+                  value={customTime}
+                  onChange={(newVal) => setCustomTime(newVal)}
+                  onApply={() => {
+                    toast.success(
+                      isEn
+                        ? `Custom response time set to ${customTimeDisplay}`
+                        : `تم تحديد وقت الاستجابة المخصص: ${customTimeDisplay}`
+                    );
+                  }}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Section: Intake Channel (4 Methods: WhatsApp, Live Chat, Our Phone, Email) */}
+          <div className="flex flex-col gap-[14px] pt-[12px] border-t border-[#eae8e4]/60 dark:border-[#38271c]">
+            <div className="flex items-center justify-between">
+              <label className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-[6px]">
+                <span>{isEn ? "Ticket Intake Channel" : "طريقة ورود التذكرة (قناة التواصل)"}</span>
                 <span className="text-[#ba1a1a] dark:text-[#f87171]">*</span>
               </label>
-              <div className="grid grid-cols-3 gap-[10px]">
-                <button
-                  type="button"
-                  onClick={() => setPriority("low")}
-                  className={cn(
-                    "flex items-center justify-between p-[10px] rounded-[6px] border transition-all cursor-pointer",
-                    priority === "low"
-                      ? "border-[#61564f] dark:border-[#a89f91] bg-[#f5f3ef] dark:bg-[#281c15]"
-                      : "border-[#eae8e4] dark:border-[#38271c] bg-white dark:bg-[#1a120d] hover:bg-[#faf9f6] dark:hover:bg-[#281c15]"
-                  )}
-                >
-                  <div className="flex items-center gap-[6px]">
-                    <div className="size-[8px] rounded-full bg-[#61564f] dark:bg-[#a89f91]" />
-                    <span className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      {isEn ? "Low" : "منخفضة"}
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-[#625d5d] dark:text-[#a89f91]">
-                    {isEn ? "Within 48h" : "خلال 48 ساعة"}
-                  </span>
-                </button>
+              <span className="text-[11px] text-[#837565] dark:text-[#a89f91]">
+                {isEn ? "Select how the customer reached out" : "اختر الوسيلة التي تواصل بها العميل لفتح التذكرة"}
+              </span>
+            </div>
 
-                <button
-                  type="button"
-                  onClick={() => setPriority("medium")}
-                  className={cn(
-                    "flex items-center justify-between p-[10px] rounded-[6px] border transition-all cursor-pointer",
-                    priority === "medium"
-                      ? "border-[#d97706] dark:border-[#e29d38] bg-[#fff8e1] dark:bg-[#2b1f0c]"
-                      : "border-[#eae8e4] dark:border-[#38271c] bg-white dark:bg-[#1a120d] hover:bg-[#faf9f6] dark:hover:bg-[#281c15]"
-                  )}
-                >
-                  <div className="flex items-center gap-[6px]">
-                    <div className="size-[8px] rounded-full bg-[#d97706] dark:bg-[#e29d38]" />
-                    <span className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                      {isEn ? "Medium" : "متوسطة"}
-                    </span>
+            {/* 4 Interactive Channel Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-[12px]">
+              {/* Option 1: WhatsApp */}
+              <button
+                type="button"
+                onClick={() => setChannel("whatsapp")}
+                className={cn(
+                  "flex flex-col gap-[10px] p-[14px] rounded-[8px] border text-start transition-all cursor-pointer relative",
+                  channel === "whatsapp"
+                    ? "border-[#25D366] bg-[#25D366]/5 dark:bg-[#25D366]/10 shadow-[0px_2px_8px_rgba(37,211,102,0.15)] ring-1 ring-[#25D366]"
+                    : "border-[#eae8e4] dark:border-[#38271c] bg-white dark:bg-[#1a120d] hover:bg-[#faf9f6] dark:hover:bg-[#281c15]"
+                )}
+              >
+                <div className="flex items-center justify-between">
+                  <div
+                    className={cn(
+                      "size-[36px] rounded-[8px] flex items-center justify-center transition-colors",
+                      channel === "whatsapp"
+                        ? "bg-[#25D366] text-white"
+                        : "bg-[#25D366]/10 text-[#25D366] dark:bg-[#25D366]/20"
+                    )}
+                  >
+                    <MessageCircle className="size-[20px]" />
                   </div>
-                  <span className="text-[10px] text-[#b76e00] dark:text-[#e29d38]">
-                    {isEn ? "Within 24h" : "خلال 24 ساعة"}
+                  {channel === "whatsapp" && (
+                    <span className="size-[8px] rounded-full bg-[#25D366] shadow-[0_0_8px_#25D366]" />
+                  )}
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                    {isEn ? "WhatsApp" : "واتساب الأعمال"}
                   </span>
-                </button>
+                  <span className="text-[11px] text-[#837565] dark:text-[#a89f91]">
+                    {isEn ? "Direct WhatsApp message" : "محادثة فورية بالواتس"}
+                  </span>
+                </div>
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => setPriority("urgent")}
-                  className={cn(
-                    "flex items-center justify-between p-[10px] rounded-[6px] border transition-all cursor-pointer",
-                    priority === "urgent"
-                      ? "border-[#ba1a1a] dark:border-[#f87171] bg-[#ffdad6]/50 dark:bg-[#381616]"
-                      : "border-[#eae8e4] dark:border-[#38271c] bg-white dark:bg-[#1a120d] hover:bg-[#faf9f6] dark:hover:bg-[#281c15]"
+              {/* Option 2: Live Chat */}
+              <button
+                type="button"
+                onClick={() => setChannel("portal")}
+                className={cn(
+                  "flex flex-col gap-[10px] p-[14px] rounded-[8px] border text-start transition-all cursor-pointer relative",
+                  channel === "portal"
+                    ? "border-[#0284c7] bg-[#0284c7]/5 dark:bg-[#0284c7]/10 shadow-[0px_2px_8px_rgba(2,132,199,0.15)] ring-1 ring-[#0284c7]"
+                    : "border-[#eae8e4] dark:border-[#38271c] bg-white dark:bg-[#1a120d] hover:bg-[#faf9f6] dark:hover:bg-[#281c15]"
+                )}
+              >
+                <div className="flex items-center justify-between">
+                  <div
+                    className={cn(
+                      "size-[36px] rounded-[8px] flex items-center justify-center transition-colors",
+                      channel === "portal"
+                        ? "bg-[#0284c7] text-white"
+                        : "bg-[#0284c7]/10 text-[#0284c7] dark:bg-[#0284c7]/20"
+                    )}
+                  >
+                    <MessageSquare className="size-[20px]" />
+                  </div>
+                  {channel === "portal" && (
+                    <span className="size-[8px] rounded-full bg-[#0284c7] shadow-[0_0_8px_#0284c7]" />
                   )}
-                >
-                  <div className="flex items-center gap-[6px]">
-                    <div className="size-[8px] rounded-full bg-[#ba1a1a] dark:bg-[#f87171]" />
-                    <span className="text-[13px] font-bold text-[#ba1a1a] dark:text-[#fca5a5]">
-                      {isEn ? "Urgent" : "عاجلة"}
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                    {isEn ? "Live Chat" : "شات / محادثة"}
+                  </span>
+                  <span className="text-[11px] text-[#837565] dark:text-[#a89f91]">
+                    {isEn ? "Portal & Instant Chat" : "بوابة العملاء والشات"}
+                  </span>
+                </div>
+              </button>
+
+              {/* Option 3: Phone (رقمنا) */}
+              <button
+                type="button"
+                onClick={() => setChannel("phone")}
+                className={cn(
+                  "flex flex-col gap-[10px] p-[14px] rounded-[8px] border text-start transition-all cursor-pointer relative",
+                  channel === "phone"
+                    ? "border-[#d97706] bg-[#d97706]/5 dark:bg-[#d97706]/10 shadow-[0px_2px_8px_rgba(217,119,6,0.15)] ring-1 ring-[#d97706]"
+                    : "border-[#eae8e4] dark:border-[#38271c] bg-white dark:bg-[#1a120d] hover:bg-[#faf9f6] dark:hover:bg-[#281c15]"
+                )}
+              >
+                <div className="flex items-center justify-between">
+                  <div
+                    className={cn(
+                      "size-[36px] rounded-[8px] flex items-center justify-center transition-colors",
+                      channel === "phone"
+                        ? "bg-[#d97706] text-white"
+                        : "bg-[#d97706]/10 text-[#d97706] dark:bg-[#d97706]/20"
+                    )}
+                  >
+                    <Phone className="size-[20px]" />
+                  </div>
+                  {channel === "phone" && (
+                    <span className="size-[8px] rounded-full bg-[#d97706] shadow-[0_0_8px_#d97706]" />
+                  )}
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                    {isEn ? "Our Phone" : "رقمنا (مكالمة)"}
+                  </span>
+                  <span className="text-[11px] text-[#837565] dark:text-[#a89f91]">
+                    {isEn ? "Direct Phone Support" : "اتصال وارد لأرقامنا"}
+                  </span>
+                </div>
+              </button>
+
+              {/* Option 4: Email */}
+              <button
+                type="button"
+                onClick={() => setChannel("email")}
+                className={cn(
+                  "flex flex-col gap-[10px] p-[14px] rounded-[8px] border text-start transition-all cursor-pointer relative",
+                  channel === "email"
+                    ? "border-[#9c6402] bg-[#9c6402]/5 dark:bg-[#9c6402]/10 shadow-[0px_2px_8px_rgba(156,100,2,0.15)] ring-1 ring-[#9c6402]"
+                    : "border-[#eae8e4] dark:border-[#38271c] bg-white dark:bg-[#1a120d] hover:bg-[#faf9f6] dark:hover:bg-[#281c15]"
+                )}
+              >
+                <div className="flex items-center justify-between">
+                  <div
+                    className={cn(
+                      "size-[36px] rounded-[8px] flex items-center justify-center transition-colors",
+                      channel === "email"
+                        ? "bg-[#9c6402] text-white"
+                        : "bg-[#9c6402]/10 text-[#9c6402] dark:bg-[#9c6402]/20"
+                    )}
+                  >
+                    <Mail className="size-[20px]" />
+                  </div>
+                  {channel === "email" && (
+                    <span className="size-[8px] rounded-full bg-[#9c6402] shadow-[0_0_8px_#9c6402]" />
+                  )}
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                    {isEn ? "Email" : "البريد الإلكتروني"}
+                  </span>
+                  <span className="text-[11px] text-[#837565] dark:text-[#a89f91]">
+                    {isEn ? "Official Support Inbox" : "رسالة عبر البريد"}
+                  </span>
+                </div>
+              </button>
+            </div>
+
+            {/* Dynamic Contextual Inputs for the Selected Channel */}
+            <div className="bg-[#faf9f6] dark:bg-[#1a120d] border border-[#eae8e4] dark:border-[#38271c] rounded-[8px] p-[16px] flex flex-col gap-[12px]">
+              {channel === "whatsapp" && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px]">
+                  <div className="flex flex-col gap-[6px]">
+                    <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center justify-between">
+                      <span className="flex items-center gap-[6px]">
+                        <MessageCircle className="size-[14px] text-[#25D366]" />
+                        <span>{isEn ? "Client WhatsApp Number" : "رقم هاتف الواتساب للعميل"}</span>
+                      </span>
+                      <span className="text-[10px] text-[#837565] dark:text-[#a89f91]">
+                        {isEn ? "Auto-filled from client" : "تعبئة تلقائية من العميل"}
+                      </span>
+                    </label>
+                    <div className="flex items-center gap-[8px]">
+                      <input
+                        type="text"
+                        dir="ltr"
+                        value={whatsappNumber}
+                        onChange={(e) => setWhatsappNumber(e.target.value)}
+                        placeholder="+966 5x xxx xxxx"
+                        className={fieldClass}
+                      />
+                      {whatsappNumber.trim() && (
+                        <a
+                          href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="h-[44px] px-[14px] rounded-[4px] bg-[#25D366] hover:bg-[#20bd5a] text-white flex items-center gap-[6px] text-[12px] font-bold shrink-0 transition-colors cursor-pointer"
+                          title={isEn ? "Open WhatsApp chat" : "فتح محادثة واتساب"}
+                        >
+                          <ExternalLink className="size-[14px]" />
+                          <span className="hidden sm:inline">{isEn ? "Chat" : "محادثة"}</span>
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-col justify-center text-[12px] text-[#514537] dark:text-[#cdc5bd] bg-white dark:bg-[#221812] p-[12px] rounded-[6px] border border-[#eae8e4]/60 dark:border-[#38271c]">
+                    <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] mb-1">
+                      {isEn ? "WhatsApp Direct Notice:" : "تنبيه المحادثة الفورية:"}
+                    </span>
+                    <span>
+                      {isEn
+                        ? "Ensure the client's country code is included. Notifications will be sent via authorized business templates."
+                        : "يرجى التأكد من كتابة الرقم بمفتاح الدولة. يتم حفظ الرقم وتوجيه التحديثات للمحادثة المباشرة."}
                     </span>
                   </div>
-                  <span className="text-[10px] font-bold text-[#93000a] dark:text-[#f87171]">
-                    {isEn ? "Immediate Response" : "استجابة فورية"}
-                  </span>
-                </button>
-              </div>
+                </div>
+              )}
+
+              {channel === "portal" && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px]">
+                  <div className="flex flex-col gap-[6px]">
+                    <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-[6px]">
+                      <Hash className="size-[14px] text-[#0284c7]" />
+                      <span>{isEn ? "Chat Session / Portal Reference ID" : "معرف جلسة الشات / مرجع البوابة"}</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={chatSessionId}
+                      onChange={(e) => setChatSessionId(e.target.value)}
+                      placeholder="e.g., #CHAT-9482 or Session Token"
+                      className={fieldClass}
+                    />
+                  </div>
+                  <div className="flex flex-col justify-center text-[12px] text-[#514537] dark:text-[#cdc5bd] bg-white dark:bg-[#221812] p-[12px] rounded-[6px] border border-[#eae8e4]/60 dark:border-[#38271c]">
+                    <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] mb-1">
+                      {isEn ? "Portal & Live Chat Integration:" : "تكامل الشات وبوابة المنصة:"}
+                    </span>
+                    <span>
+                      {isEn
+                        ? "Tickets originating from live chat will be reflected immediately in the customer's portal view."
+                        : "التذاكر المنشأة عبر الشات تظهر للعميل فوراً داخل واجهة بوابة المنصة ومحادثة الدعم."}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {channel === "phone" && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-[16px]">
+                  {/* Our receiving line */}
+                  <div className="flex flex-col gap-[6px]">
+                    <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-[6px]">
+                      <Phone className="size-[14px] text-[#d97706]" />
+                      <span>{isEn ? "Our Received Line" : "خط الاستقبال (رقمنا)"}</span>
+                    </label>
+                    <DashboardSelect
+                      value={ourPhoneNumber}
+                      onChange={(e) => setOurPhoneNumber(e.target.value)}
+                      className={selectClass}
+                    >
+                      <option value="920002144">920002144 — الرقم الموحد الرئيسي</option>
+                      <option value="+966501234567">+966 50 123 4567 — خط الدعم الفني المباشر</option>
+                      <option value="+966112345678">+966 11 234 5678 — خط الطوارئ والعمليات</option>
+                      <option value="other">رقم مخصص آخر...</option>
+                    </DashboardSelect>
+                    {ourPhoneNumber === "other" && (
+                      <input
+                        type="text"
+                        dir="ltr"
+                        value={customOurPhone}
+                        onChange={(e) => setCustomOurPhone(e.target.value)}
+                        placeholder="أدخل رقم الخط المستلم"
+                        className={cn(fieldClass, "mt-1")}
+                      />
+                    )}
+                  </div>
+
+                  {/* Caller Number */}
+                  <div className="flex flex-col gap-[6px]">
+                    <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center justify-between">
+                      <span>{isEn ? "Caller Phone Number" : "رقم هاتف المتصل"}</span>
+                      <span className="text-[10px] text-[#837565] dark:text-[#a89f91]">
+                        {isEn ? "Auto-filled" : "تعبئة تلقائية"}
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      dir="ltr"
+                      value={callerNumber}
+                      onChange={(e) => setCallerNumber(e.target.value)}
+                      placeholder="+966 5x xxx xxxx"
+                      className={fieldClass}
+                    />
+                  </div>
+
+                  {/* Call Duration */}
+                  <div className="flex flex-col gap-[6px]">
+                    <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-[6px]">
+                      <Clock className="size-[14px] text-[#837565]" />
+                      <span>{isEn ? "Call Duration (Optional)" : "مدة المكالمة (اختياري)"}</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={callDuration}
+                      onChange={(e) => setCallDuration(e.target.value)}
+                      placeholder={isEn ? "e.g., 4 minutes" : "مثال: 5 دقائق"}
+                      className={fieldClass}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {channel === "email" && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px]">
+                  <div className="flex flex-col gap-[6px]">
+                    <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center justify-between">
+                      <span className="flex items-center gap-[6px]">
+                        <Mail className="size-[14px] text-[#9c6402]" />
+                        <span>{isEn ? "Sender Email Address" : "البريد الإلكتروني للمرسل"}</span>
+                      </span>
+                      <span className="text-[10px] text-[#837565] dark:text-[#a89f91]">
+                        {isEn ? "Auto-filled" : "تعبئة تلقائية"}
+                      </span>
+                    </label>
+                    <input
+                      type="email"
+                      dir="ltr"
+                      value={senderEmail}
+                      onChange={(e) => setSenderEmail(e.target.value)}
+                      placeholder="client@lawfirm.sa"
+                      className={fieldClass}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-[6px]">
+                    <label className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-[6px]">
+                      <Hash className="size-[14px] text-[#837565]" />
+                      <span>{isEn ? "Email Message / Thread Reference (Optional)" : "معرّف الرسالة / الخيط البريدي"}</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={emailSubjectRef}
+                      onChange={(e) => setEmailSubjectRef(e.target.value)}
+                      placeholder="e.g., #MSG-82914 or Email Message ID"
+                      className={fieldClass}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -733,6 +1205,30 @@ export function CreateTicketView({
                   <div>
                     <span className="text-[#837565] dark:text-[#a89f91]">{isEn ? "Department: " : "القسم: "}</span>
                     <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">{selectedDeptObj?.name}</span>
+                  </div>
+                  <div>
+                    <span className="text-[#837565] dark:text-[#a89f91]">{isEn ? "Priority: " : "مستوى الأولوية: "}</span>
+                    <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                      {priority === "urgent"
+                        ? (isEn ? "Urgent (Immediate Response)" : "عاجلة (استجابة فورية)")
+                        : priority === "medium"
+                        ? (isEn ? "Medium (Within 24h)" : "متوسطة (خلال 24 ساعة)")
+                        : priority === "low"
+                        ? (isEn ? "Low (Within 48h)" : "منخفضة (خلال 48 ساعة)")
+                        : (isEn ? `Custom (${customTimeDisplay})` : `مخصصة (${customTimeDisplay})`)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[#837565] dark:text-[#a89f91]">{isEn ? "Channel: " : "قناة الورود: "}</span>
+                    <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                      {channel === "whatsapp"
+                        ? (isEn ? "WhatsApp" : "واتساب الأعمال")
+                        : channel === "portal"
+                          ? (isEn ? "Live Chat" : "شات / محادثة")
+                          : channel === "phone"
+                            ? (isEn ? "Our Phone" : "رقمنا (مكالمة هاتفية)")
+                            : (isEn ? "Email" : "البريد الإلكتروني")}
+                    </span>
                   </div>
                   <div>
                     <span className="text-[#837565] dark:text-[#a89f91]">{isEn ? "Subject: " : "الموضوع: "}</span>

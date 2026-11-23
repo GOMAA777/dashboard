@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -12,18 +12,23 @@ import {
   EyeOff,
   UserCheck,
   ShieldCheck,
-  Loader2,
+  Sparkles,
+  Copy,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Employee, EmployeeRole } from "../types/staff.types";
-import { addEmployeeSchema, AddEmployeeFormData } from "../schemas/staff.schema";
+import {
+  AddEmployeeFormData,
+  validateStaffForm,
+  isSeniorManagementDept,
+} from "../schemas/staff.schema";
 import { DashboardStickyActionBar } from "@/components/shared/DashboardStickyActionBar";
 import { LuxuryAlertDialog } from "@/components/shared/LuxuryAlertDialog";
 import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { fetchRoles } from "@/lib/api/roles";
-import { fetchDepartments } from "@/lib/api/departments";
+import { useRolesQuery, useDepartmentsQuery } from "../hooks/useStaffQuery";
 import { unwrapList } from "@/lib/api/helpers";
 import { ApiError } from "@/lib/api/http";
 import {
@@ -31,6 +36,7 @@ import {
   mapStaffFormFieldErrors,
 } from "@/lib/api/field-errors";
 import { saveUnifiedDraft } from "@/stores/use-drafts-store";
+import { generateTempPassword } from "@/lib/api/password";
 
 const initialDefaultRoles: RoleOption[] = [
   { id: "1", name: "Super Admin", category: "الإدارة العليا" },
@@ -56,6 +62,7 @@ export type SaveEmployeePayload = {
 interface AddEmployeeViewProps {
   onBack: () => void;
   onSave: (payload: SaveEmployeePayload) => Promise<void>;
+  existingEmployees?: Employee[];
   serverFieldErrors?: Partial<Record<keyof AddEmployeeFormData, string>>;
 }
 
@@ -68,6 +75,7 @@ const inputBase =
 export function AddEmployeeView({
   onBack,
   onSave,
+  existingEmployees = [],
   serverFieldErrors,
 }: AddEmployeeViewProps) {
   const { t, isEn, direction } = useLanguage();
@@ -78,66 +86,111 @@ export function AddEmployeeView({
     phone: "",
     roleId: "",
     departmentId: "",
-    password: "",
+    password: generateTempPassword(),
   });
 
-  const [errors, setErrors] = useState<Partial<Record<keyof AddEmployeeFormData, string>>>({});
+  const [touched, setTouched] = useState<Partial<Record<keyof AddEmployeeFormData, boolean>>>({});
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [serverErrors, setServerErrors] = useState<Partial<Record<keyof AddEmployeeFormData, string>>>({});
   const [showPassword, setShowPassword] = useState(false);
+  const [copiedField, setCopiedField] = useState<"email" | "password" | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [roles, setRoles] = useState<RoleOption[]>(initialDefaultRoles);
-  const [departments, setDepartments] = useState<DeptOption[]>(initialDefaultDepartments);
-  const [listsLoading, setListsLoading] = useState(false);
-  const [listsError, setListsError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (serverFieldErrors) {
-      setErrors((prev) => ({ ...prev, ...serverFieldErrors }));
+  const handleCopyField = async (text: string, field: "email" | "password") => {
+    if (!text.trim()) {
+      toast.error(
+        field === "email"
+          ? t("أدخل البريد الإلكتروني أولاً", "Enter the email first")
+          : t("لا توجد كلمة مرور للنسخ", "No password to copy")
+      );
+      return;
     }
-  }, [serverFieldErrors]);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(field);
+      toast.success(t("تم النسخ إلى الحافظة", "Copied to clipboard"));
+      setTimeout(() => setCopiedField(null), 2000);
+    } catch {
+      toast.error(t("تعذر النسخ", "Copy failed"));
+    }
+  };
+  const rolesQuery = useRolesQuery();
+  const departmentsQuery = useDepartmentsQuery();
 
-  useEffect(() => {
-    let cancelled = false;
-    Promise.allSettled([fetchRoles(), fetchDepartments()])
-      .then(([rolesRes, deptsRes]) => {
-        if (cancelled) return;
-        if (rolesRes.status === "fulfilled") {
-          const roleRows = unwrapList<Record<string, unknown>>(rolesRes.value).map((raw) => ({
-            id: String(raw.id ?? ""),
-            name: String(raw.name ?? ""),
-            category: String(
-              (raw as { slug?: string }).slug ||
-                (raw as { description?: string }).description ||
-                "—"
-            ),
-          }));
-          const filtered = roleRows.filter((r) => r.id);
-          if (filtered.length > 0) setRoles(filtered);
+  const roles = useMemo<RoleOption[]>(() => {
+    if (!rolesQuery.data) return initialDefaultRoles;
+    const roleRows = unwrapList<Record<string, unknown>>(rolesQuery.data).map((raw) => ({
+      id: String(raw.id ?? ""),
+      name: String(raw.name ?? ""),
+      category: String(
+        (raw as { slug?: string }).slug ||
+          (raw as { description?: string }).description ||
+          "—"
+      ),
+    }));
+    const filtered = roleRows.filter((r) => r.id);
+    return filtered.length > 0 ? filtered : initialDefaultRoles;
+  }, [rolesQuery.data]);
+
+  const departments = useMemo<DeptOption[]>(() => {
+    if (!departmentsQuery.data) return initialDefaultDepartments;
+    const deptRows = unwrapList<Record<string, unknown>>(departmentsQuery.data).map((raw) => ({
+      id: String(raw.id ?? ""),
+      name: String(raw.name ?? ""),
+    }));
+    const filtered = deptRows.filter((d) => d.id);
+    return filtered.length > 0 ? filtered : initialDefaultDepartments;
+  }, [departmentsQuery.data]);
+
+  const listsError =
+    rolesQuery.error instanceof Error
+      ? rolesQuery.error.message
+      : departmentsQuery.error instanceof Error
+      ? departmentsQuery.error.message
+      : null;
+
+  const matchedDept = departments.find((d) => d.id === formData.departmentId);
+  const departmentName = matchedDept?.name;
+  const isSeniorDept = isSeniorManagementDept(departmentName);
+
+  const validation = useMemo(() => {
+    return validateStaffForm(formData, {
+      existingEmployees,
+      departmentName,
+      isEdit: false,
+    });
+  }, [formData, existingEmployees, departmentName]);
+
+  const isFormValid = validation.isValid;
+
+  const displayErrors = useMemo(() => {
+    const errs: Partial<Record<keyof AddEmployeeFormData, string>> = {};
+    const allKeys: (keyof AddEmployeeFormData)[] = [
+      "name",
+      "email",
+      "phone",
+      "roleId",
+      "departmentId",
+      "password",
+    ];
+    for (const key of allKeys) {
+      if (serverErrors[key]) {
+        errs[key] = serverErrors[key];
+      } else if (serverFieldErrors?.[key]) {
+        errs[key] = serverFieldErrors[key];
+      } else if (
+        submitAttempted ||
+        touched[key] ||
+        (formData[key] !== undefined && String(formData[key]).trim().length > 0)
+      ) {
+        if (validation.errors[key]) {
+          errs[key] = validation.errors[key];
         }
-        if (deptsRes.status === "fulfilled") {
-          const deptRows = unwrapList<Record<string, unknown>>(deptsRes.value).map((raw) => ({
-            id: String(raw.id ?? ""),
-            name: String(raw.name ?? ""),
-          }));
-          const filtered = deptRows.filter((d) => d.id);
-          if (filtered.length > 0) setDepartments(filtered);
-        }
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        const message =
-          err instanceof ApiError
-            ? err.message
-            : "تعذر تحديث الأدوار والأقسام من الخادم.";
-        setListsError(message);
-      })
-      .finally(() => {
-        if (!cancelled) setListsLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+      }
+    }
+    return errs;
+  }, [serverErrors, serverFieldErrors, submitAttempted, touched, formData, validation.errors]);
 
   const getPasswordStrength = (pwd: string) => {
     if (!pwd)
@@ -167,14 +220,8 @@ export function AddEmployeeView({
   const strength = getPasswordStrength(formData.password);
 
   const buildEmployee = (): SaveEmployeePayload | null => {
-    const result = addEmployeeSchema.safeParse(formData);
-    if (!result.success) {
-      const fieldErrors: Partial<Record<keyof AddEmployeeFormData, string>> = {};
-      result.error.issues.forEach((issue) => {
-        const field = issue.path[0] as keyof AddEmployeeFormData;
-        fieldErrors[field] = issue.message;
-      });
-      setErrors(fieldErrors);
+    setSubmitAttempted(true);
+    if (!validation.isValid) {
       toast.error(
         t(
           "يرجى مراجعة وتصحيح البيانات المطلوبة.",
@@ -184,9 +231,8 @@ export function AddEmployeeView({
       return null;
     }
 
-    setErrors({});
+    setServerErrors({});
     const matchedRole = roles.find((r) => r.id === formData.roleId);
-    const matchedDept = departments.find((d) => d.id === formData.departmentId);
     const role: EmployeeRole = {
       id: formData.roleId,
       name: matchedRole?.name || (isEn ? "Role" : "دور"),
@@ -196,15 +242,19 @@ export function AddEmployeeView({
       iconType: "shield",
     };
 
-    const phoneDigits = formData.phone.replace(/\s+/g, "");
+    const phoneDigits = formData.phone.replace(/[\s\-\(\)]/g, "");
     const phone = phoneDigits.startsWith("+")
       ? phoneDigits
+      : phoneDigits.startsWith("00966")
+      ? `+${phoneDigits.slice(2)}`
+      : phoneDigits.startsWith("966")
+      ? `+${phoneDigits}`
       : `+966${phoneDigits.replace(/^0+/, "")}`;
 
     const employee: Employee = {
       id: `emp-${Date.now()}`,
       empCode: `EMP-${Date.now().toString().slice(-6)}`,
-      name: formData.name,
+      name: formData.name.trim(),
       initials:
         formData.name
           .trim()
@@ -216,7 +266,7 @@ export function AddEmployeeView({
       avatarText: "text-[#8e5927]",
       jobTitle: role.name,
       department: matchedDept?.name || "—",
-      email: formData.email,
+      email: formData.email.trim(),
       phone,
       role,
       status: "active",
@@ -251,7 +301,6 @@ export function AddEmployeeView({
         badge: t("مسودة", "Draft"),
         data: { ...formData },
       });
-
       toast.success(
         t(
           "تم حفظ بيانات الموظف كمسودة بنجاح وإضافتها إلى قسم المسودات.",
@@ -279,7 +328,7 @@ export function AddEmployeeView({
       if (err instanceof ApiError) {
         const apiFields = mapStaffFormFieldErrors(extractFieldErrors(err.body));
         if (Object.keys(apiFields).length > 0) {
-          setErrors((prev) => ({ ...prev, ...apiFields }));
+          setServerErrors((prev) => ({ ...prev, ...apiFields }));
         }
         toast.error(err.message);
       } else {
@@ -328,7 +377,10 @@ export function AddEmployeeView({
           <button
             type="button"
             className="font-semibold underline cursor-pointer"
-            onClick={() => window.location.reload()}
+            onClick={() => {
+              void rolesQuery.refetch();
+              void departmentsQuery.refetch();
+            }}
           >
             {t("إعادة المحاولة", "Retry")}
           </button>
@@ -351,6 +403,7 @@ export function AddEmployeeView({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* 1. الاسم الكامل */}
           <div>
             <label className="block text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] mb-2">
               {t("الاسم الكامل", "Full Name")} <span className="text-red-500">*</span>
@@ -359,17 +412,25 @@ export function AddEmployeeView({
               <input
                 type="text"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, name: e.target.value });
+                  setTouched((prev) => ({ ...prev, name: true }));
+                  if (serverErrors.name) setServerErrors((prev) => ({ ...prev, name: undefined }));
+                }}
+                onBlur={() => setTouched((prev) => ({ ...prev, name: true }))}
                 placeholder={t("مثال: راكان بن كمال الحارثي", "e.g. Rakan Alharbi")}
-                className={cn(inputBase, fieldError(!!errors.name))}
+                className={cn(inputBase, fieldError(!!displayErrors.name))}
               />
               <User className="size-[16px] text-[#948b83] dark:text-[#a89f91] absolute top-1/2 -translate-y-1/2 end-3 pointer-events-none" />
             </div>
-            {errors.name && (
-              <span className="text-[11px] text-red-500 mt-0.5 block">{errors.name}</span>
+            {displayErrors.name && (
+              <span className="text-[11px] text-red-500 mt-1 block font-medium">
+                {displayErrors.name}
+              </span>
             )}
           </div>
 
+          {/* 2. البريد الإلكتروني */}
           <div>
             <label className="block text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] mb-2">
               {t("البريد الإلكتروني", "Email")} <span className="text-red-500">*</span>
@@ -378,18 +439,38 @@ export function AddEmployeeView({
               <input
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, email: e.target.value });
+                  setTouched((prev) => ({ ...prev, email: true }));
+                  if (serverErrors.email) setServerErrors((prev) => ({ ...prev, email: undefined }));
+                }}
+                onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
                 placeholder="name@aljudy.sa"
-                className={cn(inputBase, "text-left", fieldError(!!errors.email))}
+                className={cn(inputBase, "text-left pe-10 ps-10", fieldError(!!displayErrors.email))}
                 dir="ltr"
               />
+              <button
+                type="button"
+                onClick={() => void handleCopyField(formData.email, "email")}
+                className="absolute top-1/2 -translate-y-1/2 end-2.5 p-1 rounded-[4px] text-[#948b83] hover:text-[#9c6402] dark:text-[#a89f91] dark:hover:text-[#e29d38] transition-colors cursor-pointer"
+                title={t("نسخ البريد الإلكتروني", "Copy email")}
+              >
+                {copiedField === "email" ? (
+                  <Check className="size-[15px] text-[#10b981]" />
+                ) : (
+                  <Copy className="size-[15px]" />
+                )}
+              </button>
               <Mail className="size-[16px] text-[#948b83] dark:text-[#a89f91] absolute top-1/2 -translate-y-1/2 start-3 pointer-events-none" />
             </div>
-            {errors.email && (
-              <span className="text-[11px] text-red-500 mt-0.5 block">{errors.email}</span>
+            {displayErrors.email && (
+              <span className="text-[11px] text-red-500 mt-1 block font-medium">
+                {displayErrors.email}
+              </span>
             )}
           </div>
 
+          {/* 3. رقم الجوال */}
           <div>
             <label className="block text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] mb-2">
               {t("رقم الجوال", "Mobile Number")} <span className="text-red-500">*</span>
@@ -397,7 +478,7 @@ export function AddEmployeeView({
             <div
               className={cn(
                 "flex rounded-[6px] border overflow-hidden focus-within:ring-1",
-                errors.phone
+                displayErrors.phone
                   ? "border-red-500 focus-within:ring-red-500"
                   : "border-[#eae8e4] dark:border-[#38271c] bg-[#f5f3ef] dark:bg-[#160e0a] focus-within:border-[#9c6402] dark:focus-within:border-[#e29d38] focus-within:ring-[#9c6402] dark:focus-within:ring-[#e29d38]"
               )}
@@ -409,16 +490,31 @@ export function AddEmployeeView({
                 type="tel"
                 dir="ltr"
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                placeholder="50 123 4567"
+                onChange={(e) => {
+                  setFormData({ ...formData, phone: e.target.value });
+                  setTouched((prev) => ({ ...prev, phone: true }));
+                  if (serverErrors.phone) setServerErrors((prev) => ({ ...prev, phone: undefined }));
+                }}
+                onBlur={() => setTouched((prev) => ({ ...prev, phone: true }))}
+                placeholder={isSeniorDept ? "050 123 4567" : "50 123 4567"}
                 className="w-full h-[40px] px-3 text-[13px] bg-transparent text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#8e8680] focus:outline-none font-mono text-right"
               />
             </div>
-            {errors.phone && (
-              <span className="text-[11px] text-red-500 mt-0.5 block">{errors.phone}</span>
-            )}
+            {displayErrors.phone ? (
+              <span className="text-[11px] text-red-500 mt-1 block font-medium leading-relaxed">
+                {displayErrors.phone}
+              </span>
+            ) : isSeniorDept ? (
+              <span className="text-[11px] text-[#9c6402] dark:text-[#e29d38] mt-1 block font-medium">
+                {t(
+                  "قسم الإدارة العليا: يشترط رقم جوال سعودي يبدأ بـ 05 ويتكون من 10 أرقام (أو بصيغة +9665XXXXXXXX).",
+                  "Senior Management: Requires Saudi mobile starting with 05 (10 digits) or +9665XXXXXXXX."
+                )}
+              </span>
+            ) : null}
           </div>
 
+          {/* 4. القسم */}
           <div>
             <label className="block text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] mb-2">
               {t("القسم", "Department")} <span className="text-red-500">*</span>
@@ -427,14 +523,15 @@ export function AddEmployeeView({
               value={formData.departmentId}
               onChange={(e) => {
                 setFormData({ ...formData, departmentId: e.target.value });
-                if (errors.departmentId) {
-                  setErrors((prev) => ({ ...prev, departmentId: undefined }));
+                setTouched((prev) => ({ ...prev, departmentId: true }));
+                if (serverErrors.departmentId) {
+                  setServerErrors((prev) => ({ ...prev, departmentId: undefined }));
                 }
               }}
               placeholder={t("اختر القسم", "Select department")}
               className={cn(
                 "rounded-[6px] bg-[#f5f3ef] dark:bg-[#160e0a]",
-                fieldError(!!errors.departmentId)
+                fieldError(!!displayErrors.departmentId)
               )}
             >
               <option value="">
@@ -446,11 +543,14 @@ export function AddEmployeeView({
                 </option>
               ))}
             </DashboardSelect>
-            {errors.departmentId && (
-              <span className="text-[11px] text-red-500 mt-0.5 block">{errors.departmentId}</span>
+            {displayErrors.departmentId && (
+              <span className="text-[11px] text-red-500 mt-1 block font-medium">
+                {displayErrors.departmentId}
+              </span>
             )}
           </div>
 
+          {/* 5. الدور الوظيفي */}
           <div>
             <label className="block text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] mb-2">
               {t("الدور الوظيفي", "Role")} <span className="text-red-500">*</span>
@@ -459,14 +559,15 @@ export function AddEmployeeView({
               value={formData.roleId}
               onChange={(e) => {
                 setFormData({ ...formData, roleId: e.target.value });
-                if (errors.roleId) {
-                  setErrors((prev) => ({ ...prev, roleId: undefined }));
+                setTouched((prev) => ({ ...prev, roleId: true }));
+                if (serverErrors.roleId) {
+                  setServerErrors((prev) => ({ ...prev, roleId: undefined }));
                 }
               }}
               placeholder={t("اختر دور الموظف", "Select employee role")}
               className={cn(
                 "rounded-[6px] bg-[#f5f3ef] dark:bg-[#160e0a]",
-                fieldError(!!errors.roleId)
+                fieldError(!!displayErrors.roleId)
               )}
             >
               <option value="">
@@ -478,24 +579,58 @@ export function AddEmployeeView({
                 </option>
               ))}
             </DashboardSelect>
-            {errors.roleId && (
-              <span className="text-[11px] text-red-500 mt-0.5 block">{errors.roleId}</span>
+            {displayErrors.roleId && (
+              <span className="text-[11px] text-red-500 mt-1 block font-medium">
+                {displayErrors.roleId}
+              </span>
             )}
           </div>
 
+          {/* 6. كلمة المرور المؤقتة */}
           <div>
-            <label className="block text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] mb-2">
-              {t("كلمة المرور", "Password")} <span className="text-red-500">*</span>
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    password: generateTempPassword(),
+                  }))
+                }
+                className="text-[12px] text-[#9c6402] dark:text-[#e29d38] hover:underline font-medium flex items-center gap-1 cursor-pointer"
+              >
+                <Sparkles className="size-3.5" />
+                <span>{t("إعادة التوليد", "Regenerate")}</span>
+              </button>
+              <label className="block text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                {t("كلمة المرور المؤقتة (مولَّدة)", "Temporary password (generated)")}{" "}
+                <span className="text-red-500">*</span>
+              </label>
+            </div>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
                 value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                readOnly
                 placeholder="••••••••••••"
-                className={cn(inputBase, "ps-10", fieldError(!!errors.password))}
+                className={cn(inputBase, "ps-10 pe-16", fieldError(!!displayErrors.password))}
+                dir="ltr"
               />
-              <KeyRound className="size-[16px] text-[#948b83] dark:text-[#a89f91] absolute top-1/2 -translate-y-1/2 end-3 pointer-events-none" />
+              <div className="absolute top-1/2 -translate-y-1/2 end-2.5 flex items-center gap-0.5">
+                <button
+                  type="button"
+                  onClick={() => void handleCopyField(formData.password, "password")}
+                  className="p-1 rounded-[4px] text-[#948b83] hover:text-[#9c6402] dark:text-[#a89f91] dark:hover:text-[#e29d38] transition-colors cursor-pointer"
+                  title={t("نسخ كلمة المرور", "Copy password")}
+                >
+                  {copiedField === "password" ? (
+                    <Check className="size-[15px] text-[#10b981]" />
+                  ) : (
+                    <Copy className="size-[15px]" />
+                  )}
+                </button>
+                <KeyRound className="size-[16px] text-[#948b83] dark:text-[#a89f91] pointer-events-none" />
+              </div>
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
@@ -506,9 +641,12 @@ export function AddEmployeeView({
             </div>
             <div className="mt-2 flex items-center justify-between text-[11px]">
               <span className="text-[#79716b] dark:text-[#a89f91]">
-                {t("مستوى قوة كلمة المرور:", "Password strength:")}
+                {t(
+                  "تُعرض مرة واحدة بعد الحفظ مع زر نسخ، ويُجبر الموظف على تغييرها عند أول دخول.",
+                  "Shown once after save with a copy button; employee must change it on first login."
+                )}
               </span>
-              <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
+              <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] shrink-0 ms-2">
                 {strength.text}
               </span>
             </div>
@@ -518,8 +656,10 @@ export function AddEmployeeView({
                 style={{ width: `${strength.percent}%` }}
               />
             </div>
-            {errors.password && (
-              <span className="text-[11px] text-red-500 mt-1 block">{errors.password}</span>
+            {displayErrors.password && (
+              <span className="text-[11px] text-red-500 mt-1 block font-medium">
+                {displayErrors.password}
+              </span>
             )}
           </div>
         </div>
@@ -581,14 +721,15 @@ export function AddEmployeeView({
           <button
             type="button"
             onClick={() => handleSubmit(false)}
-            disabled={isSubmitting}
-            className="px-5 py-2 text-[13px] font-bold text-white dark:text-[#1c140f] bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#855402] dark:hover:bg-[#f3c27e] rounded-[6px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-60 disabled:pointer-events-none"
-          >
-            {isSubmitting ? (
-              <Loader2 className="size-[16px] animate-spin" />
-            ) : (
-              <UserCheck className="size-[16px]" />
+            disabled={!isFormValid || isSubmitting}
+            className={cn(
+              "px-5 py-2 text-[13px] font-bold text-white dark:text-[#1c140f] rounded-[6px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors flex items-center gap-2",
+              isFormValid && !isSubmitting
+                ? "bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#855402] dark:hover:bg-[#f3c27e] cursor-pointer"
+                : "bg-[#9c6402]/50 dark:bg-[#e29d38]/50 opacity-60 cursor-not-allowed pointer-events-none"
             )}
+          >
+            <UserCheck className="size-[16px]" />
             <span>{t("حفظ الموظف", "Save Employee")}</span>
           </button>
         </div>
@@ -605,11 +746,7 @@ export function AddEmployeeView({
           "سيتم إنشاء حساب الموظف عبر واجهة طاقم العمل وإرسال بيانات الدخول وفق إعدادات النظام.",
           "The staff account will be created via the Staff API with the credentials you entered."
         )}
-        confirmLabel={
-          isSubmitting
-            ? t("جاري الحفظ...", "Saving...")
-            : t("تأكيد الحفظ", "Confirm save")
-        }
+        confirmLabel={t("تأكيد الحفظ", "Confirm save")}
         variant="info"
         itemDetails={{ name: formData.name, email: formData.email }}
       />

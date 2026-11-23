@@ -49,7 +49,7 @@ export function LawyerSubscriptionsBanner({
           title={t.refresh}
         >
           <RefreshCw
-            className={cn("w-4 h-4", isRefreshing && "animate-spin text-[#c29547]")}
+            className="w-4 h-4 text-[#7d7467] dark:text-[#a8a195]"
           />
         </button>
 

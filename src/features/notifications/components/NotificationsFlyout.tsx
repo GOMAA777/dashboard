@@ -15,6 +15,8 @@ import { toast } from "sonner";
 import { useUIStore } from "@/stores/use-ui-store";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { fetchAnnouncements } from "@/lib/api/announcements";
+import { unwrapList } from "@/lib/api/helpers";
 
 export interface FlyoutNotificationItem {
   id: string;
@@ -33,14 +35,65 @@ const initialNotifications: FlyoutNotificationItem[] = [];
 interface NotificationsFlyoutProps {
   isOpen: boolean;
   onClose: () => void;
+  onUnreadCountChange?: (count: number) => void;
 }
 
-export function NotificationsFlyout({ isOpen, onClose }: NotificationsFlyoutProps) {
+export function NotificationsFlyout({
+  isOpen,
+  onClose,
+  onUnreadCountChange,
+}: NotificationsFlyoutProps) {
   const router = useRouter();
   const setPageNavigating = useUIStore((state) => state.setPageNavigating);
   const { direction, isEn } = useLanguage();
   const [items, setItems] = useState<FlyoutNotificationItem[]>(initialNotifications);
   const containerRef = useRef<HTMLDivElement>(null);
+  const onUnreadCountChangeRef = useRef(onUnreadCountChange);
+
+  useEffect(() => {
+    onUnreadCountChangeRef.current = onUnreadCountChange;
+  }, [onUnreadCountChange]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+
+    fetchAnnouncements({ per_page: 5 })
+      .then((payload) => {
+        if (cancelled) return;
+        const list = unwrapList<Record<string, unknown>>(payload);
+        const mapped: FlyoutNotificationItem[] = list.map((item) => {
+          const sent = item.sent_at || item.created_at;
+          const time = sent
+            ? new Intl.DateTimeFormat(isEn ? "en-US" : "ar-SA-u-nu-latn", {
+                hour: "2-digit",
+                minute: "2-digit",
+              }).format(new Date(String(sent)))
+            : "—";
+
+          return {
+            id: String(item.id ?? ""),
+            titleAr: String(item.title ?? "إشعار"),
+            titleEn: String(item.title ?? "Notification"),
+            previewAr: String(item.content ?? item.description ?? ""),
+            previewEn: String(item.content ?? item.description ?? ""),
+            timeAr: time,
+            timeEn: time,
+            isUnread: true,
+            type: "security",
+          };
+        });
+        if (mapped.length > 0) {
+          setItems(mapped);
+          onUnreadCountChangeRef.current?.(mapped.length);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isEn, isOpen]);
 
   // Close when clicking outside or pressing Escape
   useEffect(() => {
@@ -75,6 +128,7 @@ export function NotificationsFlyout({ isOpen, onClose }: NotificationsFlyoutProp
 
   const handleMarkAllAsRead = () => {
     setItems((prev) => prev.map((n) => ({ ...n, isUnread: false })));
+    onUnreadCountChangeRef.current?.(0);
     toast.success(
       isEn
         ? "All notifications marked as read"
@@ -83,9 +137,13 @@ export function NotificationsFlyout({ isOpen, onClose }: NotificationsFlyoutProp
   };
 
   const handleItemClick = (id: string) => {
-    setItems((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, isUnread: false } : n))
-    );
+    const target = items.find((n) => n.id === id);
+    if (!target || !target.isUnread) return;
+
+    const updated = items.map((n) => (n.id === id ? { ...n, isUnread: false } : n));
+    const count = updated.filter((n) => n.isUnread).length;
+    setItems(updated);
+    onUnreadCountChangeRef.current?.(count);
   };
 
   const handleViewAll = () => {

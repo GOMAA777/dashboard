@@ -10,7 +10,6 @@ import {
   Check,
   Eye,
   EyeOff,
-  Loader2,
 } from "lucide-react";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
@@ -27,6 +26,11 @@ import {
   testMailSettings,
 } from "@/lib/api/settings";
 import { unwrapData } from "@/lib/api/helpers";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  useMailSettingsQuery,
+  invalidateSettingsQueries,
+} from "@/features/settings/hooks/useSettingsQuery";
 
 export function MailSettingsView() {
   const { direction, isEn } = useLanguage();
@@ -35,41 +39,35 @@ export function MailSettingsView() {
   const [isTesting, setIsTesting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  const queryClient = useQueryClient();
+  const mailSettingsQuery = useMailSettingsQuery();
+
   useEffect(() => {
-    let cancelled = false;
-    fetchMailSettings()
-      .then((payload) => {
-        if (cancelled) return;
-        const data = (unwrapData<Record<string, unknown>>(payload) ||
-          {}) as Record<string, unknown>;
-        setFormData((prev) => ({
-          ...prev,
-          smtpHost: data.smtp_host ? String(data.smtp_host) : prev.smtpHost,
-          smtpPort: data.smtp_port ? Number(data.smtp_port) : prev.smtpPort,
-          encryption: (data.encryption as MailEncryption) || prev.encryption,
-          smtpUsername: data.smtp_username
-            ? String(data.smtp_username)
-            : prev.smtpUsername,
-          fromName: data.from_name ? String(data.from_name) : prev.fromName,
-          fromEmail: data.from_email ? String(data.from_email) : prev.fromEmail,
-          replyToEmail: data.reply_to ? String(data.reply_to) : prev.replyToEmail,
-          enableSmtpAuth:
-            data.enable_auth !== undefined
-              ? Boolean(data.enable_auth)
-              : prev.enableSmtpAuth,
-          enableHtmlEmails:
-            data.enable_html !== undefined
-              ? Boolean(data.enable_html)
-              : prev.enableHtmlEmails,
-        }));
-      })
-      .catch(() => {
-        // Keep defaults if API unavailable.
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    if (mailSettingsQuery.data) {
+      const data = (unwrapData<Record<string, unknown>>(mailSettingsQuery.data) ||
+        {}) as Record<string, unknown>;
+      setFormData((prev) => ({
+        ...prev,
+        smtpHost: data.smtp_host ? String(data.smtp_host) : prev.smtpHost,
+        smtpPort: data.smtp_port ? Number(data.smtp_port) : prev.smtpPort,
+        encryption: (data.encryption as MailEncryption) || prev.encryption,
+        smtpUsername: data.smtp_username
+          ? String(data.smtp_username)
+          : prev.smtpUsername,
+        fromName: data.from_name ? String(data.from_name) : prev.fromName,
+        fromEmail: data.from_email ? String(data.from_email) : prev.fromEmail,
+        replyToEmail: data.reply_to ? String(data.reply_to) : prev.replyToEmail,
+        enableSmtpAuth:
+          data.enable_auth !== undefined
+            ? Boolean(data.enable_auth)
+            : prev.enableSmtpAuth,
+        enableHtmlEmails:
+          data.enable_html !== undefined
+            ? Boolean(data.enable_html)
+            : prev.enableHtmlEmails,
+      }));
+    }
+  }, [mailSettingsQuery.data]);
 
   const handleSave = async () => {
     if (!formData.smtpHost.trim() || !formData.fromEmail.trim()) {
@@ -95,6 +93,7 @@ export function MailSettingsView() {
         enable_auth: formData.enableSmtpAuth,
         enable_html: formData.enableHtmlEmails,
       });
+      invalidateSettingsQueries(queryClient, "mail");
     } catch {
       // Keep local success UX.
     }
@@ -501,19 +500,9 @@ export function MailSettingsView() {
                       disabled={isTesting}
                       className="h-[44px] px-5 rounded-[6px] border border-[#e2ded7] dark:border-[#38271c] bg-[#fbf7f0] dark:bg-[#281c15] text-[#9c6402] dark:text-[#e29d38] font-bold text-[13px] flex items-center justify-center gap-2 hover:bg-[#f5efe4] dark:hover:bg-[#2f2118] transition-colors cursor-pointer disabled:opacity-60 shrink-0"
                     >
-                      {isTesting ? (
-                        <Loader2 className="size-[16px] animate-spin" />
-                      ) : (
-                        <Send className="size-[16px]" />
-                      )}
+                      <Send className="size-[16px]" />
                       <span>
-                        {isTesting
-                          ? isEn
-                            ? "Sending..."
-                            : "جارٍ الإرسال..."
-                          : isEn
-                            ? "Send Test"
-                            : "إرسال تجريبي"}
+                        {isEn ? "Send Test" : "إرسال تجريبي"}
                       </span>
                     </button>
                   </div>
@@ -552,13 +541,9 @@ export function MailSettingsView() {
                   >
                     <Check className="size-[18px] stroke-[2.5]" />
                     <span>
-                      {isSaving
-                        ? isEn
-                          ? "Saving..."
-                          : "جارٍ الحفظ..."
-                        : isEn
-                          ? "Save Changes"
-                          : "حفظ التغييرات"}
+                      {isEn
+                        ? "Save Changes"
+                        : "حفظ التغييرات"}
                     </span>
                   </button>
                 </div>

@@ -325,7 +325,7 @@ export function AddCurrencyView({ onBack, onSave }: AddCurrencyViewProps) {
               className="bg-[#9c6402] hover:bg-[#835401] active:bg-[#6c4501] text-white px-[32px] py-[10px] rounded-[6px] font-semibold text-[14px] flex items-center gap-[8px] transition-all shadow-[0px_1px_2px_rgba(0,0,0,0.05)] cursor-pointer disabled:opacity-70"
             >
               <Check className="size-[18px] stroke-[2.5]" />
-              <span>{isSubmitting ? (isEn ? "Saving..." : "جارٍ الحفظ...") : (isEn ? "Save Currency" : "حفظ العملة")}</span>
+              <span>{isEn ? "Save Currency" : "حفظ العملة"}</span>
             </button>
 
             <button

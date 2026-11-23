@@ -4,9 +4,10 @@ import React, { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Bell, Calendar, Search, Sun, Moon, ArrowLeftRight, Languages } from "lucide-react";
-import userAvatarImg from "../../../../public/figma/user-avatar.png";
 import { NotificationsFlyout } from "@/features/notifications/components/NotificationsFlyout";
+import { fetchAnnouncements } from "@/lib/api/announcements";
 import { DashboardBreadcrumb, type BreadcrumbSegment } from "@/components/shared/DashboardBreadcrumb";
+import { usePermissions } from "@/lib/permissions";
 import { useUIStore } from "@/stores/use-ui-store";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +18,25 @@ interface DashboardTopNavbarProps {
 export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProps = {}) {
   const [searchValue, setSearchValue] = useState("");
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    fetchAnnouncements({ per_page: 1 })
+      .then((payload) => {
+        if (cancelled) return;
+        const total =
+          (payload as { data?: { total?: number } })?.data?.total ??
+          (Array.isArray((payload as { data?: unknown[] })?.data)
+            ? (payload as { data?: unknown[] }).data?.length
+            : 0);
+        setUnreadCount(Number(total) || 0);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const isMounted = useSyncExternalStore(
     () => () => {},
@@ -33,6 +53,21 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
   const currentLanguage = isMounted ? language : "ar";
   const currentTheme = isMounted ? theme : "light";
   const currentDirection = isMounted ? direction : "rtl";
+
+  const { user: authUser } = usePermissions();
+  const userName = authUser?.name || (currentLanguage === "en" ? "System Admin" : "مشرف النظام");
+  const staffRoleLabel = String(authUser?.roleName || authUser?.staffRole || "");
+  const userRole =
+    authUser?.userType === "office" || authUser?.role === "owner"
+      ? (currentLanguage === "en" ? "Law Firm Account" : "حساب مكتب محاماة")
+      : staffRoleLabel
+        ? staffRoleLabel
+        : (authUser?.role || (currentLanguage === "en" ? "System Super Admin" : "مشرف النظام العام"));
+  const userAvatar =
+    (typeof authUser?.avatar === "string" ? authUser.avatar : null) ||
+    (typeof authUser?.logo === "string" ? authUser.logo : null) ||
+    null;
+  const initialChar = (userName || "م").trim().charAt(0);
 
   return (
     <header
@@ -124,17 +159,20 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
               data-node-id="1:650"
             >
               <Bell className="w-[15px] h-[18px] block text-current" />
-              <span
-                className="absolute top-[4px] start-[6px] size-[12px] rounded-full bg-[#9c6402] text-[#fff3e9] text-[9px] font-bold flex items-center justify-center"
-                data-node-id="1:653"
-              >
-                3
-              </span>
+              {unreadCount > 0 && (
+                <span
+                  className="absolute top-[4px] start-[6px] min-w-[12px] h-[12px] px-0.5 rounded-full bg-[#9c6402] text-[#fff3e9] text-[9px] font-bold flex items-center justify-center"
+                  data-node-id="1:653"
+                >
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
             </button>
 
             <NotificationsFlyout
               isOpen={isNotificationsOpen}
               onClose={() => setIsNotificationsOpen(false)}
+              onUnreadCountChange={setUnreadCount}
             />
           </div>
 
@@ -143,32 +181,35 @@ export function DashboardTopNavbar({ customBreadcrumbs }: DashboardTopNavbarProp
 
           {/* Profile Card */}
           <Link
-            href="/profile"
+            href="/profile/"
+            scroll={false}
             title={currentLanguage === "en" ? "View Profile" : "عرض الملف الشخصي"}
             className="flex items-center gap-[8px] px-2 py-1 -ms-1 rounded-[8px] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] transition-all cursor-pointer group active:scale-[0.98]"
             data-node-id="1:643"
           >
             <div className="flex flex-col text-start">
               <span className="text-[14px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] group-hover:text-[#9c6402] dark:group-hover:text-[#e29d38] leading-[17.5px] font-sans transition-colors">
-                {currentLanguage === "en" ? "Eng. Abdulaziz Bin Fahad" : "م. عبد العزيز بن فهد"}
+                {userName}
               </span>
               <span className="text-[10px] font-semibold text-[#514537] dark:text-[#8e8680] leading-[12.5px]">
-                {currentLanguage === "en" ? "System Super Admin" : "مشرف النظام العام"}
+                {userRole}
               </span>
             </div>
 
             <div
-              className="size-[32px] rounded-full overflow-hidden shrink-0 border border-[#eae8e4] dark:border-[#38271c] group-hover:border-[#9c6402] dark:group-hover:border-[#e29d38] group-hover:ring-2 group-hover:ring-[#9c6402]/30 dark:group-hover:ring-[#e29d38]/30 group-hover:scale-105 transition-all"
+              className="size-[32px] rounded-full overflow-hidden shrink-0 border border-[#eae8e4] dark:border-[#38271c] group-hover:border-[#9c6402] dark:group-hover:border-[#e29d38] group-hover:ring-2 group-hover:ring-[#9c6402]/30 dark:group-hover:ring-[#e29d38]/30 group-hover:scale-105 transition-all flex items-center justify-center bg-[#f5e6d3] dark:bg-[#342217] text-[#8e5927] dark:text-[#f3b353] font-bold text-[13px]"
               data-node-id="1:644"
             >
-              <Image
-                src={userAvatarImg}
-                alt={currentLanguage === "en" ? "Eng. Abdulaziz Bin Fahad" : "م. عبد العزيز بن فهد"}
-                width={32}
-                height={32}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-200"
-                priority
-              />
+              {userAvatar ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={userAvatar}
+                  alt={userName}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-200"
+                />
+              ) : (
+                <span>{initialChar}</span>
+              )}
             </div>
           </Link>
         </div>

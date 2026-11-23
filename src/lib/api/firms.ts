@@ -63,7 +63,34 @@ export async function fetchFirmById(firmId: string | number) {
   );
 }
 
-export async function createFirm(body: Record<string, unknown> | FormData) {
+/** Matches POST /admin/firms plan_type (+ special/unlimited used by VIP offices in this app). */
+export type FirmPlanType =
+  | "trial"
+  | "basic"
+  | "professional"
+  | "enterprise"
+  | "paid"
+  | "special"
+  | "unlimited";
+export type FirmBillingCycle = "yearly" | "monthly";
+
+/** Body of POST /admin/firms — إضافة مكتب محاماة جديد */
+export type CreateFirmPayload = {
+  owner_name: string;
+  name: string;
+  license_number: string;
+  email: string;
+  phone: string;
+  landline: string;
+  city: string;
+  address: string;
+  password: string;
+  plan_type: FirmPlanType;
+  plan_id: number;
+  billing_cycle: FirmBillingCycle;
+};
+
+export async function createFirm(body: CreateFirmPayload | Record<string, unknown> | FormData) {
   return apiRequest("/admin/firms", { method: "POST", body });
 }
 

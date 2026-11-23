@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Coins, CheckCircle2, Clock, AlertTriangle, TrendingUp, ArrowUpRight } from "lucide-react";
+import { Coins, CheckCircle2, Clock, AlertTriangle, ArrowUpRight } from "lucide-react";
 import { InvoiceKpiMetrics } from "../types/invoices.types";
 import { useLanguage } from "@/lib/i18n";
 
@@ -35,13 +35,19 @@ export function InvoicesKpiCards({ metrics }: InvoicesKpiCardsProps) {
             </span>
           </div>
           <p className="text-[11px] text-[#837565] dark:text-[#8e8680] font-mono mt-0.5">
-            ≈ ${metrics.totalRevenueUsd.toLocaleString()} USD
+            {isEn
+              ? `Collected from ${metrics.totalInvoicesCount} invoices`
+              : `محصّل من ${metrics.totalInvoicesCount} فاتورة`}
           </p>
         </div>
 
         <div className="flex items-center gap-1.5 pt-2 border-t border-[#f5f3ef] dark:border-[#38271c] text-[11px] text-[#059669] dark:text-[#10b981] font-bold">
           <ArrowUpRight className="size-3.5" />
-          <span>{isEn ? "+18.4% vs last period" : "+18.4% نمو عن الشهر السابق"}</span>
+          <span>
+            {isEn
+              ? `${metrics.paidCount} fully paid`
+              : `${metrics.paidCount} فاتورة مسددة بالكامل`}
+          </span>
         </div>
       </div>
 
@@ -79,7 +85,11 @@ export function InvoicesKpiCards({ metrics }: InvoicesKpiCardsProps) {
         </div>
 
         <div className="pt-2 border-t border-[#f5f3ef] dark:border-[#38271c] text-[11px] text-[#514537] dark:text-[#cdc5bd]">
-          <span>{isEn ? "Healthy collection rate" : "معدل تحصيل مالي منتظم"}</span>
+          <span>
+            {isEn
+              ? `${metrics.partialCount} partially paid`
+              : `${metrics.partialCount} فاتورة مسددة جزئياً`}
+          </span>
         </div>
       </div>
 
@@ -109,7 +119,11 @@ export function InvoicesKpiCards({ metrics }: InvoicesKpiCardsProps) {
         </div>
 
         <div className="pt-2 border-t border-[#f5f3ef] dark:border-[#38271c] text-[11px] text-[#b45309] dark:text-amber-300/80">
-          <span>{isEn ? "Follow-up notices scheduled" : "إشعارات تذكير مجدولة للمكاتب"}</span>
+          <span>
+            {isEn
+              ? `${metrics.pendingCount} still open`
+              : `${metrics.pendingCount} فاتورة ما زالت مفتوحة`}
+          </span>
         </div>
       </div>
 
@@ -141,7 +155,11 @@ export function InvoicesKpiCards({ metrics }: InvoicesKpiCardsProps) {
         </div>
 
         <div className="pt-2 border-t border-[#f5f3ef] dark:border-[#38271c] text-[11px] text-[#ba1a1a] dark:text-rose-400">
-          <span>{isEn ? "Action required for overdue cards" : "يتطلب تحديث وسيلة الدفع"}</span>
+          <span>
+            {isEn
+              ? `${metrics.overdueCount} overdue • ${metrics.refundedCount} refunded`
+              : `${metrics.overdueCount} متأخرة • ${metrics.refundedCount} مستردة`}
+          </span>
         </div>
       </div>
     </div>

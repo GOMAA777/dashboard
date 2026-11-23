@@ -14,6 +14,8 @@ import {
 import { Employee } from "../types/staff.types";
 import { useLanguage } from "@/lib/i18n";
 import { ModalPortal } from "@/components/shared/ModalPortal";
+import { getAuthUser } from "@/lib/auth-client";
+import type { AdminUser } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 
 interface LoginAsEmployeeModalProps {
@@ -21,6 +23,7 @@ interface LoginAsEmployeeModalProps {
   onClose: () => void;
   employee: Employee | null;
   onConfirm: () => void;
+  isSubmitting?: boolean;
 }
 
 export function LoginAsEmployeeModal({
@@ -28,8 +31,11 @@ export function LoginAsEmployeeModal({
   onClose,
   employee,
   onConfirm,
+  isSubmitting = false,
 }: LoginAsEmployeeModalProps) {
   const { t, direction, isEn } = useLanguage();
+  const authUser = getAuthUser<AdminUser>();
+  const adminDisplayName = authUser?.name || (isEn ? "System Administrator" : "مشرف النظام");
 
   if (!isOpen || !employee) return null;
 
@@ -159,8 +165,8 @@ export function LoginAsEmployeeModal({
                 <div>
                   <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{t("توثيق الجلسة: ", "Session Audit: ")}</span>
                   {t(
-                    "تُسجّل هذه الجلسة الرقابية بالكامل في سجل العمليات باسم المشرف: م. عبد العزيز بن فهد.",
-                    "This supervisory session is logged in audit records under supervisor: Eng. Abdulaziz bin Fahd."
+                    `تُسجّل هذه الجلسة الرقابية بالكامل في سجل العمليات باسم المشرف: ${adminDisplayName}.`,
+                    `This supervisory session is logged in audit records under supervisor: ${adminDisplayName}.`
                   )}
                 </div>
               </div>
@@ -173,7 +179,8 @@ export function LoginAsEmployeeModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2.5 rounded-[6px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae6e0] text-[#514537] dark:text-[#a89f91] text-[13px] font-semibold transition-colors cursor-pointer"
+            disabled={isSubmitting}
+            className="px-4 py-2.5 rounded-[6px] bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae6e0] text-[#514537] dark:text-[#a89f91] text-[13px] font-semibold transition-colors cursor-pointer disabled:opacity-50"
           >
             {t("إلغاء", "Cancel")}
           </button>
@@ -181,7 +188,8 @@ export function LoginAsEmployeeModal({
           <button
             type="button"
             onClick={onConfirm}
-            className="px-5 py-2.5 rounded-[6px] bg-[#9c6402] hover:bg-[#855402] text-white text-[13px] font-bold flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
+            disabled={isSubmitting}
+            className="px-5 py-2.5 rounded-[6px] bg-[#9c6402] hover:bg-[#855402] text-white text-[13px] font-bold flex items-center gap-2 shadow-xs transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <ArrowLeft className={cn("size-[15px]", isEn && "rotate-180")} />
             <span>{t("بدء المعاينة", "Start Preview")}</span>

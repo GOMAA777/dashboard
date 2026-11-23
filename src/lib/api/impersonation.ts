@@ -3,6 +3,20 @@
 import { apiRequest, ApiError } from "./http";
 import type { ApiEnvelope, Paginated } from "./types";
 import { unwrapData, unwrapList } from "./helpers";
+import {
+  OFFICE_ACTIVITY_CATEGORIES,
+  type OfficeActivityCategory,
+  getActivityCategoryMeta,
+  type OfficeActivityInput,
+} from "@/lib/constants/office-activities";
+
+export {
+  OFFICE_ACTIVITY_CATEGORIES,
+  type OfficeActivityCategory,
+  getActivityCategoryMeta,
+  type OfficeActivityInput,
+};
+
 
 function isMissingRouteError(err: unknown): boolean {
   if (err instanceof ApiError) {
@@ -137,14 +151,47 @@ async function fetchAuditLogsAsImpersonation(
   };
 }
 
+
+
+const LOCAL_ACTIVITIES_KEY = "aljudy_impersonation_activities_v1";
+
+export function getLocalActivityLogs(): ImpersonationLog[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(LOCAL_ACTIVITIES_KEY);
+    if (!raw) return [];
+    const list = JSON.parse(raw);
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveLocalActivityLog(log: ImpersonationLog) {
+  if (typeof window === "undefined") return;
+  try {
+    const current = getLocalActivityLogs();
+    const filtered = current.filter((item) => String(item.id) !== String(log.id));
+    const updated = [log, ...filtered];
+    localStorage.setItem(LOCAL_ACTIVITIES_KEY, JSON.stringify(updated.slice(0, 100)));
+  } catch {
+    // Ignore storage failure
+  }
+}
+
 export type ImpersonationLog = {
   id: number | string;
   admin_id?: number | string;
   admin_name?: string;
+  admin_role?: string;
   company_id?: number | string;
   firm_id?: number | string;
   company_name?: string;
   firm_name?: string;
+  activity_type?: string;
+  activity_type_label?: string;
+  reason?: string;
+  ticket_id?: string | null;
   started_at?: string;
   ended_at?: string | null;
   ip?: string | null;
@@ -154,6 +201,8 @@ export type ImpersonationLog = {
 export type ImpersonationLogsParams = {
   company_id?: string | number;
   firm_id?: string | number;
+  activity_type?: string;
+  admin_id?: string | number;
   from?: string;
   to?: string;
   from_date?: string;
@@ -220,6 +269,21 @@ export function mapAuditLogToImpersonation(entry: AuditLogEntry): ImpersonationL
         : new Date(new Date(startedAt).getTime() + 45 * 60 * 1000).toISOString())
     : null;
 
+  const activityType =
+    (entry.details?.activity_type as string) ||
+    (entry.details?.activityType as string) ||
+    "tech_support";
+  const reason =
+    (entry.details?.reason as string) ||
+    (entry.details?.note as string) ||
+    (entry.action?.includes("معاينة")
+      ? "معاينة إشرافية وتدقيق حالة المكتب"
+      : entry.action || "متابعة دورية للمكتب");
+  const ticketId =
+    (entry.details?.ticket_id as string) ||
+    (entry.details?.ticketId as string) ||
+    null;
+
   return {
     id: entry.id,
     admin_id: entry.staff_id || 1,
@@ -228,6 +292,10 @@ export function mapAuditLogToImpersonation(entry: AuditLogEntry): ImpersonationL
     firm_id: companyId,
     company_name: firmName || `مكتب #${companyId || entry.id}`,
     firm_name: firmName || `مكتب #${companyId || entry.id}`,
+    activity_type: activityType,
+    activity_type_label: getActivityCategoryMeta(activityType).labelAr,
+    reason: reason,
+    ticket_id: ticketId,
     started_at: startedAt,
     ended_at: endedAt,
     ip: entry.ip_address || "154.183.141.231",
@@ -259,11 +327,23 @@ function pickToken(source: unknown): string | null {
  * Returns a firm-owner session token used to open the lawyer app.
  */
 export async function issueFirmImpersonation(
-  firmId: string | number
+  firmId: string | number,
+  activity?: OfficeActivityInput
 ): Promise<LoginAsFirmResult> {
+  const body = activity
+    ? {
+        activity_type: activity.activityType,
+        reason: activity.reason,
+        ticket_id: activity.ticketId,
+      }
+    : undefined;
+
   const response = await apiRequest<
     ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
-  >(`/admin/utility/login-as-firm/${firmId}`, { method: "POST" });
+  >(`/admin/utility/login-as-firm/${firmId}`, {
+    method: "POST",
+    ...(body ? { body } : {}),
+  });
 
   const data =
     (unwrapData<Record<string, unknown>>(response) as Record<string, unknown>) ||
@@ -304,6 +384,14 @@ export async function endFirmImpersonation() {
 export async function fetchImpersonationLogs(
   params: ImpersonationLogsParams = {}
 ) {
+  let result: {
+    items: ImpersonationLog[];
+    total: number;
+    page: number;
+    perPage: number;
+    raw: unknown;
+  };
+
   try {
     const response = await apiRequest<
       | ApiEnvelope<Paginated<ImpersonationLog> | ImpersonationLog[]>
@@ -314,6 +402,8 @@ export async function fetchImpersonationLogs(
       query: {
         company_id: params.company_id,
         firm_id: params.firm_id,
+        activity_type: params.activity_type,
+        admin_id: params.admin_id,
         from: params.from || params.from_date,
         to: params.to || params.to_date,
         status: params.status,
@@ -345,17 +435,14 @@ export async function fetchImpersonationLogs(
       perPage = Number(obj.per_page ?? perPage);
     }
 
-    return { items, total, page, perPage, raw: response };
+    result = { items, total, page, perPage, raw: response };
   } catch (err: unknown) {
-    // Endpoint is still pending on some environments — fall back to audit logs.
     if (isMissingRouteError(err)) {
       try {
-        return await fetchAuditLogsAsImpersonation(params);
+        result = await fetchAuditLogsAsImpersonation(params);
       } catch (fallbackErr) {
         console.warn("Audit logs fallback failed:", fallbackErr);
-        // Known-missing primary route: degrade to empty list (UI empty state)
-        // instead of surfacing raw English Laravel 404 text.
-        return {
+        result = {
           items: [],
           total: 0,
           page: params.page || 1,
@@ -363,10 +450,88 @@ export async function fetchImpersonationLogs(
           raw: null,
         };
       }
+    } else {
+      throw err;
     }
-
-    throw err;
   }
+
+  // Merge with locally recorded activity logs so that recently logged activities are never lost
+  const localLogs = getLocalActivityLogs();
+  const existingIds = new Set(result.items.map((i) => String(i.id)));
+  const mergedItems = [...result.items];
+
+  for (const local of localLogs) {
+    if (!existingIds.has(String(local.id))) {
+      mergedItems.unshift(local);
+      existingIds.add(String(local.id));
+    } else {
+      // Enrich existing remote items with local reason/activity metadata if missing remotely
+      const idx = mergedItems.findIndex((m) => String(m.id) === String(local.id));
+      if (idx !== -1) {
+        mergedItems[idx] = {
+          ...mergedItems[idx],
+          activity_type: mergedItems[idx].activity_type || local.activity_type,
+          activity_type_label: mergedItems[idx].activity_type_label || local.activity_type_label,
+          reason: mergedItems[idx].reason || local.reason,
+          ticket_id: mergedItems[idx].ticket_id || local.ticket_id,
+        };
+      }
+    }
+  }
+
+  // Apply in-memory filters for activity_type, admin_id, and search
+  let filtered = mergedItems.map((item) => {
+    const actType = item.activity_type || "tech_support";
+    return {
+      ...item,
+      activity_type: actType,
+      activity_type_label: item.activity_type_label || getActivityCategoryMeta(actType).labelAr,
+    };
+  });
+
+  if (params.activity_type && params.activity_type !== "all") {
+    filtered = filtered.filter((i) => i.activity_type === params.activity_type);
+  }
+
+  if (params.admin_id && params.admin_id !== "all") {
+    filtered = filtered.filter(
+      (i) => String(i.admin_id) === String(params.admin_id) || i.admin_name?.includes(String(params.admin_id))
+    );
+  }
+
+  if (params.firm_id && params.firm_id !== "all") {
+    filtered = filtered.filter((i) => {
+      const fid = i.company_id ?? i.firm_id;
+      if (fid == null) return true;
+      return String(fid) === String(params.firm_id);
+    });
+  }
+
+  if (params.status === "active") {
+    filtered = filtered.filter((i) => !i.ended_at);
+  } else if (params.status === "ended" || params.status === "suspended") {
+    filtered = filtered.filter((i) => Boolean(i.ended_at));
+  }
+
+  if (params.search && params.search.trim()) {
+    const s = params.search.trim().toLowerCase();
+    filtered = filtered.filter(
+      (i) =>
+        String(i.company_name || i.firm_name || "").toLowerCase().includes(s) ||
+        String(i.admin_name || "").toLowerCase().includes(s) ||
+        String(i.reason || "").toLowerCase().includes(s) ||
+        String(i.ticket_id || "").toLowerCase().includes(s) ||
+        String(i.id).includes(s)
+    );
+  }
+
+  return {
+    items: filtered,
+    total: Math.max(result.total, filtered.length),
+    page: result.page,
+    perPage: result.perPage,
+    raw: result.raw,
+  };
 }
 
 export async function fetchImpersonationLogDetails(sessionId: string | number) {

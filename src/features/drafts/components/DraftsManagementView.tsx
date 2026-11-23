@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -8,6 +8,7 @@ import {
   Trash2,
   ExternalLink,
   Search,
+  ChevronDown,
   SlidersHorizontal,
   Clock,
   Calendar,
@@ -58,6 +59,8 @@ export function DraftsManagementView() {
   const [activeTab, setActiveTab] = useState<TabFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | "title">("newest");
+  const [sortOpen, setSortOpen] = useState(false);
+  const sortMenuRef = useRef<HTMLDivElement>(null);
   const [draftToDelete, setDraftToDelete] = useState<DraftItem | null>(null);
   const [isClearAllDialogOpen, setIsClearAllDialogOpen] = useState(false);
 
@@ -205,8 +208,37 @@ export function DraftsManagementView() {
     );
   };
 
+  useEffect(() => {
+    if (!sortOpen) return;
+
+    function handlePointerDown(event: MouseEvent) {
+      if (sortMenuRef.current && !sortMenuRef.current.contains(event.target as Node)) {
+        setSortOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setSortOpen(false);
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [sortOpen]);
+
+  const sortOptions = [
+    { value: "newest" as const, label: isEn ? "Newest" : "الأحدث حفظاً" },
+    { value: "oldest" as const, label: isEn ? "Oldest" : "الأقدم حفظاً" },
+    { value: "title" as const, label: isEn ? "Title (A-Z)" : "الأبجدي (أ - ي)" },
+  ];
+  const currentSortLabel = sortOptions.find((option) => option.value === sortOrder)?.label;
+
   const breadcrumbs = [
     { label: isEn ? "Dashboard" : "لوحة التحكم", href: "/" },
+    { label: isEn ? "System Settings" : "إعدادات النظام", href: "/settings/general" },
     { label: isEn ? "Drafts" : "المسودات" },
   ];
 
@@ -215,7 +247,7 @@ export function DraftsManagementView() {
       dir={direction}
       className="flex h-screen h-dvh overflow-hidden bg-background text-foreground transition-colors duration-200 font-sans antialiased"
     >
-      <DashboardSidebar activeNav="drafts" />
+      <DashboardSidebar activeNav="system-settings" activeSubNav="drafts" />
 
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
         <DashboardTopNavbar customBreadcrumbs={breadcrumbs} />
@@ -333,15 +365,53 @@ export function DraftsManagementView() {
                   )}
                 </div>
 
-                <select
-                  value={sortOrder}
-                  onChange={(e) => setSortOrder(e.target.value as any)}
-                  className="h-[38px] px-3 text-[12px] font-semibold rounded-lg bg-[#f5f3ef] dark:bg-[#1a120d] border border-transparent dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] cursor-pointer focus:outline-none"
-                >
-                  <option value="newest">{isEn ? "Newest" : "الأحدث حفظاً"}</option>
-                  <option value="oldest">{isEn ? "Oldest" : "الأقدم حفظاً"}</option>
-                  <option value="title">{isEn ? "Title (A-Z)" : "الأبجدي (أ - ي)"}</option>
-                </select>
+                <div ref={sortMenuRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setSortOpen((open) => !open)}
+                    aria-haspopup="listbox"
+                    aria-expanded={sortOpen}
+                    className="h-[38px] px-3 text-[12px] font-semibold rounded-lg bg-[#f5f3ef] dark:bg-[#1a120d] border border-transparent dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] flex items-center gap-2"
+                  >
+                    <span className="whitespace-nowrap">{currentSortLabel}</span>
+                    <ChevronDown
+                      className={cn(
+                        "size-3.5 text-[#837565] dark:text-[#a89f91] transition-transform",
+                        sortOpen && "rotate-180"
+                      )}
+                    />
+                  </button>
+                  {sortOpen && (
+                    <div
+                      role="listbox"
+                      className="absolute end-0 top-[calc(100%+4px)] z-30 min-w-full overflow-hidden rounded-lg border border-[#e6e2dc] dark:border-[#38271c] bg-white dark:bg-[#221812] py-1 shadow-md"
+                    >
+                      {sortOptions.map((option) => {
+                        const selected = sortOrder === option.value;
+                        return (
+                          <button
+                            key={option.value}
+                            type="button"
+                            role="option"
+                            aria-selected={selected}
+                            onClick={() => {
+                              setSortOrder(option.value);
+                              setSortOpen(false);
+                            }}
+                            className={cn(
+                              "w-full cursor-pointer whitespace-nowrap px-3 py-2 text-start text-[12px] font-semibold transition-colors",
+                              selected
+                                ? "bg-[#9c6402] text-white dark:bg-[#e29d38] dark:text-[#1c140f]"
+                                : "text-[#514537] hover:bg-[#fbf6ec] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#281c15] dark:hover:text-[#e29d38]"
+                            )}
+                          >
+                            {option.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -363,19 +433,19 @@ export function DraftsManagementView() {
                 </div>
                 <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
                   <Link
-                    href="/notifications?view=new"
+                    href="/notifications/?view=new"
                     className="px-4 py-2 text-[12px] font-semibold rounded-xl bg-[#f0eeea] hover:bg-[#e4e2de] dark:bg-[#281c15] dark:hover:bg-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] transition-colors"
                   >
                     {isEn ? "+ Create Notification" : "+ إنشاء إشعار"}
                   </Link>
                   <Link
-                    href="/plans"
+                    href="/plans/"
                     className="px-4 py-2 text-[12px] font-semibold rounded-xl bg-[#f0eeea] hover:bg-[#e4e2de] dark:bg-[#281c15] dark:hover:bg-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] transition-colors"
                   >
                     {isEn ? "+ Create Plan" : "+ إنشاء باقة"}
                   </Link>
                   <Link
-                    href="/permissions?tab=staff"
+                    href="/permissions/?tab=staff"
                     className="px-4 py-2 text-[12px] font-semibold rounded-xl bg-[#f0eeea] hover:bg-[#e4e2de] dark:bg-[#281c15] dark:hover:bg-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] transition-colors"
                   >
                     {isEn ? "+ Add Employee" : "+ إضافة موظف"}

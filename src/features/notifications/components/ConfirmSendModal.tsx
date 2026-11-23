@@ -244,11 +244,7 @@ export function ConfirmSendModal({
           >
             <Send className="size-3.5" />
             <span>
-              {isSending
-                ? isEn
-                  ? "Sending..."
-                  : "جارٍ الإرسال..."
-                : isEn
+              {isEn
                 ? "Confirm & Send Notification"
                 : "تأكيد وإرسال الإشعار"}
             </span>

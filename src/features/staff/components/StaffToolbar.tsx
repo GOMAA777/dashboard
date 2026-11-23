@@ -91,6 +91,29 @@ export function StaffToolbar({
           </option>
         </DashboardSelect>
       </div>
+
+      {/* Last Login Filter */}
+      {onLastLoginChange && (
+        <div className="space-y-2">
+          <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
+            {t("آخر تسجيل دخول", "Last Login")}
+          </label>
+          <DashboardSelect
+            value={selectedLastLogin || "all"}
+            onChange={(e) => onLastLoginChange(e.target.value)}
+          >
+            <option value="all" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+              {t("الكل", "All")}
+            </option>
+            <option value="today" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+              {t("اليوم", "Today")}
+            </option>
+            <option value="week" className="bg-white dark:bg-[#221812] text-[#1b1c1a] dark:text-[#fdfbf7]">
+              {t("خلال هذا الأسبوع", "This Week")}
+            </option>
+          </DashboardSelect>
+        </div>
+      )}
     </div>
   );
 

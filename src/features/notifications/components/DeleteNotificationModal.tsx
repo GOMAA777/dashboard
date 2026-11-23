@@ -141,11 +141,7 @@ export function DeleteNotificationModal({
           >
             <Trash2 className="size-3.5" />
             <span>
-              {isDeleting
-                ? isEn
-                  ? "Deleting..."
-                  : "جارٍ الحذف..."
-                : isEn
+              {isEn
                 ? "Confirm Delete Notification"
                 : "تأكيد حذف الإشعار"}
             </span>

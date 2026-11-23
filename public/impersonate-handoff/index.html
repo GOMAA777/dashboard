@@ -737,7 +737,8 @@
           if (window.opener) {
             window.close();
           } else {
-            window.location.replace("https://law.elmoroj.com/dashboard/accounts");
+            var returnUrl = query.get("return_url") || "https://tibyanii.com/dashboard/accounts";
+            window.location.replace(returnUrl);
           }
         };
       })();

@@ -154,16 +154,8 @@ export function SendFailureModal({
             disabled={isRetrying}
             className="bg-[#9c6403] hover:bg-[#855402] text-[#fff3e9] text-[12px] font-bold px-6 py-2 rounded-[4px] flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer disabled:opacity-50"
           >
-            <RotateCw className={`size-3.5 ${isRetrying ? "animate-spin" : ""}`} />
-            <span>
-              {isRetrying
-                ? isEn
-                  ? "Retrying..."
-                  : "جارٍ المحاولة..."
-                : isEn
-                ? "Retry Now"
-                : "إعادة المحاولة"}
-            </span>
+            <RotateCw className="size-3.5" />
+            <span>{isEn ? "Retry Now" : "إعادة المحاولة"}</span>
           </button>
         </div>
       </div>

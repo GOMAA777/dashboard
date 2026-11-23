@@ -27,12 +27,24 @@ import { TicketDetailsModal } from "./TicketDetailsModal";
 import { ChangeAssigneeModal } from "./ChangeAssigneeModal";
 import { ChangeStatusModal } from "./ChangeStatusModal";
 import { DepartmentsSection } from "./DepartmentsSection";
-import { AddDepartmentModal } from "./AddDepartmentModal";
+import {
+  DepartmentFormView,
+  type DepartmentFormValues,
+} from "./DepartmentFormView";
+import { DepartmentDetailsView } from "./DepartmentDetailsView";
 import { DeleteDepartmentModal } from "./DeleteDepartmentModal";
 import { useLanguage } from "@/lib/i18n";
+import { clearAuthSession, getAccessToken, redirectToLogin } from "@/lib/auth-client";
+import { useQueryClient } from "@tanstack/react-query";
 import {
-  fetchTickets,
-  fetchTicketsStats,
+  useTicketsQuery,
+  useTicketStatsQuery,
+  useDepartmentsQuery,
+  invalidateTicketsQueries,
+} from "../hooks/useTicketsQuery";
+import { useStaffQuery } from "@/features/staff/hooks/useStaffQuery";
+import { useFirmsQuery } from "@/features/clients/hooks/useClientsQuery";
+import {
   fetchTicketById,
   createTicket,
   assignTicket,
@@ -42,14 +54,11 @@ import {
   CreateTicketPayload,
 } from "@/lib/api/tickets";
 import {
-  fetchDepartments,
   fetchDepartmentById,
   createDepartment,
   updateDepartment,
   deleteDepartment,
 } from "@/lib/api/departments";
-import { fetchStaff } from "@/lib/api/staff";
-import { fetchFirms } from "@/lib/api/firms";
 import { mapDepartmentFromApi } from "@/lib/api/mappers";
 import {
   mapTicketsResponse,
@@ -64,27 +73,14 @@ export function TicketsView() {
 
   // Navigation & View Mode driven by URL query param ?tab=tickets or ?tab=departments
   const [tabParam] = useQueryState("tab", { defaultValue: "tickets" });
+  const [companyIdParam, setCompanyIdParam] = useQueryState("company_id", { defaultValue: "" });
   const activeTab: TicketTabType = tabParam === "departments" ? "departments" : "tickets";
   const [isCreatingTicket, setIsCreatingTicket] = useState(false);
   const [selectedTicketForDetails, setSelectedTicketForDetails] = useState<Ticket | null>(null);
 
-  // Data state
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [departments, setDepartments] = useState<TicketDepartment[]>([]);
-  const [assignees, setAssignees] = useState<TicketAssignee[]>([]);
-  const [clients, setClients] = useState<TicketClient[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const [apiTicketStats, setApiTicketStats] = useState<{
-    open?: number;
-    in_progress?: number;
-    pending?: number;
-    closed?: number;
-  } | null>(null);
-
   // Filter state for tickets
   const [filterStatus, setFilterStatus] = useState<TicketFilterStatus>("all");
+  const [filterChannel, setFilterChannel] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
   // Modals state
@@ -92,99 +88,114 @@ export function TicketsView() {
   const [isAssigning, setIsAssigning] = useState(false);
   const [statusModalTicket, setStatusModalTicket] = useState<Ticket | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
-  const [isAddDeptModalOpen, setIsAddDeptModalOpen] = useState(false);
+  const [deptViewMode, setDeptViewMode] = useState<"list" | "create" | "edit" | "details">("list");
+  const [editingDept, setEditingDept] = useState<TicketDepartment | null>(null);
+  const [viewingDept, setViewingDept] = useState<TicketDepartment | null>(null);
+  const [isSavingDept, setIsSavingDept] = useState(false);
   const [deptToDelete, setDeptToDelete] = useState<TicketDepartment | null>(null);
 
-  const loadData = useCallback(async () => {
-    setError(null);
-    try {
-      const [ticketsPayload, deptsPayload, statsPayload, staffPayload, firmsPayload] =
-        await Promise.all([
-          fetchTickets({
-            status: filterStatus === "all" ? undefined : filterStatus,
-            search: searchQuery.trim() || undefined,
-          }),
-          fetchDepartments().catch(() => null),
-          fetchTicketsStats().catch(() => null),
-          fetchStaff().catch(() => null),
-          fetchFirms({ per_page: 100 }).catch(() => null),
-        ]);
+  const queryClient = useQueryClient();
 
-      const mappedTickets = mapTicketsResponse(ticketsPayload);
-      setTickets(mappedTickets);
+  // Queries (with 5-minute stale caching & instant retrieval)
+  const ticketsQuery = useTicketsQuery({
+    company_id: companyIdParam || undefined,
+  });
+  const ticketStatsQuery = useTicketStatsQuery(
+    companyIdParam ? { company_id: companyIdParam } : undefined
+  );
+  const departmentsQuery = useDepartmentsQuery();
+  const staffQuery = useStaffQuery();
+  const firmsQuery = useFirmsQuery({ per_page: 100 });
 
-      if (deptsPayload) {
-        const mappedDepts = mapDepartmentsResponse(deptsPayload);
-        if (mappedDepts.length > 0) setDepartments(mappedDepts);
-      }
-
-      if (statsPayload) {
-        setApiTicketStats({
-          open: readStats(statsPayload, ["open", "open_tickets"], 0),
-          in_progress: readStats(
-            statsPayload,
-            ["in_progress", "in_progress_tickets"],
-            0
-          ),
-          pending: readStats(statsPayload, ["pending", "pending_tickets"], 0),
-          closed: readStats(statsPayload, ["closed", "closed_tickets"], 0),
-        });
-      }
-
-      if (staffPayload) {
-        const staffList = unwrapList<Record<string, unknown>>(staffPayload);
-        if (staffList.length > 0) {
-          const mappedStaff: TicketAssignee[] = staffList.map((s, idx) => {
-            const name = String(s.name || s.username || `موظف ${idx + 1}`);
-            return {
-              id: String(s.id || idx + 1),
-              name,
-              initials: name.trim().slice(0, 2) || "م",
-              role: String(s.role_name || s.role || "أخصائي دعم فني"),
-              department: String(s.department_name || s.department || "الدعم الفني"),
-              activeTicketsCount: Number(s.active_tickets_count || s.active_tickets || 0),
-              isAvailable: s.status === "active" || s.is_active === true,
-            };
-          });
-          setAssignees(mappedStaff);
-        }
-      }
-
-      if (firmsPayload) {
-        const firmsList = unwrapList<Record<string, unknown>>(firmsPayload);
-        if (firmsList.length > 0) {
-          const mappedClients: TicketClient[] = firmsList.map((f, idx) => ({
-            id: String(f.id || idx + 1),
-            name: String(f.owner_name || f.owner || f.name || "المسؤول"),
-            firm: String(f.name || f.firm_name || "مكتب محاماة"),
-            email: String(f.email || "support@client.com"),
-            phone: String(f.phone || "+966 50 000 0000"),
-            crNumber: String(f.tax_number || f.license_number || f.cr_number || "—"),
-          }));
-          setClients(mappedClients);
-        }
-      }
-    } catch (err) {
-      console.warn("Failed to load tickets:", err);
-      setError(
-        isEn
-          ? "Failed to load support tickets. Please verify your connection."
-          : "تعذر استرجاع تذاكر الدعم الفني. يرجى التحقق من الاتصال وإعادة المحاولة."
-      );
-    } finally {
-      setIsLoading(false);
+  // Data state derived from cached queries
+  const tickets = useMemo<Ticket[]>(() => {
+    if (ticketsQuery.data) {
+      return mapTicketsResponse(ticketsQuery.data);
     }
-  }, [filterStatus, searchQuery, isEn]);
+    return [];
+  }, [ticketsQuery.data]);
 
-  useEffect(() => {
-    let cancelled = false;
-    loadData().then(() => {
-      if (cancelled) return;
-    });
-    return () => {
-      cancelled = true;
+  const departments = useMemo<TicketDepartment[]>(() => {
+    if (departmentsQuery.data) {
+      const mapped = mapDepartmentsResponse(departmentsQuery.data);
+      if (mapped.length > 0) return mapped;
+    }
+    return [];
+  }, [departmentsQuery.data]);
+
+  const apiTicketStats = useMemo(() => {
+    if (!ticketStatsQuery.data) return null;
+    return {
+      open: readStats(ticketStatsQuery.data, ["open", "open_tickets"], 0),
+      in_progress: readStats(
+        ticketStatsQuery.data,
+        ["in_progress", "in_progress_tickets"],
+        0
+      ),
+      pending: readStats(ticketStatsQuery.data, ["pending", "pending_tickets"], 0),
+      closed: readStats(ticketStatsQuery.data, ["closed", "closed_tickets"], 0),
     };
-  }, [loadData]);
+  }, [ticketStatsQuery.data]);
+
+  const assignees = useMemo<TicketAssignee[]>(() => {
+    if (!staffQuery.data) return [];
+    const staffList = unwrapList<Record<string, unknown>>(staffQuery.data);
+    return staffList.map((s, idx) => {
+      const name = String(s.name || s.username || `موظف ${idx + 1}`);
+      return {
+        id: String(s.id || idx + 1),
+        name,
+        initials: name.trim().slice(0, 2) || "م",
+        role: String(s.role_name || s.role || "أخصائي دعم فني"),
+        department: String(s.department_name || s.department || "الدعم الفني"),
+        activeTicketsCount: Number(s.active_tickets_count || s.active_tickets || 0),
+        isAvailable: s.status === "active" || s.is_active === true,
+      };
+    });
+  }, [staffQuery.data]);
+
+  const clients = useMemo<TicketClient[]>(() => {
+    if (!firmsQuery.data) return [];
+    const firmsList = unwrapList<Record<string, unknown>>(firmsQuery.data);
+    return firmsList.map((f, idx) => ({
+      id: String(f.id || idx + 1),
+      name: String(f.owner_name || f.owner || f.name || "المسؤول"),
+      firm: String(f.name || f.firm_name || "مكتب محاماة"),
+      email: String(f.email || "support@client.com"),
+      phone: String(f.phone || "+966 50 000 0000"),
+      crNumber: String(f.tax_number || f.license_number || f.cr_number || "—"),
+    }));
+  }, [firmsQuery.data]);
+
+  const companiesForFilter = useMemo(() => {
+    return clients.map((c) => ({
+      id: c.id,
+      name: c.firm ? `${c.firm} (${c.name})` : c.name,
+    }));
+  }, [clients]);
+
+  // Loading and Error states
+  const isLoading = ticketsQuery.isLoading && tickets.length === 0;
+  const isDeptsLoading = departmentsQuery.isLoading && departments.length === 0;
+  const ticketsError = ticketsQuery.error instanceof Error ? ticketsQuery.error.message : null;
+  const error = ticketsError;
+  const authRequired = Boolean(
+    (ticketsQuery.error &&
+      typeof ticketsQuery.error === "object" &&
+      "status" in ticketsQuery.error &&
+      (ticketsQuery.error as { status?: number }).status === 401) ||
+      !getAccessToken()
+  );
+
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([
+      ticketsQuery.refetch(),
+      ticketStatsQuery.refetch(),
+      departmentsQuery.refetch(),
+      staffQuery.refetch(),
+      firmsQuery.refetch(),
+    ]);
+  }, [ticketsQuery, ticketStatsQuery, departmentsQuery, staffQuery, firmsQuery]);
 
   // Counts
   const counts = useMemo(() => {
@@ -205,6 +216,9 @@ export function TicketsView() {
       if (filterStatus === "in_progress" && ticket.status !== "in_progress") return false;
       if (filterStatus === "closed" && ticket.status !== "closed") return false;
 
+      // Channel filter
+      if (filterChannel !== "all" && ticket.channel !== filterChannel) return false;
+
       // Search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
@@ -218,7 +232,7 @@ export function TicketsView() {
 
       return true;
     });
-  }, [tickets, filterStatus, searchQuery]);
+  }, [tickets, filterStatus, filterChannel, searchQuery]);
 
   // Handlers: Tickets
   const handleSaveNewTicket = async (
@@ -251,7 +265,7 @@ export function TicketsView() {
       );
 
       setIsCreatingTicket(false);
-      await loadData();
+      await invalidateTicketsQueries(queryClient);
       return true;
     } catch (err: unknown) {
       const errObj = err as { status?: number; body?: unknown };
@@ -289,7 +303,7 @@ export function TicketsView() {
       );
 
       setAssigneeModalTicket(null);
-      await loadData();
+      await invalidateTicketsQueries(queryClient);
 
       if (selectedTicketForDetails?.id === assigneeModalTicket.id) {
         const detail = await fetchTicketById(assigneeModalTicket.id);
@@ -332,7 +346,7 @@ export function TicketsView() {
       );
 
       setStatusModalTicket(null);
-      await loadData();
+      await invalidateTicketsQueries(queryClient);
 
       if (selectedTicketForDetails?.id === statusModalTicket.id) {
         const detail = await fetchTicketById(statusModalTicket.id);
@@ -365,7 +379,7 @@ export function TicketsView() {
         )
       );
 
-      await loadData();
+      await invalidateTicketsQueries(queryClient);
 
       if (selectedTicketForDetails?.id === ticketId) {
         const detail = await fetchTicketById(ticketId);
@@ -410,48 +424,76 @@ export function TicketsView() {
   };
 
   // Handlers: Departments
-  const handleSaveDepartment = async (newDept: TicketDepartment) => {
-    const exists = departments.some((d) => d.id === newDept.id);
+  const handleBackToDeptList = () => {
+    setDeptViewMode("list");
+    setEditingDept(null);
+    setViewingDept(null);
+  };
+
+  const handleViewDepartment = async (dept: TicketDepartment) => {
+    setViewingDept(dept);
+    setDeptViewMode("details");
     try {
-      if (exists) {
-        await updateDepartment(newDept.id, {
-          name: newDept.name,
-          code: newDept.code,
-          description: newDept.description,
-          status: newDept.status,
+      const detail = await fetchDepartmentById(dept.id);
+      const raw = (unwrapData<Record<string, unknown>>(detail) || detail) as Record<
+        string,
+        unknown
+      >;
+      if (raw?.id || raw?.name) {
+        setViewingDept(mapDepartmentFromApi(raw));
+      }
+    } catch {
+      // Keep list item details
+    }
+  };
+
+  const handleSaveDepartment = async (values: DepartmentFormValues) => {
+    setIsSavingDept(true);
+    try {
+      if (values.id) {
+        await updateDepartment(values.id, {
+          name: values.name,
+          code: values.code,
+          description: values.description,
+          status: values.status,
         });
-        const detail = await fetchDepartmentById(newDept.id);
-        const raw = (unwrapData<Record<string, unknown>>(detail) || detail) as Record<string, unknown>;
+        const detail = await fetchDepartmentById(values.id);
+        const raw = (unwrapData<Record<string, unknown>>(detail) || detail) as Record<
+          string,
+          unknown
+        >;
         if (raw?.id || raw?.name) {
           const mapped = mapDepartmentFromApi(raw);
-          setDepartments((prev) =>
-            prev.map((d) => (d.id === mapped.id ? mapped : d))
-          );
-          setIsAddDeptModalOpen(false);
-          toast.success(
-            isEn
-              ? `Department "${newDept.name}" updated successfully`
-              : `تم تحديث قسم "${newDept.name}" بنجاح`
-          );
-          return;
+          setViewingDept(mapped);
         }
-      } else {
-        await createDepartment({
-          name: newDept.name,
-          code: newDept.code,
-          description: newDept.description,
-          status: newDept.status,
-        });
+        await invalidateTicketsQueries(queryClient);
+        setDeptViewMode("list");
+        setEditingDept(null);
+        toast.success(
+          isEn
+            ? `Department "${values.name}" updated successfully`
+            : `تم تحديث قسم "${values.name}" بنجاح`
+        );
+        return;
       }
-      await loadData();
-      setIsAddDeptModalOpen(false);
+
+      await createDepartment({
+        name: values.name,
+        code: values.code,
+        description: values.description,
+        status: values.status,
+      });
+      await invalidateTicketsQueries(queryClient);
+      setDeptViewMode("list");
       toast.success(
         isEn
-          ? `Department "${newDept.name}" added successfully`
-          : `تمت إضافة قسم "${newDept.name}" بنجاح`
+          ? `Department "${values.name}" added successfully`
+          : `تمت إضافة قسم "${values.name}" بنجاح`
       );
     } catch {
       toast.error(isEn ? "Failed to save department" : "تعذر حفظ القسم");
+    } finally {
+      setIsSavingDept(false);
     }
   };
 
@@ -459,14 +501,13 @@ export function TicketsView() {
     const targetDept = departments.find((d) => d.id === deptId);
     try {
       await deleteDepartment(deptId);
-      setDepartments((prev) => prev.filter((d) => d.id !== deptId));
       setDeptToDelete(null);
       toast.success(
         isEn
           ? `Department "${targetDept?.name || ""}" deleted successfully`
           : `تم حذف القسم "${targetDept?.name || ""}" بنجاح`
       );
-      await loadData();
+      await invalidateTicketsQueries(queryClient);
     } catch {
       toast.error(isEn ? "Failed to delete department" : "تعذر حذف القسم");
     }
@@ -474,7 +515,7 @@ export function TicketsView() {
 
   const breadcrumbs = selectedTicketForDetails
     ? [
-        { label: t("تذاكر الدعم الفني", "Support Tickets"), href: "/tickets" },
+        { label: t("تذاكر خدمة العملاء", "Customer Service Tickets"), href: "/tickets" },
         {
           label: isEn
             ? `Ticket ${selectedTicketForDetails.ticketNumber || selectedTicketForDetails.id}`
@@ -483,15 +524,33 @@ export function TicketsView() {
       ]
     : isCreatingTicket
     ? [
-        { label: t("تذاكر الدعم الفني", "Support Tickets"), href: "/tickets" },
+        { label: t("تذاكر خدمة العملاء", "Customer Service Tickets"), href: "/tickets" },
         { label: t("إنشاء تذكرة جديدة", "Create New Ticket") },
+      ]
+    : activeTab === "departments" && deptViewMode === "create"
+    ? [
+        { label: t("الأقسام", "Departments"), href: "/tickets?tab=departments" },
+        { label: t("إضافة قسم جديد", "Add New Department") },
+      ]
+    : activeTab === "departments" && deptViewMode === "edit"
+    ? [
+        { label: t("الأقسام", "Departments"), href: "/tickets?tab=departments" },
+        { label: t("تعديل القسم", "Edit Department") },
+      ]
+    : activeTab === "departments" && deptViewMode === "details"
+    ? [
+        { label: t("الأقسام", "Departments"), href: "/tickets?tab=departments" },
+        { label: viewingDept?.name || t("تفاصيل القسم", "Department Details") },
       ]
     : undefined;
 
   return (
     <div dir={direction} className="flex h-screen h-dvh overflow-hidden bg-background text-foreground transition-colors duration-200 antialiased select-none">
-      {/* Sidebar with activeNav="support" and activeSubNav={activeTab} */}
-      <DashboardSidebar activeNav="support" activeSubNav={activeTab} />
+      {/* Sidebar: tickets under Clients group; departments stay under Staff */}
+      <DashboardSidebar
+        activeNav={activeTab === "departments" ? "staff" : "clients"}
+        activeSubNav={activeTab}
+      />
 
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
         {/* Top Navbar */}
@@ -516,41 +575,91 @@ export function TicketsView() {
                 departments={departments}
                 assignees={assignees}
                 clients={clients}
+                initialCompanyId={companyIdParam || undefined}
                 onBack={() => setIsCreatingTicket(false)}
                 onSaveTicket={handleSaveNewTicket}
               />
+            ) : activeTab === "departments" && deptViewMode === "create" ? (
+              <DepartmentFormView
+                mode="create"
+                onBack={handleBackToDeptList}
+                onSave={handleSaveDepartment}
+                isSubmitting={isSavingDept}
+              />
+            ) : activeTab === "departments" && deptViewMode === "edit" && editingDept ? (
+              <DepartmentFormView
+                mode="edit"
+                initialData={editingDept}
+                onBack={handleBackToDeptList}
+                onSave={handleSaveDepartment}
+                isSubmitting={isSavingDept}
+              />
+            ) : activeTab === "departments" && deptViewMode === "details" && viewingDept ? (
+              <DepartmentDetailsView
+                department={viewingDept}
+                onBack={handleBackToDeptList}
+                onEdit={(dept) => {
+                  setEditingDept(dept);
+                  setDeptViewMode("edit");
+                }}
+              />
+            ) : activeTab === "departments" && isDeptsLoading ? (
+              <DashboardPageSkeleton />
             ) : activeTab === "departments" ? (
               /* VIEW 3: Departments Section */
               <DepartmentsSection
                 departments={departments}
-                onOpenAddModal={() => setIsAddDeptModalOpen(true)}
+                onOpenAddModal={() => {
+                  setEditingDept(null);
+                  setDeptViewMode("create");
+                }}
                 onOpenDeleteModal={(dept) => setDeptToDelete(dept)}
-                onEditDept={(dept) => toast.info(isEn ? `Edit department: ${dept.name}` : `تعديل القسم: ${dept.name}`)}
+                onEditDept={(dept) => {
+                  setEditingDept(dept);
+                  setDeptViewMode("edit");
+                }}
+                onViewDept={handleViewDepartment}
               />
             ) : isLoading && tickets.length === 0 ? (
               <DashboardPageSkeleton />
             ) : error && tickets.length === 0 ? (
-              /* ERROR STATE with retry button */
-              <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[32px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 dark:border-[#38271c] flex flex-col items-center justify-center text-center gap-[16px]">
+              /* ERROR STATE — fill remaining viewport so no large empty gap */
+              <div className="bg-white dark:bg-[#221812] rounded-[8px] p-[32px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 dark:border-[#38271c] flex flex-col items-center justify-center text-center gap-[16px] min-h-[min(520px,calc(100dvh-180px))] w-full">
                 <div className="size-[48px] rounded-full bg-[#ffdad6] dark:bg-[#381616] flex items-center justify-center text-[#ba1a1a] dark:text-[#f87171]">
                   <AlertTriangle className="size-[24px]" />
                 </div>
-                <div className="flex flex-col gap-[4px] max-w-[420px]">
+                <div className="flex flex-col gap-[4px] max-w-[460px]">
                   <h3 className="text-[#1b1c1a] dark:text-[#fdfbf7] font-bold text-[18px]">
-                    {t("حدث خطأ أثناء تحميل التذاكر", "Error Loading Tickets")}
+                    {t("حدث خطأ أثناء تحميل تذاكر خدمة العملاء", "Error Loading Customer Service Tickets")}
                   </h3>
                   <p className="text-[#514537] dark:text-[#cdc5bd] text-[13px] leading-[22px]">
                     {error}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => loadData()}
-                  className="bg-[#9c6402] hover:bg-[#855402] text-white flex items-center gap-[8px] px-[20px] py-[9px] rounded-[4px] font-semibold text-[13px] transition-all cursor-pointer shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
-                >
-                  <RefreshCw className="size-[14px]" />
-                  <span>{t("إعادة المحاولة", "Retry")}</span>
-                </button>
+                <div className="flex flex-wrap items-center justify-center gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void handleRefresh();
+                    }}
+                    className="bg-[#f0eeea] dark:bg-[#2d1f16] hover:bg-[#e4e1dc] dark:hover:bg-[#382a1f] text-[#1b1c1a] dark:text-[#fdfbf7] flex items-center gap-[8px] px-[18px] py-[9px] rounded-[4px] font-semibold text-[13px] transition-all cursor-pointer border border-transparent dark:border-[#3d2a1d]"
+                  >
+                    <RefreshCw className="size-[14px]" />
+                    <span>{t("إعادة المحاولة", "Retry")}</span>
+                  </button>
+                  {authRequired && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        clearAuthSession();
+                        redirectToLogin();
+                      }}
+                      className="bg-[#9c6402] hover:bg-[#855402] text-white flex items-center gap-[8px] px-[20px] py-[9px] rounded-[4px] font-semibold text-[13px] transition-all cursor-pointer shadow-[0px_1px_1px_rgba(0,0,0,0.05)]"
+                    >
+                      <span>{t("تسجيل الدخول مجددًا", "Sign in again")}</span>
+                    </button>
+                  )}
+                </div>
               </div>
             ) : (
               /* VIEW 4: Main Tickets Directory */
@@ -562,7 +671,7 @@ export function TicketsView() {
                 >
                   <div className="flex flex-col gap-[4px] text-start">
                     <h1 className="text-[#1b1c1a] dark:text-[#fdfbf7] font-bold text-[24px] sm:text-[28px] leading-[38px]">
-                      {t("تذاكر الدعم الفني", "Support Tickets")}
+                      {t("تذاكر خدمة العملاء", "Customer Service Tickets")}
                     </h1>
                     <p className="text-[#514537] dark:text-[#cdc5bd] text-[13px] sm:text-[14px] leading-[22px]">
                       {t(
@@ -572,16 +681,28 @@ export function TicketsView() {
                     </p>
                   </div>
 
-                  {/* Primary Action Button: Create Ticket */}
-                  <button
-                    type="button"
-                    onClick={() => setIsCreatingTicket(true)}
-                    className="bg-[#9c6402] hover:bg-[#855402] text-white flex items-center gap-[8px] px-[20px] py-[10px] rounded-[4px] font-semibold text-[14px] leading-[20px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-all shrink-0 cursor-pointer"
-                    data-node-id="1:14412"
-                  >
-                    <Plus className="size-[16px]" />
-                    <span>{t("إنشاء تذكرة جديدة", "Create New Ticket")}</span>
-                  </button>
+                  <div className="flex items-center gap-[8px] shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => void handleRefresh()}
+                      title={t("تحديث البيانات", "Refresh data")}
+                      aria-label={t("تحديث البيانات", "Refresh data")}
+                      className="size-[40px] rounded-[4px] border border-[#e4e1dc] dark:border-[#38271c] bg-white dark:bg-[#2d1f16] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#382a1f] flex items-center justify-center transition-all cursor-pointer shrink-0"
+                    >
+                      <RefreshCw className={`size-[16px] ${ticketsQuery.isFetching ? "animate-spin text-[#9c6402]" : ""}`} />
+                    </button>
+
+                    {/* Primary Action Button: Create Ticket */}
+                    <button
+                      type="button"
+                      onClick={() => setIsCreatingTicket(true)}
+                      className="bg-[#9c6402] hover:bg-[#855402] text-white flex items-center gap-[8px] px-[20px] py-[10px] rounded-[4px] font-semibold text-[14px] leading-[20px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-all shrink-0 cursor-pointer"
+                      data-node-id="1:14412"
+                    >
+                      <Plus className="size-[16px]" />
+                      <span>{t("إنشاء تذكرة جديدة", "Create New Ticket")}</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Statistical Metric Cards */}
@@ -596,8 +717,13 @@ export function TicketsView() {
                 <TicketsFilterBar
                   filterStatus={filterStatus}
                   onFilterChange={setFilterStatus}
+                  filterChannel={filterChannel}
+                  onChannelChange={setFilterChannel}
                   searchQuery={searchQuery}
                   onSearchChange={setSearchQuery}
+                  selectedCompanyId={companyIdParam}
+                  onCompanyChange={(id) => setCompanyIdParam(id || null)}
+                  companies={companiesForFilter}
                   counts={counts}
                 />
 
@@ -609,9 +735,16 @@ export function TicketsView() {
                     }}
                     onResetFilter={() => {
                       setFilterStatus("all");
+                      setFilterChannel("all");
                       setSearchQuery("");
+                      setCompanyIdParam(null);
                     }}
-                    isFiltered={searchQuery.trim().length > 0 || filterStatus !== "all"}
+                    isFiltered={
+                      searchQuery.trim().length > 0 ||
+                      filterStatus !== "all" ||
+                      filterChannel !== "all" ||
+                      Boolean(companyIdParam)
+                    }
                   />
                 ) : (
                   <TicketsTable
@@ -660,15 +793,7 @@ export function TicketsView() {
         />
       )}
 
-      {/* MODAL 3: Add Department Modal */}
-      {isAddDeptModalOpen && (
-        <AddDepartmentModal
-          onClose={() => setIsAddDeptModalOpen(false)}
-          onSave={handleSaveDepartment}
-        />
-      )}
-
-      {/* MODAL 4: Delete Department Confirmation Modal */}
+      {/* Delete Department Confirmation */}
       {deptToDelete && (
         <DeleteDepartmentModal
           department={deptToDelete}

@@ -118,7 +118,7 @@ export function DashboardLawOfficesTable({ offices: externalOffices }: Dashboard
 
         {/* View All Link (Navigates to Client Management) */}
         <Link
-          href="/accounts"
+          href="/accounts/"
           className="flex items-center gap-[6px] text-[#9c6402] dark:text-[#e29d38] hover:text-[#b47818] transition-colors group cursor-pointer"
           data-node-id="1:233"
         >

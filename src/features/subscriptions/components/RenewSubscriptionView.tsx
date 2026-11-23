@@ -13,7 +13,6 @@ import {
   AlertTriangle,
   Trash2,
   RefreshCw,
-  Loader2,
 } from "lucide-react";
 import { SubscriptionRecord } from "../types/subscription.types";
 import { toast } from "sonner";
@@ -847,11 +846,7 @@ export function RenewSubscriptionView({
             disabled={isSubmitting}
             className="bg-[#9c6402] hover:bg-[#825200] text-white px-6 py-2 rounded-[6px] font-bold text-[13px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
           >
-            {isSubmitting ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Check className="w-4 h-4" />
-            )}
+            <Check className="w-4 h-4" />
             <span>{t("حفظ وتجديد الاشتراك", "Save & Renew Subscription")}</span>
           </button>
         </div>

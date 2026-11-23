@@ -8,10 +8,6 @@ import {
   Eye,
   Copy,
   ExternalLink,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
   CheckCheck,
   ImageIcon,
   Clock,
@@ -22,13 +18,36 @@ import {
   NotificationItem,
   NotificationStatus,
 } from "../types/notifications.types";
-import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
 import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
+import { UnifiedPagination } from "@/components/shared/UnifiedPagination";
+import { DataTableCard } from "@/components/shared/DataTableCard";
+import { ManagementListLayout } from "@/components/shared/ManagementListLayout";
 import { DashboardSelect } from "@/components/shared/DashboardSelect";
+import {
+  TABLE_HEAD_ROW,
+  TABLE_HEAD_CELL,
+  TABLE_BODY,
+  TABLE_ROW,
+} from "@/components/shared/list-layout.styles";
 import { useLanguage } from "@/lib/i18n";
 
 interface NotificationsListViewProps {
   notifications: NotificationItem[];
+  totalItems?: number;
+  currentPage?: number;
+  pageSize?: number;
+  onPageChange?: (page: number) => void;
+  onPageSizeChange?: (size: number) => void;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
+  activeTab?: "all" | "active" | "scheduled" | "draft";
+  onTabChange?: (tab: "all" | "active" | "scheduled" | "draft") => void;
+  tabCounts?: {
+    all: number;
+    activeAndReceived: number;
+    scheduled: number;
+    drafts: number;
+  };
   onOpenCreate: () => void;
   onViewDetails: (notification: NotificationItem) => void;
   onInitiateDelete: (notification: NotificationItem) => void;
@@ -36,23 +55,59 @@ interface NotificationsListViewProps {
 
 export function NotificationsListView({
   notifications,
+  totalItems: propTotalItems,
+  currentPage: propCurrentPage,
+  pageSize: propPageSize,
+  onPageChange: propOnPageChange,
+  onPageSizeChange: propOnPageSizeChange,
+  searchQuery: propSearchQuery,
+  onSearchChange: propOnSearchChange,
+  activeTab: propActiveTab,
+  onTabChange: propOnTabChange,
+  tabCounts: propTabCounts,
   onOpenCreate,
   onViewDetails,
   onInitiateDelete,
 }: NotificationsListViewProps) {
   const { direction, isEn, t } = useLanguage();
 
-  // Filters & State
-  const [activeTab, setActiveTab] = useState<"all" | "active" | "scheduled" | "draft">("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [audienceFilter, setAudienceFilter] = useState<"all" | "all_firms" | "specific">("all");
+  const [internalActiveTab, setInternalActiveTab] = useState<
+    "all" | "active" | "scheduled" | "draft"
+  >("all");
+  const [internalSearchQuery, setInternalSearchQuery] = useState("");
+  const [audienceFilter, setAudienceFilter] = useState<"all" | "all_firms" | "specific">(
+    "all"
+  );
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
-  const [pageSize, setPageSize] = useState<number>(5);
-  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [internalPageSize, setInternalPageSize] = useState<number>(5);
+  const [internalCurrentPage, setInternalCurrentPage] = useState<number>(1);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // Tab counters based on entire dataset
-  const tabCounts = useMemo(() => {
+  const activeTab = propActiveTab ?? internalActiveTab;
+  const setActiveTab = (next: "all" | "active" | "scheduled" | "draft") => {
+    setInternalActiveTab(next);
+    propOnTabChange?.(next);
+  };
+
+  const searchQuery = propSearchQuery ?? internalSearchQuery;
+  const setSearchQuery = (q: string) => {
+    setInternalSearchQuery(q);
+    propOnSearchChange?.(q);
+  };
+
+  const pageSize = propPageSize ?? internalPageSize;
+  const setPageSize = (s: number) => {
+    setInternalPageSize(s);
+    propOnPageSizeChange?.(s);
+  };
+
+  const currentPage = propCurrentPage ?? internalCurrentPage;
+  const setCurrentPage = (p: number) => {
+    setInternalCurrentPage(p);
+    propOnPageChange?.(p);
+  };
+
+  const localTabCounts = useMemo(() => {
     const all = notifications.length;
     const activeAndReceived = notifications.filter(
       (n) => n.status === "sent" || n.status === "active"
@@ -63,10 +118,10 @@ export function NotificationsListView({
     return { all, activeAndReceived, scheduled, drafts };
   }, [notifications]);
 
-  // Filtered dataset
+  const tabCounts = propTabCounts ?? localTabCounts;
+
   const filteredNotifications = useMemo(() => {
     const list = notifications.filter((item) => {
-      // Tab filter
       if (activeTab === "active" && item.status !== "sent" && item.status !== "active") {
         return false;
       }
@@ -77,7 +132,6 @@ export function NotificationsListView({
         return false;
       }
 
-      // Audience filter
       if (audienceFilter === "all_firms" && item.audienceType !== "all") {
         return false;
       }
@@ -85,7 +139,6 @@ export function NotificationsListView({
         return false;
       }
 
-      // Search filter
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchesTitle = item.title.toLowerCase().includes(q);
@@ -122,7 +175,6 @@ export function NotificationsListView({
 
   const drawerContent = (
     <div className="space-y-6 text-start font-['Cairo',sans-serif]">
-      {/* 1. حالة الإشعار */}
       <div className="space-y-2">
         <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
           {t("حالة الإشعار", "Notification Status")}
@@ -141,7 +193,6 @@ export function NotificationsListView({
         </DashboardSelect>
       </div>
 
-      {/* 2. الجمهور المستهدف */}
       <div className="space-y-2">
         <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
           {t("الجمهور المستهدف", "Target Audience")}
@@ -154,12 +205,15 @@ export function NotificationsListView({
           }}
         >
           <option value="all">{t("جميع الفئات والجمهور", "All Audiences")}</option>
-          <option value="all_firms">{t("كافة المكاتب المسجلة (بث عام)", "Broadcast to All Firms")}</option>
-          <option value="specific">{t("مكاتب محددة مخصصة", "Specific Firms Only")}</option>
+          <option value="all_firms">
+            {t("كافة المكاتب المسجلة (بث عام)", "Broadcast to All Firms")}
+          </option>
+          <option value="specific">
+            {t("مكاتب محددة مخصصة", "Specific Firms Only")}
+          </option>
         </DashboardSelect>
       </div>
 
-      {/* 3. ترتيب الإشعارات */}
       <div className="space-y-2">
         <label className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
           {t("ترتيب العرض", "Sort Order")}
@@ -171,22 +225,34 @@ export function NotificationsListView({
             setCurrentPage(1);
           }}
         >
-          <option value="newest">{t("الأحدث أولاً (تاريخ الإرسال)", "Newest First")}</option>
+          <option value="newest">
+            {t("الأحدث أولاً (تاريخ الإرسال)", "Newest First")}
+          </option>
           <option value="oldest">{t("الأقدم أولاً", "Oldest First")}</option>
         </DashboardSelect>
       </div>
     </div>
   );
 
-  // Pagination calculation
-  const totalItems = filteredNotifications.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const isServerPaginated = propTotalItems !== undefined;
+  const totalItems = isServerPaginated ? propTotalItems : filteredNotifications.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / Math.max(1, pageSize)));
   const validCurrentPage = Math.min(currentPage, totalPages);
+  const pageIndex = Math.max(0, validCurrentPage - 1);
 
   const paginatedNotifications = useMemo(() => {
-    const startIndex = (validCurrentPage - 1) * pageSize;
+    if (isServerPaginated) {
+      return notifications;
+    }
+    const startIndex = pageIndex * pageSize;
     return filteredNotifications.slice(startIndex, startIndex + pageSize);
-  }, [filteredNotifications, validCurrentPage, pageSize]);
+  }, [
+    isServerPaginated,
+    notifications,
+    filteredNotifications,
+    pageIndex,
+    pageSize,
+  ]);
 
   const handleCopyLink = (url: string, id: string) => {
     navigator.clipboard.writeText(url);
@@ -252,7 +318,7 @@ export function NotificationsListView({
       case "draft":
         return (
           <span className="bg-[#f5f3ef] dark:bg-[#281c15] text-[#78716c] dark:text-[#d6cfc7] border border-[#e7e5e4] dark:border-[#44372e] text-[11px] font-medium px-2 py-0.5 rounded-[4px] inline-flex items-center gap-1.5 shrink-0">
-            <span className="size-1.5 rounded-full bg-[#837565] dark:text-[#a89f91]" />
+            <span className="size-1.5 rounded-full bg-[#837565]" />
             <span>{isEn ? "Draft" : "مسودة"}</span>
           </span>
         );
@@ -260,359 +326,254 @@ export function NotificationsListView({
   };
 
   return (
-    <div dir={direction} className="flex flex-col gap-6">
-      {/* Main Identity & Command Banner */}
-      <div
-        className="bg-white dark:bg-[#1a120d] rounded-[8px] p-5 sm:p-6 border border-[#e6e2dc] dark:border-[#2e231b] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-      >
-        <div>
-          <h1 className="text-[26px] sm:text-[28px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] leading-[38px]">
-            {isEn ? "Notifications List" : "قائمة الإشعارات"}
-          </h1>
-          <p className="text-[14px] text-[#514537] dark:text-[#a89f91] mt-1 max-w-[650px] leading-[22.75px]">
-            {isEn
-              ? "Central notifications management for law firms, broadcast system updates and track reach metrics"
-              : "إدارة الإشعارات المركزية المرسلة إلى مكاتب المحاماة، إنشاء تحديثات المنظومة وتتبع معدلات الوصول"}
-          </p>
-        </div>
+    <div dir={direction}>
+      <ManagementListLayout
+        header={
+          <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 border border-[#f0eeea] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full shrink-0">
+            <div className="flex flex-col items-start text-start">
+              <h1 className="text-[26px] sm:text-[28px] leading-[36px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                {isEn ? "Notifications List" : "قائمة الإشعارات"}
+              </h1>
+              <p className="text-[#514537] dark:text-[#8e8680] text-[13px] sm:text-[14px] leading-[20px] font-normal mt-[4px] max-w-[650px]">
+                {isEn
+                  ? "Central notifications management for law firms, broadcast system updates and track reach metrics"
+                  : "إدارة الإشعارات المركزية المرسلة إلى مكاتب المحاماة، إنشاء تحديثات المنظومة وتتبع معدلات الوصول"}
+              </p>
+            </div>
 
-        <button
-          type="button"
-          onClick={onOpenCreate}
-          className="bg-[#9c6402] hover:bg-[#855402] text-white px-4 py-2 rounded-[4px] font-semibold text-[14px] flex items-center gap-2 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-colors shrink-0 cursor-pointer"
-        >
-          <Bell className="size-4" />
-          <span>{isEn ? "Send New Notification" : "إرسال إشعار جديد"}</span>
-        </button>
-      </div>
-
-      {/* 1. Filter Bar (Standalone Card) */}
-      <UnifiedFilterBar
-        searchQuery={searchQuery}
-        onSearchChange={(val) => {
-          setSearchQuery(val);
-          setCurrentPage(1);
-        }}
-        searchPlaceholder={
-          isEn
-            ? "Search by notification title or action URL..."
-            : "ابحث بعنوان الإشعار أو نص الرابط..."
+            <button
+              type="button"
+              onClick={onOpenCreate}
+              className="bg-[#9c6402] hover:bg-[#855402] text-white px-[20px] py-[10px] rounded-[4px] text-[14px] font-semibold leading-[20px] flex items-center justify-center gap-[8px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors cursor-pointer shrink-0 self-start sm:self-auto"
+            >
+              <Bell className="size-[16px] shrink-0" />
+              <span>{isEn ? "Send New Notification" : "إرسال إشعار جديد"}</span>
+            </button>
+          </div>
         }
-        primaryFilterValue={activeTab}
-        onPrimaryFilterChange={(v) => {
-          setActiveTab(v as "all" | "active" | "scheduled" | "draft");
-          setCurrentPage(1);
-        }}
-        primaryFilterMode="pills"
-        primaryFilterOptions={[
-          { label: `${isEn ? "All" : "الكل"} (${tabCounts.all})`, value: "all" },
-          { label: `${isEn ? "Active & Received" : "نشطة ومستلمة"} (${tabCounts.activeAndReceived})`, value: "active" },
-          { label: `${isEn ? "Scheduled" : "مجدولة"} (${tabCounts.scheduled})`, value: "scheduled" },
-          { label: `${isEn ? "Drafts" : "مسودة"} (${tabCounts.drafts})`, value: "draft" },
-        ]}
-        hasActiveFilters={hasActiveFilters}
-        onReset={handleResetFilters}
-        drawerTitle={t("تصفية الإشعارات", "Filter Notifications")}
-        drawerDescription={t(
-          "خيارات تصفية وفلترة متقدمة للوصول الدقيق للإشعارات",
-          "Advanced filter options for broadcast notifications"
-        )}
-        drawerContent={drawerContent}
-      />
-
-      {/* 2. Main Content Table & Pagination Footer (Unified Card) */}
-      <div
-        className="bg-white dark:bg-[#221812] rounded-[8px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] overflow-hidden w-full shrink-0 font-['Cairo',sans-serif]"
-      >
-        <div className="overflow-x-auto overflow-y-hidden">
-          <table className="w-full text-start border-collapse min-w-[900px]">
-            {/* Table Header Row */}
-            <thead>
-              <tr
-                className="bg-[#fcfaf7] dark:bg-[#1a120d] h-[52px] text-[#514537] dark:text-[#cdc5bd] font-bold text-[12px] border-b border-[#f0eeea] dark:border-[#38271c]"
-              >
-                <th className="px-5 py-3 text-start font-bold">
-                  {isEn ? "Notification Title" : "عنوان الإشعار"}
-                </th>
-                <th className="px-3 py-3 text-center font-bold w-[100px]">
-                  {isEn ? "Image" : "صورة الإشعار"}
-                </th>
-                <th className="px-4 py-3 text-start font-bold w-[260px]">
-                  {isEn ? "Action Destination Link" : "رابط الإجراء الوارد"}
-                </th>
-                <th className="px-4 py-3 text-center font-bold w-[110px]">
-                  {isEn ? "Actions" : "الإجراءات"}
-                </th>
-              </tr>
-            </thead>
-
-            {/* Table Body */}
-            <tbody className="divide-y divide-[#f0eeea] dark:divide-[#38271c]">
-              {paginatedNotifications.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={4}
-                    className="text-center py-12 text-[#837565] dark:text-[#a89f91] text-[14px]"
-                  >
-                    {isEn
-                      ? "No notifications match the search criteria"
-                      : "لا توجد إشعارات مطابقة لمعايير البحث المحددة"}
-                  </td>
-                </tr>
-              ) : (
-                paginatedNotifications.map((item) => (
-                  <tr
-                    key={item.id}
-                    className="hover:bg-[#faf9f7] dark:hover:bg-[#281c15] transition-colors"
-                  >
-                    {/* Column 1: Notification Title & Meta */}
-                    <td className="px-5 py-4 align-middle">
-                      <div className="space-y-1.5">
-                        {/* Status + Schedule / Sent Meta */}
-                        <div className="flex flex-wrap items-center gap-2">
-                          {renderStatusBadge(item.status, item.statusLabel)}
-                          {item.status === "scheduled" ? (
-                            <span className="inline-flex items-center gap-1.5 bg-[#eff6ff] dark:bg-[#172554] text-[#1d4ed8] dark:text-[#93c5fd] border border-blue-200 dark:border-blue-500/30 text-[11px] font-semibold px-2 py-0.5 rounded-[4px]">
-                              <Calendar className="size-3" />
-                              <span>{isEn ? "Schedule:" : "جدول الإرسال:"}</span>
-                              <span className="font-mono">
-                                {formatNotificationDate(item.scheduledFor || item.sentAt)}
-                              </span>
-                            </span>
-                          ) : (
-                            <span className="text-[#837565] dark:text-[#a89f91] text-[11px] font-medium inline-flex items-center gap-1.5">
-                              <Calendar className="size-3.5 opacity-70" />
-                              <span>{formatNotificationDate(item.sentAt)}</span>
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Title */}
-                        <h3 className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[15px] font-bold leading-[22px]">
-                          {item.title}
-                        </h3>
-
-                        {/* Audience */}
-                        <div className="text-[12px] flex items-center gap-1.5 text-start">
-                          <span className="text-[#514537] dark:text-[#cdc5bd]">
-                            {isEn ? "Target Audience:" : "الجمهور المستهدف:"}
-                          </span>
-                          <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] bg-[#f5f3ef] dark:bg-[#281c15] px-2 py-0.5 rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[11px]">
-                            {item.targetAudienceLabel}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Column 2: Notification Image Preview */}
-                    <td className="px-3 py-4 align-middle text-center">
-                      <div className="flex items-center justify-center">
-                        <div className="bg-[#f5f3ef] dark:bg-[#1a120d] size-[48px] rounded-[6px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#e4e2de] dark:border-[#38271c] overflow-hidden shrink-0 relative flex items-center justify-center">
-                          {item.imageUrl ? (
-                            <Image
-                              src={item.imageUrl}
-                              alt={item.title}
-                              width={48}
-                              height={48}
-                              className="object-cover size-full"
-                            />
-                          ) : (
-                            <ImageIcon className="size-5 text-[#837565] dark:text-[#a89f91]" />
-                          )}
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Column 3: Action Link Capsule */}
-                    <td className="px-4 py-4 align-middle">
-                      {item.actionUrl ? (
-                        <div className="bg-[#f5f3ef] dark:bg-[#281c15] rounded-[6px] px-2.5 py-1.5 flex items-center justify-between gap-2 border border-[#eae8e4] dark:border-[#38271c] max-w-[260px]">
-                          <span
-                            dir="ltr"
-                            className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] font-mono truncate flex-1 text-left"
-                            title={item.actionUrl}
-                          >
-                            {getCleanUrlText(item.actionUrl)}
-                          </span>
-                          <div className="flex items-center gap-1 shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => handleCopyLink(item.actionUrl, item.id)}
-                              className="p-1 text-[#514537] dark:text-[#a89f91] hover:text-[#9c6402] dark:hover:text-[#e29d38] hover:bg-white dark:hover:bg-[#1a120d] rounded transition-colors cursor-pointer"
-                              title={isEn ? "Copy link" : "نسخ الرابط"}
-                            >
-                              {copiedId === item.id ? (
-                                <CheckCheck className="size-3.5 text-emerald-600 dark:text-emerald-400" />
-                              ) : (
-                                <Copy className="size-3.5" />
-                              )}
-                            </button>
-                            <a
-                              href={item.actionUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="p-1 text-[#514537] dark:text-[#a89f91] hover:text-[#9c6402] dark:hover:text-[#e29d38] hover:bg-white dark:hover:bg-[#1a120d] rounded transition-colors"
-                              title={isEn ? "Open link" : "فتح الرابط"}
-                            >
-                              <ExternalLink className="size-3.5" />
-                            </a>
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-[#837565] dark:text-[#a89f91] text-[13px]">—</span>
-                      )}
-                    </td>
-
-                    {/* Column 4: Row Actions (Trash & View) */}
-                    <td className="px-4 py-4 align-middle text-center">
-                      <div className="flex items-center justify-center">
-                        <div className="bg-[#f5f3ef] dark:bg-[#281c15] rounded-[6px] p-1 flex items-center gap-1 border border-[#eae8e4] dark:border-[#38271c]">
-                          {/* Trash button */}
-                          <button
-                            type="button"
-                            onClick={() => onInitiateDelete(item)}
-                            className="p-1.5 text-[#514537] dark:text-[#a89f91] hover:text-[#ba1a1a] dark:hover:text-[#f87171] hover:bg-[#ffdad6]/50 dark:hover:bg-[rgba(186,26,26,0.2)] rounded-[4px] transition-colors cursor-pointer"
-                            title={isEn ? "Delete notification" : "حذف الإشعار"}
-                          >
-                            <Trash2 className="size-4" />
-                          </button>
-                          {/* View details button */}
-                          <button
-                            type="button"
-                            onClick={() => onViewDetails(item)}
-                            className="p-1.5 text-[#514537] dark:text-[#a89f91] hover:text-[#9c6402] dark:hover:text-[#f59e0b] hover:bg-white dark:hover:bg-[#1a120d] rounded-[4px] transition-colors cursor-pointer"
-                            title={isEn ? "View details" : "معاينة تفاصيل الإشعار"}
-                          >
-                            <Eye className="size-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </td>
+        filter={
+          <UnifiedFilterBar
+            searchQuery={searchQuery}
+            onSearchChange={(val) => {
+              setSearchQuery(val);
+              setCurrentPage(1);
+            }}
+            searchPlaceholder={
+              isEn
+                ? "Search by notification title or action URL..."
+                : "ابحث بعنوان الإشعار أو نص الرابط..."
+            }
+            primaryFilterValue={activeTab}
+            onPrimaryFilterChange={(v) => {
+              setActiveTab(v as "all" | "active" | "scheduled" | "draft");
+              setCurrentPage(1);
+            }}
+            primaryFilterMode="pills"
+            primaryFilterOptions={[
+              {
+                label: `${isEn ? "All" : "الكل"} (${tabCounts.all})`,
+                value: "all",
+              },
+              {
+                label: `${isEn ? "Active & Received" : "نشطة ومستلمة"} (${tabCounts.activeAndReceived})`,
+                value: "active",
+              },
+              {
+                label: `${isEn ? "Scheduled" : "مجدولة"} (${tabCounts.scheduled})`,
+                value: "scheduled",
+              },
+              {
+                label: `${isEn ? "Drafts" : "مسودة"} (${tabCounts.drafts})`,
+                value: "draft",
+              },
+            ]}
+            hasActiveFilters={hasActiveFilters}
+            onReset={handleResetFilters}
+            drawerTitle={t("تصفية الإشعارات", "Filter Notifications")}
+            drawerDescription={t(
+              "خيارات تصفية وفلترة متقدمة للوصول الدقيق للإشعارات",
+              "Advanced filter options for broadcast notifications"
+            )}
+            drawerContent={drawerContent}
+          />
+        }
+        table={
+          <DataTableCard>
+            <div className="overflow-x-auto overflow-y-hidden scrollbar-none w-full">
+              <table className="w-full text-start border-collapse min-w-[900px]">
+                <thead>
+                  <tr className={TABLE_HEAD_ROW}>
+                    <th className={TABLE_HEAD_CELL}>
+                      {isEn ? "Notification Title" : "عنوان الإشعار"}
+                    </th>
+                    <th className={`${TABLE_HEAD_CELL} text-center w-[100px]`}>
+                      {isEn ? "Image" : "صورة الإشعار"}
+                    </th>
+                    <th className={`${TABLE_HEAD_CELL} w-[260px]`}>
+                      {isEn ? "Action Destination Link" : "رابط الإجراء الوارد"}
+                    </th>
+                    <th className={`${TABLE_HEAD_CELL} text-center w-[110px]`}>
+                      {isEn ? "Actions" : "الإجراءات"}
+                    </th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                </thead>
 
-        {/* Pagination Footer */}
-        <div className="bg-[#fcfaf7] dark:bg-[#1a120d] p-[16px] border-t border-[#f0eeea] dark:border-[#38271c] flex flex-col sm:flex-row items-center justify-between gap-[12px] text-[12px] text-[#514537] dark:text-[#cdc5bd] font-['Cairo']">
-          {/* Right in RTL: Count Summary & Rows per page */}
-          <div className="flex flex-wrap items-center gap-4">
-            <div>
-              <span>{isEn ? "Showing " : "عرض "}</span>
-              <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                {totalItems === 0 ? 0 : (validCurrentPage - 1) * pageSize + 1}
-              </span>
-              <span> {isEn ? "to " : "إلى "}</span>
-              <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                {Math.min(validCurrentPage * pageSize, totalItems)}
-              </span>
-              <span> {isEn ? "of " : "من أصل "}</span>
-              <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{totalItems}</span>
-              <span> {isEn ? " notifications" : " إشعاراً مسجلاً"}</span>
+                <tbody className={TABLE_BODY}>
+                  {paginatedNotifications.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="text-center py-12 text-[#837565] dark:text-[#a89f91] text-[14px]"
+                      >
+                        {isEn
+                          ? "No notifications match the search criteria"
+                          : "لا توجد إشعارات مطابقة لمعايير البحث المحددة"}
+                      </td>
+                    </tr>
+                  ) : (
+                    paginatedNotifications.map((item) => (
+                      <tr key={item.id} className={TABLE_ROW}>
+                        <td className="px-5 py-4 align-middle">
+                          <div className="space-y-1.5">
+                            <div className="flex flex-wrap items-center gap-2">
+                              {renderStatusBadge(item.status, item.statusLabel)}
+                              {item.status === "scheduled" ? (
+                                <span className="inline-flex items-center gap-1.5 bg-[#eff6ff] dark:bg-[#172554] text-[#1d4ed8] dark:text-[#93c5fd] border border-blue-200 dark:border-blue-500/30 text-[11px] font-semibold px-2 py-0.5 rounded-[4px]">
+                                  <Calendar className="size-3" />
+                                  <span>{isEn ? "Schedule:" : "جدول الإرسال:"}</span>
+                                  <span className="font-mono">
+                                    {formatNotificationDate(
+                                      item.scheduledFor || item.sentAt
+                                    )}
+                                  </span>
+                                </span>
+                              ) : (
+                                <span className="text-[#837565] dark:text-[#a89f91] text-[11px] font-medium inline-flex items-center gap-1.5">
+                                  <Calendar className="size-3.5 opacity-70" />
+                                  <span>{formatNotificationDate(item.sentAt)}</span>
+                                </span>
+                              )}
+                            </div>
+
+                            <h3 className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[15px] font-bold leading-[22px]">
+                              {item.title}
+                            </h3>
+
+                            <div className="text-[12px] flex items-center gap-1.5 text-start">
+                              <span className="text-[#514537] dark:text-[#cdc5bd]">
+                                {isEn ? "Target Audience:" : "الجمهور المستهدف:"}
+                              </span>
+                              <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] bg-[#f5f3ef] dark:bg-[#281c15] px-2 py-0.5 rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[11px]">
+                                {item.targetAudienceLabel}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="px-3 py-4 align-middle text-center">
+                          <div className="flex items-center justify-center">
+                            <div className="bg-[#f5f3ef] dark:bg-[#1a120d] size-[48px] rounded-[6px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#e4e2de] dark:border-[#38271c] overflow-hidden shrink-0 relative flex items-center justify-center">
+                              {item.imageUrl ? (
+                                <Image
+                                  src={item.imageUrl}
+                                  alt={item.title}
+                                  width={48}
+                                  height={48}
+                                  className="object-cover size-full"
+                                />
+                              ) : (
+                                <ImageIcon className="size-5 text-[#837565] dark:text-[#a89f91]" />
+                              )}
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="px-4 py-4 align-middle">
+                          {item.actionUrl ? (
+                            <div className="bg-[#f5f3ef] dark:bg-[#281c15] rounded-[6px] px-2.5 py-1.5 flex items-center justify-between gap-2 border border-[#eae8e4] dark:border-[#38271c] max-w-[260px]">
+                              <span
+                                dir="ltr"
+                                className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] font-mono truncate flex-1 text-left"
+                                title={item.actionUrl}
+                              >
+                                {getCleanUrlText(item.actionUrl)}
+                              </span>
+                              <div className="flex items-center gap-1 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => handleCopyLink(item.actionUrl, item.id)}
+                                  className="p-1 text-[#514537] dark:text-[#a89f91] hover:text-[#9c6402] dark:hover:text-[#e29d38] hover:bg-white dark:hover:bg-[#1a120d] rounded transition-colors cursor-pointer"
+                                  title={isEn ? "Copy link" : "نسخ الرابط"}
+                                >
+                                  {copiedId === item.id ? (
+                                    <CheckCheck className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                                  ) : (
+                                    <Copy className="size-3.5" />
+                                  )}
+                                </button>
+                                <a
+                                  href={item.actionUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-1 text-[#514537] dark:text-[#a89f91] hover:text-[#9c6402] dark:hover:text-[#e29d38] hover:bg-white dark:hover:bg-[#1a120d] rounded transition-colors"
+                                  title={isEn ? "Open link" : "فتح الرابط"}
+                                >
+                                  <ExternalLink className="size-3.5" />
+                                </a>
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-[#837565] dark:text-[#a89f91] text-[13px]">
+                              —
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="px-4 py-4 align-middle text-center">
+                          <div className="flex items-center justify-center">
+                            <div className="bg-[#f5f3ef] dark:bg-[#281c15] rounded-[6px] p-1 flex items-center gap-1 border border-[#eae8e4] dark:border-[#38271c]">
+                              <button
+                                type="button"
+                                onClick={() => onInitiateDelete(item)}
+                                className="p-1.5 text-[#514537] dark:text-[#a89f91] hover:text-[#ba1a1a] dark:hover:text-[#f87171] hover:bg-[#ffdad6]/50 dark:hover:bg-[rgba(186,26,26,0.2)] rounded-[4px] transition-colors cursor-pointer"
+                                title={isEn ? "Delete notification" : "حذف الإشعار"}
+                              >
+                                <Trash2 className="size-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => onViewDetails(item)}
+                                className="p-1.5 text-[#514537] dark:text-[#a89f91] hover:text-[#9c6402] dark:hover:text-[#f59e0b] hover:bg-white dark:hover:bg-[#1a120d] rounded-[4px] transition-colors cursor-pointer"
+                                title={
+                                  isEn ? "View details" : "معاينة تفاصيل الإشعار"
+                                }
+                              >
+                                <Eye className="size-4" />
+                              </button>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
 
-            <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
-              <span className="text-[11px] text-[#837565] dark:text-[#8e8680]">
-                {isEn ? "Rows per page:" : "صفوف بالصفحة:"}
-              </span>
-              <PageSizeDropdown
-                value={pageSize}
-                onChange={(newSize) => {
-                  setPageSize(newSize);
-                  setCurrentPage(1);
-                }}
-                options={[5, 10, 20, 50]}
-                dropdownPlacement="top"
-              />
-            </div>
-          </div>
-
-          {/* Left in RTL: Page Controls */}
-          <div className="flex items-center gap-[4px]">
-            <button
-              type="button"
-              disabled={validCurrentPage <= 1 || totalItems === 0}
-              onClick={() => setCurrentPage(1)}
-              title={isEn ? "First page" : "الصفحة الأولى"}
-              className="size-[30px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center cursor-pointer"
-            >
-              <ChevronsRight className="size-[14px] rtl:rotate-0 rotate-180" />
-            </button>
-
-            <button
-              type="button"
-              disabled={validCurrentPage <= 1 || totalItems === 0}
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              title={isEn ? "Previous page" : "الصفحة السابقة"}
-              className="px-[10px] py-[6px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-[4px] cursor-pointer"
-            >
-              <ChevronRight className="size-[13px] rtl:rotate-0 rotate-180" />
-              <span>{isEn ? "Previous" : "السابق"}</span>
-            </button>
-
-            {/* Page number buttons */}
-            {Array.from({ length: totalPages }).map((_, idx) => {
-              const pageNumber = idx + 1;
-              if (
-                totalPages > 5 &&
-                pageNumber > 3 &&
-                pageNumber < totalPages - 1 &&
-                Math.abs(pageNumber - validCurrentPage) > 1
-              ) {
-                if (pageNumber === 4) {
-                  return (
-                    <span
-                      key={pageNumber}
-                      className="px-1 text-[#837565] dark:text-[#8e8680] text-[12px]"
-                    >
-                      ...
-                    </span>
-                  );
-                }
-                return null;
-              }
-
-              return (
-                <button
-                  key={pageNumber}
-                  type="button"
-                  onClick={() => setCurrentPage(pageNumber)}
-                  className={`size-[30px] rounded-[4px] text-[12px] font-bold transition-colors cursor-pointer flex items-center justify-center ${
-                    validCurrentPage === pageNumber
-                      ? "bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] shadow-xs"
-                      : "border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15]"
-                  }`}
-                >
-                  {pageNumber}
-                </button>
-              );
-            })}
-
-            <button
-              type="button"
-              disabled={validCurrentPage >= totalPages || totalItems === 0}
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              title={isEn ? "Next page" : "الصفحة التالية"}
-              className="px-[10px] py-[6px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-[4px] cursor-pointer"
-            >
-              <span>{isEn ? "Next" : "التالي"}</span>
-              <ChevronLeft className="size-[13px] rtl:rotate-0 rotate-180" />
-            </button>
-
-            <button
-              type="button"
-              disabled={validCurrentPage >= totalPages || totalItems === 0}
-              onClick={() => setCurrentPage(totalPages)}
-              title={isEn ? "Last page" : "الصفحة الأخيرة"}
-              className="size-[30px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center cursor-pointer"
-            >
-              <ChevronsLeft className="size-[14px] rtl:rotate-0 rotate-180" />
-            </button>
-          </div>
-        </div>
-      </div>
+            <UnifiedPagination
+              pageIndex={pageIndex}
+              pageSize={pageSize}
+              totalItems={totalItems}
+              onPageChange={(idx) => setCurrentPage(idx + 1)}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+              itemLabel={t("إشعاراً", "notifications")}
+            />
+          </DataTableCard>
+        }
+      />
     </div>
   );
 }

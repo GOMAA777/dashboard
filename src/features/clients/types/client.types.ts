@@ -10,6 +10,9 @@ export interface OfficeResourceUsage {
   storagePercent: number;
   activeCases: number;
   maxCasesLimit?: number;
+  documentsUsed?: number;
+  documentsLimit?: number;
+  documentsPercent?: number;
 }
 
 export interface OfficeInternalNote {
@@ -33,6 +36,7 @@ export interface PlanDetails {
   maxCases?: number;
   maxPowerOfAttorney?: number;
   maxClients?: number;
+  maxDocuments?: number;
   maxAssistants?: number;
   storageLimitGb?: number;
   supportLevel?: string;
@@ -52,6 +56,13 @@ export interface ActiveSubscriptionDetails {
   renewalDate?: string;
   status?: string;
   notes?: string | null;
+  taxNumber?: string | null;
+  usedStorageGb?: string;
+  extraLawyers?: number;
+  extraStorageGb?: number;
+  extraCases?: number;
+  extraClients?: number;
+  extraDocuments?: number;
 }
 
 export interface ClientOffice {
@@ -94,6 +105,12 @@ export interface ClientOffice {
   subscriptionStart?: string;
   subscriptionEnd?: string;
   autoRenew?: boolean;
+  usedStorageGb?: string;
+  extraLawyers?: number;
+  extraStorageGb?: number;
+  extraCases?: number;
+  extraClients?: number;
+  extraDocuments?: number;
   resourceUsage?: OfficeResourceUsage;
   internalNotes?: OfficeInternalNote[];
   recentInvoices?: unknown[];

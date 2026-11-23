@@ -19,9 +19,11 @@ import { translations } from "@/lib/i18n";
 import { loginSchema, LoginInput } from "../schemas/login.schema";
 import { loginAction } from "../actions/login.action";
 import { AlJoudyLogo } from "@/components/shared/BrandLogos";
-import { getAuthSession } from "@/lib/auth-client";
+import { getAuthSession, getAuthUser } from "@/lib/auth-client";
 import { withBasePath } from "@/lib/base-path";
+import { LAWYER_APP_URL } from "@/lib/api/config";
 import { cn } from "@/lib/utils";
+import type { AdminUser } from "@/lib/api/types";
 
 interface LoginFormProps {
   onLoginSuccess?: () => void;
@@ -37,14 +39,20 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps = {}) {
   const [formError, setFormError] = useState<string | null>(null);
   const [shakeKey, setShakeKey] = useState(0);
 
-  // Auto redirect to dashboard if already authenticated (only on separate /login page)
+  // Auto redirect if already authenticated (only on separate /login page)
   useEffect(() => {
-    if (!onLoginSuccess && getAuthSession()) {
-      const target =
-        typeof window !== "undefined" && window.location.pathname.includes("/login")
-          ? window.location.pathname.replace(/\/login\/?$/, "") || "/"
-          : withBasePath("/");
-      window.location.replace(target.endsWith("/") ? target : `${target}/`);
+    if (!onLoginSuccess) {
+      const authed = getAuthSession();
+      const user = getAuthUser<AdminUser>();
+      if (authed && user) {
+        if (user.mustChangePassword) {
+          const target = withBasePath("/change-password");
+          window.location.replace(target.endsWith("/") ? target : `${target}/`);
+          return;
+        }
+        const home = withBasePath("/");
+        window.location.replace(home.endsWith("/") ? home : `${home}/`);
+      }
     }
   }, [onLoginSuccess]);
 
@@ -78,8 +86,13 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps = {}) {
     toast.error(message);
   };
 
-  const handleFinishLogin = () => {
+  const handleFinishLogin = (mustChangePassword?: boolean) => {
     toast.success(t.loginSuccess);
+    if (mustChangePassword) {
+      const target = withBasePath("/change-password");
+      window.location.assign(target.endsWith("/") ? target : `${target}/`);
+      return;
+    }
     onLoginSuccess?.();
     // Hard navigation so every route remounts AuthGate with a fresh session read.
     const home = withBasePath("/");
@@ -92,7 +105,7 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps = {}) {
     try {
       const res = await loginAction(data);
       if (res?.data?.success) {
-        handleFinishLogin();
+        handleFinishLogin(!!res.data.mustChangePassword);
         return;
       }
 
@@ -165,7 +178,6 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps = {}) {
             </noscript>
 
             <motion.form
-              key={shakeKey}
               method="post"
               action="#"
               onSubmit={(event) => {
@@ -210,12 +222,13 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps = {}) {
                 ) : null}
               </AnimatePresence>
 
-              {/* Email Input with Animated Floating Label */}
+              {/* Email / Username Input with Animated Floating Label */}
               <div className="space-y-1">
                 <div className="relative">
                   <input
                     id="identifier"
-                    type="email"
+                    type="text"
+                    autoComplete="username"
                     placeholder=" "
                     aria-invalid={!!errors.identifier || !!formError}
                     {...register("identifier")}
@@ -309,6 +322,23 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps = {}) {
                     </>
                   )}
                 </button>
+              </div>
+
+              {/* Direct Link to Lawyer / Office Portal */}
+              <div className="pt-2 text-center">
+                <a
+                  href={`${LAWYER_APP_URL}/login`}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#8c8279] dark:text-[#a89f91] hover:text-[#c29547] dark:hover:text-[#d4a759] transition-colors"
+                >
+                  <span>
+                    {language === "ar"
+                      ? "هل أنت صاحب أو عضو مكتب محاماة؟"
+                      : "Law office owner or member?"}
+                  </span>
+                  <span className="underline font-bold text-[#c29547] dark:text-[#d4a759]">
+                    {language === "ar" ? "الدخول لبوابة المكاتب" : "Lawyer Portal Login"}
+                  </span>
+                </a>
               </div>
             </motion.form>
           </div>

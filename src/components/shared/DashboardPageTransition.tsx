@@ -35,7 +35,7 @@ export function DashboardPageTransition({ children, className }: DashboardPageTr
   return (
     <div
       className={cn(
-        "w-full flex-1 flex flex-col gap-6 min-w-0 transition-opacity duration-150 animate-in fade-in",
+        "w-full flex-1 flex flex-col gap-6 min-w-0 page-enter",
         className
       )}
     >

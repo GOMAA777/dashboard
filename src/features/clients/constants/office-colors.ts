@@ -42,6 +42,66 @@ export const OFFICE_COLOR_PALETTE: OfficeColorSwatch[] = [
     nameEn: "Warm Pearl Linen",
     descriptionAr: "خلفية فاتحة راقية مطابقة لهوية الأوراق الرسمية",
   },
+  {
+    hex: "#112a20",
+    nameAr: "زمردي ملكي داكن",
+    nameEn: "Royal Emerald",
+    descriptionAr: "خضرة ملكية داكنة توحي بالعدل والوقار",
+  },
+  {
+    hex: "#36121c",
+    nameAr: "عنابي بورغندي عميق",
+    nameEn: "Royal Burgundy",
+    descriptionAr: "فخامة كلاسيكية عريقة للمكاتب الكبرى",
+  },
+  {
+    hex: "#0f1d38",
+    nameAr: "كحلي أندلسي ملكي",
+    nameEn: "Andalusian Navy",
+    descriptionAr: "كحلي ملكي أندلسي رصين وعالي التباين",
+  },
+  {
+    hex: "#2c1b18",
+    nameAr: "ماهوجني كلاسيكي دافئ",
+    nameEn: "Classic Mahogany",
+    descriptionAr: "دفء المكاتب القانونية الخشبية العريقة",
+  },
+  {
+    hex: "#1e242d",
+    nameAr: "تيتانيوم عصري",
+    nameEn: "Modern Titanium",
+    descriptionAr: "رمادي تيتانيوم رصين ومواكب للحداثة",
+  },
+  {
+    hex: "#f3efe6",
+    nameAr: "عاجي رسمي فاخر",
+    nameEn: "Legal Parchment",
+    descriptionAr: "عاجي ورقي هادئ ومريح للمطالعة والعمل الطويل",
+  },
+  {
+    hex: "#24142f",
+    nameAr: "بنفسجي إمبراطوري",
+    nameEn: "Imperial Violet",
+    descriptionAr: "درجة أرجوانية ملكية مهيبة واستثنائية",
+  },
+  {
+    hex: "#142820",
+    nameAr: "صنوبري داكن",
+    nameEn: "Deep Forest Pine",
+    descriptionAr: "خضرة غابية داكنة موقرة للمنشآت القانونية",
+  },
+  {
+    hex: "#251813",
+    nameAr: "إسبريسو ملكي",
+    nameEn: "Royal Espresso",
+    descriptionAr: "بني قهوة داكن فاخر ذو طابع كلاسيكي عريق",
+  },
+  {
+    hex: "#1a212d",
+    nameAr: "أردوازي حديدي",
+    nameEn: "Slate Steel",
+    descriptionAr: "رمادي معدني فخم بلمسة زرقاء داكنة",
+  },
 ];
 
 export const DEFAULT_OFFICE_THEME_COLOR = "#9c6402";
@@ -284,8 +344,8 @@ export interface OfficeColorTrio {
 export const OFFICE_COLOR_TRIOS: OfficeColorTrio[] = [
   {
     id: "petrol-gold-white",
-    nameAr: "بترولي كحلي + ذهبي وقور + أبيض",
-    nameEn: "Deep Petrol, Gold & White",
+    nameAr: "بترولي كحلي + ذهبي وقور",
+    nameEn: "Deep Petrol & Royal Gold",
     bgHex: "#203b3c",
     accentHex: "#d5a058",
     fontHex: "#ffffff",
@@ -293,8 +353,8 @@ export const OFFICE_COLOR_TRIOS: OfficeColorTrio[] = [
   },
   {
     id: "royal-blue-electric-white",
-    nameAr: "أزرق ملكي + أزرق سماوي + أبيض",
-    nameEn: "Royal Blue, Sapphire & White",
+    nameAr: "أزرق ملكي + أزرق سماوي",
+    nameEn: "Royal Blue & Sapphire",
     bgHex: "#1a237e",
     accentHex: "#2563eb",
     fontHex: "#ffffff",
@@ -302,8 +362,8 @@ export const OFFICE_COLOR_TRIOS: OfficeColorTrio[] = [
   },
   {
     id: "deep-petrol-bronze-pearl",
-    nameAr: "كحلي داكن + برونزي دافئ + لؤلؤي",
-    nameEn: "Dark Slate, Bronze & Pearl",
+    nameAr: "كحلي داكن + برونزي دافئ",
+    nameEn: "Dark Slate & Bronze",
     bgHex: "#162829",
     accentHex: "#c38d45",
     fontHex: "#fdfbf7",
@@ -311,8 +371,8 @@ export const OFFICE_COLOR_TRIOS: OfficeColorTrio[] = [
   },
   {
     id: "gold-petrol-white",
-    nameAr: "ذهبي وقور + بترولي داكن + أبيض",
-    nameEn: "Royal Gold, Petrol & White",
+    nameAr: "ذهبي وقور + بترولي داكن",
+    nameEn: "Royal Gold & Deep Petrol",
     bgHex: "#d5a058",
     accentHex: "#203b3c",
     fontHex: "#ffffff",
@@ -320,8 +380,8 @@ export const OFFICE_COLOR_TRIOS: OfficeColorTrio[] = [
   },
   {
     id: "carbon-gold-snow",
-    nameAr: "فحمي كربوني + ذهبي وقور + ثلجي",
-    nameEn: "Carbon Onyx, Gold & Snow",
+    nameAr: "فحمي كربوني + ذهبي وقور",
+    nameEn: "Carbon Onyx & Royal Gold",
     bgHex: "#1b1c1a",
     accentHex: "#d5a058",
     fontHex: "#f8fafc",
@@ -329,12 +389,102 @@ export const OFFICE_COLOR_TRIOS: OfficeColorTrio[] = [
   },
   {
     id: "pearl-petrol-navy",
-    nameAr: "بيج لؤلؤي + بترولي كحلي + كحلي",
-    nameEn: "Pearl Linen, Petrol & Navy",
+    nameAr: "بيج لؤلؤي + بترولي كحلي",
+    nameEn: "Pearl Linen & Deep Petrol",
     bgHex: "#f7f1e6",
     accentHex: "#203b3c",
     fontHex: "#162829",
     descriptionAr: "خلفية ناصعة مريحة للعين مستوحاة من الأوراق القانونية الرسمية",
+  },
+  {
+    id: "emerald-brass-white",
+    nameAr: "زمردي ملكي + نحاسي دافئ",
+    nameEn: "Royal Emerald & Warm Brass",
+    bgHex: "#112a20",
+    accentHex: "#c69248",
+    fontHex: "#ffffff",
+    descriptionAr: "طابع عدلي مهيب يجمع بين الخضرة الملكية الداكنة والنحاس المصقول",
+  },
+  {
+    id: "burgundy-champagne-snow",
+    nameAr: "عنابي بورغندي + ذهبي شمبانيا",
+    nameEn: "Royal Burgundy & Champagne",
+    bgHex: "#36121c",
+    accentHex: "#dfb164",
+    fontHex: "#fdfbf7",
+    descriptionAr: "فخامة كلاسيكية عريقة ترمز لرسوخ المكاتب الاستشارية الكبرى",
+  },
+  {
+    id: "andalusian-sapphire-white",
+    nameAr: "كحلي أندلسي + ياقوتي وهاج",
+    nameEn: "Andalusian Navy & Sapphire",
+    bgHex: "#0f1d38",
+    accentHex: "#3b82f6",
+    fontHex: "#ffffff",
+    descriptionAr: "طابع تقني وقور بدرجات زرقاء نقية وعالية التباين",
+  },
+  {
+    id: "mahogany-desert-pearl",
+    nameAr: "ماهوجني كلاسيكي + رمال صحراوية",
+    nameEn: "Classic Mahogany & Desert Sand",
+    bgHex: "#2c1b18",
+    accentHex: "#d49b55",
+    fontHex: "#fdfbf7",
+    descriptionAr: "دفء المكاتب القانونية الخشبية العريقة والهوية التراثية الأصيلة",
+  },
+  {
+    id: "titanium-azure-white",
+    nameAr: "تيتانيوم عصري + أزرق سماوي",
+    nameEn: "Modern Titanium & Azure",
+    bgHex: "#1e242d",
+    accentHex: "#0ea5e9",
+    fontHex: "#ffffff",
+    descriptionAr: "حداثة رقمية رائدة بتباين معاصر للمنصات القانونية الحديثة",
+  },
+  {
+    id: "parchment-petrol-navy",
+    nameAr: "عاجي رسمي + بترولي كحلي",
+    nameEn: "Legal Parchment & Deep Petrol",
+    bgHex: "#f3efe6",
+    accentHex: "#203b3c",
+    fontHex: "#162829",
+    descriptionAr: "نمط نهاري فاتح فائق الراحة للقراءة والعمل المكتبي الطويل",
+  },
+  {
+    id: "imperial-purple-gold",
+    nameAr: "بنفسجي إمبراطوري + ذهبي ملكي",
+    nameEn: "Imperial Violet & Royal Gold",
+    bgHex: "#24142f",
+    accentHex: "#d5a058",
+    fontHex: "#fdfbf7",
+    descriptionAr: "فخامة استثنائية راقية تجمع بين الأرجواني الملكي والذهب الوقور",
+  },
+  {
+    id: "forest-pine-gold",
+    nameAr: "صنوبري داكن + ذهبي هادئ",
+    nameEn: "Forest Pine & Soft Gold",
+    bgHex: "#142820",
+    accentHex: "#e0a953",
+    fontHex: "#ffffff",
+    descriptionAr: "طابع رصين موقر مستوحى من درجات الغابات والأخشاب الذهبية",
+  },
+  {
+    id: "espresso-camel-white",
+    nameAr: "إسبريسو ملكي + جملي دافئ",
+    nameEn: "Royal Espresso & Warm Camel",
+    bgHex: "#251813",
+    accentHex: "#c89255",
+    fontHex: "#ffffff",
+    descriptionAr: "طابع كلاسيكي دافئ من ألوان القهوة الفاخرة والجلد الجملي الأصيل",
+  },
+  {
+    id: "slate-steel-copper",
+    nameAr: "أردوازي حديدي + نحاس متوهج",
+    nameEn: "Slate Steel & Glowing Copper",
+    bgHex: "#1a212d",
+    accentHex: "#e07a38",
+    fontHex: "#ffffff",
+    descriptionAr: "حداثة معمارية فاخرة تجمع بين الرمادي الفولاذي والنحاس البراق",
   },
 ];
 
@@ -351,6 +501,14 @@ export const OFFICE_ACCENT_COLOR_PRESETS: OfficeAccentColorPreset[] = [
   { hex: "#10b981", nameAr: "أخضر عدلي", nameEn: "Justice Emerald" },
   { hex: "#c38d45", nameAr: "برونزي دافئ", nameEn: "Warm Bronze" },
   { hex: "#881337", nameAr: "عنابي ملكي", nameEn: "Ruby Burgundy" },
+  { hex: "#c69248", nameAr: "نحاسي دافئ", nameEn: "Warm Brass" },
+  { hex: "#dfb164", nameAr: "ذهبي شمبانيا", nameEn: "Champagne Gold" },
+  { hex: "#3b82f6", nameAr: "ياقوتي وهاج", nameEn: "Bright Sapphire" },
+  { hex: "#d49b55", nameAr: "رمال صحراوية", nameEn: "Desert Sand" },
+  { hex: "#0ea5e9", nameAr: "أزرق سماوي", nameEn: "Sky Azure" },
+  { hex: "#e0a953", nameAr: "ذهبي كهرماني", nameEn: "Amber Gold" },
+  { hex: "#c89255", nameAr: "جملي دافئ", nameEn: "Warm Camel" },
+  { hex: "#e07a38", nameAr: "نحاسي متوهج", nameEn: "Glowing Copper" },
 ];
 
 export function getOfficeAccentColorName(hex?: string, isEn = false): string {
@@ -362,21 +520,43 @@ export function getOfficeAccentColorName(hex?: string, isEn = false): string {
 }
 
 /**
- * Analyze an image and suggest a 3-color palette (bg, accent, font)
+ * Analyze an image and suggest 3 coordinated harmonious trios (Royal Dark, High Contrast, Warm Light)
  * matching the logo's dominant tones.
  */
-export async function suggestColorsFromLogo(imageSrc: string): Promise<{
-  backgroundColor: string;
-  accentColor: string;
-  fontColor: string;
-}> {
+export async function suggestMultipleTriosFromLogo(imageSrc: string): Promise<OfficeColorTrio[]> {
   return new Promise((resolve) => {
+    const fallbackTrios: OfficeColorTrio[] = [
+      {
+        id: "logo-trio-dark",
+        nameAr: "داكن ملكي (من الشعار)",
+        nameEn: "Logo Royal Dark",
+        bgHex: "#203b3c",
+        accentHex: "#d5a058",
+        fontHex: "#ffffff",
+        descriptionAr: "طقم داكن فخم يعكس ألوان الشعار الرسمية",
+      },
+      {
+        id: "logo-trio-contrast",
+        nameAr: "متباين بارز (من الشعار)",
+        nameEn: "Logo High Contrast",
+        bgHex: "#14181f",
+        accentHex: "#d5a058",
+        fontHex: "#ffffff",
+        descriptionAr: "طقم داكن عالي التباين لإبراز هوية الشعار",
+      },
+      {
+        id: "logo-trio-light",
+        nameAr: "نهاري لؤلؤي (من الشعار)",
+        nameEn: "Logo Warm Light",
+        bgHex: "#f8f6f0",
+        accentHex: "#203b3c",
+        fontHex: "#18222d",
+        descriptionAr: "طقم فاتح مريح للمطالعة متناسق مع الشعار",
+      },
+    ];
+
     if (typeof window === "undefined" || !imageSrc) {
-      resolve({
-        backgroundColor: "#203b3c",
-        accentColor: "#d5a058",
-        fontColor: "#ffffff",
-      });
+      resolve(fallbackTrios);
       return;
     }
 
@@ -387,11 +567,11 @@ export async function suggestColorsFromLogo(imageSrc: string): Promise<{
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d", { willReadFrequently: true });
         if (!ctx) {
-          resolve({ backgroundColor: "#203b3c", accentColor: "#d5a058", fontColor: "#ffffff" });
+          resolve(fallbackTrios);
           return;
         }
-        const width = (canvas.width = 64);
-        const height = (canvas.height = 64);
+        const width = (canvas.width = 72);
+        const height = (canvas.height = 72);
         ctx.drawImage(img, 0, 0, width, height);
         const data = ctx.getImageData(0, 0, width, height).data;
 
@@ -399,21 +579,20 @@ export async function suggestColorsFromLogo(imageSrc: string): Promise<{
 
         for (let i = 0; i < data.length; i += 4) {
           const a = data[i + 3];
-          if (a < 80) continue; // Skip transparent
+          if (a < 60) continue; // Skip transparent
           const r = data[i];
           const g = data[i + 1];
           const b = data[i + 2];
 
-          // Skip near white and near black for accent detection
           const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
           const max = Math.max(r, g, b);
           const min = Math.min(r, g, b);
           const sat = max === 0 ? 0 : (max - min) / max;
 
-          // Bucket to 24-step quantization
-          const qr = Math.round(r / 24) * 24;
-          const qg = Math.round(g / 24) * 24;
-          const qb = Math.round(b / 24) * 24;
+          // Bucket to 20-step quantization
+          const qr = Math.round(r / 20) * 20;
+          const qg = Math.round(g / 20) * 20;
+          const qb = Math.round(b / 20) * 20;
           const key = `${qr},${qg},${qb}`;
 
           if (!colorCounts[key]) {
@@ -423,9 +602,8 @@ export async function suggestColorsFromLogo(imageSrc: string): Promise<{
         }
 
         const entries = Object.values(colorCounts).sort((a, b) => b.count - a.count);
-
         if (entries.length === 0) {
-          resolve({ backgroundColor: "#203b3c", accentColor: "#d5a058", fontColor: "#ffffff" });
+          resolve(fallbackTrios);
           return;
         }
 
@@ -433,48 +611,95 @@ export async function suggestColorsFromLogo(imageSrc: string): Promise<{
           return "#" + [r, g, b].map((x) => Math.min(255, Math.max(0, x)).toString(16).padStart(2, "0")).join("");
         };
 
-        // Find primary accent (most saturated or distinctive)
-        const saturated = [...entries].sort((a, b) => b.sat * b.count - a.sat * a.count);
-        const topAccent = saturated[0] || entries[0];
-        const accentHex = rgbToHex(topAccent.r, topAccent.g, topAccent.b);
+        // Find primary accent (most saturated & weighted by count)
+        const nonGreys = entries.filter((c) => c.sat > 0.15 && c.lum > 0.12 && c.lum < 0.9);
+        const topAccentEntry = nonGreys.sort((a, b) => b.sat * Math.sqrt(b.count) - a.sat * Math.sqrt(a.count))[0] || entries[0];
+        const primaryAccentHex = rgbToHex(topAccentEntry.r, topAccentEntry.g, topAccentEntry.b);
 
-        // Find dark tone for background
-        const darks = entries.filter((c) => c.lum < 0.35);
-        let bgHex = "#203b3c";
-        if (darks.length > 0) {
-          bgHex = rgbToHex(darks[0].r, darks[0].g, darks[0].b);
+        // Find dark tone in logo (lum < 0.35)
+        const darkEntries = entries.filter(
+          (c) => c.lum < 0.35 && rgbToHex(c.r, c.g, c.b).toLowerCase() !== primaryAccentHex.toLowerCase()
+        );
+        let darkBgHex = "#203b3c";
+        if (darkEntries.length > 0) {
+          darkBgHex = rgbToHex(darkEntries[0].r, darkEntries[0].g, darkEntries[0].b);
         } else {
-          // If logo is light, use a deep slate or complementary dark
-          bgHex = topAccent.lum < 0.5 ? accentHex : "#203b3c";
+          // If no natural dark, tint deep slate with the accent hue
+          const r = Math.round(18 + topAccentEntry.r * 0.08);
+          const g = Math.round(24 + topAccentEntry.g * 0.08);
+          const b = Math.round(30 + topAccentEntry.b * 0.08);
+          darkBgHex = rgbToHex(r, g, b);
         }
 
-        // If bg and accent are too similar, shift accent or bg
-        if (bgHex.toLowerCase() === accentHex.toLowerCase()) {
-          const second = entries.find((e) => rgbToHex(e.r, e.g, e.b) !== bgHex);
-          if (second) {
-            resolve({
-              backgroundColor: bgHex,
-              accentColor: rgbToHex(second.r, second.g, second.b),
-              fontColor: "#ffffff",
-            });
-            return;
-          }
-        }
+        // Secondary / light tone for Light mode
+        const lightToneHex = "#f8f6f0";
+        const lightModeAccent = topAccentEntry.lum > 0.65 ? darkBgHex : primaryAccentHex;
 
-        resolve({
-          backgroundColor: bgHex,
-          accentColor: accentHex,
-          fontColor: "#ffffff",
-        });
+        // Trio 1: داكن ملكي
+        const trio1: OfficeColorTrio = {
+          id: `logo-royal-dark-${Date.now()}-1`,
+          nameAr: "داكن ملكي (من الشعار)",
+          nameEn: "Logo Royal Dark",
+          bgHex: darkBgHex,
+          accentHex: primaryAccentHex,
+          fontHex: "#ffffff",
+          descriptionAr: "الهوية الملكية المتناسقة مع الدرجات الأساسية لشعارك",
+        };
+
+        // Trio 2: متباين بارز
+        const trio2: OfficeColorTrio = {
+          id: `logo-contrast-${Date.now()}-2`,
+          nameAr: "متباين بارز (من الشعار)",
+          nameEn: "Logo High Contrast",
+          bgHex: "#14181f",
+          accentHex: primaryAccentHex,
+          fontHex: "#ffffff",
+          descriptionAr: "تباين حاد وواضح يبرز هوية المكتب بدقة فائقة",
+        };
+
+        // Trio 3: نهاري لؤلؤي
+        const trio3: OfficeColorTrio = {
+          id: `logo-light-${Date.now()}-3`,
+          nameAr: "نهاري لؤلؤي (من الشعار)",
+          nameEn: "Logo Warm Light",
+          bgHex: lightToneHex,
+          accentHex: lightModeAccent,
+          fontHex: "#18222d",
+          descriptionAr: "نمط نهاري مريح للعين مستوحى من ألوان الشعار الرسمية",
+        };
+
+        resolve([trio1, trio2, trio3]);
       } catch {
-        resolve({ backgroundColor: "#203b3c", accentColor: "#d5a058", fontColor: "#ffffff" });
+        resolve(fallbackTrios);
       }
     };
     img.onerror = () => {
-      resolve({ backgroundColor: "#203b3c", accentColor: "#d5a058", fontColor: "#ffffff" });
+      resolve(fallbackTrios);
     };
     img.src = imageSrc;
   });
+}
+
+/**
+ * Analyze an image and suggest a 3-color palette (bg, accent, font)
+ * matching the logo's dominant tones.
+ */
+export async function suggestColorsFromLogo(imageSrc: string): Promise<{
+  backgroundColor: string;
+  accentColor: string;
+  fontColor: string;
+}> {
+  const trios = await suggestMultipleTriosFromLogo(imageSrc);
+  const best = trios[0] || {
+    bgHex: "#203b3c",
+    accentHex: "#d5a058",
+    fontHex: "#ffffff",
+  };
+  return {
+    backgroundColor: best.bgHex,
+    accentColor: best.accentHex,
+    fontColor: best.fontHex,
+  };
 }
 
 export const OFFICE_COLOR_HARMONY_PAIRS: OfficeColorPair[] = [

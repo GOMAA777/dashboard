@@ -12,24 +12,19 @@ import {
   Lock,
   Pencil,
   Trash2,
-  ChevronRight,
-  ChevronLeft,
-  ChevronsRight,
-  ChevronsLeft,
 } from "lucide-react";
 import { RoleItem } from "../types/roles.types";
-import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
+import { UnifiedPagination } from "@/components/shared/UnifiedPagination";
 import { useLanguage } from "@/lib/i18n";
-import { cn } from "@/lib/utils";
 
 interface RolesTableProps {
   roles: RoleItem[];
-  onEditRole: (role: RoleItem) => void;
-  onDeleteRole: (role: RoleItem) => void;
+  onEditRole?: (role: RoleItem) => void;
+  onDeleteRole?: (role: RoleItem) => void;
 }
 
 export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps) {
-  const { t, isEn, direction } = useLanguage();
+  const { t, direction } = useLanguage();
   const [pageSize, setPageSize] = useState<number>(5);
   const [pageIndex, setPageIndex] = useState<number>(0);
 
@@ -39,8 +34,6 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
     safePageIndex * pageSize,
     (safePageIndex + 1) * pageSize
   );
-  const startItem = roles.length === 0 ? 0 : safePageIndex * pageSize + 1;
-  const endItem = Math.min((safePageIndex + 1) * pageSize, roles.length);
 
   const getRoleIcon = (type: string) => {
     switch (type) {
@@ -64,15 +57,15 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
   return (
     <div
       dir={direction}
-      className="bg-white dark:bg-[#221812] rounded-b-[8px] border border-[#e6e2dc] dark:border-[#38271c] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] overflow-hidden"
+      className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#f0eeea] dark:border-[#38271c] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] overflow-hidden w-full shrink-0"
       data-node-id="1:11626"
     >
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto overflow-y-hidden scrollbar-none w-full">
         <table className="w-full text-start border-collapse">
           {/* Header Row */}
           <thead>
             <tr
-              className="bg-[#f0eeea] dark:bg-[#1a120d] border-b border-[#e6e2dc] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[12px] font-bold"
+              className="bg-[#f5f3ef] dark:bg-[#281c15] border-b border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[18px] font-bold"
               data-node-id="1:11644"
             >
               <th className="py-3.5 px-4 text-start w-[340px]" data-node-id="1:11645">
@@ -223,7 +216,7 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
                       >
                         <Lock className="size-[14px]" />
                       </button>
-                    ) : (
+                    ) : onDeleteRole ? (
                       <button
                         type="button"
                         onClick={() => onDeleteRole(role)}
@@ -233,18 +226,20 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
                       >
                         <Trash2 className="size-[14px]" />
                       </button>
-                    )}
+                    ) : null}
 
                     {/* Edit button */}
-                    <button
-                      type="button"
-                      onClick={() => onEditRole(role)}
-                      title={t("تعديل الدور والصلاحيات", "Edit Role & Permissions")}
-                      className="p-1.5 text-[#625d5d] dark:text-[#cdc5bd] hover:text-[#9c6402] dark:hover:text-[#e29d38] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] rounded-[4px] transition-colors cursor-pointer"
-                      data-node-id="1:11663"
-                    >
-                      <Pencil className="size-[14px]" />
-                    </button>
+                    {onEditRole && (
+                      <button
+                        type="button"
+                        onClick={() => onEditRole(role)}
+                        title={t("تعديل الدور والصلاحيات", "Edit Role & Permissions")}
+                        className="p-1.5 text-[#625d5d] dark:text-[#cdc5bd] hover:text-[#9c6402] dark:hover:text-[#e29d38] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] rounded-[4px] transition-colors cursor-pointer"
+                        data-node-id="1:11663"
+                      >
+                        <Pencil className="size-[14px]" />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -254,114 +249,14 @@ export function RolesTable({ roles, onEditRole, onDeleteRole }: RolesTableProps)
         </table>
       </div>
 
-      {/* Pagination Footer */}
-      <div
-        className="bg-[#fcfaf7] dark:bg-[#1a120d] border-t border-[#e6e2dc] dark:border-[#38271c] p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-start"
-        data-node-id="1:11855"
-      >
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="text-[12px] text-[#514537] dark:text-[#cdc5bd]" data-node-id="1:11877">
-            <span>{t("عرض ", "Showing ")}</span>
-            <strong className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{startItem}</strong>
-            <span>{t(" إلى ", " to ")}</span>
-            <strong className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{endItem}</strong>
-            <span>{t(" من أصل ", " of ")}</span>
-            <strong className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{roles.length}</strong>
-            <span>{t(" أدوار مسجلة", " registered roles")}</span>
-          </div>
-
-          <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
-            <span className="text-[11px] text-[#837565] dark:text-[#8e8680]">
-              {t("صفوف بالصفحة:", "Rows per page:")}
-            </span>
-            <PageSizeDropdown
-              value={pageSize}
-              onChange={(newSize) => {
-                setPageSize(newSize);
-                setPageIndex(0);
-              }}
-              options={[5, 10, 20, 50]}
-            />
-          </div>
-        </div>
-
-        {/* Numeric page buttons */}
-        <div className="flex items-center gap-1.5" data-node-id="1:11856">
-          {/* First Page */}
-          <button
-            type="button"
-            disabled={safePageIndex === 0}
-            onClick={() => setPageIndex(0)}
-            title={t("الصفحة الأولى", "First Page")}
-            className="size-[32px] rounded-[4px] border border-[#e6e2dc] dark:border-[#38271c] bg-[#f5f3ef] dark:bg-[#281c15] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
-          >
-            <ChevronsRight className={cn("size-[14px]", isEn && "rotate-180")} />
-          </button>
-
-          {/* Previous */}
-          <button
-            type="button"
-            disabled={safePageIndex === 0}
-            onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
-            className="flex items-center gap-1 px-2.5 py-1.5 bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] disabled:opacity-40 disabled:cursor-not-allowed text-[#837565] dark:text-[#cdc5bd] border border-transparent dark:border-[#38271c] rounded-[4px] text-[12px] font-semibold transition-colors cursor-pointer"
-            data-node-id="1:11872"
-          >
-            <ChevronRight className={cn("size-[13px]", isEn && "rotate-180")} />
-            <span>{t("السابق", "Prev")}</span>
-          </button>
-
-          {Array.from({ length: totalPages }, (_, i) => i).map((p) => {
-            if (totalPages > 5 && Math.abs(p - safePageIndex) > 2 && p !== 0 && p !== totalPages - 1) {
-              if (p === 1 || p === totalPages - 2) {
-                return (
-                  <span key={p} className="text-[#837565] dark:text-[#8e8680] text-[12px] px-1 font-semibold">
-                    ...
-                  </span>
-                );
-              }
-              return null;
-            }
-            const isActive = safePageIndex === p;
-            return (
-              <button
-                key={p}
-                type="button"
-                onClick={() => setPageIndex(p)}
-                className={`size-[32px] rounded-[4px] text-[12px] font-semibold flex items-center justify-center transition-colors cursor-pointer ${
-                  isActive
-                    ? "bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] font-bold shadow-xs cursor-default"
-                    : "bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#1b1c1a] dark:text-[#fdfbf7] border border-transparent dark:border-[#38271c]"
-                }`}
-              >
-                {p + 1}
-              </button>
-            );
-          })}
-
-          {/* Next */}
-          <button
-            type="button"
-            disabled={safePageIndex >= totalPages - 1}
-            onClick={() => setPageIndex((p) => Math.min(totalPages - 1, p + 1))}
-            className="flex items-center gap-1 px-2.5 py-1.5 bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] disabled:opacity-40 disabled:cursor-not-allowed text-[#1b1c1a] dark:text-[#fdfbf7] border border-transparent dark:border-[#38271c] rounded-[4px] text-[12px] font-semibold transition-colors cursor-pointer"
-            data-node-id="1:11857"
-          >
-            <span>{t("التالي", "Next")}</span>
-            <ChevronLeft className={cn("size-[13px]", isEn && "rotate-180")} />
-          </button>
-
-          {/* Last Page */}
-          <button
-            type="button"
-            disabled={safePageIndex >= totalPages - 1}
-            onClick={() => setPageIndex(totalPages - 1)}
-            title={t("الصفحة الأخيرة", "Last Page")}
-            className="size-[32px] rounded-[4px] border border-[#e6e2dc] dark:border-[#38271c] bg-[#f5f3ef] dark:bg-[#281c15] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
-          >
-            <ChevronsLeft className={cn("size-[14px]", isEn && "rotate-180")} />
-          </button>
-        </div>
-      </div>
+      <UnifiedPagination
+        pageIndex={safePageIndex}
+        pageSize={pageSize}
+        totalItems={roles.length}
+        onPageChange={setPageIndex}
+        onPageSizeChange={setPageSize}
+        itemLabel={t("أدوار مسجلة", "registered roles")}
+      />
     </div>
   );
 }

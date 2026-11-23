@@ -1,0 +1,43 @@
+---
+description: Canonical management list page layout — KPIs, filter, table, pagination
+globs: src/features/**/*.tsx
+alwaysApply: true
+---
+
+# List Page Layout (توحيد الشكل)
+
+Every management list page must follow this exact vertical order and separation:
+
+1. **Header / command banner** (optional)
+2. **KPI cards** — grid of 4 (or fewer) metric cards
+3. **Filter bar** — standalone `UnifiedFilterBar` card (never inside the table card)
+4. **Data table card** — `DataTableCard` wrapping table + pagination only
+5. **Pagination** — `UnifiedPagination` inside the table card footer
+
+## Required structure
+
+```tsx
+<ManagementListLayout
+  header={<PageHeader />}
+  kpis={<XxxKpiMetrics />}
+  filter={<UnifiedFilterBar ... />}
+  table={
+    <DataTableCard>
+      <table>...</table>
+      <UnifiedPagination ... />
+    </DataTableCard>
+  }
+/>
+```
+
+## Hard rules
+
+- KPIs, filter, and table are **three separate cards** with `gap-6` between them.
+- Do **not** nest `UnifiedFilterBar` inside the table card (`rounded-b-none` / `border-b-0` tricks are forbidden).
+- Table header row uses `TABLE_HEAD_ROW` from `list-layout.styles.ts` (`bg-[#f5f3ef]`, 12px bold).
+- Status badges, ID chips, action icon buttons, and pagination must match Client Management.
+- Prefer shared primitives: `ManagementListLayout`, `DataTableCard`, `UnifiedPagination`, `UnifiedFilterBar`.
+
+## Reference
+
+Client Management (`ClientManagementView` + `ClientManagementTable`) is the visual source of truth.

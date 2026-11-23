@@ -20,6 +20,11 @@ import { initialUpdateStats, initialVersionInfo } from "../data/initialUpdateDat
 import { useLanguage } from "@/lib/i18n";
 import { fetchSystemUpdate, startSystemUpdate } from "@/lib/api/settings";
 import { unwrapData, asString } from "@/lib/api/helpers";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  useSystemUpdateQuery,
+  invalidateUtilityQueries,
+} from "@/features/utility/hooks/useUtilityQuery";
 
 export function SystemUpdateView() {
   const { direction, isEn } = useLanguage();
@@ -28,30 +33,24 @@ export function SystemUpdateView() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateProgress, setUpdateProgress] = useState<number | null>(null);
 
+  const queryClient = useQueryClient();
+  const systemUpdateQuery = useSystemUpdateQuery();
+
   useEffect(() => {
-    let cancelled = false;
-    fetchSystemUpdate()
-      .then((payload) => {
-        if (cancelled) return;
-        const data = (unwrapData<Record<string, unknown>>(payload) ||
-          {}) as Record<string, unknown>;
-        setVersionInfo((prev) => ({
-          ...prev,
-          installedVersion: asString(
-            data.current_version || data.version,
-            prev.installedVersion
-          ),
-          latestVersion: asString(data.latest_version, prev.latestVersion),
-          latestReleaseDate: asString(data.release_date, prev.latestReleaseDate),
-        }));
-      })
-      .catch(() => {
-        // Keep mock version info if API unavailable.
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    if (systemUpdateQuery.data) {
+      const data = (unwrapData<Record<string, unknown>>(systemUpdateQuery.data) ||
+        {}) as Record<string, unknown>;
+      setVersionInfo((prev) => ({
+        ...prev,
+        installedVersion: asString(
+          data.current_version || data.version,
+          prev.installedVersion
+        ),
+        latestVersion: asString(data.latest_version, prev.latestVersion),
+        latestReleaseDate: asString(data.release_date, prev.latestReleaseDate),
+      }));
+    }
+  }, [systemUpdateQuery.data]);
 
   const handleStartUpdate = async () => {
     setIsUpdating(true);
@@ -284,7 +283,7 @@ export function SystemUpdateView() {
                 className="bg-[#9c6402] hover:bg-[#835401] active:bg-[#6c4501] dark:bg-[#e29d38] dark:hover:bg-[#c28328] text-white dark:text-[#1c140f] w-full max-w-[620px] h-[48px] rounded-[6px] font-bold text-[16px] flex items-center justify-center gap-[8px] transition-all shadow-sm cursor-pointer disabled:opacity-75"
               >
                 <Download className="size-[18px]" />
-                <span>{isUpdating ? (isEn ? "Updating System..." : "جارٍ تحديث النظام...") : (isEn ? "Update System Now" : "تحديث النظام الآن")}</span>
+                <span>{isEn ? "Update System Now" : "تحديث النظام الآن"}</span>
               </button>
 
               <div className="flex items-center gap-[6px] text-[#837565] dark:text-[#8e8680] text-[12px]">

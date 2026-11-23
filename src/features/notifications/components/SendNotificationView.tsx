@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import placeholderBannerImg from "../../../../public/figma/placeholder-banner.png";
 import { DashboardStickyActionBar } from "@/components/shared/DashboardStickyActionBar";
@@ -29,12 +29,16 @@ import {
 } from "../schemas/notifications.schemas";
 import { NotificationItem } from "../types/notifications.types";
 import { useLanguage } from "@/lib/i18n";
+import { fetchFirms } from "@/lib/api/firms";
+import { unwrapList } from "@/lib/api/helpers";
 
 interface SendNotificationViewProps {
   onBack: () => void;
   onSubmitSend: (values: SendNotificationFormValues) => void;
   onSaveDraft: (values: SendNotificationFormValues) => void;
   initialData?: NotificationItem | null;
+  serverErrors?: Record<string, string[] | string> | null;
+  isSubmitting?: boolean;
 }
 
 export function SendNotificationView({
@@ -42,16 +46,42 @@ export function SendNotificationView({
   onSubmitSend,
   onSaveDraft,
   initialData,
+  serverErrors,
+  isSubmitting = false,
 }: SendNotificationViewProps) {
   const { direction, isEn } = useLanguage();
 
-  const mockLawFirms: Array<{ id: string; name: string; activeLicenses: number }> = [];
+  const [lawFirms, setLawFirms] = useState<
+    Array<{ id: string; name: string; activeLicenses: number }>
+  >([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchFirms({ per_page: 100 })
+      .then((payload) => {
+        if (cancelled) return;
+        const list = unwrapList<Record<string, unknown>>(payload);
+        const mapped = list
+          .map((f) => ({
+            id: String(f.id ?? ""),
+            name: String(f.name ?? f.office_name ?? "مكتب محاماة"),
+            activeLicenses: Number(f.lawyers_count || f.active_licenses || 1),
+          }))
+          .filter((f) => f.id);
+        if (mapped.length > 0) setLawFirms(mapped);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const {
     register,
     handleSubmit,
     watch,
     setValue,
+    setError,
     formState: { errors },
   } = useForm<SendNotificationFormValues>({
     resolver: zodResolver(sendNotificationSchema),
@@ -71,6 +101,23 @@ export function SendNotificationView({
     },
   });
 
+  useEffect(() => {
+    if (!serverErrors) return;
+    Object.entries(serverErrors).forEach(([key, val]) => {
+      let field = key;
+      if (key === "content") field = "description";
+      if (key === "target_company_ids" || key === "target_company_id") field = "specificFirmId";
+      const message = Array.isArray(val) ? val[0] : String(val);
+      if (["title", "description", "actionUrl", "audienceType", "specificFirmId"].includes(field)) {
+        setError(field as keyof SendNotificationFormValues, {
+          type: "server",
+          message,
+        });
+      }
+    });
+  }, [serverErrors, setError]);
+
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const formValues = watch();
   const [hasImage, setHasImage] = useState(Boolean(formValues.imageUrl));
 
@@ -78,11 +125,45 @@ export function SendNotificationView({
     setValue("audienceType", type);
   };
 
+  const handleFileSelect = (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error(isEn ? "Please select an image file" : "يرجى اختيار ملف صورة صالح");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error(
+        isEn
+          ? "Image size must be less than 2MB"
+          : "حجم الصورة يجب أن لا يتجاوز 2 ميجابايت"
+      );
+      return;
+    }
+    const previewUrl = URL.createObjectURL(file);
+    setValue("imageFile", file);
+    setValue("imageUrl", previewUrl);
+    setValue("imageFileName", file.name);
+    const sizeKb = Math.round(file.size / 1024);
+    setValue(
+      "imageFileSize",
+      sizeKb > 1024 ? `${(sizeKb / 1024).toFixed(1)} MB` : `${sizeKb} KB`
+    );
+    setValue("imageDimensions", "800 × 450 px");
+    setHasImage(true);
+    toast.success(isEn ? "Image attached successfully" : "تم إرفاق الصورة بنجاح");
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleFileSelect(file);
+  };
+
   const handleRemoveImage = () => {
     setValue("imageUrl", "");
     setValue("imageFileName", "");
     setValue("imageFileSize", "");
     setValue("imageDimensions", "");
+    setValue("imageFile", undefined);
+    if (fileInputRef.current) fileInputRef.current.value = "";
     setHasImage(false);
     toast.info(isEn ? "Attached image removed" : "تمت إزالة الصورة المرفقة");
   };
@@ -303,7 +384,27 @@ export function SendNotificationView({
                 </div>
               </div>
             ) : (
-              <div className="bg-[#f5f3ef]/60 dark:bg-[#1a120d] border-2 border-dashed border-[#ded5c6] dark:border-[#38271c] rounded-xl p-6 text-center space-y-3">
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const file = e.dataTransfer.files?.[0];
+                  if (file) handleFileSelect(file);
+                }}
+                className="bg-[#f5f3ef]/60 dark:bg-[#1a120d] border-2 border-dashed border-[#ded5c6] dark:border-[#38271c] rounded-xl p-6 text-center space-y-3 cursor-pointer hover:border-[#9c6402] transition-colors"
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/jpg"
+                  onChange={handleFileInputChange}
+                  className="hidden"
+                />
                 <div className="size-10 rounded-full bg-white dark:bg-[#281c15] border border-transparent dark:border-[#38271c] flex items-center justify-center mx-auto text-[#9c6402] dark:text-[#e29d38] shadow-sm">
                   <Upload className="size-5" />
                 </div>
@@ -319,7 +420,10 @@ export function SendNotificationView({
                       : "PNG, JPG, WebP حتى 2 ميجابايت (الموصى به 800 × 450 بكسل)"}
                   </p>
                 </div>
-                <div className="flex flex-wrap justify-center gap-2 pt-1">
+                <div
+                  className="flex flex-wrap justify-center gap-2 pt-1"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <button
                     type="button"
                     onClick={() =>
@@ -499,7 +603,7 @@ export function SendNotificationView({
                         <option value="">
                           {isEn ? "Select target law firm..." : "اختر مكتب المحاماة المستهدف..."}
                         </option>
-                        {mockLawFirms.map((firm) => (
+                        {lawFirms.map((firm) => (
                           <option key={firm.id} value={firm.id}>
                             {firm.name} (
                             {isEn
@@ -509,6 +613,11 @@ export function SendNotificationView({
                           </option>
                         ))}
                       </select>
+                      {errors.specificFirmId && (
+                        <p className="text-[12px] text-[#ba1a1a] font-medium mt-1">
+                          {errors.specificFirmId.message}
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
@@ -701,10 +810,15 @@ export function SendNotificationView({
           <button
             type="button"
             onClick={handleSubmit(onFormSubmit)}
-            className="bg-[#9c6402] hover:bg-[#855402] dark:bg-[#e29d38] dark:hover:bg-[#c28328] text-white dark:text-[#1c140f] text-[13px] font-bold px-7 py-2.5 rounded-xl flex items-center gap-2 shadow-sm shadow-[#9c6402]/20 dark:shadow-none transition-colors cursor-pointer"
+            disabled={isSubmitting}
+            className="bg-[#9c6402] hover:bg-[#855402] dark:bg-[#e29d38] dark:hover:bg-[#c28328] text-white dark:text-[#1c140f] text-[13px] font-bold px-7 py-2.5 rounded-xl flex items-center gap-2 shadow-sm shadow-[#9c6402]/20 dark:shadow-none transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Check className="size-4" />
-            <span>{isEn ? "Confirm & Send Notification" : "تأكيد وإرسال الإشعار"}</span>
+            <span>
+              {isEn
+                ? "Confirm & Send Notification"
+                : "تأكيد وإرسال الإشعار"}
+            </span>
           </button>
         </div>
       </DashboardStickyActionBar>

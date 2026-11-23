@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -43,6 +43,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { ClientOffice, OfficeInternalNote } from "../types/client.types";
+import { ClientOfficeDetailsSkeleton } from "./ClientOfficeDetailsSkeleton";
 import { useLanguage } from "@/lib/i18n";
 import {
   getLocalizedCityName,
@@ -53,7 +54,10 @@ import {
   localizeStatus,
 } from "@/lib/localize";
 import { cn } from "@/lib/utils";
-import { addFirmNote, fetchFirmById } from "@/lib/api/firms";
+import { addFirmNote } from "@/lib/api/firms";
+import { useFirmDetailQuery } from "@/features/clients/hooks/useClientsQuery";
+import { useQueryClient } from "@tanstack/react-query";
+import { InvalidationGraph } from "@/lib/query-keys";
 import { unwrapData } from "@/lib/api/helpers";
 import {
   getLocalCustomAutoRenew,
@@ -69,6 +73,7 @@ import {
   resolveOfficeLogo,
   DEFAULT_OFFICE_LOGO,
   withCacheBust,
+  formatSaudiPhoneDisplay,
 } from "@/lib/api/mappers";
 import {
   DEFAULT_OFFICE_THEME_COLOR,
@@ -82,6 +87,43 @@ import {
   TicketQuickViewModal,
   TicketQuickViewData,
 } from "@/features/tickets/components/TicketQuickViewModal";
+import {
+  useTicketsQuery,
+  useDepartmentsQuery,
+  invalidateTicketsQueries,
+} from "@/features/tickets/hooks/useTicketsQuery";
+import { useStaffQuery } from "@/features/staff/hooks/useStaffQuery";
+import { TicketDetailsModal } from "@/features/tickets/components/TicketDetailsModal";
+import { ChangeAssigneeModal } from "@/features/tickets/components/ChangeAssigneeModal";
+import { ChangeStatusModal } from "@/features/tickets/components/ChangeStatusModal";
+import { CreateOfficeTicketModal } from "@/features/tickets/components/CreateOfficeTicketModal";
+import { ModalPortal } from "@/components/shared/ModalPortal";
+import {
+  Ticket,
+  TicketStatus,
+  TicketPriority,
+  TicketDepartment,
+  TicketAssignee,
+  TicketClient,
+  TicketAttachment,
+} from "@/features/tickets/types/tickets.types";
+import {
+  createTicket,
+  assignTicket,
+  updateTicketStatus,
+  closeTicket,
+  replyTicket,
+  fetchTicketById,
+  type CreateTicketPayload,
+} from "@/lib/api/tickets";
+import {
+  mapTicketsResponse,
+  mapTicketFromApi,
+  mapDepartmentsResponse,
+  saveLocalTicketAttachments,
+} from "@/lib/api/mappers";
+import { unwrapList } from "@/lib/api/helpers";
+import { Plus, AlertTriangle } from "lucide-react";
 
 function formatArabicDate(isoOrStr?: string, isEn = false, fallback = "—"): string {
   if (!isoOrStr) return fallback;
@@ -206,7 +248,7 @@ function formatPaymentMethod(method?: string, isEn = false): string {
 interface ClientOfficeDetailsViewProps {
   office: ClientOffice | null;
   onBack: () => void;
-  onEdit: () => void;
+  onEdit?: () => void;
   onResetPassword?: () => void;
   onEnterOfficeAsAdmin?: () => void;
   onOpenDeactivateModal?: (office: ClientOffice) => void;
@@ -227,6 +269,7 @@ export function ClientOfficeDetailsView({
   onNoteAdded,
 }: ClientOfficeDetailsViewProps) {
   const { t, isEn } = useLanguage();
+  const queryClient = useQueryClient();
   const [internalNote, setInternalNote] = useState("");
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
   const [liveOfficesById, setLiveOfficesById] = useState<Record<string, ClientOffice>>({});
@@ -258,50 +301,42 @@ export function ClientOfficeDetailsView({
     return mergeUniqueNotes(mergeUniqueNotes(override, fromProps), fromLocal);
   }, [office, notesByOffice]);
 
-  // Direct fetch on mount / ID change to guarantee fresh office & subscription details from API
+  const firmDetailQuery = useFirmDetailQuery(office?.id);
+
+  // Sync fresh office & subscription details from React Query cache
   React.useEffect(() => {
+    if (!firmDetailQuery.data) return;
     const firmId = office?.id;
     if (!firmId) return;
-    let cancelled = false;
 
-    fetchFirmById(firmId)
-      .then((payload) => {
-        if (cancelled) return;
-        const rawData = (unwrapData<Record<string, unknown>>(payload) || payload) as Record<string, unknown>;
-        const firm = (rawData.firm || rawData) as Record<string, unknown>;
+    const payload = firmDetailQuery.data;
+    const rawData = (unwrapData<Record<string, unknown>>(payload) || payload) as Record<string, unknown>;
+    const firm = (rawData.firm || rawData) as Record<string, unknown>;
 
-        if (rawData.firm || firm.id) {
-          const mappedLive = mapFirmToClientOffice(rawData);
-          if (mappedLive.id) {
-            setLiveOfficesById((prev) => ({ ...prev, [firmId]: mappedLive }));
-          }
-        }
+    if (rawData.firm || firm.id) {
+      const mappedLive = mapFirmToClientOffice(rawData);
+      if (mappedLive.id) {
+        setLiveOfficesById((prev) => ({ ...prev, [firmId]: mappedLive }));
+      }
+    }
 
-        const notesRaw = (rawData.internal_notes || firm.internal_notes || []) as Array<Record<string, unknown>>;
-        const liveNotes: OfficeInternalNote[] = notesRaw.map((n) => ({
-          id: Number(n.id || Date.now()),
-          authorName: String(n.author_name || "مشرف النظام"),
-          authorRole: String(n.author_role || "إشراف النظام"),
-          note: String(n.note || ""),
-          createdAt: String(n.created_at || new Date().toISOString()),
-        }));
+    const notesRaw = (rawData.internal_notes || firm.internal_notes || []) as Array<Record<string, unknown>>;
+    const liveNotes: OfficeInternalNote[] = notesRaw.map((n) => ({
+      id: Number(n.id || Date.now()),
+      authorName: String(n.author_name || "مشرف النظام"),
+      authorRole: String(n.author_role || "إشراف النظام"),
+      note: String(n.note || ""),
+      createdAt: String(n.created_at || new Date().toISOString()),
+    }));
 
-        if (liveNotes.length > 0) {
-          setNotesByOffice((prev) => {
-            const merged = mergeUniqueNotes(liveNotes, prev[firmId] || []);
-            saveAllLocalCustomNotes(firmId, merged);
-            return { ...prev, [firmId]: merged };
-          });
-        }
-      })
-      .catch((err) => {
-        console.warn("Could not refresh firm details from server:", err);
+    if (liveNotes.length > 0) {
+      setNotesByOffice((prev) => {
+        const merged = mergeUniqueNotes(liveNotes, prev[firmId] || []);
+        saveAllLocalCustomNotes(firmId, merged);
+        return { ...prev, [firmId]: merged };
       });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [office?.id]);
+    }
+  }, [firmDetailQuery.data, office?.id]);
 
   const displayOffice =
     office?.id && liveOfficesById[office.id]
@@ -310,8 +345,12 @@ export function ClientOfficeDetailsView({
 
   const isUnlimited =
     displayOffice?.planType === "unlimited" ||
+    displayOffice?.planType === "special" ||
     displayOffice?.subscriptionPlan === "unlimited" ||
+    displayOffice?.subscriptionPlan === "special" ||
     displayOffice?.plan?.includes("غير محدود") ||
+    displayOffice?.plan?.includes("خطة مميزة") ||
+    displayOffice?.planDetails?.name?.includes("خطة مميزة") ||
     displayOffice?.subscriptionStatus?.type === "unlimited" ||
     displayOffice?.subscriptionStatus?.label === "غير محدود";
 
@@ -342,13 +381,81 @@ export function ClientOfficeDetailsView({
   const [isAnnualBenefitsModalOpen, setIsAnnualBenefitsModalOpen] = useState(false);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
+  const [selectedTicketForDetails, setSelectedTicketForDetails] = useState<Ticket | null>(null);
+  const [isCreatingTicketForOffice, setIsCreatingTicketForOffice] = useState(false);
+  const [assigneeModalTicket, setAssigneeModalTicket] = useState<Ticket | null>(null);
+  const [isAssigningTicket, setIsAssigningTicket] = useState(false);
+  const [statusModalTicket, setStatusModalTicket] = useState<Ticket | null>(null);
+  const [isUpdatingTicketStatus, setIsUpdatingTicketStatus] = useState(false);
+
+  const officeId = office?.id;
+
+  // Real API Tickets for this Office
+  const officeTicketsQuery = useTicketsQuery({
+    company_id: officeId,
+    per_page: 5,
+  });
+
+  const officeTickets = useMemo<Ticket[]>(() => {
+    if (officeTicketsQuery.data) {
+      return mapTicketsResponse(officeTicketsQuery.data);
+    }
+    return [];
+  }, [officeTicketsQuery.data]);
+
+  const staffQuery = useStaffQuery();
+  const departmentsQuery = useDepartmentsQuery();
+
+  const assignees = useMemo<TicketAssignee[]>(() => {
+    if (!staffQuery.data) return [];
+    const staffList = unwrapList<Record<string, unknown>>(staffQuery.data);
+    return staffList.map((s, idx) => {
+      const name = String(s.name || s.username || `موظف ${idx + 1}`);
+      const rawRole = s.role_name || s.role;
+      const roleStr =
+        typeof rawRole === "object" && rawRole !== null
+          ? String((rawRole as { name?: string; role_name?: string; title?: string }).name || (rawRole as { name?: string; role_name?: string; title?: string }).role_name || (rawRole as { name?: string; role_name?: string; title?: string }).title || "أخصائي دعم فني")
+          : String(rawRole || "أخصائي دعم فني");
+      return {
+        id: String(s.id || idx + 1),
+        name,
+        initials: name.trim().slice(0, 2) || "م",
+        role: roleStr,
+        department: String(s.department_name || s.department || "الدعم الفني"),
+        activeTicketsCount: Number(s.active_tickets_count || s.active_tickets || 0),
+        isAvailable: s.status === "active" || s.is_active === true,
+      };
+    });
+  }, [staffQuery.data]);
+
+  const departments = useMemo<TicketDepartment[]>(() => {
+    if (departmentsQuery.data) {
+      const mapped = mapDepartmentsResponse(departmentsQuery.data);
+      if (mapped.length > 0) return mapped;
+    }
+    return [];
+  }, [departmentsQuery.data]);
+
+  const officeAsClient: TicketClient[] = useMemo(() => {
+    if (!office) return [];
+    return [
+      {
+        id: String(office.id),
+        name: office.owner || office.name || "المسؤول",
+        firm: office.name || "مكتب محاماة",
+        email: office.email || "support@client.com",
+        phone: office.phone || "+966 50 000 0000",
+        crNumber: office.taxNumber || office.licenseNumber || "—",
+      },
+    ];
+  }, [office]);
   const rawPlanTitle =
     (displayOffice?.id ? upgradedPlanByOffice[displayOffice.id] : undefined) ||
     displayOffice?.planDetails?.name ||
     displayOffice?.plan ||
     "الباقة المعتمدة";
   const currentPlan = isUnlimited
-    ? "غير محدود"
+    ? "خطة مميزة"
     : isExplicitlyPaid
     ? rawPlanTitle.replace(/\s*-\s*تجربة\s*مجانية/gi, "").replace(/\s*\(تجربة\s*مجانية\)/gi, "").trim()
     : rawPlanTitle;
@@ -368,14 +475,7 @@ export function ClientOfficeDetailsView({
   }, [office?.id, office?.logo]);
 
   if (!displayOffice || !office) {
-    return (
-      <div className="w-full flex flex-col items-center justify-center p-16 bg-white dark:bg-[#221812] rounded-[8px] border border-[#f0eeea] dark:border-[#38271c]">
-        <div className="size-10 border-4 border-[#9c6402] border-t-transparent rounded-full animate-spin mb-4" />
-        <span className="text-[#837565] dark:text-[#cdc5bd] text-sm">
-          {t("جارٍ تحميل تفاصيل مكتب المحاماة...", "Loading law office details...")}
-        </span>
-      </div>
-    );
+    return <ClientOfficeDetailsSkeleton />;
   }
 
   const officeName = displayOffice.name;
@@ -409,7 +509,7 @@ export function ClientOfficeDetailsView({
     (displayOffice.companyId ? getLocalCustomSecondaryColor(displayOffice.companyId) : undefined) ||
     (isColorLight ? "#1b1c1a" : "#ffffff");
   const email = displayOffice.email || "—";
-  const phone = displayOffice.phone || "—";
+  const phone = formatSaudiPhoneDisplay(displayOffice.phone) || "—";
   const landline = displayOffice.landline || "—";
   const rawCity = displayOffice.city || "";
   const city = rawCity ? getLocalizedCityName(rawCity, isEn) : "—";
@@ -481,13 +581,31 @@ export function ClientOfficeDetailsView({
   const lawyersUsed = displayOffice.resourceUsage?.lawyersUsed ?? 0;
   const lawyersLimit = displayOffice.resourceUsage?.lawyersLimit ?? displayOffice.planDetails?.maxLawyers ?? 0;
   const lawyersPercent = displayOffice.resourceUsage?.lawyersPercent ?? (lawyersLimit > 0 ? Math.round((lawyersUsed / lawyersLimit) * 100) : 0);
-  const storageUsedGb = displayOffice.resourceUsage?.storageUsedGb ?? "0.00";
+  const storageUsedGb =
+    displayOffice.resourceUsage?.storageUsedGb ??
+    displayOffice.usedStorageGb ??
+    displayOffice.activeSubscriptionDetails?.usedStorageGb ??
+    "0.00";
   const storageLimitGb = displayOffice.resourceUsage?.storageLimitGb ?? displayOffice.planDetails?.storageLimitGb ?? 0;
   const storagePercent = displayOffice.resourceUsage?.storagePercent ?? (storageLimitGb > 0 ? Math.round((Number(storageUsedGb) / storageLimitGb) * 100) : 0);
   const activeCases = displayOffice.resourceUsage?.activeCases ?? 0;
   const maxCasesLimit = displayOffice.resourceUsage?.maxCasesLimit ?? displayOffice.planDetails?.maxCases ?? 0;
   const casesPercent = maxCasesLimit > 0 ? Math.round((activeCases / maxCasesLimit) * 100) : 0;
   const casesExceeded = maxCasesLimit > 0 && activeCases > maxCasesLimit;
+  
+  // Alert helpers
+  const isUsageHigh = (used: number, limit: number) => limit > 0 && (used / limit) >= 0.9;
+  const renderUpgradeCTA = () => (
+    <button
+      onClick={() => setIsUpgradeModalOpen(true)}
+      className="text-[10px] font-bold text-[#9c6402] dark:text-[#e29d38] hover:underline mt-1"
+    >
+      {t("ترقية الباقة لزيادة الحد", "Upgrade plan to increase limit")}
+    </button>
+  );
+  const documentsUsed = displayOffice.resourceUsage?.documentsUsed ?? 0;
+  const documentsLimit = displayOffice.resourceUsage?.documentsLimit ?? displayOffice.planDetails?.maxDocuments ?? 0;
+  const documentsPercent = displayOffice.resourceUsage?.documentsPercent ?? (documentsLimit > 0 ? Math.round((documentsUsed / documentsLimit) * 100) : 0);
   const paymentMethodLabel = formatPaymentMethod(displayOffice.activeSubscriptionDetails?.paymentMethod, isEn);
   const yearlyDiscount = displayOffice.planDetails?.yearlyDiscountPercent;
   const rawSubPrice =
@@ -534,6 +652,13 @@ export function ClientOfficeDetailsView({
       value: formatQuota(displayOffice.planDetails?.maxClients),
       icon: <UserCheck aria-hidden="true" className="size-3 text-[#9c6402] dark:text-[#e29d38] shrink-0" />,
       visible: displayOffice.planDetails?.maxClients !== undefined,
+    },
+    {
+      key: "documents",
+      label: t("المستندات", "Documents"),
+      value: formatQuota(documentsLimit > 0 ? documentsLimit : displayOffice.planDetails?.maxDocuments),
+      icon: <FileText aria-hidden="true" className="size-3 text-[#9c6402] dark:text-[#e29d38] shrink-0" />,
+      visible: (documentsLimit > 0 ? documentsLimit : displayOffice.planDetails?.maxDocuments) !== undefined,
     },
     {
       key: "agents",
@@ -596,6 +721,7 @@ export function ClientOfficeDetailsView({
         createdAt: String(noteData.created_at || new Date().toISOString()),
       };
       persistNewNote(newNote);
+      void InvalidationGraph.onFirmMutation(queryClient);
     } catch {
       // Local fallback so user note is never lost even if server drops
       const fallbackNote: OfficeInternalNote = {
@@ -606,8 +732,121 @@ export function ClientOfficeDetailsView({
         createdAt: new Date().toISOString(),
       };
       persistNewNote(fallbackNote);
+      void InvalidationGraph.onFirmMutation(queryClient);
     } finally {
       setIsSubmittingNote(false);
+    }
+  };
+
+  const handleSendMessage = async (ticketId: string, content: string, isInternalNote?: boolean) => {
+    try {
+      await replyTicket(ticketId, {
+        message: content,
+        is_internal_note: Boolean(isInternalNote),
+        notify_client_sms_email: !isInternalNote,
+      });
+      toast.success(
+        isInternalNote
+          ? t("تمت إضافة الملاحظة الداخلية بنجاح", "Internal note added successfully")
+          : t("تم إرسال الرد للعميل بنجاح", "Reply sent to client successfully")
+      );
+      await invalidateTicketsQueries(queryClient);
+      const detail = await fetchTicketById(ticketId);
+      const raw = (unwrapData<Record<string, unknown>>(detail) || detail) as Record<string, unknown>;
+      if (raw?.id) setSelectedTicketForDetails(mapTicketFromApi(raw));
+    } catch {
+      toast.error(t("تعذر إرسال الرد", "Failed to send reply"));
+    }
+  };
+
+  const handleCloseTicketSuccess = async (ticketId: string) => {
+    try {
+      await closeTicket(ticketId);
+      toast.success(t("تم إغلاق التذكرة بنجاح", "Ticket closed successfully"));
+      await invalidateTicketsQueries(queryClient);
+      const detail = await fetchTicketById(ticketId);
+      const raw = (unwrapData<Record<string, unknown>>(detail) || detail) as Record<string, unknown>;
+      if (raw?.id) setSelectedTicketForDetails(mapTicketFromApi(raw));
+    } catch {
+      toast.error(t("تعذر إغلاق التذكرة", "Failed to close ticket"));
+    }
+  };
+
+  const handleConfirmChangeAssignee = async (newAssignee: TicketAssignee, reason: string): Promise<boolean> => {
+    if (!assigneeModalTicket) return false;
+    setIsAssigningTicket(true);
+    try {
+      await assignTicket(assigneeModalTicket.id, {
+        staff_id: Number(newAssignee.id),
+        reason: reason.trim() || undefined,
+      });
+      toast.success(
+        isEn
+          ? `Ticket reassigned to ${newAssignee.name}`
+          : `تم إسناد التذكرة إلى ${newAssignee.name} بنجاح`
+      );
+      setAssigneeModalTicket(null);
+      await invalidateTicketsQueries(queryClient);
+      if (selectedTicketForDetails?.id === assigneeModalTicket.id) {
+        const detail = await fetchTicketById(assigneeModalTicket.id);
+        const raw = (unwrapData<Record<string, unknown>>(detail) || detail) as Record<string, unknown>;
+        if (raw?.id) setSelectedTicketForDetails(mapTicketFromApi(raw));
+      }
+      return true;
+    } catch {
+      toast.error(t("تعذر إسناد التذكرة", "Failed to reassign ticket"));
+      return false;
+    } finally {
+      setIsAssigningTicket(false);
+    }
+  };
+
+  const handleConfirmChangeStatus = async (newStatus: TicketStatus): Promise<boolean> => {
+    if (!statusModalTicket) return false;
+    setIsUpdatingTicketStatus(true);
+    try {
+      await updateTicketStatus(statusModalTicket.id, { status: newStatus });
+      toast.success(t("تم تحديث حالة التذكرة بنجاح", "Ticket status updated successfully"));
+      setStatusModalTicket(null);
+      await invalidateTicketsQueries(queryClient);
+      if (selectedTicketForDetails?.id === statusModalTicket.id) {
+        const detail = await fetchTicketById(statusModalTicket.id);
+        const raw = (unwrapData<Record<string, unknown>>(detail) || detail) as Record<string, unknown>;
+        if (raw?.id) setSelectedTicketForDetails(mapTicketFromApi(raw));
+      }
+      return true;
+    } catch {
+      toast.error(t("تعذر تحديث حالة التذكرة", "Failed to update ticket status"));
+      return false;
+    } finally {
+      setIsUpdatingTicketStatus(false);
+    }
+  };
+
+  const handleSaveNewTicketForOffice = async (
+    payload: CreateTicketPayload,
+    assigneeId?: string,
+    attachments?: TicketAttachment[]
+  ): Promise<boolean> => {
+    try {
+      const response = await createTicket(payload);
+      const raw = (unwrapData<Record<string, unknown>>(response) || response) as Record<string, unknown>;
+      const createdTicketId = raw?.id ? String(raw.id) : null;
+      if (createdTicketId && attachments && attachments.length > 0) {
+        saveLocalTicketAttachments(createdTicketId, attachments);
+      }
+      if (createdTicketId && assigneeId) {
+        try {
+          await assignTicket(createdTicketId, { staff_id: Number(assigneeId) });
+        } catch {}
+      }
+      toast.success(t("تم إنشاء تذكرة الدعم الفني للمكتب بنجاح", "Ticket created successfully for this office"));
+      setIsCreatingTicketForOffice(false);
+      await invalidateTicketsQueries(queryClient);
+      return true;
+    } catch {
+      toast.error(t("تعذر إنشاء تذكرة الدعم الفني", "Failed to create ticket"));
+      return false;
     }
   };
 
@@ -744,18 +983,20 @@ export function ClientOfficeDetailsView({
           )}
 
           {/* Edit Office Button */}
-          <button
-            type="button"
-            onClick={onEdit}
-            className={`px-[16px] py-[8px] rounded-[4px] text-[13px] font-semibold flex items-center gap-[6px] shadow-sm transition-colors cursor-pointer ${
-              officeColor.toLowerCase().trim() === "#9c6402"
-                ? "bg-white hover:bg-[#fff9ee] text-[#7b4e00] border border-black/10"
-                : "bg-[#9c6402] hover:bg-[#855402] text-white border border-white/25"
-            }`}
-          >
-            <PenSquare className="size-[14px]" />
-            <span>{t("تعديل بيانات المكتب", "Edit Office")}</span>
-          </button>
+          {onEdit && (
+            <button
+              type="button"
+              onClick={onEdit}
+              className={`px-[16px] py-[8px] rounded-[4px] text-[13px] font-semibold flex items-center gap-[6px] shadow-sm transition-colors cursor-pointer ${
+                officeColor.toLowerCase().trim() === "#9c6402"
+                  ? "bg-white hover:bg-[#fff9ee] text-[#7b4e00] border border-black/10"
+                  : "bg-[#9c6402] hover:bg-[#855402] text-white border border-white/25"
+              }`}
+            >
+              <PenSquare className="size-[14px]" />
+              <span>{t("تعديل بيانات المكتب", "Edit Office")}</span>
+            </button>
+          )}
 
           {/* Reset Password Button */}
           {onResetPassword && (
@@ -1089,7 +1330,7 @@ export function ClientOfficeDetailsView({
               </div>
 
               <Link
-                href="/invoices"
+                href="/invoices/"
                 className="text-[#9c6402] dark:text-[#e29d38] hover:underline text-[12px] font-semibold flex items-center gap-[4px] cursor-pointer"
               >
                 <ChevronLeft className="size-[12px] rtl:rotate-0 rotate-180" />
@@ -1142,48 +1383,173 @@ export function ClientOfficeDetailsView({
           {/* SECTION C: أحدث تذاكر الدعم الفني */}
           <div className="bg-white dark:bg-[#221812] rounded-[8px] p-5 sm:p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] flex flex-col gap-4">
             {/* Header */}
-            <div className="border-b border-[#f0eeea] dark:border-[#38271c] pb-[10px] flex items-center justify-between">
+            <div className="border-b border-[#f0eeea] dark:border-[#38271c] pb-[10px] flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-[8px]">
                 <div className="w-[6px] h-[16px] bg-[#9c6402] dark:bg-[#e29d38] rounded-full" />
                 <h2 className="text-[17px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
                   {t("أحدث تذاكر الدعم الفني", "Latest Support Tickets")}
                 </h2>
+                {officeTickets.length > 0 && (
+                  <span className="bg-[#f5f3ef] dark:bg-[#281c15] text-[#9c6402] dark:text-[#e29d38] text-[11px] font-bold px-2 py-0.5 rounded-full border border-[#eae8e4] dark:border-[#38271c]">
+                    {officeTickets.length}
+                  </span>
+                )}
               </div>
 
-              <Link
-                href="/tickets"
-                className="text-[#9c6402] dark:text-[#e29d38] hover:underline text-[12px] font-semibold flex items-center gap-[4px] cursor-pointer"
-              >
-                <ChevronLeft className="size-[12px] rtl:rotate-0 rotate-180" />
-                <span>{t("سجل التذاكر", "Tickets Record")}</span>
-              </Link>
+              <div className="flex items-center gap-2 sm:gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsCreatingTicketForOffice(true)}
+                  className="bg-[#9c6402] hover:bg-[#855402] text-white flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] font-semibold text-[12px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-all cursor-pointer"
+                >
+                  <Plus className="size-3.5" />
+                  <span>{t("إنشاء تذكرة للمكتب", "New Ticket")}</span>
+                </button>
+
+                <Link
+                  href={`/tickets?company_id=${office?.id}`}
+                  className="text-[#9c6402] dark:text-[#e29d38] hover:underline text-[12px] font-semibold flex items-center gap-[4px] cursor-pointer"
+                >
+                  <ChevronLeft className="size-[12px] rtl:rotate-0 rotate-180" />
+                  <span>{t("سجل التذاكر", "Tickets Record")}</span>
+                </Link>
+              </div>
             </div>
 
-            {/* Tickets: Render from API or Empty State */}
-            {(!office.recentTickets || office.recentTickets.length === 0) ? (
+            {/* Tickets: Render from API or Loading / Error / Empty State */}
+            {officeTicketsQuery.isLoading ? (
+              <div className="flex flex-col gap-3">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="animate-pulse bg-[#f5f3ef] dark:bg-[#281c15] rounded-[4px] p-4 flex flex-col gap-2.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="h-4 w-20 bg-[#e4e1dc] dark:bg-[#38271c] rounded" />
+                      <div className="h-4 w-16 bg-[#e4e1dc] dark:bg-[#38271c] rounded-full" />
+                    </div>
+                    <div className="h-4 w-3/4 bg-[#e4e1dc] dark:bg-[#38271c] rounded" />
+                  </div>
+                ))}
+              </div>
+            ) : officeTicketsQuery.isError ? (
+              <div className="bg-[#fff1f2] dark:bg-[#381616] border border-rose-200 dark:border-rose-900/40 rounded-[4px] p-4 text-center flex flex-col items-center justify-center gap-2">
+                <AlertTriangle className="size-5 text-[#ba1a1a] dark:text-[#f87171]" />
+                <span className="text-[#ba1a1a] dark:text-[#f87171] text-[13px] font-semibold">
+                  {t("تعذر تحميل تذاكر المكتب", "Failed to load office tickets")}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => officeTicketsQuery.refetch()}
+                  className="text-[12px] text-[#9c6402] dark:text-[#e29d38] hover:underline font-bold flex items-center gap-1 cursor-pointer"
+                >
+                  <RefreshCw className="size-3" />
+                  <span>{t("إعادة المحاولة", "Retry")}</span>
+                </button>
+              </div>
+            ) : officeTickets.length === 0 ? (
               <div className="bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] rounded-[4px] p-[24px] text-center flex flex-col items-center justify-center gap-2">
                 <FileText className="size-6 text-[#837565] dark:text-[#8e8680] opacity-50" />
                 <span className="text-[#837565] dark:text-[#8e8680] text-[13px] font-medium">
                   {t("لا توجد تذاكر دعم فني مفتوحة لهذا المكتب حالياً", "No open support tickets for this office currently")}
                 </span>
+                <button
+                  type="button"
+                  onClick={() => setIsCreatingTicketForOffice(true)}
+                  className="mt-1 text-[#9c6402] dark:text-[#e29d38] hover:underline text-[12px] font-semibold flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="size-3.5" />
+                  <span>{t("فتح تذكرة دعم فني جديدة", "Open new support ticket")}</span>
+                </button>
               </div>
             ) : (
               <div className="flex flex-col gap-3">
-                {office.recentTickets.map((tk: any, idx: number) => (
-                  <div key={tk.id || idx} className="bg-[#f5f3ef] dark:bg-[#281c15] border border-transparent dark:border-[#38271c] rounded-[4px] p-[16px] flex flex-col gap-[10px]">
-                    <div className="flex items-center justify-between">
-                      <span className="bg-[#f0eeea] dark:bg-[#38271c] text-[#837565] dark:text-[#cdc5bd] text-[10px] font-bold px-[8px] py-[2px] rounded-[2px]">
-                        #{tk.ticket_number || tk.code || tk.id}
-                      </span>
-                      <h3 className="text-[14px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                        {tk.subject || tk.title}
+                {officeTickets.slice(0, 5).map((tk: Ticket) => {
+                  const statusColors: Record<TicketStatus, { bg: string; text: string; dot: string; label: string }> = {
+                    open: {
+                      bg: "bg-[#eff6ff] dark:bg-[#162233]",
+                      text: "text-[#1d4ed8] dark:text-[#93c5fd]",
+                      dot: "bg-[#2563eb]",
+                      label: t("مفتوحة", "Open"),
+                    },
+                    in_progress: {
+                      bg: "bg-[#fffbeb] dark:bg-[#2e1d0f]",
+                      text: "text-[#b45309] dark:text-[#fbbf24]",
+                      dot: "bg-[#f59e0b]",
+                      label: t("جاري المعالجة", "In Progress"),
+                    },
+                    pending: {
+                      bg: "bg-[#faf5ff] dark:bg-[#261633]",
+                      text: "text-[#7e22ce] dark:text-[#d8b4fe]",
+                      dot: "bg-[#a855f7]",
+                      label: t("معلقة", "Pending"),
+                    },
+                    closed: {
+                      bg: "bg-[#f0fdf4] dark:bg-[#14281b]",
+                      text: "text-[#15803d] dark:text-[#86efac]",
+                      dot: "bg-[#22c55e]",
+                      label: t("مغلقة", "Closed"),
+                    },
+                  };
+
+                  const priorityColors: Record<TicketPriority, { bg: string; label: string }> = {
+                    urgent: {
+                      bg: "bg-[#fff1f2] dark:bg-[#381616] text-[#9f1239] dark:text-[#fca5a5] border-rose-200 dark:border-rose-900/40",
+                      label: t("عاجلة", "Urgent"),
+                    },
+                    medium: {
+                      bg: "bg-[#fffbeb] dark:bg-[#2e1d0f] text-[#92400e] dark:text-[#fbbf24] border-amber-200 dark:border-amber-900/40",
+                      label: t("متوسطة", "Medium"),
+                    },
+                    low: {
+                      bg: "bg-[#f5f3ef] dark:bg-[#281c15] text-[#514537] dark:text-[#cdc5bd] border-[#eae8e4] dark:border-[#38271c]",
+                      label: t("منخفضة", "Low"),
+                    },
+                  };
+
+                  const st = statusColors[tk.status] || statusColors.open;
+                  const pr = priorityColors[tk.priority] || priorityColors.medium;
+
+                  return (
+                    <div
+                      key={tk.id}
+                      onClick={() => setSelectedTicketForDetails(tk)}
+                      className="bg-[#f5f3ef] dark:bg-[#281c15] hover:bg-[#ede9e2] dark:hover:bg-[#2f2119] border border-transparent hover:border-[#9c6402]/30 dark:hover:border-[#e29d38]/30 rounded-[6px] p-[14px] flex flex-col gap-[10px] transition-all cursor-pointer group"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="bg-[#f0eeea] dark:bg-[#38271c] text-[#837565] dark:text-[#cdc5bd] text-[11px] font-bold px-[8px] py-[2px] rounded-[3px]">
+                            {tk.ticketNumber || `#${tk.id}`}
+                          </span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${pr.bg}`}>
+                            {pr.label}
+                          </span>
+                        </div>
+
+                        <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold ${st.bg} ${st.text}`}>
+                          <span className={`size-1.5 rounded-full ${st.dot}`} />
+                          <span>{st.label}</span>
+                        </div>
+                      </div>
+
+                      <h3 className="text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] group-hover:text-[#9c6402] dark:group-hover:text-[#e29d38] transition-colors line-clamp-2">
+                        {tk.title}
                       </h3>
-                      <span className="text-[10px] font-bold px-[8px] py-[2px] rounded-full bg-[#fffbeb] text-[#b45309]">
-                        {localizeStatus(tk.status || "مفتوحة", isEn)}
-                      </span>
+
+                      <div className="flex items-center justify-between text-[11px] text-[#837565] dark:text-[#8e8680] pt-1 border-t border-[#eae8e4]/60 dark:border-[#38271c]/60">
+                        <div className="flex items-center gap-2">
+                          {tk.department?.name && (
+                            <span>{tk.department.name}</span>
+                          )}
+                          {tk.assignee?.name && tk.assignee.name !== "غير مسند" && (
+                            <span>• {tk.assignee.name}</span>
+                          )}
+                        </div>
+                        <span>{formatShortDate(tk.createdAt, isEn)}</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -1266,7 +1632,7 @@ export function ClientOfficeDetailsView({
                 <div className="flex flex-col items-start gap-1 text-start">
                   <h3 className="text-[20px] font-bold leading-[26px] text-white dark:text-[#fdfbf7]">
                     {isUnlimited
-                      ? t("غير محدود (صلاحيات كاملة)", "Unlimited (Full Access)")
+                      ? t("خطة مميزة", "Special Plan")
                       : currentPlan === "الباقة المعتمدة"
                       ? t("الباقة المعتمدة", "Approved Plan")
                       : localizePlanName(currentPlan, isEn)}
@@ -1377,10 +1743,16 @@ export function ClientOfficeDetailsView({
                 </div>
                 <div className="w-full bg-[#f0eeea] dark:bg-[#38271c] h-[6px] rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-[#9c6402] dark:bg-[#e29d38] rounded-full transition-all"
+                    className={cn(
+                      "h-full rounded-full transition-all",
+                      isUsageHigh(lawyersUsed, lawyersLimit) 
+                        ? "bg-amber-500 dark:bg-amber-400"
+                        : "bg-[#9c6402] dark:bg-[#e29d38]"
+                    )}
                     style={{ width: `${Math.min(100, lawyersPercent)}%` }}
                   />
                 </div>
+                {isUsageHigh(lawyersUsed, lawyersLimit) && renderUpgradeCTA()}
               </div>
 
               {/* Cloud Storage */}
@@ -1395,10 +1767,16 @@ export function ClientOfficeDetailsView({
                 </div>
                 <div className="w-full bg-[#f0eeea] dark:bg-[#38271c] h-[6px] rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-[#9c6402] dark:bg-[#e29d38] rounded-full transition-all"
+                    className={cn(
+                      "h-full rounded-full transition-all",
+                      isUsageHigh(Number(storageUsedGb), storageLimitGb)
+                        ? "bg-amber-500 dark:bg-amber-400"
+                        : "bg-[#9c6402] dark:bg-[#e29d38]"
+                    )}
                     style={{ width: `${Math.min(100, storagePercent)}%` }}
                   />
                 </div>
+                {isUsageHigh(Number(storageUsedGb), storageLimitGb) && renderUpgradeCTA()}
               </div>
 
               {/* Active Cases */}
@@ -1424,14 +1802,35 @@ export function ClientOfficeDetailsView({
                   <div
                     className={cn(
                       "h-full rounded-full transition-all",
-                      casesExceeded
+                      casesExceeded || isUsageHigh(activeCases, maxCasesLimit)
                         ? "bg-amber-500 dark:bg-amber-400"
                         : "bg-[#059669] dark:bg-[#10b981]"
                     )}
                     style={{ width: `${Math.min(100, Math.max(0, casesPercent))}%` }}
                   />
                 </div>
+                {(casesExceeded || isUsageHigh(activeCases, maxCasesLimit)) && renderUpgradeCTA()}
               </div>
+
+              {/* Documents */}
+              {(documentsLimit > 0 || displayOffice.planDetails?.maxDocuments) && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="font-semibold text-[#514537] dark:text-[#cdc5bd]">
+                      {t("المستندات والوثائق", "Documents")}
+                    </span>
+                    <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7] tabular-nums">
+                      {documentsUsed} / {documentsLimit || "—"} ({documentsPercent}%)
+                    </span>
+                  </div>
+                  <div className="w-full bg-[#f0eeea] dark:bg-[#38271c] h-[6px] rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-[#9c6402] dark:bg-[#e29d38] rounded-full transition-all"
+                      style={{ width: `${Math.min(100, documentsPercent)}%` }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Compact Collapsible Included Features */}
@@ -1488,7 +1887,7 @@ export function ClientOfficeDetailsView({
             ) : (
               <div className="w-full bg-[#f5f3ef] dark:bg-[#281c15] text-[#9c6402] dark:text-[#e29d38] border border-[#d8c29d] dark:border-[#5a4321] py-[8px] rounded-[5px] text-[12px] font-bold flex items-center justify-center gap-1.5 min-h-[34px]">
                 <ShieldCheck aria-hidden="true" className="size-4 text-[#9c6402] dark:text-[#e29d38]" />
-                <span>{t("باقة غير محدودة (كامل الصلاحيات)", "Unlimited Plan (Full Privileges)")}</span>
+                <span>{t("خطة مميزة (كامل الصلاحيات)", "Special Plan (Full Privileges)")}</span>
               </div>
             )}
           </div>
@@ -1529,7 +1928,7 @@ export function ClientOfficeDetailsView({
                   disabled={isSubmittingNote}
                   className="bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#855402] text-white dark:text-[#1c140f] font-bold px-[12px] py-[6px] rounded-[4px] text-[10px] transition-colors cursor-pointer shadow-sm disabled:opacity-50"
                 >
-                  {isSubmittingNote ? t("جارٍ الحفظ...", "Saving...") : t("إضافة ملاحظة", "Add Note")}
+                  {t("إضافة ملاحظة", "Add Note")}
                 </button>
 
                 <div className="flex items-center gap-[4px] text-[10px] text-[#837565] dark:text-[#8e8680] font-bold">
@@ -1747,6 +2146,61 @@ export function ClientOfficeDetailsView({
         onClose={() => setIsTicketModalOpen(false)}
         ticket={latestTicket}
       />
+
+      {/* Real Support Ticket Details & Conversation Modal */}
+      {selectedTicketForDetails && (
+        <ModalPortal isOpen={Boolean(selectedTicketForDetails)}>
+          <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5">
+            <div className="bg-[#fcfaf8] dark:bg-[#1a120c] border border-[#f0eeea] dark:border-[#38271c] rounded-[8px] w-full max-w-5xl max-h-[92vh] overflow-y-auto shadow-2xl p-4 sm:p-6 text-start">
+              <TicketDetailsModal
+                ticket={selectedTicketForDetails}
+                onBack={() => setSelectedTicketForDetails(null)}
+                onOpenAssigneeModal={() => setAssigneeModalTicket(selectedTicketForDetails)}
+                onOpenStatusModal={() => setStatusModalTicket(selectedTicketForDetails)}
+                onCloseTicketSuccess={() => handleCloseTicketSuccess(selectedTicketForDetails.id)}
+                onSendMessage={handleSendMessage}
+              />
+            </div>
+          </div>
+        </ModalPortal>
+      )}
+
+      {/* Create Support Ticket for this Office Modal */}
+      {isCreatingTicketForOffice && (
+        <CreateOfficeTicketModal
+          isOpen={isCreatingTicketForOffice}
+          onClose={() => setIsCreatingTicketForOffice(false)}
+          officeName={officeName}
+          officeCrNumber={taxNumber !== "—" ? taxNumber : licenseNum !== "—" ? licenseNum : undefined}
+          officeId={office.id}
+          officePhone={displayOffice.phone && displayOffice.phone !== "—" ? displayOffice.phone : undefined}
+          officeEmail={displayOffice.email && displayOffice.email !== "—" ? displayOffice.email : undefined}
+          departments={departments}
+          assignees={assignees}
+          onSaveTicket={handleSaveNewTicketForOffice}
+        />
+      )}
+
+      {/* Change Assignee Modal */}
+      {assigneeModalTicket && (
+        <ChangeAssigneeModal
+          ticket={assigneeModalTicket}
+          assignees={assignees}
+          onClose={() => setAssigneeModalTicket(null)}
+          onConfirm={handleConfirmChangeAssignee}
+          isSubmitting={isAssigningTicket}
+        />
+      )}
+
+      {/* Change Status Modal */}
+      {statusModalTicket && (
+        <ChangeStatusModal
+          ticket={statusModalTicket}
+          onClose={() => setStatusModalTicket(null)}
+          onConfirm={handleConfirmChangeStatus}
+          isSubmitting={isUpdatingTicketStatus}
+        />
+      )}
     </div>
   );
 }

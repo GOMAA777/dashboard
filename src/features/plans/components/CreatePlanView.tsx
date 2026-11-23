@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   Sparkles,
   Edit,
-  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PricingPlanItem, PlanLimitsData } from "../types/plan.types";
@@ -1634,15 +1633,9 @@ export function CreatePlanView({
                 disabled={isSubmitting}
                 className="bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#855402] dark:hover:bg-[#c9862b] text-white dark:text-[#1c140f] px-7 py-2.5 rounded-[4px] text-[13px] font-semibold shadow-xs transition-colors cursor-pointer flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? (
-                  <Loader2 className="size-[14px] animate-spin" />
-                ) : (
-                  <Check className="size-[14px] stroke-[2.5]" />
-                )}
+                <Check className="size-[14px] stroke-[2.5]" />
                 <span>
-                  {isSubmitting
-                    ? t("جاري الحفظ...", "Saving...")
-                    : isEditMode
+                  {isEditMode
                     ? t("حفظ التعديلات", "Save Changes")
                     : t("حفظ وتفعيل الباقة", "Save & Publish Plan")}
                 </span>
@@ -1912,9 +1905,7 @@ export function CreatePlanView({
               )
         }
         confirmLabel={
-          isSubmitting
-            ? t("جاري الحفظ...", "Saving...")
-            : isEditMode
+          isEditMode
             ? t("تأكيد التعديل", "Confirm Edit")
             : t("تأكيد الإنشاء", "Confirm Create")
         }

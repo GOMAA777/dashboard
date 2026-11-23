@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { X, Pause, AlertTriangle, ShieldCheck, ExternalLink, Loader2 } from "lucide-react";
+import { X, Pause, AlertTriangle, ShieldCheck, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { PricingPlanItem } from "../types/plan.types";
 import { useLanguage } from "@/lib/i18n";
@@ -177,12 +177,8 @@ export function DeactivatePlanDialog({
             disabled={isLoading}
             className="px-[20px] py-[9px] rounded-[6px] bg-[#9c6402] hover:bg-[#855402] dark:bg-[#e29d38] dark:hover:bg-[#d08c2a] text-white dark:text-[#1c140f] text-[13px] font-bold flex items-center gap-[6px] shadow-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? (
-              <Loader2 className="size-[14px] animate-spin" />
-            ) : (
-              <Pause className="size-[14px] fill-current" />
-            )}
-            <span>{isLoading ? t("جاري التعطيل...", "Deactivating...") : t("تعطيل الباقة", "Deactivate Plan")}</span>
+            <Pause className="size-[14px] fill-current" />
+            <span>{t("تعطيل الباقة", "Deactivate Plan")}</span>
           </button>
         </div>
       </div>

@@ -6,6 +6,8 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "sonner";
 import { cn } from "@/lib/utils";
 import { AppAuthShell } from "@/components/shared/AppAuthShell";
+import { TopProgressBar } from "@/components/shared/TopProgressBar";
+import { Providers } from "./providers";
 import "./globals.css";
 
 const cairo = Cairo({
@@ -97,15 +99,26 @@ export default function RootLayout({
                 if (l === 'ar' || l === 'en') {
                   document.documentElement.lang = l;
                 }
+
+                var p = window.location.pathname || '';
+                var isPub = p.indexOf('/login') !== -1 || p.indexOf('/impersonate-handoff') !== -1 || p.indexOf('/change-password') !== -1;
+                var hasUser = !!localStorage.getItem('aljudy_admin_user');
+                if (!isPub && !hasUser) {
+                  var bp = (p.indexOf('/dashboard') === 0) ? '/dashboard' : '';
+                  window.location.replace(bp + '/login/');
+                }
               } catch (e) {}
             `,
           }}
         />
       </head>
-      <body className="min-h-screen bg-background text-foreground antialiased selection:bg-[#f3e3c3] selection:text-[#78541c]">
+      <body suppressHydrationWarning className="min-h-screen bg-background text-foreground antialiased selection:bg-[#f3e3c3] selection:text-[#78541c]">
         <Suspense fallback={null}>
+          <TopProgressBar />
           <NuqsAdapter>
-            <AppAuthShell>{children}</AppAuthShell>
+            <Providers>
+              <AppAuthShell>{children}</AppAuthShell>
+            </Providers>
             <Toaster
               position="bottom-left"
               dir="rtl"

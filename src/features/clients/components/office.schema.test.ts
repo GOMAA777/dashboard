@@ -14,7 +14,7 @@ describe("Validation Rules & Edge Cases for Add Law Office", () => {
     licenseNumber: "38/412", // digits and slash, <= 15 chars, contains digit
     taxNumber: "301298457200003", // 15 digits exactly
     email: "info@lawfirm.sa", // valid format
-    phone: "0512345678", // 10 digits starting with 05
+    phone: "512345678", // 9 digits starting with 5 without zero
     landline: "011482990", // 9 digits starting with 011
     city: "الرياض", // in SAUDI_CITIES
     address: "طريق الملك فهد حي الصحافة", // >= 5 chars, has letter
@@ -34,9 +34,9 @@ describe("Validation Rules & Edge Cases for Add Law Office", () => {
     expect(parsed.success).toBe(true);
   });
 
-  describe("1. ownerName (5-30 chars, letters & spaces only)", () => {
-    it("fails when shorter than 5 chars", () => {
-      const res = officeSchema.safeParse({ ...validBaseOffice, ownerName: "أحمد" });
+  describe("1. ownerName (4-40 chars, letters, spaces and dots)", () => {
+    it("fails when shorter than 4 chars", () => {
+      const res = officeSchema.safeParse({ ...validBaseOffice, ownerName: "أحم" });
       expect(res.success).toBe(false);
     });
 
@@ -45,16 +45,25 @@ describe("Validation Rules & Edge Cases for Add Law Office", () => {
       expect(res.success).toBe(true);
     });
 
+    it("passes with titles containing dots like د.محمد", () => {
+      const res1 = officeSchema.safeParse({ ...validBaseOffice, ownerName: "د.محمد" });
+      expect(res1.success).toBe(true);
+      const res2 = officeSchema.safeParse({ ...validBaseOffice, ownerName: "د. خالد بن عبد العزيز" });
+      expect(res2.success).toBe(true);
+      const res3 = officeSchema.safeParse({ ...validBaseOffice, ownerName: "أ.د. عبد الله التميمي" });
+      expect(res3.success).toBe(true);
+    });
+
     it("passes with exactly 30 chars", () => {
       const name30 = "عبد العزيز فهد بن تركي الدوسري"; // 30 chars
       const res = officeSchema.safeParse({ ...validBaseOffice, ownerName: name30.slice(0, 30) });
       expect(res.success).toBe(true);
     });
 
-    it("fails when longer than 30 chars", () => {
+    it("fails when longer than 40 chars", () => {
       const res = officeSchema.safeParse({
         ...validBaseOffice,
-        ownerName: "عبد العزيز فهد بن تركي الدوسري التميمي الأول",
+        ownerName: "عبد العزيز فهد بن تركي الدوسري التميمي الأول الطويل جدا",
       });
       expect(res.success).toBe(false);
     });
@@ -64,16 +73,21 @@ describe("Validation Rules & Edge Cases for Add Law Office", () => {
       expect(res.success).toBe(false);
     });
 
-    it("fails when containing symbols", () => {
+    it("fails when containing symbols other than dot", () => {
       const res = officeSchema.safeParse({ ...validBaseOffice, ownerName: "محمد فهد @" });
       expect(res.success).toBe(false);
     });
   });
 
-  describe("2. firmName (5-40 chars, letters & spaces only)", () => {
-    it("fails when shorter than 5 chars", () => {
-      const res = officeSchema.safeParse({ ...validBaseOffice, firmName: "مكتب" });
+  describe("2. firmName (4-40 chars, letters, spaces and dots)", () => {
+    it("fails when shorter than 4 chars", () => {
+      const res = officeSchema.safeParse({ ...validBaseOffice, firmName: "مكت" });
       expect(res.success).toBe(false);
+    });
+
+    it("passes with dot abbreviations like شركة د. خالد للمحاماة", () => {
+      const res = officeSchema.safeParse({ ...validBaseOffice, firmName: "شركة د. خالد العجلان للمحاماة" });
+      expect(res.success).toBe(true);
     });
 
     it("fails when longer than 40 chars", () => {
@@ -163,27 +177,51 @@ describe("Validation Rules & Edge Cases for Add Law Office", () => {
     });
   });
 
-  describe("6. phone (Saudi mobile, exactly 10 digits starting with 05)", () => {
-    it("fails with 9 digits", () => {
-      const res = officeSchema.safeParse({ ...validBaseOffice, phone: "051234567" });
+  describe("6. phone (Saudi mobile, exactly 9 digits starting with 5 without zero)", () => {
+    it("fails with 8 digits", () => {
+      const res = officeSchema.safeParse({ ...validBaseOffice, phone: "51234567" });
       expect(res.success).toBe(false);
     });
 
-    it("fails with 11 digits", () => {
-      const res = officeSchema.safeParse({ ...validBaseOffice, phone: "05123456789" });
+    it("fails with 10 digits that do not start with 0", () => {
+      const res = officeSchema.safeParse({ ...validBaseOffice, phone: "5123456789" });
       expect(res.success).toBe(false);
     });
 
-    it("fails if not starting with 05", () => {
-      const res = officeSchema.safeParse({ ...validBaseOffice, phone: "0612345678" });
+    it("fails if not starting with 5", () => {
+      const res = officeSchema.safeParse({ ...validBaseOffice, phone: "612345678" });
       expect(res.success).toBe(false);
     });
 
-    it("converts Eastern Arabic numerals", () => {
+    it("passes with 9 digits starting with 5", () => {
+      const res = officeSchema.safeParse({ ...validBaseOffice, phone: "501234064" });
+      expect(res.success).toBe(true);
+      if (res.success) {
+        expect(res.data.phone).toBe("501234064");
+      }
+    });
+
+    it("normalizes 10 digits starting with 05 by stripping leading zero", () => {
+      const res = officeSchema.safeParse({ ...validBaseOffice, phone: "0501234064" });
+      expect(res.success).toBe(true);
+      if (res.success) {
+        expect(res.data.phone).toBe("501234064");
+      }
+    });
+
+    it("normalizes international +966 with leading 0 to 9 digits without zero", () => {
+      const res = officeSchema.safeParse({ ...validBaseOffice, phone: "+966 0501234064" });
+      expect(res.success).toBe(true);
+      if (res.success) {
+        expect(res.data.phone).toBe("501234064");
+      }
+    });
+
+    it("converts Eastern Arabic numerals and strips leading zero", () => {
       const res = officeSchema.safeParse({ ...validBaseOffice, phone: "٠٥١٢٣٤٥٦٧٨" });
       expect(res.success).toBe(true);
       if (res.success) {
-        expect(res.data.phone).toBe("0512345678");
+        expect(res.data.phone).toBe("512345678");
       }
     });
   });

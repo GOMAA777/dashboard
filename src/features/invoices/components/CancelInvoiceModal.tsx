@@ -122,9 +122,7 @@ export function CancelInvoiceModal({
           >
             {isPaid ? <RotateCcw className="size-3.5" /> : <Trash2 className="size-3.5" />}
             <span>
-              {isProcessing
-                ? (isEn ? "Processing..." : "جارٍ التنفيذ...")
-                : isPaid
+              {isPaid
                 ? (isEn ? "Confirm Refund" : "تأكيد الاسترداد وإصدار الإشعار")
                 : (isEn ? "Confirm Cancellation" : "تأكيد الإلغاء")}
             </span>

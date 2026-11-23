@@ -10,6 +10,11 @@ export interface AdminUser {
   name?: string;
   email?: string;
   role?: string;
+  company_id?: number | string | null;
+  avatar?: string | null;
+  logo?: string | null;
+  userType?: "admin" | "office";
+  mustChangePassword?: boolean;
   [key: string]: unknown;
 }
 
@@ -78,6 +83,7 @@ export interface ApiFirmPlan {
   max_cases?: number;
   max_power_of_attorney?: number;
   max_clients?: number;
+  max_documents?: number;
   max_assistants?: number;
   storage_limit_gb?: number;
   support_level?: string;
@@ -116,6 +122,9 @@ export interface ApiFirmResourceUsage {
   storage_limit_gb: number;
   storage_percent: number;
   active_cases: number;
+  documents_used?: number;
+  documents_limit?: number;
+  documents_percent?: number;
 }
 
 export interface ApiFirmDetail {
@@ -351,4 +360,53 @@ export interface ApiPlanSubscriber {
   };
   [key: string]: unknown;
 }
+
+export interface ApiAnnouncement {
+  id: number | string;
+  title: string;
+  content: string;
+  target_audience: "all" | "selected_firms" | "plan" | string;
+  target_plan_id?: number | null;
+  target_company_ids?: number[] | null;
+  status: "sent" | "active" | "scheduled" | "draft" | string;
+  scheduled_at?: string | null;
+  sent_at?: string | null;
+  image?: string | null;
+  action_url?: string | null;
+  action_label?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  plan?: unknown;
+  [key: string]: unknown;
+}
+
+export interface CreateAnnouncementPayload {
+  title: string;
+  content: string;
+  target_audience: "all" | "selected_firms" | "plan" | string;
+  action_url?: string;
+  action_label?: string;
+  status?: "sent" | "draft" | "scheduled" | string;
+  image?: string | File | null;
+  target_plan_id?: number | null;
+  target_company_ids?: number[] | null;
+  scheduled_at?: string | null;
+  [key: string]: unknown;
+}
+
+export interface AnnouncementsListParams {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  status?: string;
+  audience?: string;
+}
+
+export interface AnnouncementsStats {
+  all: number;
+  activeAndReceived: number;
+  scheduled: number;
+  drafts: number;
+}
+
 

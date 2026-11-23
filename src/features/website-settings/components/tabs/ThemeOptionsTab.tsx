@@ -185,13 +185,9 @@ export function ThemeOptionsTab() {
           )}
         >
           <Check className="size-4" />
-          {isSaving
-            ? isEn
-              ? "Saving..."
-              : "جارٍ الحفظ..."
-            : isEn
-              ? "Save Theme"
-              : "حفظ المظهر"}
+          {isEn
+            ? "Save Theme"
+            : "حفظ المظهر"}
         </button>
       </div>
     </div>

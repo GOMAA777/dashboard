@@ -20,7 +20,6 @@ import {
   RefreshCw,
   Ban,
   Scale,
-  Loader2,
   AlertTriangle,
   Lock,
   X,
@@ -42,6 +41,12 @@ import { LuxuryAlertDialog } from "@/components/shared/LuxuryAlertDialog";
 import { ModalPortal } from "@/components/shared/ModalPortal";
 import { DashboardPageSkeleton } from "@/components/shared/DashboardPageSkeleton";
 import { ApiError } from "@/lib/api/http";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  useSubscriptionDetailQuery,
+  useSubscriptionLimitsQuery,
+} from "../hooks/useSubscriptionsQuery";
+import { InvalidationGraph } from "@/lib/query-keys";
 
 interface SubscriptionDetailsViewProps {
   subscriptionId?: string;
@@ -74,7 +79,6 @@ export function SubscriptionDetailsView({
   const [selectedState, setSelectedState] = useState<SubscriptionStatus>(
     initialSubscription?.status || initialStateVariant
   );
-  const [isLoadingDetails, setIsLoadingDetails] = useState<boolean>(!initialSubscription);
   const [apiError, setApiError] = useState<{ status?: number; message: string } | null>(null);
 
   // Modals & Confirmation dialogs
@@ -90,57 +94,33 @@ export function SubscriptionDetailsView({
   const [confirmRemoveOfferOpen, setConfirmRemoveOfferOpen] = useState(false);
 
   const effectiveId = subscriptionId || initialSubscription?.id;
-
-  const loadDetails = useCallback(async () => {
-    if (!effectiveId) return;
-    setIsLoadingDetails(true);
-    setApiError(null);
-    try {
-      const payload = await fetchSubscriptionById(effectiveId);
-      const raw = (unwrapData<Record<string, unknown>>(payload) ||
-        payload) as Record<string, unknown>;
-      if (raw && (raw.id || raw.code || raw.subscription_code)) {
-        const mapped = mapSubscriptionFromApi(raw);
-        setLiveSubscription(mapped);
-        setSelectedState(mapped.status);
-
-        // Fetch limits breakdown in background if missing
-        try {
-          const limitsPayload = await fetchSubscriptionLimitsBreakdown(effectiveId);
-          const rawLimits = unwrapData<Record<string, unknown>>(limitsPayload);
-          if (rawLimits && typeof rawLimits === "object" && !mapped.metrics) {
-            // merge metrics if server gave limits breakdown
-            const updatedRaw = { ...raw, metrics: rawLimits };
-            setLiveSubscription(mapSubscriptionFromApi(updatedRaw));
-          }
-        } catch {
-          // Non-critical auxiliary fetch
-        }
-      }
-    } catch (err: unknown) {
-      const status = err instanceof ApiError ? err.status : undefined;
-      const message =
-        err instanceof Error
-          ? err.message
-          : t("تعذر تحميل تفاصيل الاشتراك", "Failed to load subscription details");
-      setApiError({ status, message });
-    } finally {
-      setIsLoadingDetails(false);
-    }
-  }, [effectiveId, t]);
+  const queryClient = useQueryClient();
+  const subDetailQuery = useSubscriptionDetailQuery(effectiveId);
+  const subLimitsQuery = useSubscriptionLimitsQuery(effectiveId);
 
   useEffect(() => {
-    let ignore = false;
-    const timer = setTimeout(() => {
-      if (!ignore) {
-        loadDetails();
+    if (!subDetailQuery.data) return;
+    const raw = (unwrapData<Record<string, unknown>>(subDetailQuery.data) ||
+      subDetailQuery.data) as Record<string, unknown>;
+    if (raw && (raw.id || raw.code || raw.subscription_code)) {
+      let mergedRaw = raw;
+      if (subLimitsQuery.data) {
+        const rawLimits = unwrapData<Record<string, unknown>>(subLimitsQuery.data);
+        if (rawLimits && typeof rawLimits === "object" && !raw.metrics) {
+          mergedRaw = { ...raw, metrics: rawLimits };
+        }
       }
-    }, 0);
-    return () => {
-      ignore = true;
-      clearTimeout(timer);
-    };
-  }, [loadDetails]);
+      const mapped = mapSubscriptionFromApi(mergedRaw);
+      setLiveSubscription(mapped);
+      setSelectedState(mapped.status);
+    }
+  }, [subDetailQuery.data, subLimitsQuery.data]);
+
+  const isLoadingDetails = subDetailQuery.isLoading && !liveSubscription;
+  const loadDetails = useCallback(async () => {
+    await Promise.all([subDetailQuery.refetch(), subLimitsQuery.refetch()]);
+    void InvalidationGraph.onSubscriptionMutation(queryClient);
+  }, [subDetailQuery, subLimitsQuery, queryClient]);
 
   // Current subscription is strictly live data or initial data passed
   const currentSub: SubscriptionRecord | null = useMemo(() => {
@@ -451,11 +431,7 @@ export function SubscriptionDetailsView({
             disabled={isSubmittingAction}
             className="bg-[#dc2626] hover:bg-[#b91c1c] text-white px-4 py-2 rounded-[6px] font-bold text-[12px] shadow-xs transition-colors shrink-0 cursor-pointer disabled:opacity-50"
           >
-            {isSubmittingAction ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              t("إعادة تفعيل الاشتراك", "Reactivate Subscription")
-            )}
+            {t("إعادة تفعيل الاشتراك", "Reactivate Subscription")}
           </button>
         </div>
       )}
@@ -490,11 +466,7 @@ export function SubscriptionDetailsView({
             disabled={isSubmittingAction}
             className="bg-[#be123c] hover:bg-[#9f1239] text-white px-4 py-2 rounded-[6px] font-bold text-[12px] shadow-xs transition-colors shrink-0 cursor-pointer disabled:opacity-50"
           >
-            {isSubmittingAction ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              t("إعادة المراجعة وفتح الطلب", "Re-review & Open Request")
-            )}
+            {t("إعادة المراجعة وفتح الطلب", "Re-review & Open Request")}
           </button>
         </div>
       )}
@@ -538,11 +510,7 @@ export function SubscriptionDetailsView({
               disabled={isSubmittingAction}
               className="bg-[#059669] hover:bg-[#047857] text-white px-4 py-2 rounded-[6px] font-bold text-[12px] shadow-xs transition-colors shrink-0 cursor-pointer disabled:opacity-50"
             >
-              {isSubmittingAction ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                t("مراجعة واعتماد الطلب", "Review & Approve")
-              )}
+              {t("مراجعة واعتماد الطلب", "Review & Approve")}
             </button>
           </div>
         </div>
@@ -1319,11 +1287,7 @@ export function SubscriptionDetailsView({
                 disabled={isSubmittingAction}
                 className="w-full bg-[#059669] hover:bg-[#047857] text-white py-2.5 rounded-[6px] font-bold text-[13px] shadow-xs transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {isSubmittingAction ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <span>{t("الموافقة وتفعيل الاشتراك", "Approve & Activate")}</span>
-                )}
+                <span>{t("الموافقة وتفعيل الاشتراك", "Approve & Activate")}</span>
               </button>
               <button
                 type="button"
@@ -1623,11 +1587,7 @@ export function SubscriptionDetailsView({
                   disabled={isSubmittingAction}
                   className="bg-[#dc2626] hover:bg-[#b91c1c] text-white px-5 py-2 rounded-[4px] font-bold text-[12px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
                 >
-                  {isSubmittingAction ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <CheckCircle2 className="w-4 h-4" />
-                  )}
+                  <CheckCircle2 className="w-4 h-4" />
                   <span>{t("تأكيد رفض الطلب", "Confirm Rejection")}</span>
                 </button>
               </div>

@@ -5,7 +5,7 @@ import { Plus, Check, ShieldCheck, Headphones } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 
 interface TicketsEmptyStateProps {
-  onCreateTicket: () => void;
+  onCreateTicket?: () => void;
   onResetFilter?: () => void;
   isFiltered?: boolean;
 }
@@ -69,6 +69,7 @@ export function TicketsEmptyState({
 
       {/* Direct Action Buttons */}
       <div className="flex flex-wrap items-center justify-center gap-[12px]">
+        {onCreateTicket ? (
         <button
           type="button"
           onClick={onCreateTicket}
@@ -78,6 +79,7 @@ export function TicketsEmptyState({
           <Plus className="size-[16px]" />
           <span>{t("إنشاء تذكرة جديدة", "Create New Ticket")}</span>
         </button>
+        ) : null}
 
         {isFiltered && onResetFilter && (
           <button

@@ -23,7 +23,7 @@ import { useLanguage } from "@/lib/i18n";
 interface PlanCardProps {
   plan: PricingPlanItem;
   billingCycle: PlanBillingCycle;
-  onEdit: (plan: PricingPlanItem) => void;
+  onEdit?: (plan: PricingPlanItem) => void;
   onViewDetails?: (plan: PricingPlanItem) => void;
   onViewSubscribers?: (plan: PricingPlanItem) => void;
   onToggleActive?: (plan: PricingPlanItem) => void;
@@ -125,29 +125,33 @@ export function PlanCard({
 
         {/* Top Action Buttons: Deactivate / Activate & Delete */}
         <div className="flex items-center gap-1.5 shrink-0">
-          <button
-            type="button"
-            onClick={() => onToggleActive && onToggleActive(plan)}
-            className={`px-2 py-1 rounded-[4px] text-[11px] font-bold border transition-colors cursor-pointer flex items-center gap-1 shadow-2xs ${
-              plan.isActive
-                ? "bg-[#fffbeb] dark:bg-[#2c2014] hover:bg-[#fef3c7] dark:hover:bg-[#3d2c1c] text-[#9c6402] dark:text-[#e29d38] border-[#fde68a] dark:border-[#523b24]"
-                : "bg-[#e8f5e9] dark:bg-[#132c1c] hover:bg-[#c8e6c9] dark:hover:bg-[#1b4329] text-[#1b7340] dark:text-[#6ee7b7] border-[#c8e6c9] dark:border-emerald-500/40"
-            }`}
-            title={plan.isActive ? t("تعطيل الباقة", "Deactivate Plan") : t("تفعيل الباقة", "Activate Plan")}
-          >
-            <Power className="size-[12px] shrink-0" />
-            <span>{plan.isActive ? t("تعطيل", "Deactivate") : t("تفعيل", "Activate")}</span>
-          </button>
+          {onToggleActive ? (
+            <button
+              type="button"
+              onClick={() => onToggleActive(plan)}
+              className={`px-2 py-1 rounded-[4px] text-[11px] font-bold border transition-colors cursor-pointer flex items-center gap-1 shadow-2xs ${
+                plan.isActive
+                  ? "bg-[#fffbeb] dark:bg-[#2c2014] hover:bg-[#fef3c7] dark:hover:bg-[#3d2c1c] text-[#9c6402] dark:text-[#e29d38] border-[#fde68a] dark:border-[#523b24]"
+                  : "bg-[#e8f5e9] dark:bg-[#132c1c] hover:bg-[#c8e6c9] dark:hover:bg-[#1b4329] text-[#1b7340] dark:text-[#6ee7b7] border-[#c8e6c9] dark:border-emerald-500/40"
+              }`}
+              title={plan.isActive ? t("تعطيل الباقة", "Deactivate Plan") : t("تفعيل الباقة", "Activate Plan")}
+            >
+              <Power className="size-[12px] shrink-0" />
+              <span>{plan.isActive ? t("تعطيل", "Deactivate") : t("تفعيل", "Activate")}</span>
+            </button>
+          ) : null}
 
-          <button
-            type="button"
-            onClick={() => onDelete && onDelete(plan)}
-            className="px-2 py-1 rounded-[4px] bg-[#fef2f2] dark:bg-[#311616] hover:bg-[#fee2e2] dark:hover:bg-[#451e1e] text-[#b91c1c] dark:text-[#f87171] border border-[#fecaca] dark:border-[#5c2424] text-[11px] font-bold transition-colors cursor-pointer flex items-center gap-1 shadow-2xs"
-            title={t("حذف الباقة", "Delete Plan")}
-          >
-            <Trash2 className="size-[12px] shrink-0" />
-            <span>{t("حذف", "Delete")}</span>
-          </button>
+          {onDelete ? (
+            <button
+              type="button"
+              onClick={() => onDelete(plan)}
+              className="px-2 py-1 rounded-[4px] bg-[#fef2f2] dark:bg-[#311616] hover:bg-[#fee2e2] dark:hover:bg-[#451e1e] text-[#b91c1c] dark:text-[#f87171] border border-[#fecaca] dark:border-[#5c2424] text-[11px] font-bold transition-colors cursor-pointer flex items-center gap-1 shadow-2xs"
+              title={t("حذف الباقة", "Delete Plan")}
+            >
+              <Trash2 className="size-[12px] shrink-0" />
+              <span>{t("حذف", "Delete")}</span>
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -338,19 +342,21 @@ export function PlanCard({
           <span className="truncate">{t("تفاصيل", "Details")}</span>
         </button>
 
-        <button
-          type="button"
-          onClick={() => onEdit(plan)}
-          className={`flex-1 py-2 px-2 rounded-[4px] text-[11px] font-bold transition-colors cursor-pointer flex items-center justify-center gap-1 shadow-2xs ${
-            plan.isPopular
-              ? "bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#855402] dark:hover:bg-[#c88528] text-white dark:text-[#1c140f]"
-              : "bg-[#1b1c1a] dark:bg-[#281c15] hover:bg-[#333] dark:hover:bg-[#38271c] text-white dark:text-[#fdfbf7] border border-transparent dark:border-[#38271c]"
-          }`}
-          title={t("تعديل الباقة", "Edit Plan")}
-        >
-          <Pencil className="size-[13px] shrink-0" />
-          <span className="truncate">{t("تعديل", "Edit")}</span>
-        </button>
+        {onEdit ? (
+          <button
+            type="button"
+            onClick={() => onEdit(plan)}
+            className={`flex-1 py-2 px-2 rounded-[4px] text-[11px] font-bold transition-colors cursor-pointer flex items-center justify-center gap-1 shadow-2xs ${
+              plan.isPopular
+                ? "bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#855402] dark:hover:bg-[#c88528] text-white dark:text-[#1c140f]"
+                : "bg-[#1b1c1a] dark:bg-[#281c15] hover:bg-[#333] dark:hover:bg-[#38271c] text-white dark:text-[#fdfbf7] border border-transparent dark:border-[#38271c]"
+            }`}
+            title={t("تعديل الباقة", "Edit Plan")}
+          >
+            <Pencil className="size-[13px] shrink-0" />
+            <span className="truncate">{t("تعديل", "Edit")}</span>
+          </button>
+        ) : null}
 
         <button
           type="button"

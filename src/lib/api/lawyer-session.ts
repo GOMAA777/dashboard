@@ -351,6 +351,9 @@ export function buildInitialHandoffUrl(params: {
   url.searchParams.set("pending", "1");
   if (params.firm_name) url.searchParams.set("firm", params.firm_name);
   if (params.name) url.searchParams.set("owner", params.name);
+  if (typeof window !== "undefined") {
+    url.searchParams.set("return_url", window.location.href);
+  }
   return url.toString();
 }
 
@@ -947,7 +950,17 @@ export function buildHandoffHtml(params: {
         } catch (e) {}
 
         window.handleCancel = function () {
-          try { window.close(); } catch (e) { window.history.back(); }
+          if (window.opener) {
+            window.close();
+          } else {
+            try {
+              var params = new URLSearchParams(window.location.search);
+              var returnUrl = params.get("return_url") || "https://tibyanii.com/dashboard/accounts";
+              window.location.replace(returnUrl);
+            } catch (e) {
+              window.history.back();
+            }
+          }
         };
       })();
     </script>
@@ -1099,6 +1112,9 @@ export function buildImpersonationHandoffUrl(session: LawyerAuthSession): string
   url.searchParams.set("pending", "1");
   if (sanitized.firm_name) url.searchParams.set("firm", sanitized.firm_name);
   if (sanitized.name) url.searchParams.set("owner", sanitized.name);
+  if (typeof window !== "undefined") {
+    url.searchParams.set("return_url", window.location.href);
+  }
   // Hash is the reliable carrier across localhost → production origin hops.
   url.hash = `s=${encodeSession(sanitized)}`;
   return url.toString();

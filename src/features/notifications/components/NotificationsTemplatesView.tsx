@@ -317,7 +317,7 @@ export function NotificationsTemplatesView() {
       dir={direction}
       className="flex h-screen h-dvh overflow-hidden bg-[#fcfbfa] dark:bg-[#150f0b] text-[#1c1917] dark:text-[#fdfbf7] transition-colors duration-200 relative"
     >
-      <DashboardSidebar activeNav="notifications" />
+      <DashboardSidebar activeNav="clients" activeSubNav="notifications" />
 
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
         <DashboardTopNavbar />
@@ -832,13 +832,7 @@ export function NotificationsTemplatesView() {
                 >
                   <Send className={`w-3.5 h-3.5 ${isSendingTest ? "animate-pulse" : ""}`} />
                   <span>
-                    {isSendingTest
-                      ? isEn
-                        ? "Sending..."
-                        : "جاري الإرسال..."
-                      : isEn
-                      ? "Send Now"
-                      : "إرسال الآن"}
+                    {isEn ? "Send Now" : "إرسال الآن"}
                   </span>
                 </button>
               </div>

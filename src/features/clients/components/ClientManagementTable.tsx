@@ -7,24 +7,21 @@ import {
   Phone,
   User,
   Trash2,
-  ChevronRight,
-  ChevronLeft,
-  ChevronsRight,
-  ChevronsLeft,
   DoorOpen,
-  Loader2,
   PenSquare,
   KeyRound,
+  Copy,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ClientOffice, TabFilter } from "../types/client.types";
 import { initialOffices } from "../data/initialOffices";
 import { UnifiedFilterBar } from "@/components/shared/UnifiedFilterBar";
-import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
+import { UnifiedPagination } from "@/components/shared/UnifiedPagination";
+import { DataTableCard } from "@/components/shared/DataTableCard";
 import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { useLanguage } from "@/lib/i18n";
-import { getLocalCustomAutoRenew, getLocalCustomLogo, normalizeLogoUrl, resolveOfficeLogo, DEFAULT_OFFICE_LOGO, withCacheBust } from "@/lib/api/mappers";
-import { isLightColor } from "../constants/office-colors";
+import { getLocalCustomAutoRenew, resolveOfficeLogo, DEFAULT_OFFICE_LOGO, withCacheBust, formatSaudiPhoneDisplay } from "@/lib/api/mappers";
 import { localizePlanName, localizeLicense, getLocalizedCityName } from "@/lib/localize";
 
 export { initialOffices };
@@ -35,13 +32,14 @@ interface ClientManagementTableProps {
   isEnteringOffice?: boolean;
   enteringOfficeId?: string | number | null;
   onViewOfficeDetails: (office: ClientOffice) => void;
-  onEditOffice: (office: ClientOffice) => void;
+  onEditOffice?: (office: ClientOffice) => void;
   onResetPassword?: (office: ClientOffice) => void;
   onEnterOfficeAsAdmin?: (office: ClientOffice) => void;
   onOpenDeactivateModal?: (office: ClientOffice) => void;
   onOpenDeleteModal?: (office: ClientOffice) => void;
   onManageSubscriptions?: (office: ClientOffice) => void;
   onReactivate?: (office: ClientOffice) => void;
+  canEditStatus?: boolean;
 }
 
 export function ClientManagementTable({
@@ -57,6 +55,7 @@ export function ClientManagementTable({
   onOpenDeleteModal,
   onManageSubscriptions,
   onReactivate,
+  canEditStatus = true,
 }: ClientManagementTableProps) {
   const { t, isEn } = useLanguage();
   const [internalOffices, setInternalOffices] = useState<ClientOffice[]>([]);
@@ -73,6 +72,23 @@ export function ClientManagementTable({
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(5);
   const [failedLogos, setFailedLogos] = useState<Record<string, boolean>>({});
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  const handleCopy = async (text: string, fieldKey: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    const value = String(text || "").trim();
+    if (!value || value === "—") return;
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopiedField(fieldKey);
+      toast.success(t("تم النسخ إلى الحافظة", "Copied to clipboard"));
+      window.setTimeout(() => {
+        setCopiedField((prev) => (prev === fieldKey ? null : prev));
+      }, 1500);
+    } catch {
+      toast.error(t("تعذر النسخ", "Copy failed"));
+    }
+  };
 
   const filteredOffices = useMemo(() => {
     const list = offices.filter((item) => {
@@ -136,8 +152,6 @@ export function ClientManagementTable({
   const totalItems = filteredOffices.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const safePageIndex = Math.min(pageIndex, Math.max(0, totalPages - 1));
-  const startItem = totalItems === 0 ? 0 : safePageIndex * pageSize + 1;
-  const endItem = Math.min((safePageIndex + 1) * pageSize, totalItems);
 
   const paginatedOffices = useMemo(() => {
     if (pageSize >= 9999) return filteredOffices;
@@ -333,17 +347,14 @@ export function ClientManagementTable({
       />
 
       {/* Separate Data Table & Pagination Card */}
-      <div
-        className="bg-white dark:bg-[#221812] rounded-[8px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border border-[#f0eeea] dark:border-[#38271c] overflow-hidden w-full shrink-0"
-        data-node-id="1:770"
-      >
+      <DataTableCard data-node-id="1:770">
       {/* Table Data */}
       <div className="overflow-x-auto overflow-y-hidden scrollbar-none w-full">
         <table className="w-full text-start border-collapse min-w-[1020px]">
           <thead>
             <tr className="bg-[#f5f3ef] dark:bg-[#281c15] border-b border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] text-[12px] leading-[18px] font-bold">
               <th className="py-[12px] px-[12px] w-[50px] min-w-[50px] text-center font-bold">#</th>
-              <th className="py-[12px] px-[16px] text-start font-bold whitespace-nowrap min-w-[220px]">{t("اسم المكتب والترخيص", "Office & License")}</th>
+              <th className="py-[12px] px-[16px] text-start font-bold whitespace-nowrap min-w-[260px]">{t("اسم المكتب والترخيص", "Office & License")}</th>
               <th className="py-[12px] px-[16px] text-start font-bold whitespace-nowrap min-w-[130px]">{t("المالك", "Owner")}</th>
               <th className="py-[12px] px-[16px] text-start font-bold whitespace-nowrap min-w-[200px]">{t("البريد الإلكتروني", "Email")}</th>
               <th className="py-[12px] px-[16px] text-start font-bold whitespace-nowrap min-w-[130px]">{t("رقم التواصل", "Phone Number")}</th>
@@ -417,7 +428,7 @@ export function ClientManagementTable({
                   </td>
                   {/* 1. اسم المكتب والترخيص */}
                   <td className="py-[16px] px-[16px] text-start">
-                    <div className="flex items-center gap-[12px]">
+                    <div className="flex items-center gap-[12px] min-w-0">
                       {(() => {
                         const candidateLogo = resolveOfficeLogo(office.logo, office.id);
                         const isFailed = failedLogos[candidateLogo];
@@ -441,20 +452,28 @@ export function ClientManagementTable({
                           </div>
                         );
                       })()}
-                      <div className="flex flex-col">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-bold leading-[19px]">
-                            {office.name}
-                          </span>
-                          <span
-                            className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#f4efe6] dark:bg-[#271d15] text-[#78644f] dark:text-[#c4b3a3] border border-[#dfd7cc] dark:border-[#423122]"
-                            title={`معرف المنشأة (Company ID): #${office.companyId || office.id}${office.officeId ? ` • المعرّف: ${office.officeId}` : ""}`}
-                          >
-                            {office.officeId ? `@${office.officeId}` : `ID: #${office.companyId || office.id}`}
-                          </span>
-                        </div>
-                        <span className="text-[#837565] dark:text-[#8e8680] text-[11px] leading-[16px]">
+                      <div className="flex flex-col gap-[4px] min-w-0 flex-1">
+                        <span
+                          className="text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-bold leading-[19px] truncate"
+                          title={office.name}
+                        >
+                          {(() => {
+                            const words = String(office.name || "")
+                              .trim()
+                              .split(/\s+/)
+                              .filter(Boolean);
+                            if (words.length <= 4) return office.name;
+                            return `${words.slice(0, 4).join(" ")}…`;
+                          })()}
+                        </span>
+                        <span className="text-[#837565] dark:text-[#8e8680] text-[11px] leading-[16px] truncate">
                           {localizeLicense(office.licenseNumber, isEn)} • {getLocalizedCityName(office.city, isEn)}
+                        </span>
+                        <span
+                          className="inline-flex items-center self-start px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#f4efe6] dark:bg-[#271d15] text-[#78644f] dark:text-[#c4b3a3] border border-[#dfd7cc] dark:border-[#423122] shrink-0"
+                          title={`معرف المنشأة (Company ID): #${office.companyId || office.id}${office.officeId ? ` • المعرّف: ${office.officeId}` : ""}`}
+                        >
+                          {office.officeId ? `@${office.officeId}` : `ID: #${office.companyId || office.id}`}
                         </span>
                       </div>
                     </div>
@@ -470,19 +489,53 @@ export function ClientManagementTable({
 
                   {/* 3. البريد الإلكتروني */}
                   <td className="py-[16px] px-[16px] text-start">
-                    <div className="flex items-center gap-[6px] text-[#514537] dark:text-[#cdc5bd] text-[12px] font-normal">
+                    <div className="flex items-center gap-[6px] text-[#514537] dark:text-[#cdc5bd] text-[12px] font-normal group/email">
                       <Mail className="size-[13px] text-[#837565] dark:text-[#8e8680] shrink-0" />
-                      <span dir="ltr" className="font-mono">{office.email}</span>
+                      <span dir="ltr" className="font-mono truncate max-w-[180px]">{office.email}</span>
+                      {office.email ? (
+                        <button
+                          type="button"
+                          onClick={(e) =>
+                            void handleCopy(office.email, `email-${office.id}`, e)
+                          }
+                          className="text-[#837565] hover:text-[#9c6402] dark:hover:text-[#e29d38] p-0.5 cursor-pointer shrink-0 opacity-70 group-hover/email:opacity-100 transition-opacity"
+                          title={t("نسخ البريد", "Copy Email")}
+                          aria-label={t("نسخ البريد", "Copy Email")}
+                        >
+                          {copiedField === `email-${office.id}` ? (
+                            <Check className="size-[12px] text-emerald-600" />
+                          ) : (
+                            <Copy className="size-[12px]" />
+                          )}
+                        </button>
+                      ) : null}
                     </div>
                   </td>
 
                   {/* 4. رقم التواصل */}
                   <td className="py-[16px] px-[16px] text-start">
-                    <div className="flex items-center gap-[6px] text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] font-normal font-mono">
+                    <div className="flex items-center gap-[6px] text-[#1b1c1a] dark:text-[#fdfbf7] text-[12px] font-normal font-mono group/phone">
                       <Phone className="size-[13px] text-[#837565] dark:text-[#8e8680] shrink-0" />
                       <span dir="ltr" className="inline-block whitespace-nowrap">
-                        {office.phone}
+                        {formatSaudiPhoneDisplay(office.phone)}
                       </span>
+                      {office.phone ? (
+                        <button
+                          type="button"
+                          onClick={(e) =>
+                            void handleCopy(formatSaudiPhoneDisplay(office.phone), `phone-${office.id}`, e)
+                          }
+                          className="text-[#837565] hover:text-[#9c6402] dark:hover:text-[#e29d38] p-0.5 cursor-pointer shrink-0 opacity-70 group-hover/phone:opacity-100 transition-opacity"
+                          title={t("نسخ الرقم", "Copy Phone")}
+                          aria-label={t("نسخ الرقم", "Copy Phone")}
+                        >
+                          {copiedField === `phone-${office.id}` ? (
+                            <Check className="size-[12px] text-emerald-600" />
+                          ) : (
+                            <Copy className="size-[12px]" />
+                          )}
+                        </button>
+                      ) : null}
                     </div>
                   </td>
 
@@ -529,7 +582,7 @@ export function ClientManagementTable({
                             wrap: "bg-[#fef2f2] dark:bg-[#2c1313] text-[#dc2626] dark:text-[#f87171] border-[#fecaca] dark:border-rose-500/40 hover:bg-[#fecaca]/40 dark:hover:bg-[#441d1d]",
                             dot: "bg-[#dc2626] dark:bg-[#ef4444]",
                           };
-                      return (
+                      return canEditStatus ? (
                         <button
                           type="button"
                           onClick={() => handleToggleOfficeStatus(office)}
@@ -562,6 +615,27 @@ export function ClientManagementTable({
                               : "غير نشط"}
                           </span>
                         </button>
+                      ) : (
+                        <span
+                          className={`w-fit inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap border select-none ${statusTone.wrap}`}
+                        >
+                          <span
+                            className={`size-[7px] rounded-full shadow-[0_0_8px_currentColor] ring-1 ring-current/40 shrink-0 ${statusTone.dot}`}
+                          />
+                          <span>
+                            {isEn
+                              ? isActiveStatus
+                                ? "Active"
+                                : isTrialStatus
+                                ? "Trial"
+                                : "Inactive"
+                              : isActiveStatus
+                              ? "نشط"
+                              : isTrialStatus
+                              ? "تحت التجربة"
+                              : "غير نشط"}
+                          </span>
+                        </span>
                       );
                     })()}
                   </td>
@@ -581,15 +655,17 @@ export function ClientManagementTable({
                       </button>
 
                       {/* زر تعديل بيانات الحساب */}
-                      <button
-                        type="button"
-                        aria-label={t("تعديل بيانات الحساب", "Edit Account Details")}
-                        onClick={() => onEditOffice(office)}
-                        className="p-[6px] rounded-[4px] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] transition-colors cursor-pointer"
-                        title={t("تعديل بيانات الحساب", "Edit Account Details")}
-                      >
-                        <PenSquare className="size-[15px]" />
-                      </button>
+                      {onEditOffice && (
+                        <button
+                          type="button"
+                          aria-label={t("تعديل بيانات الحساب", "Edit Account Details")}
+                          onClick={() => onEditOffice(office)}
+                          className="p-[6px] rounded-[4px] hover:bg-[#eae8e4] dark:hover:bg-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:text-[#1b1c1a] dark:hover:text-[#fdfbf7] transition-colors cursor-pointer"
+                          title={t("تعديل بيانات الحساب", "Edit Account Details")}
+                        >
+                          <PenSquare className="size-[15px]" />
+                        </button>
+                      )}
 
                       {/* زر إعادة تعيين كلمة المرور */}
                       {onResetPassword && (
@@ -614,30 +690,24 @@ export function ClientManagementTable({
                           className="size-[30px] rounded-[4px] bg-[#fff9ee] dark:bg-[#342711] border border-[#eeddbb] dark:border-[#523b2c] text-[#9c6402] dark:text-[#e29d38] hover:bg-[#9c6402] hover:text-white dark:hover:bg-[#e29d38] dark:hover:text-[#1c140f] inline-flex items-center justify-center transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shadow-[0px_1px_2px_rgba(0,0,0,0.03)]"
                           title={t("دخول نظام المكتب كمسؤول", "Enter office system as admin")}
                         >
-                          {isEnteringOffice && enteringOfficeId === office.id ? (
-                            <Loader2 className="size-[15px] animate-spin" />
-                          ) : (
-                            <DoorOpen className="size-[15px]" />
-                          )}
+                          <DoorOpen className="size-[15px]" />
                         </button>
                       )}
 
                       {/* زر حذف المكتب نهائياً */}
-                      <button
-                        type="button"
-                        aria-label={t("حذف المكتب نهائياً", "Delete Office")}
-                        onClick={() => {
-                          if (onOpenDeleteModal) {
+                      {onOpenDeleteModal && (
+                        <button
+                          type="button"
+                          aria-label={t("حذف المكتب نهائياً", "Delete Office")}
+                          onClick={() => {
                             onOpenDeleteModal(office);
-                          } else {
-                            handleDeleteOffice(office);
-                          }
-                        }}
-                        className="p-[6px] rounded-[4px] hover:bg-[#fef2f2] dark:hover:bg-[#311616] text-[#dc2626] dark:text-[#f87171] transition-colors cursor-pointer"
-                        title={t("حذف المكتب نهائياً", "Delete Office")}
-                      >
-                        <Trash2 className="size-[15px]" />
-                      </button>
+                          }}
+                          className="p-[6px] rounded-[4px] hover:bg-[#fef2f2] dark:hover:bg-[#311616] text-[#dc2626] dark:text-[#f87171] transition-colors cursor-pointer"
+                          title={t("حذف المكتب نهائياً", "Delete Office")}
+                        >
+                          <Trash2 className="size-[15px]" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -647,118 +717,15 @@ export function ClientManagementTable({
           </table>
         </div>
 
-        {/* Pagination Footer */}
-        <div className="bg-[#fcfaf7] dark:bg-[#1a120d] p-[16px] border-t border-[#f0eeea] dark:border-[#38271c] flex flex-col sm:flex-row items-center justify-between gap-[12px] text-[12px] text-[#514537] dark:text-[#cdc5bd] font-['Cairo']">
-          {/* Right in RTL: Count Summary & Rows per page */}
-        <div className="flex flex-wrap items-center gap-4">
-          <div>
-            <span>{t("عرض", "Showing")} </span>
-            <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{startItem}</span>
-            <span> {t("إلى", "to")} </span>
-            <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{endItem}</span>
-            <span> {t("من أصل", "of")} </span>
-            <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">{totalItems}</span>
-            <span> {t("مكتب محاماة مسجل", "registered law offices")}</span>
-          </div>
-
-          <div className="flex items-center gap-2 border-s border-[#eae8e4] dark:border-[#38271c] ps-3">
-            <span className="text-[11px] text-[#837565] dark:text-[#8e8680]">{t("صفوف بالصفحة:", "Rows per page:")}</span>
-            <PageSizeDropdown
-              value={pageSize}
-              onChange={(newSize) => {
-                setPageSize(newSize);
-                setPageIndex(0);
-              }}
-              options={[5, 10, 20, 50]}
-              dropdownPlacement="top"
-            />
-          </div>
-        </div>
-
-        {/* Left in RTL: Page Controls */}
-        <div className="flex items-center gap-[4px]">
-          <button
-            type="button"
-            disabled={safePageIndex === 0 || totalItems === 0}
-            onClick={() => setPageIndex(0)}
-            title={t("الصفحة الأولى", "First page")}
-            className="size-[30px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center cursor-pointer"
-          >
-            <ChevronsRight className="size-[14px] rtl:rotate-0 rotate-180" />
-          </button>
-
-          <button
-            type="button"
-            disabled={safePageIndex === 0 || totalItems === 0}
-            onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
-            title={t("الصفحة السابقة", "Previous page")}
-            className="px-[10px] py-[6px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-[4px] cursor-pointer"
-          >
-            <ChevronRight className="size-[13px] rtl:rotate-0 rotate-180" />
-            <span>{t("السابق", "Previous")}</span>
-          </button>
-
-          {totalItems === 0 ? (
-            <button
-              type="button"
-              disabled
-              className="size-[30px] rounded-[4px] font-semibold text-[12px] flex items-center justify-center border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#8e8680] opacity-40 cursor-not-allowed"
-            >
-              1
-            </button>
-          ) : (
-            Array.from({ length: totalPages }, (_, i) => i).map((p) => {
-              if (totalPages > 5 && Math.abs(p - safePageIndex) > 2 && p !== 0 && p !== totalPages - 1) {
-                if (p === 1 || p === totalPages - 2) {
-                  return (
-                    <span key={p} className="px-[2px] text-[#837565] dark:text-[#8e8680]">
-                      ...
-                    </span>
-                  );
-                }
-                return null;
-              }
-              const isActive = safePageIndex === p;
-              return (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => setPageIndex(p)}
-                  className={`size-[30px] rounded-[4px] font-semibold text-[12px] flex items-center justify-center cursor-pointer transition-colors ${
-                    isActive
-                      ? "bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] font-bold shadow-sm"
-                      : "border border-[#eae8e4] dark:border-[#38271c] text-[#514537] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15]"
-                  }`}
-                >
-                  {p + 1}
-                </button>
-              );
-            })
-          )}
-
-          <button
-            type="button"
-            disabled={safePageIndex >= totalPages - 1 || totalItems === 0}
-            onClick={() => setPageIndex((p) => Math.min(totalPages - 1, p + 1))}
-            title={t("الصفحة التالية", "Next page")}
-            className="px-[10px] py-[6px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#1b1c1a] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-[4px] cursor-pointer"
-          >
-            <span>{t("التالي", "Next")}</span>
-            <ChevronLeft className="size-[13px] rtl:rotate-0 rotate-180" />
-          </button>
-
-          <button
-            type="button"
-            disabled={safePageIndex >= totalPages - 1 || totalItems === 0}
-            onClick={() => setPageIndex(totalPages - 1)}
-            title={t("الصفحة الأخيرة", "Last page")}
-            className="size-[30px] rounded-[4px] border border-[#eae8e4] dark:border-[#38271c] text-[#837565] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center cursor-pointer"
-          >
-            <ChevronsLeft className="size-[14px] rtl:rotate-0 rotate-180" />
-          </button>
-        </div>
-      </div>
-      </div>
+        <UnifiedPagination
+          pageIndex={safePageIndex}
+          pageSize={pageSize}
+          totalItems={totalItems}
+          onPageChange={setPageIndex}
+          onPageSizeChange={setPageSize}
+          itemLabel={t("مكتب محاماة مسجل", "registered law offices")}
+        />
+      </DataTableCard>
     </div>
   );
 }

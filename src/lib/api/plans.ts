@@ -63,25 +63,18 @@ export const UNLIMITED_VIP_PLAN: PricingPlanItem = {
 };
 
 export function getLocalCustomPlans(): PricingPlanItem[] {
-  if (typeof window === "undefined") return [UNLIMITED_VIP_PLAN];
+  if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(LOCAL_PLANS_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
     const list = Array.isArray(parsed) ? parsed : [];
 
-    // Deduplicate by ID and name to clean up any past test artifacts
     const seenIds = new Set<string>();
     const seenNames = new Set<string>();
     const deduplicated: PricingPlanItem[] = [];
 
-    // Ensure UNLIMITED_VIP_PLAN is included
-    const combined = [...list];
-    if (!combined.some((p) => p.id === "unlimited" || p.name === "غير محدود")) {
-      combined.push(UNLIMITED_VIP_PLAN);
-    }
-
-    for (const item of combined as PricingPlanItem[]) {
-      if (!item || !item.id) continue;
+    for (const item of list as PricingPlanItem[]) {
+      if (!item || !item.id || item.id === "unlimited" || item.name === "غير محدود") continue;
       const idKey = String(item.id);
       const nameKey = (item.name || "").trim();
       if (seenIds.has(idKey) || (nameKey && seenNames.has(nameKey))) {
@@ -94,7 +87,7 @@ export function getLocalCustomPlans(): PricingPlanItem[] {
 
     return deduplicated;
   } catch {
-    return [UNLIMITED_VIP_PLAN];
+    return [];
   }
 }
 

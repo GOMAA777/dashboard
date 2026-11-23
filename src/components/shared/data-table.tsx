@@ -18,7 +18,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
 import { useLanguage } from "@/lib/i18n";
 
@@ -93,17 +94,15 @@ export function DataTable<TData, TValue>({
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <span>{t("جاري تحميل البيانات...", "Loading data...")}</span>
-                  </div>
-                </TableCell>
-              </TableRow>
+              Array.from({ length: 6 }).map((_, rIdx) => (
+                <TableRow key={`skeleton-row-${rIdx}`} className="hover:bg-transparent">
+                  {columns.map((_, cIdx) => (
+                    <TableCell key={`skeleton-cell-${rIdx}-${cIdx}`} className="py-3 px-4">
+                      <Skeleton className="h-5 w-full rounded-[4px]" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
             ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow

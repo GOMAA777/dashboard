@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   ArrowRight,
   CheckCircle2,
@@ -19,13 +19,17 @@ import {
   History,
   Lock,
   MessageSquare,
-  Loader2,
+  MessageCircle,
+  ExternalLink,
   AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Ticket } from "../types/tickets.types";
 import { ConfirmCloseTicketModal } from "./ConfirmCloseTicketModal";
 import { useLanguage } from "@/lib/i18n";
+import { useTicketDetailQuery } from "../hooks/useTicketsQuery";
+import { mapTicketFromApi } from "@/lib/api/mappers";
+import { unwrapData } from "@/lib/api/helpers";
 
 interface TicketDetailsModalProps {
   ticket: Ticket;
@@ -37,7 +41,7 @@ interface TicketDetailsModalProps {
 }
 
 export function TicketDetailsModal({
-  ticket,
+  ticket: initialTicket,
   onBack,
   onOpenAssigneeModal,
   onOpenStatusModal,
@@ -51,6 +55,17 @@ export function TicketDetailsModal({
   const [replyError, setReplyError] = useState("");
   const [isConfirmCloseOpen, setIsConfirmCloseOpen] = useState(false);
   const [isClosingTicket, setIsClosingTicket] = useState(false);
+
+  const detailQuery = useTicketDetailQuery(initialTicket.id);
+  const ticket = useMemo(() => {
+    if (detailQuery.data) {
+      const raw = (unwrapData<Record<string, unknown>>(detailQuery.data) || detailQuery.data) as Record<string, unknown>;
+      if (raw?.id || raw?.ticket_number) {
+        return mapTicketFromApi(raw);
+      }
+    }
+    return initialTicket;
+  }, [detailQuery.data, initialTicket]);
 
   const handleSendReply = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -448,21 +463,12 @@ export function TicketDetailsModal({
                   disabled={isSendingReply}
                   className="bg-[#9c6402] hover:bg-[#855402] text-white flex items-center gap-[6px] px-[20px] py-[8px] rounded-[4px] font-semibold text-[13px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {isSendingReply ? (
-                    <>
-                      <Loader2 className="size-[13px] animate-spin" />
-                      <span>{isEn ? "Sending..." : "جاري الإرسال..."}</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send className="size-[13px]" />
-                      <span>
-                        {isInternalNote
-                          ? (isEn ? "Save Internal Note" : "حفظ الملاحظة الداخلية")
-                          : (isEn ? "Send Reply" : "إرسال الرد")}
-                      </span>
-                    </>
-                  )}
+                  <Send className="size-[13px]" />
+                  <span>
+                    {isInternalNote
+                      ? (isEn ? "Save Internal Note" : "حفظ الملاحظة الداخلية")
+                      : (isEn ? "Send Reply" : "إرسال الرد")}
+                  </span>
                 </button>
               </div>
             </form>
@@ -569,6 +575,121 @@ export function TicketDetailsModal({
                   {ticket.assignee.department}
                 </span>
               </div>
+            </div>
+          </div>
+
+          {/* Card: Intake Channel & Contact Actions */}
+          <div className="bg-white rounded-[8px] p-[20px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] border border-[#eae8e4]/60 flex flex-col gap-[14px]">
+            <div className="border-b border-[#eae8e4] pb-[10px] flex items-center justify-between">
+              <span className="text-[11px] font-bold text-[#837565]">
+                {isEn ? "Intake Channel" : "وسيلة الورود"}
+              </span>
+              <h3 className="text-[#1b1c1a] font-bold text-[15px]">
+                {isEn ? "Communication Channel" : "قناة التواصل"}
+              </h3>
+            </div>
+
+            <div className="flex flex-col gap-[12px] text-start">
+              {ticket.channel === "whatsapp" && (
+                <div className="flex flex-col gap-[10px]">
+                  <div className="flex items-center gap-[10px] p-[10px] rounded-[6px] bg-[#25D366]/10 border border-[#25D366]/20">
+                    <div className="size-[32px] rounded-[6px] bg-[#25D366] text-white flex items-center justify-center shrink-0">
+                      <MessageCircle className="size-[18px]" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[13px] font-bold text-[#128C7E]">
+                        {isEn ? "Business WhatsApp" : "واتساب الأعمال"}
+                      </span>
+                      <span className="text-[11px] text-[#514537]" dir="ltr">
+                        {ticket.client.phone}
+                      </span>
+                    </div>
+                  </div>
+                  {ticket.client.phone && (
+                    <a
+                      href={`https://wa.me/${ticket.client.phone.replace(/[^0-9]/g, "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full h-[36px] bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-[4px] text-[12px] font-bold flex items-center justify-center gap-[6px] transition-colors cursor-pointer"
+                    >
+                      <ExternalLink className="size-[13px]" />
+                      <span>{isEn ? "Open WhatsApp Chat" : "فتح محادثة واتساب فورية"}</span>
+                    </a>
+                  )}
+                </div>
+              )}
+
+              {ticket.channel === "portal" && (
+                <div className="flex flex-col gap-[10px]">
+                  <div className="flex items-center gap-[10px] p-[10px] rounded-[6px] bg-[#0284c7]/10 border border-[#0284c7]/20">
+                    <div className="size-[32px] rounded-[6px] bg-[#0284c7] text-white flex items-center justify-center shrink-0">
+                      <MessageSquare className="size-[18px]" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[13px] font-bold text-[#0369a1]">
+                        {isEn ? "Live Chat / Portal" : "الشات المباشر / بوابة العملاء"}
+                      </span>
+                      <span className="text-[11px] text-[#514537]">
+                        {isEn ? "Connected to active portal session" : "مرتبط بجلسة البوابة والمحادثة"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {ticket.channel === "phone" && (
+                <div className="flex flex-col gap-[10px]">
+                  <div className="flex items-center gap-[10px] p-[10px] rounded-[6px] bg-[#d97706]/10 border border-[#d97706]/20">
+                    <div className="size-[32px] rounded-[6px] bg-[#d97706] text-white flex items-center justify-center shrink-0">
+                      <Phone className="size-[18px]" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[13px] font-bold text-[#b45309]">
+                        {isEn ? "Phone Call (Our Line)" : "مكالمة هاتفية (عبر رقمنا)"}
+                      </span>
+                      <span className="text-[11px] text-[#514537]" dir="ltr">
+                        {ticket.client.phone}
+                      </span>
+                    </div>
+                  </div>
+                  {ticket.client.phone && (
+                    <a
+                      href={`tel:${ticket.client.phone.replace(/[^0-9+]/g, "")}`}
+                      className="w-full h-[36px] bg-[#d97706] hover:bg-[#b45309] text-white rounded-[4px] text-[12px] font-bold flex items-center justify-center gap-[6px] transition-colors cursor-pointer"
+                    >
+                      <Phone className="size-[13px]" />
+                      <span>{isEn ? "Direct Call" : "اتصال بالعميل"}</span>
+                    </a>
+                  )}
+                </div>
+              )}
+
+              {ticket.channel === "email" && (
+                <div className="flex flex-col gap-[10px]">
+                  <div className="flex items-center gap-[10px] p-[10px] rounded-[6px] bg-[#9c6402]/10 border border-[#9c6402]/20">
+                    <div className="size-[32px] rounded-[6px] bg-[#9c6402] text-white flex items-center justify-center shrink-0">
+                      <Mail className="size-[18px]" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[13px] font-bold text-[#784d02]">
+                        {isEn ? "Email Support" : "البريد الإلكتروني"}
+                      </span>
+                      <span className="text-[11px] text-[#514537] truncate max-w-[180px]">
+                        {ticket.client.email}
+                      </span>
+                    </div>
+                  </div>
+                  {ticket.client.email && (
+                    <a
+                      href={`mailto:${ticket.client.email}?subject=${encodeURIComponent(ticket.title)}`}
+                      className="w-full h-[36px] bg-[#9c6402] hover:bg-[#784d02] text-white rounded-[4px] text-[12px] font-bold flex items-center justify-center gap-[6px] transition-colors cursor-pointer"
+                    >
+                      <Mail className="size-[13px]" />
+                      <span>{isEn ? "Send Email" : "إرسال بريد إلكتروني"}</span>
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

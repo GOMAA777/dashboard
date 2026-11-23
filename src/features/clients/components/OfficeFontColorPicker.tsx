@@ -26,6 +26,7 @@ import {
   isValidHexColor,
   isLightColor,
   suggestColorsFromLogo,
+  suggestMultipleTriosFromLogo,
 } from "../constants/office-colors";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -81,6 +82,8 @@ export function OfficeFontColorPicker({
   const resolvedFirmName = firmName || t("مكتب المحاماة والاستشارات", "Law Firm & Consultancy");
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<PickerTab>("trios");
+  const [logoGeneratedTrios, setLogoGeneratedTrios] = useState<OfficeColorTrio[]>([]);
+  const [isGeneratingLogo, setIsGeneratingLogo] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Resolved current color values
@@ -209,28 +212,43 @@ export function OfficeFontColorPicker({
     }
   };
 
+  // Pre-generate logo trios whenever logoUrl changes (or fallback to default firm logo)
+  useEffect(() => {
+    let isSubscribed = true;
+    const targetLogo = logoUrl || "/firm-default-logo.png";
+    suggestMultipleTriosFromLogo(targetLogo)
+      .then((trios) => {
+        if (isSubscribed) setLogoGeneratedTrios(trios);
+      })
+      .catch(() => {
+        if (isSubscribed) setLogoGeneratedTrios([]);
+      });
+    return () => {
+      isSubscribed = false;
+    };
+  }, [logoUrl]);
+
   // Smart Logo color analysis & automatic coordination
   const handleExtractFromLogo = async () => {
-    if (!logoUrl) {
-      toast.info(t("يرجى إرفاق شعار المنشأة أولاً لاقتراح الألوان المتناسقة معه", "Please upload a logo first to extract matching colors"));
-      return;
-    }
+    const targetLogo = logoUrl || "/firm-default-logo.png";
     try {
-      const extracted = await suggestColorsFromLogo(logoUrl);
-      setHexBgInput(extracted.backgroundColor);
-      setHexAccentInput(extracted.accentColor);
-      setHexFontInput(extracted.fontColor);
-
-      if (onBackgroundColorChange) onBackgroundColorChange(extracted.backgroundColor);
-      if (onAccentColorChange) onAccentColorChange(extracted.accentColor);
-      if (onFontColorChange) onFontColorChange(extracted.fontColor);
-
-      if (onThemeColorChange) onThemeColorChange(extracted.accentColor);
-      if (onChange) onChange(extracted.fontColor);
-
-      toast.success(t("تم تنسيق الألوان الثلاثة (الخلفية، الثانوي، الخط) تلقائياً مع الشعار المرفق بنجاح", "Successfully coordinated the 3 colors with your uploaded logo"));
+      setIsGeneratingLogo(true);
+      const trios = await suggestMultipleTriosFromLogo(targetLogo);
+      setLogoGeneratedTrios(trios);
+      const best = trios[0];
+      if (best) {
+        handleSelectTrio(best);
+      }
+      toast.success(
+        t(
+          "تم توليد 3 أطقم متناسقة من الشعار وتطبيق الطقم الملكي تلقائياً بنجاح",
+          "Successfully generated 3 coordinated trios from logo and applied Royal Dark"
+        )
+      );
     } catch {
       toast.error(t("تعذر تحليل ألوان الشعار المرفق", "Failed to analyze logo colors"));
+    } finally {
+      setIsGeneratingLogo(false);
     }
   };
 
@@ -315,7 +333,7 @@ export function OfficeFontColorPicker({
       {isOpen && (
         <div
           className={cn(
-            "absolute top-[calc(100%+6px)] right-0 left-0 sm:left-auto sm:w-[430px] z-50",
+            "absolute top-[calc(100%+6px)] right-0 left-0 sm:left-auto sm:w-[495px] z-50",
             "bg-white dark:bg-[#1a120d] border border-[#ded5c6] dark:border-[#4d3627] rounded-[10px] shadow-2xl p-3.5 flex flex-col gap-3",
             "animate-in fade-in-50 zoom-in-95 duration-150"
           )}
@@ -384,24 +402,27 @@ export function OfficeFontColorPicker({
           {/* TAB 1: 3-COLOR PRE-MATCHED COMBOS */}
           {activeTab === "trios" && (
             <div className="flex flex-col gap-2">
+              {/* Header with Title matching screenshot */}
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold text-[#514537] dark:text-[#cdc5bd]">
-                  {t("أطقم ثلاثية متناسقة جاهزة (خلفية • ثانوي • خط)", "Pre-matched 3-Color Combos")}
+                  {t("أطقم ثلاثية متناسقة جاهزة (خلفية • ثانوي • خط)", "Ready-made 3-color Trios (Bg • Accent • Font)")}
                 </span>
-                {logoUrl && (
-                  <button
-                    type="button"
-                    onClick={handleExtractFromLogo}
-                    className="text-[10px] font-bold text-[#9c6402] dark:text-[#e29d38] hover:underline flex items-center gap-1 cursor-pointer"
-                  >
-                    <Wand2 className="size-3" />
-                    <span>{t("تنسيق مع الشعار", "Match Logo")}</span>
-                  </button>
-                )}
+
+                <button
+                  type="button"
+                  onClick={handleExtractFromLogo}
+                  disabled={isGeneratingLogo}
+                  className="text-[10px] font-bold text-[#9c6402] dark:text-[#e29d38] hover:underline flex items-center gap-1 cursor-pointer transition-colors"
+                  title={t("توليد أطقم متناسقة تلقائياً من ألوان الشعار", "Generate smart trios from logo")}
+                >
+                  <Wand2 className="size-2.5" />
+                  <span>{isGeneratingLogo ? t("جاري التوليد...", "Generating...") : t("توليد من الشعار", "Match Logo")}</span>
+                </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-[220px] overflow-y-auto pe-1">
-                {OFFICE_COLOR_TRIOS.map((trio) => {
+              {/* Combos Grid (Logo Trios prepended if available + Standard Executive Trios) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-[225px] overflow-y-auto pe-1">
+                {[...logoGeneratedTrios, ...OFFICE_COLOR_TRIOS].map((trio) => {
                   const isActive =
                     currentBgColor.toLowerCase() === trio.bgHex.toLowerCase() &&
                     currentAccentColor.toLowerCase() === trio.accentHex.toLowerCase() &&
@@ -416,7 +437,7 @@ export function OfficeFontColorPicker({
                         "flex items-center justify-between p-2 rounded-[6px] border transition-all text-start cursor-pointer",
                         isActive
                           ? "bg-[#9c6402]/15 dark:bg-[#e29d38]/20 border-[#9c6402] dark:border-[#e29d38] ring-1 ring-[#9c6402]"
-                          : "bg-[#f5f3ef] dark:bg-[#1c140f] border-transparent hover:border-[#ded5c6] dark:hover:border-[#38271c]"
+                          : "bg-[#f5f3ef] dark:bg-[#1c140f] border-[#ded5c6]/40 dark:border-[#38271c]/40 hover:border-[#9c6402] dark:hover:border-[#e29d38]"
                       )}
                     >
                       <div className="flex items-center gap-2 min-w-0">
@@ -439,10 +460,13 @@ export function OfficeFontColorPicker({
                         </div>
 
                         <div className="flex flex-col truncate">
-                          <span className="text-[11px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] truncate">
+                          <span
+                            className="text-[11px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] truncate"
+                            title={isEn ? trio.nameEn : `${trio.nameAr} (${trio.descriptionAr || ''})`}
+                          >
                             {isEn ? trio.nameEn : trio.nameAr}
                           </span>
-                          <span className="text-[9px] text-[#837565] dark:text-[#9e9286] font-mono">
+                          <span dir="ltr" className="text-[9px] text-[#837565] dark:text-[#9e9286] font-mono">
                             {trio.bgHex} • {trio.accentHex}
                           </span>
                         </div>

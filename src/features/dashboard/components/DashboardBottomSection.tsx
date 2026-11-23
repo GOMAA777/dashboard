@@ -184,7 +184,7 @@ export function DashboardBottomSection({
         {/* View All Logs Link */}
         <div className="border-t border-[#f0eeea] dark:border-[#38271c] pt-[12px] mt-[16px] w-full" data-node-id="1:550">
           <Link
-            href="/notifications"
+            href="/notifications/"
             className="flex items-center gap-[4px] text-[#9c6402] dark:text-[#e29d38] hover:text-[#b47818] transition-colors group cursor-pointer"
             data-node-id="1:551"
           >
@@ -225,7 +225,7 @@ export function DashboardBottomSection({
 
             {/* Manage Tickets Link */}
             <Link
-              href="/tickets"
+              href="/tickets/"
               className="flex items-center gap-[4px] text-[#9c6402] dark:text-[#e29d38] hover:text-[#b47818] transition-colors group cursor-pointer"
               data-node-id="1:559"
             >

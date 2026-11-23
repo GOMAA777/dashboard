@@ -69,6 +69,13 @@ export function InvoiceDetailsModal({
             <span>{isEn ? "Paid & Cleared" : "مسددة بالكامل"}</span>
           </span>
         );
+      case "partial":
+        return (
+          <span className="inline-flex items-center gap-1.5 bg-[#fff7ed] dark:bg-[#341d11] text-[#9a3412] dark:text-[#fdba74] border border-orange-200 dark:border-orange-700/40 text-[12px] font-bold px-3 py-1 rounded-full">
+            <Clock className="size-3.5 text-[#ea580c] dark:text-orange-300" />
+            <span>{isEn ? "Partially Paid" : "مسددة جزئياً"}</span>
+          </span>
+        );
       case "pending":
         return (
           <span className="inline-flex items-center gap-1.5 bg-[#fffbeb] dark:bg-amber-950/40 text-[#b45309] dark:text-amber-300 border border-amber-200 dark:border-amber-700/40 text-[12px] font-bold px-3 py-1 rounded-full">
@@ -188,9 +195,11 @@ export function InvoiceDetailsModal({
                     ? "Tax Invoice - ZATCA Phase 2 E-Invoicing Compliant"
                     : "فاتورة ضريبية إلكترونية - معتمدة وفق متطلبات هيئة الزكاة والضريبة والجمارك"}
                 </p>
-                <p className="font-mono text-[11px] text-[#514537] dark:text-[#cdc5bd] mt-0.5">
-                  {isEn ? "VAT Registration:" : "الرقم الضريبي للمنظومة:"} 310294857200003
-                </p>
+                {invoice.taxNumber ? (
+                  <p className="font-mono text-[11px] text-[#514537] dark:text-[#cdc5bd] mt-0.5">
+                    {isEn ? "VAT Registration:" : "الرقم الضريبي:"} {invoice.taxNumber}
+                  </p>
+                ) : null}
               </div>
             </div>
 
@@ -200,15 +209,12 @@ export function InvoiceDetailsModal({
                 <QrCode className="size-14 text-[#1b1c1a] dark:text-[#fdfbf7]" />
               </div>
               <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#059669] dark:text-[#10b981]">
-                  <ShieldCheck className="size-3.5" />
-                  <span>{isEn ? "ZATCA Verified" : "مختوم ومشفر إلكترونياً"}</span>
-                </div>
-                <span className="text-[10px] text-[#837565] dark:text-[#8e8680] font-mono leading-tight">
-                  Cryptographic Stamp UUID:
-                  <br />
-                  e7a9-40b8-93f1-28a0
-                </span>
+                {invoice.zatcaComplianceStatus ? (
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#059669] dark:text-[#10b981]">
+                    <ShieldCheck className="size-3.5" />
+                    <span>{isEn ? "ZATCA Verified" : "مختوم ومشفر إلكترونياً"}</span>
+                  </div>
+                ) : null}
                 <div className="mt-0.5">{getStatusBadge()}</div>
               </div>
             </div>
@@ -270,7 +276,7 @@ export function InvoiceDetailsModal({
                 <div className="flex items-center justify-between">
                   <span className="text-[#837565] dark:text-[#8e8680]">{isEn ? "Payment Method:" : "طريقة الدفع:"}</span>
                   <span className="font-semibold uppercase tracking-wider font-mono text-[11px] bg-white dark:bg-[#1a120d] px-2 py-0.5 rounded border border-[#eae8e4] dark:border-[#38271c]">
-                    {invoice.paymentMethod.replace("_", " ")}
+                    {invoice.paymentMethodLabel || invoice.paymentMethod.replaceAll("_", " ")}
                   </span>
                 </div>
               </div>
@@ -297,9 +303,12 @@ export function InvoiceDetailsModal({
                     </td>
                     <td className="py-3.5 px-4">
                       <p className="font-bold text-[13px]">{isEn ? item.descriptionEn : item.description}</p>
-                      <span className="text-[11px] text-[#837565] dark:text-[#a89f91] mt-0.5 inline-block">
-                        {isEn ? invoice.planNameEn : invoice.planName} • {isEn ? "Annual Term" : "اشتراك سنوي"}
-                      </span>
+                      {(isEn ? invoice.planNameEn : invoice.planName) &&
+                      (isEn ? invoice.planNameEn : invoice.planName) !== item.description ? (
+                        <span className="text-[11px] text-[#837565] dark:text-[#a89f91] mt-0.5 inline-block">
+                          {isEn ? invoice.planNameEn : invoice.planName}
+                        </span>
+                      ) : null}
                     </td>
                     <td className="py-3.5 px-4 text-center font-mono font-semibold">{item.quantity}</td>
                     <td className="py-3.5 px-4 text-end font-mono font-semibold">
@@ -321,10 +330,12 @@ export function InvoiceDetailsModal({
               <span className="font-bold text-[#1b1c1a] dark:text-[#fdfbf7] block">
                 {isEn ? "Payment Terms & Notes:" : "شروط السداد وملاحظات الفاتورة:"}
               </span>
-              <p className="leading-relaxed">{invoice.notes || (isEn ? "Standard 15 days payment term applies." : "تسري شروط السداد خلال 15 يوماً من تاريخ الفاتورة.")}</p>
-              <p className="font-mono text-[11px] text-[#837565] dark:text-[#8e8680] pt-1">
-                Ref: {invoice.transactionReference}
-              </p>
+              <p className="leading-relaxed">{invoice.notes || (isEn ? "No notes on this invoice." : "لا توجد ملاحظات على هذه الفاتورة.")}</p>
+              {invoice.transactionReference ? (
+                <p className="font-mono text-[11px] text-[#837565] dark:text-[#8e8680] pt-1">
+                  Ref: {invoice.transactionReference}
+                </p>
+              ) : null}
             </div>
 
             {/* Calculations Box */}
@@ -341,11 +352,22 @@ export function InvoiceDetailsModal({
                 </div>
               )}
 
+              {invoice.hasTaxBreakdown ? (
+                <div className="flex items-center justify-between text-[#514537] dark:text-[#cdc5bd]">
+                  <span>{isEn ? "Value Added Tax:" : "ضريبة القيمة المضافة:"}</span>
+                  <span className="font-mono font-bold text-[#9c6402] dark:text-[#e29d38]">
+                    +{invoice.taxAmount.toLocaleString()} {isEn ? "SAR" : "ر.س"}
+                  </span>
+                </div>
+              ) : null}
+
               <div className="flex items-center justify-between text-[#514537] dark:text-[#cdc5bd]">
-                <span>{isEn ? "Value Added Tax (15% VAT):" : "ضريبة القيمة المضافة (15%):"}</span>
-                <span className="font-mono font-bold text-[#9c6402] dark:text-[#e29d38]">
-                  +{invoice.taxAmount.toLocaleString()} {isEn ? "SAR" : "ر.س"}
-                </span>
+                <span>{isEn ? "Paid:" : "المحصّل:"}</span>
+                <span className="font-mono font-bold">{invoice.paidAmount.toLocaleString()} {isEn ? "SAR" : "ر.س"}</span>
+              </div>
+              <div className="flex items-center justify-between text-[#514537] dark:text-[#cdc5bd]">
+                <span>{isEn ? "Remaining:" : "المتبقي:"}</span>
+                <span className="font-mono font-bold">{invoice.remainingAmount.toLocaleString()} {isEn ? "SAR" : "ر.س"}</span>
               </div>
 
               <div className="pt-2 border-t border-[#eae8e4] dark:border-[#38271c] flex items-center justify-between">

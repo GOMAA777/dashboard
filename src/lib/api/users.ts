@@ -67,28 +67,24 @@ export async function updateUserPassword(
 }
 
 /**
- * Synchronizes the firm owner's password by finding the owner user and updating their password.
+ * Sets the office owner's login password via `PUT /users/{id}`.
+ * `POST/PUT /admin/firms` store a password that never verifies on `/login`.
  */
 export async function syncFirmOwnerPassword(
   firmId: string | number,
   password: string
 ): Promise<{ success: boolean; userId?: number; error?: string }> {
+  const failure = "تعذر حفظ كلمة مرور دخول المكتب على الخادم، أعد تعيينها من «إعادة تعيين كلمة المرور»";
   try {
     const users = await fetchUsersByCompany(firmId);
-    if (!users || users.length === 0) {
-      return { success: false, error: "No users found for this firm" };
+    const owner = users.find((u) => u.role === "owner");
+    if (!owner) {
+      return { success: false, error: "لم يتم العثور على حساب مالك المكتب على الخادم" };
     }
-    // Prefer owner, then admin, or first user
-    const targetUser =
-      users.find((u) => u.role === "owner") ||
-      users.find((u) => u.role === "admin") ||
-      users[0];
-
-    const ok = await updateUserPassword(targetUser.id, firmId, password);
-    return { success: ok, userId: targetUser.id };
-  } catch (err: unknown) {
-    const msg = (err as Error)?.message || "Failed to synchronize owner password";
-    return { success: false, error: msg };
+    const ok = await updateUserPassword(owner.id, firmId, password);
+    return ok ? { success: true, userId: owner.id } : { success: false, error: failure };
+  } catch {
+    return { success: false, error: failure };
   }
 }
 

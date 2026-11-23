@@ -17,6 +17,8 @@ function isPublicPath(pathname: string | null): boolean {
 /**
  * Wraps the whole app so every dashboard route requires a session,
  * while login + impersonation handoff stay public.
+ * `/change-password` stays behind the gate (needs session) but the gate
+ * allows it when mustChangePassword is true.
  */
 export function AppAuthShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

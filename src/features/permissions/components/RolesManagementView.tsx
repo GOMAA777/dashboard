@@ -8,6 +8,14 @@ import { DashboardSidebar } from "@/features/dashboard/components/DashboardSideb
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
 import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 import { DashboardPageSkeleton } from "@/components/shared/DashboardPageSkeleton";
+import { RolesPageSkeleton } from "./RolesPageSkeleton";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  useRolesQuery,
+  useRolesStatsQuery,
+  invalidateRolesQueries,
+} from "@/features/staff/hooks/useStaffQuery";
+import { InvalidationGraph } from "@/lib/query-keys";
 import { RoleItem } from "../types/roles.types";
 import { initialRolesList } from "../data/initialRoles";
 import { RolesKpiMetrics } from "./RolesKpiMetrics";
@@ -20,8 +28,6 @@ import { ReassignEmployeesModal } from "./ReassignEmployeesModal";
 import { DeleteRoleConfirmModal } from "./DeleteRoleConfirmModal";
 import { useLanguage } from "@/lib/i18n";
 import {
-  fetchRoles,
-  fetchRolesStats,
   createRole,
   updateRole,
   deleteRole,
@@ -29,9 +35,12 @@ import {
 } from "@/lib/api/roles";
 import { mapRolesResponse } from "@/lib/api/mappers";
 import { readStats } from "@/lib/api/helpers";
+import { ApiError } from "@/lib/api/http";
+import { cacheRolesPermissions, usePermissions } from "@/lib/permissions";
 
 export function RolesManagementView() {
   const { t, direction } = useLanguage();
+  const { hasPermission } = usePermissions();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -40,7 +49,6 @@ export function RolesManagementView() {
   // Roles State
   const [roles, setRoles] = useState<RoleItem[]>(initialRolesList);
   const [editingRole, setEditingRole] = useState<RoleItem | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   // Navigation & View States
   const [currentView, setCurrentView] = useState<"list" | "empty" | "add" | "edit">(
@@ -79,6 +87,10 @@ export function RolesManagementView() {
     router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
   }, [pathname, router, searchParams]);
 
+  const queryClient = useQueryClient();
+  const rolesQuery = useRolesQuery();
+  const rolesStatsQuery = useRolesStatsQuery();
+
   const [apiRoleStats, setApiRoleStats] = useState<{
     totalPermissions?: number;
     totalAssignedStaff?: number;
@@ -86,37 +98,47 @@ export function RolesManagementView() {
   } | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
-    setIsLoading(true);
-    Promise.all([fetchRoles(), fetchRolesStats()])
-      .then(([payload, statsPayload]) => {
-        if (cancelled) return;
-        const mapped = mapRolesResponse(payload);
-        setRoles(mapped);
-        setApiRoleStats({
-          totalPermissions: readStats(statsPayload, ["total_permissions", "permissions"], 64),
-          totalAssignedStaff: readStats(
-            statsPayload,
-            ["assigned_staff", "total_assigned_staff", "staff_count"],
-            0
-          ),
-          systemProtectedRoles: readStats(
-            statsPayload,
-            ["system_roles", "protected_roles", "system_protected_roles"],
-            0
-          ),
-        });
-      })
-      .catch(() => {
-        // Keep mock roles if API unavailable.
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false);
+    if (rolesQuery.data) {
+      const mapped = mapRolesResponse(rolesQuery.data);
+      setRoles(mapped);
+      cacheRolesPermissions(mapped);
+    }
+  }, [rolesQuery.data]);
+
+  useEffect(() => {
+    if (rolesStatsQuery.data) {
+      const statsPayload = rolesStatsQuery.data;
+      setApiRoleStats({
+        totalPermissions: readStats(statsPayload, ["total_permissions", "permissions"], 64),
+        totalAssignedStaff: readStats(
+          statsPayload,
+          ["assigned_staff", "total_assigned_staff", "staff_count"],
+          0
+        ),
+        systemProtectedRoles: readStats(
+          statsPayload,
+          ["system_roles", "protected_roles", "system_protected_roles"],
+          0
+        ),
       });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    }
+  }, [rolesStatsQuery.data]);
+
+  const effectiveRoles = useMemo(() => {
+    if (roles.length > 0) return roles;
+    if (rolesQuery.data) {
+      return mapRolesResponse(rolesQuery.data);
+    }
+    return [];
+  }, [roles, rolesQuery.data]);
+
+  const isLoading = rolesQuery.isLoading && effectiveRoles.length === 0;
+  const listError =
+    rolesQuery.error instanceof Error
+      ? rolesQuery.error.message
+      : rolesQuery.isError
+        ? t("تعذر تحميل الأدوار من الخادم", "Failed to load roles from server")
+        : null;
 
   // Filters State
   const [searchQuery, setSearchQuery] = useState("");
@@ -129,7 +151,7 @@ export function RolesManagementView() {
 
   // Filtered Roles
   const filteredRoles = useMemo(() => {
-    return roles.filter((role) => {
+    return effectiveRoles.filter((role) => {
       // Search by name or slug
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
@@ -145,18 +167,18 @@ export function RolesManagementView() {
 
       return true;
     });
-  }, [roles, searchQuery, selectedType]);
+  }, [effectiveRoles, searchQuery, selectedType]);
 
   // Dynamic KPI Stats
   const currentKpis = useMemo(() => {
-    const activeRoles = roles.length;
+    const activeRoles = effectiveRoles.length;
     const totalAssignedStaff =
       apiRoleStats?.totalAssignedStaff ??
-      roles.reduce((acc, r) => acc + r.assignedEmployeesCount, 0);
+      effectiveRoles.reduce((acc, r) => acc + r.assignedEmployeesCount, 0);
     const systemProtectedRoles =
       (apiRoleStats?.systemProtectedRoles && apiRoleStats.systemProtectedRoles > 0)
         ? apiRoleStats.systemProtectedRoles
-        : roles.filter((r) => r.isProtected).length;
+        : effectiveRoles.filter((r) => r.isProtected).length;
 
     return {
       totalActiveRoles: activeRoles,
@@ -189,64 +211,55 @@ export function RolesManagementView() {
 
   // Execute Reassignment of Employees
   const handleConfirmReassign = async (sourceRoleId: string, targetRoleId: string) => {
-    const source = roles.find((r) => r.id === sourceRoleId);
-    const target = roles.find((r) => r.id === targetRoleId);
+    const source = effectiveRoles.find((r) => r.id === sourceRoleId);
+    const target = effectiveRoles.find((r) => r.id === targetRoleId);
     if (!source || !target) return;
 
     const count = source.assignedEmployeesCount;
 
     try {
       await reassignRoleStaff(sourceRoleId, targetRoleId);
-    } catch {
-      // Keep local reassignment.
+      setReassignSourceRole(null);
+      void InvalidationGraph.onRoleMutation(queryClient);
+      toast.success(
+        t(
+          `تم نقل (${count}) موظفاً بنجاح من "${source.name}" إلى "${target.name}". الدور الآن متاح للحذف بأمان.`,
+          `Successfully transferred (${count}) employees from "${source.name}" to "${target.name}". Role is now safe to delete.`
+        )
+      );
+      setDeleteConfirmRole({ ...source, assignedEmployeesCount: 0 });
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : t("تعذر إعادة تعيين الموظفين للدور", "Failed to reassign employees");
+      toast.error(message);
     }
-
-    setRoles((prev) =>
-      prev.map((r) => {
-        if (r.id === sourceRoleId) {
-          return { ...r, assignedEmployeesCount: 0 };
-        }
-        if (r.id === targetRoleId) {
-          return {
-            ...r,
-            assignedEmployeesCount: r.assignedEmployeesCount + count,
-          };
-        }
-        return r;
-      })
-    );
-
-    setReassignSourceRole(null);
-    toast.success(
-      t(
-        `تم نقل (${count}) موظفاً بنجاح من "${source.name}" إلى "${target.name}". الدور الآن متاح للحذف بأمان.`,
-        `Successfully transferred (${count}) employees from "${source.name}" to "${target.name}". Role is now safe to delete.`
-      )
-    );
-
-    const updatedSource = { ...source, assignedEmployeesCount: 0 };
-    setDeleteConfirmRole(updatedSource);
   };
 
   // Confirm Final Deletion
   const handleExecuteDeleteRole = async (roleId: string) => {
-    const targetRole = roles.find((r) => r.id === roleId);
+    const targetRole = effectiveRoles.find((r) => r.id === roleId);
     try {
       await deleteRole(roleId);
-    } catch {
-      // Keep local delete.
+      setDeleteConfirmRole(null);
+      void InvalidationGraph.onRoleMutation(queryClient);
+      toast.success(
+        t(
+          `تم حذف الدور الوظيفي "${targetRole?.name || ""}" نهائياً من النظام.`,
+          `Role "${targetRole?.name || ""}" deleted permanently from system.`
+        )
+      );
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : t("تعذر حذف الدور من الخادم", "Failed to delete role on server");
+      toast.error(message);
     }
-    setRoles((prev) => prev.filter((r) => r.id !== roleId));
-    setDeleteConfirmRole(null);
-    toast.success(
-      t(
-        `تم حذف الدور الوظيفي "${targetRole?.name || ""}" نهائياً من النظام.`,
-        `Role "${targetRole?.name || ""}" deleted permanently from system.`
-      )
-    );
   };
 
-  // Save or Update Role
+  // Save or Update Role — throws so AddRoleView can keep the form open on failure
   const handleSaveRole = async (roleToSave: RoleItem) => {
     const payload = {
       name: roleToSave.name,
@@ -254,24 +267,14 @@ export function RolesManagementView() {
       description: roleToSave.description || roleToSave.subtitle,
       permissions: roleToSave.permissions || [],
     };
-    try {
-      const exists = roles.some((r) => r.id === roleToSave.id);
-      if (exists) {
-        await updateRole(roleToSave.id, payload);
-      } else {
-        await createRole(payload);
-      }
-    } catch {
-      // Keep local save.
+    const exists = effectiveRoles.some((r) => r.id === roleToSave.id);
+    if (exists) {
+      await updateRole(roleToSave.id, payload);
+    } else {
+      await createRole(payload);
     }
-    setRoles((prev) => {
-      const exists = prev.some((r) => r.id === roleToSave.id);
-      if (exists) {
-        return prev.map((r) => (r.id === roleToSave.id ? roleToSave : r));
-      }
-      return [roleToSave, ...prev];
-    });
     setEditingRole(null);
+    void InvalidationGraph.onRoleMutation(queryClient);
   };
 
   return (
@@ -306,15 +309,17 @@ export function RolesManagementView() {
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={openAddRole}
-                  className="bg-[#9c6402] hover:bg-[#855402] dark:bg-[#e29d38] dark:hover:bg-[#d08c2a] text-white dark:text-[#1c140f] px-5 py-2.5 rounded-[6px] font-bold text-[14px] flex items-center gap-2 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-colors shrink-0 cursor-pointer"
-                  data-node-id="1:11536"
-                >
-                  <Plus className="size-[15px]" />
-                  <span>{t("إضافة دور جديد", "Add New Role")}</span>
-                </button>
+                {hasPermission("roles.create") && (
+                  <button
+                    type="button"
+                    onClick={openAddRole}
+                    className="bg-[#9c6402] hover:bg-[#855402] dark:bg-[#e29d38] dark:hover:bg-[#d08c2a] text-white dark:text-[#1c140f] px-5 py-2.5 rounded-[6px] font-bold text-[14px] flex items-center gap-2 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-colors shrink-0 cursor-pointer"
+                    data-node-id="1:11536"
+                  >
+                    <Plus className="size-[15px]" />
+                    <span>{t("إضافة دور جديد", "Add New Role")}</span>
+                  </button>
+                )}
               </div>
             )}
 
@@ -333,41 +338,68 @@ export function RolesManagementView() {
 
                 <RolesKpiMetrics kpis={currentKpis} isEmpty />
 
-                <RolesEmptyState onAddRole={openAddRole} />
+                <RolesEmptyState onAddRole={hasPermission("roles.create") ? openAddRole : () => {}} />
               </div>
             )}
 
             {/* VIEW: Main List & Table */}
             {currentView === "list" && (
-              isLoading && roles.length === 0 ? (
-                <DashboardPageSkeleton />
+              isLoading && effectiveRoles.length === 0 ? (
+                <RolesPageSkeleton />
+              ) : listError && effectiveRoles.length === 0 ? (
+                <div className="bg-white dark:bg-[#221812] rounded-[8px] border border-[#e6e2dc] dark:border-[#38271c] p-10 text-center space-y-4">
+                  <p className="text-[14px] text-red-600 dark:text-red-400 font-medium">{listError}</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void rolesQuery.refetch();
+                      void rolesStatsQuery.refetch();
+                    }}
+                    className="inline-flex items-center justify-center h-10 px-5 rounded-[6px] bg-[#9c6402] hover:bg-[#855402] text-white text-[13px] font-bold cursor-pointer"
+                  >
+                    {t("إعادة المحاولة", "Retry")}
+                  </button>
+                </div>
               ) : (
-                <div className="space-y-6">
+                <div className="flex flex-col gap-6 w-full shrink-0 font-['Cairo',sans-serif]">
+                  {/* KPIs — separate from filter */}
                   <RolesKpiMetrics kpis={currentKpis} />
 
-                  <div className="space-y-0">
-                    <RolesToolbar
-                      searchQuery={searchQuery}
-                      onSearchChange={setSearchQuery}
-                      selectedType={selectedType}
-                      onTypeChange={setSelectedType}
-                      onReset={() => {
-                        setSearchQuery("");
-                        setSelectedType("all");
-                      }}
-                      isEmptyView={false}
-                      onToggleEmptyView={() => setCurrentView("empty")}
-                    />
+                  {/* Standalone Filter Bar */}
+                  <RolesToolbar
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    selectedType={selectedType}
+                    onTypeChange={setSelectedType}
+                    onReset={() => {
+                      setSearchQuery("");
+                      setSelectedType("all");
+                    }}
+                    isEmptyView={false}
+                    onToggleEmptyView={() => setCurrentView("empty")}
+                  />
 
+                  {/* Separate Table Card (+ pagination) or empty state */}
+                  {filteredRoles.length === 0 && !isLoading ? (
+                    <RolesEmptyState onAddRole={hasPermission("roles.create") ? openAddRole : () => {}} />
+                  ) : (
                     <RolesTable
                       roles={filteredRoles}
-                      onEditRole={(role) => {
-                        setEditingRole(role);
-                        setCurrentView("edit");
-                      }}
-                      onDeleteRole={handleInitiateDeleteRole}
+                      onEditRole={
+                        hasPermission("roles.edit")
+                          ? (role) => {
+                              setEditingRole(role);
+                              setCurrentView("edit");
+                            }
+                          : undefined
+                      }
+                      onDeleteRole={
+                        hasPermission("roles.delete")
+                          ? handleInitiateDeleteRole
+                          : undefined
+                      }
                     />
-                  </div>
+                  )}
                 </div>
               )
             )}
@@ -397,7 +429,7 @@ export function RolesManagementView() {
         isOpen={!!reassignSourceRole}
         onClose={() => setReassignSourceRole(null)}
         sourceRole={reassignSourceRole}
-        availableRoles={roles}
+        availableRoles={effectiveRoles}
         onConfirmReassign={handleConfirmReassign}
       />
 

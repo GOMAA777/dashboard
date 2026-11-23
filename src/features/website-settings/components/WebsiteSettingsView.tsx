@@ -7,7 +7,6 @@ import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTop
 import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 import { WebsiteSettingsNav } from "./WebsiteSettingsNav";
 import { WebsiteSettingsTab } from "../types/website-settings.types";
-import { MenuTab } from "./tabs/MenuTab";
 import { UseCaseTab } from "./tabs/UseCaseTab";
 import { NavMoreTab } from "./tabs/NavMoreTab";
 import { SectionTitlesTab } from "./tabs/SectionTitlesTab";
@@ -26,11 +25,14 @@ interface WebsiteSettingsViewProps {
   initialTab?: WebsiteSettingsTab;
 }
 
-export function WebsiteSettingsView({ initialTab = "menu" }: WebsiteSettingsViewProps) {
+export function WebsiteSettingsView({ initialTab = "theme-options" }: WebsiteSettingsViewProps) {
   const { direction, isEn } = useLanguage();
   const [activeTab, setActiveTab] = useQueryState<WebsiteSettingsTab>("tab", {
     defaultValue: initialTab,
-    parse: (value) => (value ? (value as WebsiteSettingsTab) : "menu"),
+    parse: (value) => {
+      if (!value || value === "menu") return "theme-options";
+      return value as WebsiteSettingsTab;
+    },
     serialize: (value) => value,
   });
 
@@ -38,8 +40,6 @@ export function WebsiteSettingsView({ initialTab = "menu" }: WebsiteSettingsView
     switch (activeTab) {
       case "theme-options":
         return <ThemeOptionsTab />;
-      case "menu":
-        return <MenuTab />;
       case "use-case":
         return <UseCaseTab />;
       case "nav-more":

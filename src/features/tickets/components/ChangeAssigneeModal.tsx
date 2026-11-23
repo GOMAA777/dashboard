@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Search, UserCheck, Loader2 } from "lucide-react";
+import { X, Search, UserCheck } from "lucide-react";
 import { Ticket, TicketAssignee } from "../types/tickets.types";
 import { useLanguage } from "@/lib/i18n";
 
@@ -247,14 +247,7 @@ export function ChangeAssigneeModal({
             onClick={handleConfirm}
             className="bg-[#9c6402] hover:bg-[#855402] text-white px-[22px] py-[9px] rounded-[4px] font-semibold text-[13px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-all cursor-pointer flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="size-4 animate-spin" />
-                <span>{isEn ? "Assigning..." : "جاري الإسناد..."}</span>
-              </>
-            ) : (
-              <span>{isEn ? "Confirm Reassignment" : "تأكيد إعادة التعيين"}</span>
-            )}
+            <span>{isEn ? "Confirm Reassignment" : "تأكيد إعادة التعيين"}</span>
           </button>
         </div>
       </div>

@@ -28,6 +28,9 @@ import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { useLanguage } from "@/lib/i18n";
 import { localizePlanName, getLocalizedCityName } from "@/lib/localize";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
+import { usePlanSubscribersQuery } from "@/features/plans/hooks/usePlansQuery";
+import { useFirmsQuery } from "@/features/clients/hooks/useClientsQuery";
 import { fetchPlanSubscribers } from "@/lib/api/plans";
 import { fetchFirms } from "@/lib/api/firms";
 import { unwrapList, asString, asNumber } from "@/lib/api/helpers";
@@ -128,9 +131,6 @@ export function SubscribedFirmsView({
 }: SubscribedFirmsViewProps) {
   const { t, isEn } = useLanguage();
   const [firms, setFirms] = useState<DetailedSubscribedFirm[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
   const currentPlan: PricingPlanItem = plan || {
     id: "silver",
     name: t("الباقة الفضية", "Silver Plan"),
@@ -150,64 +150,40 @@ export function SubscribedFirmsView({
       support: "—",
     },
   };
-
-  const loadSubscribers = React.useCallback(() => {
-    if (!plan?.id) {
-      setIsLoading(false);
-      setFirms([]);
-      return;
-    }
-    let cancelled = false;
-    setIsLoading(true);
-    setError(null);
-
-    const isUnlimitedPlan = plan.id === "unlimited" || plan.name?.includes("غير محدود");
-
-    if (isUnlimitedPlan) {
-      fetchFirms()
-        .then((payload) => {
-          if (cancelled) return;
-          const allFirms = unwrapList<Record<string, unknown>>(payload);
-          const filtered = allFirms.filter((f) => {
-            const t = String(f.plan_type || f.subscription_plan || f.plan || "").toLowerCase();
-            return t.includes("unlimited") || t.includes("غير محدود");
-          });
-          const mapped = filtered.map((f) => mapSubscriberFirm(f, isEn));
-          setFirms(mapped);
-        })
-        .catch((err: unknown) => {
-          if (!cancelled) {
-            setError(err instanceof Error ? err.message : t("فشل تحميل قائمة المكاتب المشتركة", "Failed to load subscribed firms list"));
-          }
-        })
-        .finally(() => {
-          if (!cancelled) setIsLoading(false);
-        });
-      return;
-    }
-
-    fetchPlanSubscribers(plan.id)
-      .then((payload) => {
-        if (cancelled) return;
-        const mapped = unwrapList<Record<string, unknown>>(payload).map((f) => mapSubscriberFirm(f, isEn));
-        setFirms(mapped);
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : t("فشل تحميل قائمة المكاتب المشتركة", "Failed to load subscribed firms list"));
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [plan?.id, plan?.name, isEn, t]);
+  const isUnlimitedPlan = plan?.id === "unlimited" || Boolean(plan?.name?.includes("غير محدود"));
+  const firmsQuery = useFirmsQuery(isUnlimitedPlan ? { status: "all", page: 1, per_page: 100 } : undefined);
+  const subscribersQuery = usePlanSubscribersQuery(!isUnlimitedPlan ? plan?.id : undefined);
 
   useEffect(() => {
-    return loadSubscribers();
-  }, [loadSubscribers]);
+    if (isUnlimitedPlan && firmsQuery.data) {
+      const allFirms = unwrapList<Record<string, unknown>>(firmsQuery.data);
+      const filtered = allFirms.filter((f) => {
+        const t = String(f.plan_type || f.subscription_plan || f.plan || "").toLowerCase();
+        return (
+          t.includes("unlimited") ||
+          t.includes("special") ||
+          t.includes("غير محدود") ||
+          t.includes("خطة مميزة") ||
+          t.includes("مميز")
+        );
+      });
+      const mapped = filtered.map((f) => mapSubscriberFirm(f, isEn));
+      setFirms(mapped);
+    } else if (!isUnlimitedPlan && subscribersQuery.data) {
+      const mapped = unwrapList<Record<string, unknown>>(subscribersQuery.data).map((f) =>
+        mapSubscriberFirm(f, isEn)
+      );
+      setFirms(mapped);
+    }
+  }, [isUnlimitedPlan, firmsQuery.data, subscribersQuery.data, isEn]);
+
+  const activeQuery = isUnlimitedPlan ? firmsQuery : subscribersQuery;
+  const isLoading = activeQuery.isLoading && firms.length === 0;
+  const error = activeQuery.error instanceof Error ? activeQuery.error.message : null;
+
+  const loadSubscribers = React.useCallback(async () => {
+    await activeQuery.refetch();
+  }, [activeQuery]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<
@@ -661,11 +637,45 @@ export function SubscribedFirmsView({
             </thead>
             <tbody className="divide-y divide-[#f0eeea] dark:divide-[#38271c]">
               {isLoading ? (
-                <tr>
-                  <td colSpan={8} className="py-8 text-center text-xs text-[#837565] dark:text-[#a89f91]">
-                    {t("جاري تحميل المكاتب المشتركة...", "Loading subscribed firms...")}
-                  </td>
-                </tr>
+                Array.from({ length: 6 }).map((_, rIdx) => (
+                  <tr key={`firm-skel-${rIdx}`} className="border-b border-[#eae8e4] dark:border-[#38271c]">
+                    <td className="py-[14px] px-[14px]">
+                      <div className="flex items-center gap-[10px]">
+                        <Skeleton className="size-[34px] rounded-[6px]" />
+                        <div className="space-y-1">
+                          <Skeleton className="h-4 w-28 rounded-[4px]" />
+                          <Skeleton className="h-3 w-20 rounded-[4px]" />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-[14px] px-[14px]">
+                      <Skeleton className="h-4 w-24 rounded-[4px] mb-1" />
+                      <Skeleton className="h-3 w-16 rounded-[4px]" />
+                    </td>
+                    <td className="py-[14px] px-[14px]">
+                      <Skeleton className="h-4 w-20 rounded-[4px] mb-1" />
+                      <Skeleton className="h-2 w-full rounded-full" />
+                    </td>
+                    <td className="py-[14px] px-[14px]">
+                      <Skeleton className="h-4 w-20 rounded-[4px] mb-1" />
+                      <Skeleton className="h-2 w-full rounded-full" />
+                    </td>
+                    <td className="py-[14px] px-[14px]">
+                      <Skeleton className="h-4 w-20 rounded-[4px] mb-1" />
+                      <Skeleton className="h-2 w-full rounded-full" />
+                    </td>
+                    <td className="py-[14px] px-[14px]">
+                      <Skeleton className="h-4 w-20 rounded-[4px] mb-1" />
+                      <Skeleton className="h-3 w-14 rounded-[4px]" />
+                    </td>
+                    <td className="py-[14px] px-[14px]">
+                      <Skeleton className="h-5 w-16 rounded-full" />
+                    </td>
+                    <td className="py-[14px] px-[14px] text-center">
+                      <Skeleton className="size-7 rounded-[4px] mx-auto" />
+                    </td>
+                  </tr>
+                ))
               ) : error ? (
                 <tr>
                   <td colSpan={8} className="py-8 text-center text-xs text-red-600 dark:text-red-400">

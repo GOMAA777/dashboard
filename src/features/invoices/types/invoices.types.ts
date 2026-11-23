@@ -1,4 +1,4 @@
-export type InvoiceStatus = "paid" | "pending" | "overdue" | "refunded";
+export type InvoiceStatus = "paid" | "partial" | "pending" | "overdue" | "refunded";
 
 export type PaymentMethodType =
   | "mada"
@@ -6,7 +6,11 @@ export type PaymentMethodType =
   | "mastercard"
   | "apple_pay"
   | "bank_transfer"
-  | "stripe";
+  | "stripe"
+  | "credit_card"
+  | "check"
+  | "cash"
+  | "other";
 
 export interface InvoiceLineItem {
   id: string;
@@ -19,35 +23,40 @@ export interface InvoiceLineItem {
 
 export interface InvoiceItem {
   id: string;
-  invoiceNumber: string; // e.g. "INV-2026-0891"
+  invoiceNumber: string;
   qrCodeValue?: string;
-  orderNumber: string; // "01", "02"
+  orderNumber: string;
   lawFirmId: string;
   lawFirmName: string;
   lawFirmNameEn: string;
   clientContact: string;
   clientEmail: string;
   clientPhone: string;
-  taxNumber: string; // VAT ID (15 digits)
-  commercialReg: string; // CR Number
+  taxNumber: string;
+  commercialReg: string;
   city: string;
   planName: string;
   planNameEn: string;
   planBadgeColor?: string;
-  billingPeriod: "monthly" | "quarterly" | "annual";
-  issueDate: string; // "2026-10-15"
-  dueDate: string; // "2026-10-30"
+  billingPeriod: "monthly" | "quarterly" | "annual" | "unspecified";
+  description: string;
+  issueDate: string;
+  dueDate: string;
   paidAt?: string;
   subtotal: number;
-  taxRate: number; // 15%
+  taxRate: number;
   taxAmount: number;
+  hasTaxBreakdown: boolean;
   discountAmount: number;
   totalAmount: number;
+  paidAmount: number;
+  remainingAmount: number;
   currency: "SAR" | "USD";
   status: InvoiceStatus;
   paymentMethod: PaymentMethodType;
+  paymentMethodLabel: string;
   transactionReference: string;
-  zatcaComplianceStatus: "compliant" | "cleared" | "reported";
+  zatcaComplianceStatus?: "compliant" | "cleared" | "reported";
   items: InvoiceLineItem[];
   notes?: string;
 }
@@ -63,7 +72,7 @@ export interface InvoiceKpiMetrics {
   overdueCount: number;
   overdueAmountSar: number;
   refundedCount: number;
+  partialCount: number;
 }
 
-export type InvoiceFilterTab = "all" | "paid" | "pending" | "overdue" | "refunded";
-
+export type InvoiceFilterTab = "all" | "paid" | "partial" | "pending" | "overdue" | "refunded";

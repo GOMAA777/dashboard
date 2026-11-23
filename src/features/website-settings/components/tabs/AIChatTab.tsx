@@ -134,8 +134,8 @@ export function AIChatTab() {
           disabled={isSaving}
           className="bg-[#9c6402] hover:bg-[#835401] active:bg-[#6c4501] dark:bg-[#e29d38] dark:hover:bg-[#c28328] text-white dark:text-[#1c140f] px-[28px] py-[10px] rounded-[8px] text-[13px] font-bold flex items-center gap-[8px] shadow-xs transition-all cursor-pointer disabled:opacity-75"
         >
-          <RefreshCw className={cn("size-[16px]", isSaving && "animate-spin")} />
-          <span>{isSaving ? (isEn ? "Updating..." : "جارٍ التحديث...") : (isEn ? "Update Settings" : "تحديث (Update الإعدادات)")}</span>
+          <RefreshCw className="size-[16px]" />
+          <span>{isEn ? "Update Settings" : "تحديث (Update الإعدادات)"}</span>
         </button>
 
         <div className="flex items-center gap-[6px] text-[#059669] dark:text-emerald-400 text-[12px]">

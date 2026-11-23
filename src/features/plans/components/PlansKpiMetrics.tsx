@@ -3,43 +3,30 @@
 import React, { useEffect, useState } from "react";
 import { Layers, CheckCircle2, Building, Landmark, TrendingUp } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
-import { fetchPlansStats } from "@/lib/api/plans";
+import { usePlansStatsQuery } from "../hooks/usePlansQuery";
 import { readStats } from "@/lib/api/helpers";
 
 export function PlansKpiMetrics() {
   const { t } = useLanguage();
-  const [stats, setStats] = useState({
-    total: 0,
-    active: 0,
-    subscribers: 0,
-    mrr: 0,
-    growth: 0,
-  });
+  const statsQuery = usePlansStatsQuery();
 
-  useEffect(() => {
-    let cancelled = false;
-    fetchPlansStats()
-      .then((payload) => {
-        if (cancelled) return;
-        setStats({
-          total: readStats(payload, ["total_plans", "total", "plans_count"], 0),
-          active: readStats(payload, ["active_plans", "active", "active_count"], 0),
-          subscribers: readStats(
-            payload,
-            ["subscribed_firms", "subscribers", "firms_count"],
-            0
-          ),
-          mrr: readStats(payload, ["mrr", "monthly_revenue", "revenue"], 0),
-          growth: readStats(payload, ["growth_percentage", "growth"], 0),
-        });
-      })
-      .catch(() => {
-        // Keep defaults if API unavailable.
-      });
-    return () => {
-      cancelled = true;
+  const stats = React.useMemo(() => {
+    if (!statsQuery.data) {
+      return { total: 0, active: 0, subscribers: 0, mrr: 0, growth: 0 };
+    }
+    const payload = statsQuery.data;
+    return {
+      total: readStats(payload, ["total_plans", "total", "plans_count"], 0),
+      active: readStats(payload, ["active_plans", "active", "active_count"], 0),
+      subscribers: readStats(
+        payload,
+        ["subscribed_firms", "subscribers", "firms_count"],
+        0
+      ),
+      mrr: readStats(payload, ["mrr", "monthly_revenue", "revenue"], 0),
+      growth: readStats(payload, ["growth_percentage", "growth"], 0),
     };
-  }, []);
+  }, [statsQuery.data]);
 
   return (
     <div

@@ -6,9 +6,6 @@ import {
   X,
   Ban,
   AlertTriangle,
-  Lock,
-  ShieldCheck,
-  CheckCircle2,
 } from "lucide-react";
 import { Employee } from "../types/staff.types";
 import { useLanguage } from "@/lib/i18n";
@@ -19,6 +16,7 @@ interface DeactivateEmployeeModalProps {
   onClose: () => void;
   employee: Employee | null;
   onConfirm: (reason: string) => void;
+  isSubmitting?: boolean;
 }
 
 export function DeactivateEmployeeModal({
@@ -26,6 +24,7 @@ export function DeactivateEmployeeModal({
   onClose,
   employee,
   onConfirm,
+  isSubmitting = false,
 }: DeactivateEmployeeModalProps) {
   const { t, direction } = useLanguage();
   const [reason, setReason] = useState("");
@@ -133,8 +132,9 @@ export function DeactivateEmployeeModal({
               rows={3}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
+              disabled={isSubmitting}
               placeholder={t("اكتب سبب الإيقاف أو ملحوظة للتدقيق الداخلي...", "Enter suspension reason or audit note...")}
-              className="w-full p-2.5 text-[12px] bg-[#fdfbf7] dark:bg-[#281c15] border border-[#d6cfc7] dark:border-[#38271c] rounded-[6px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#948b83] focus:outline-none focus:ring-1 focus:ring-[#ba1a1a] resize-none"
+              className="w-full p-2.5 text-[12px] bg-[#fdfbf7] dark:bg-[#281c15] border border-[#d6cfc7] dark:border-[#38271c] rounded-[6px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#948b83] focus:outline-none focus:ring-1 focus:ring-[#ba1a1a] resize-none disabled:opacity-60"
             />
           </div>
         </div>
@@ -144,7 +144,8 @@ export function DeactivateEmployeeModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2.5 bg-[#f0eeea] dark:bg-[#281c15] hover:bg-[#e6e2dc] text-[#514537] dark:text-[#a89f91] rounded-[6px] text-[13px] font-semibold transition-colors cursor-pointer"
+            disabled={isSubmitting}
+            className="px-5 py-2.5 bg-[#f0eeea] dark:bg-[#281c15] hover:bg-[#e6e2dc] text-[#514537] dark:text-[#a89f91] rounded-[6px] text-[13px] font-semibold transition-colors cursor-pointer disabled:opacity-50"
           >
             {t("إلغاء", "Cancel")}
           </button>
@@ -152,7 +153,8 @@ export function DeactivateEmployeeModal({
           <button
             type="button"
             onClick={() => onConfirm(reason)}
-            className="px-5 py-2.5 bg-[#ba1a1a] hover:bg-[#991b1b] text-white rounded-[6px] text-[13px] font-bold shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
+            disabled={isSubmitting}
+            className="px-5 py-2.5 bg-[#ba1a1a] hover:bg-[#991b1b] text-white rounded-[6px] text-[13px] font-bold shadow-xs transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <Ban className="size-[15px]" />
             <span>{t("تأكيد إيقاف الحساب", "Confirm Suspension")}</span>

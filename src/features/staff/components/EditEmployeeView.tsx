@@ -1,33 +1,29 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import Link from "next/link";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   ArrowLeft,
   User,
   Mail,
-  Shield,
-  ShieldAlert,
   ShieldCheck,
   KeyRound,
   Eye,
   EyeOff,
-  Loader2,
   Check,
-  Phone,
-  Building2,
-  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Employee, isEmployeeAdmin } from "../types/staff.types";
-import { editEmployeeSchema, EditEmployeeFormData } from "../schemas/staff.schema";
+import {
+  EditEmployeeFormData,
+  validateStaffForm,
+  isSeniorManagementDept,
+} from "../schemas/staff.schema";
 import { DashboardStickyActionBar } from "@/components/shared/DashboardStickyActionBar";
 import { LuxuryAlertDialog } from "@/components/shared/LuxuryAlertDialog";
 import { DashboardSelect } from "@/components/shared/DashboardSelect";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { fetchRoles } from "@/lib/api/roles";
-import { fetchDepartments } from "@/lib/api/departments";
+import { useRolesQuery, useDepartmentsQuery } from "../hooks/useStaffQuery";
 import { unwrapList } from "@/lib/api/helpers";
 import { ApiError } from "@/lib/api/http";
 import {
@@ -61,6 +57,7 @@ interface EditEmployeeViewProps {
   employee: Employee;
   onBack: () => void;
   onSave: (data: SaveEditEmployeePayload) => Promise<void>;
+  existingEmployees?: Employee[];
   serverFieldErrors?: Partial<Record<keyof EditEmployeeFormData, string>>;
 }
 
@@ -81,6 +78,7 @@ export function EditEmployeeView({
   employee,
   onBack,
   onSave,
+  existingEmployees = [],
   serverFieldErrors,
 }: EditEmployeeViewProps) {
   const { t, isEn, direction } = useLanguage();
@@ -96,84 +94,111 @@ export function EditEmployeeView({
     password: "",
   });
 
-  const [errors, setErrors] = useState<Partial<Record<keyof EditEmployeeFormData, string>>>({});
+  const [touched, setTouched] = useState<Partial<Record<keyof EditEmployeeFormData, boolean>>>({});
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [serverErrors, setServerErrors] = useState<Partial<Record<keyof EditEmployeeFormData, string>>>({});
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [roles, setRoles] = useState<RoleOption[]>(initialDefaultRoles);
-  const [departments, setDepartments] = useState<DeptOption[]>(initialDefaultDepartments);
-  const [listsError, setListsError] = useState<string | null>(null);
+  const rolesQuery = useRolesQuery();
+  const departmentsQuery = useDepartmentsQuery();
+
+  const roles = useMemo<RoleOption[]>(() => {
+    if (!rolesQuery.data) return initialDefaultRoles;
+    const roleRows = unwrapList<Record<string, unknown>>(rolesQuery.data).map((raw) => ({
+      id: String(raw.id ?? ""),
+      name: String(raw.name ?? ""),
+      category: String(
+        (raw as { slug?: string }).slug ||
+          (raw as { description?: string }).description ||
+          "—"
+      ),
+    }));
+    const filtered = roleRows.filter((r) => r.id);
+    return filtered.length > 0 ? filtered : initialDefaultRoles;
+  }, [rolesQuery.data]);
+
+  const departments = useMemo<DeptOption[]>(() => {
+    if (!departmentsQuery.data) return initialDefaultDepartments;
+    const deptRows = unwrapList<Record<string, unknown>>(departmentsQuery.data).map((raw) => ({
+      id: String(raw.id ?? ""),
+      name: String(raw.name ?? ""),
+    }));
+    const filtered = deptRows.filter((d) => d.id);
+    return filtered.length > 0 ? filtered : initialDefaultDepartments;
+  }, [departmentsQuery.data]);
+
+  const listsError =
+    rolesQuery.error instanceof Error
+      ? rolesQuery.error.message
+      : departmentsQuery.error instanceof Error
+      ? departmentsQuery.error.message
+      : null;
 
   useEffect(() => {
-    if (serverFieldErrors) {
-      setErrors((prev) => ({ ...prev, ...serverFieldErrors }));
+    if (!formData.roleId && employee.role?.name && roles.length > 0) {
+      const matched = roles.find(
+        (r) => r.name.toLowerCase() === employee.role.name?.toLowerCase()
+      );
+      if (matched) {
+        setFormData((prev) => (prev.roleId ? prev : { ...prev, roleId: matched.id }));
+      }
     }
-  }, [serverFieldErrors]);
+  }, [roles, employee.role?.name, formData.roleId]);
 
   useEffect(() => {
-    let cancelled = false;
-    Promise.allSettled([fetchRoles(), fetchDepartments()])
-      .then(([rolesRes, deptsRes]) => {
-        if (cancelled) return;
-        if (rolesRes.status === "fulfilled") {
-          const roleRows = unwrapList<Record<string, unknown>>(rolesRes.value).map((raw) => ({
-            id: String(raw.id ?? ""),
-            name: String(raw.name ?? ""),
-            category: String(
-              (raw as { slug?: string }).slug ||
-                (raw as { description?: string }).description ||
-                "—"
-            ),
-          }));
-          const filtered = roleRows.filter((r) => r.id);
-          if (filtered.length > 0) {
-            setRoles(filtered);
-            // If roleId not matched, try matching by name
-            setFormData((prev) => {
-              if (prev.roleId && filtered.some((r) => r.id === prev.roleId)) {
-                return prev;
-              }
-              const matched = filtered.find(
-                (r) => r.name.toLowerCase() === employee.role.name?.toLowerCase()
-              );
-              return matched ? { ...prev, roleId: matched.id } : prev;
-            });
-          }
-        }
-        if (deptsRes.status === "fulfilled") {
-          const deptRows = unwrapList<Record<string, unknown>>(deptsRes.value).map((raw) => ({
-            id: String(raw.id ?? ""),
-            name: String(raw.name ?? ""),
-          }));
-          const filtered = deptRows.filter((d) => d.id);
-          if (filtered.length > 0) {
-            setDepartments(filtered);
-            // If departmentId not matched, try matching by name
-            setFormData((prev) => {
-              if (prev.departmentId && filtered.some((d) => d.id === prev.departmentId)) {
-                return prev;
-              }
-              const matched = filtered.find(
-                (d) => d.name.toLowerCase() === employee.department?.toLowerCase()
-              );
-              return matched ? { ...prev, departmentId: matched.id } : prev;
-            });
-          }
-        }
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        const message =
-          err instanceof ApiError
-            ? err.message
-            : t("تعذر تحديث الأدوار والأقسام من الخادم.", "Failed to load roles and departments.");
-        setListsError(message);
-      });
+    if (!formData.departmentId && employee.department && departments.length > 0) {
+      const matched = departments.find(
+        (d) => d.name.toLowerCase() === employee.department?.toLowerCase()
+      );
+      if (matched) {
+        setFormData((prev) => (prev.departmentId ? prev : { ...prev, departmentId: matched.id }));
+      }
+    }
+  }, [departments, employee.department, formData.departmentId]);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [employee]);
+  const matchedDept = departments.find((d) => d.id === formData.departmentId);
+  const departmentName = matchedDept?.name || employee.department;
+  const isSeniorDept = isSeniorManagementDept(departmentName);
+
+  const validation = useMemo(() => {
+    return validateStaffForm(formData, {
+      existingEmployees,
+      currentEmployeeId: employee.id,
+      departmentName,
+      isEdit: true,
+    });
+  }, [formData, existingEmployees, employee.id, departmentName]);
+
+  const isFormValid = validation.isValid;
+
+  const displayErrors = useMemo(() => {
+    const errs: Partial<Record<keyof EditEmployeeFormData, string>> = {};
+    const allKeys: (keyof EditEmployeeFormData)[] = [
+      "name",
+      "email",
+      "phone",
+      "roleId",
+      "departmentId",
+      "password",
+    ];
+    for (const key of allKeys) {
+      if (serverErrors[key]) {
+        errs[key] = serverErrors[key];
+      } else if (serverFieldErrors?.[key]) {
+        errs[key] = serverFieldErrors[key];
+      } else if (
+        submitAttempted ||
+        touched[key] ||
+        (formData[key] !== undefined && String(formData[key]).trim().length > 0)
+      ) {
+        if (validation.errors[key as keyof typeof validation.errors]) {
+          errs[key] = validation.errors[key as keyof typeof validation.errors];
+        }
+      }
+    }
+    return errs;
+  }, [serverErrors, serverFieldErrors, submitAttempted, touched, formData, validation.errors]);
 
   const getPasswordStrength = (pwd: string) => {
     if (!pwd) return null;
@@ -197,44 +222,35 @@ export function EditEmployeeView({
 
   const strength = getPasswordStrength(formData.password || "");
 
-  const validateForm = (): boolean => {
-    const result = editEmployeeSchema.safeParse(formData);
-    if (!result.success) {
-      const fieldErrors: Partial<Record<keyof EditEmployeeFormData, string>> = {};
-      result.error.issues.forEach((issue) => {
-        const field = issue.path[0] as keyof EditEmployeeFormData;
-        fieldErrors[field] = issue.message;
-      });
-      setErrors(fieldErrors);
+  const handleSubmit = () => {
+    setSubmitAttempted(true);
+    if (!validation.isValid) {
       toast.error(
         t(
           "يرجى مراجعة وتصحيح البيانات المطلوبة.",
           "Please review and correct the required fields."
         )
       );
-      return false;
+      return;
     }
-
-    setErrors({});
-    return true;
-  };
-
-  const handleSubmit = () => {
-    if (!validateForm()) return;
     setConfirmOpen(true);
   };
 
   const handleConfirmSave = async () => {
-    if (!validateForm()) {
+    if (!validation.isValid) {
       setConfirmOpen(false);
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const phoneDigits = formData.phone.replace(/\s+/g, "");
+      const phoneDigits = formData.phone.replace(/[\s\-\(\)]/g, "");
       const formattedPhone = phoneDigits.startsWith("+")
         ? phoneDigits
+        : phoneDigits.startsWith("00966")
+        ? `+${phoneDigits.slice(2)}`
+        : phoneDigits.startsWith("966")
+        ? `+${phoneDigits}`
         : `+966${phoneDigits.replace(/^0+/, "")}`;
 
       const deptIdNum = Number(formData.departmentId);
@@ -260,12 +276,12 @@ export function EditEmployeeView({
       if (err instanceof ApiError) {
         const apiFields = mapStaffFormFieldErrors(extractFieldErrors(err.body));
         if (Object.keys(apiFields).length > 0) {
-          setErrors((prev) => ({ ...prev, ...apiFields }));
+          setServerErrors((prev) => ({ ...prev, ...apiFields }));
         }
         toast.error(err.message);
       } else {
         toast.error(
-          t("تعذر تحديث بيانات الموظف. حاول مرة أخرى.", "Failed to update employee. Please retry.")
+          t("فشل تحديث بيانات الموظف. حاول مرة أخرى.", "Failed to update employee.")
         );
       }
     } finally {
@@ -287,60 +303,36 @@ export function EditEmployeeView({
             type="button"
             onClick={onBack}
             className="size-[40px] rounded-[8px] bg-[#f5f3ef] dark:bg-[#2d1f16] border border-transparent dark:border-[#38271c] flex items-center justify-center hover:bg-[#eae6e0] dark:hover:bg-[#38271c] transition-colors cursor-pointer"
-            aria-label={t("العودة", "Back")}
           >
             <ArrowLeft className={cn("size-[18px] text-[#514537] dark:text-[#cdc5bd]", !isEn && "rotate-180")} />
           </button>
           <div>
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-[22px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                {t("تعديل بيانات الموظف", "Edit Employee Data")}
-              </h1>
-              <span className="text-[12px] font-mono text-[#79716b] dark:text-[#a89f91] bg-[#f5f3ef] dark:bg-[#281c15] px-2.5 py-0.5 rounded-[4px] border border-[#e6e2dc] dark:border-[#38271c]">
-                {employee.empCode}
-              </span>
-              {isAdmin ? (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[12px] font-semibold bg-[#ffeed9] dark:bg-[#2d1f16] text-[#7b4e00] dark:text-[#f3c27e] border border-[#fcd8b0] dark:border-[#e29d38]/40">
-                  <Shield className="size-[12px]" />
-                  {t("مشرف لوحة التحكم (محمي)", "Super Admin (Protected)")}
-                </span>
-              ) : employee.status === "suspended" ? (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[12px] font-semibold bg-[#fff5ea] dark:bg-[rgba(217,119,6,0.18)] text-[#d97706] dark:text-[#fbbf24] border border-[#fed7aa] dark:border-[#d97706]/40">
-                  <span className="size-[6px] rounded-full bg-[#d97706] dark:bg-[#fbbf24]" />
-                  {t("موقوف", "Suspended")}
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[12px] font-semibold bg-[#e8f5e9] dark:bg-[#132c1c] text-[#1b7340] dark:text-[#6ee7b7] border border-[#c8e6c9] dark:border-emerald-500/40">
-                  <span className="size-[6px] rounded-full bg-[#1b7340] dark:bg-[#10b981]" />
-                  {t("نشط", "Active")}
-                </span>
-              )}
-            </div>
+            <h1 className="text-[22px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+              {t("تعديل بيانات الموظف", "Edit Employee")}
+            </h1>
             <p className="text-[13px] text-[#79716b] dark:text-[#a89f91] mt-0.5">
               {t(
-                "تحديث معلومات الحساب والصلاحيات والقسم التابع له.",
-                "Update account information, permissions, and department."
+                `تحديث بيانات وصلاحيات الموظف: ${employee.name} (${employee.empCode})`,
+                `Update profile & role for: ${employee.name} (${employee.empCode})`
               )}
             </p>
           </div>
         </div>
       </div>
 
-      {isAdmin && (
-        <div className="rounded-[8px] border border-[#fcd8b0] dark:border-[#e29d38]/40 bg-[#fff9ee] dark:bg-[#2d1f16] px-4 py-3 text-[13px] text-[#7b4e00] dark:text-[#f3c27e] flex items-center gap-3">
-          <ShieldAlert className="size-[18px] text-[#9c6402] dark:text-[#e29d38] shrink-0" />
-          <span>
-            {t(
-              "تنبيه أمني: هذا الحساب يمتلك صلاحيات المشرف العام (Super Admin)، يمكن تعديل بياناته الأساسية ولكن لا يمكن حذفه للحفاظ على سلامة النظام واستقرار إدارة المنصة.",
-              "Security Notice: This account holds Super Admin privileges. Basic data can be edited, but it cannot be deleted to maintain system stability and platform administration."
-            )}
-          </span>
-        </div>
-      )}
-
       {listsError && (
         <div className="rounded-[8px] border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-[#2c2013] px-4 py-3 text-[13px] text-amber-800 dark:text-amber-300 flex items-center justify-between gap-3">
           <span>{listsError}</span>
+          <button
+            type="button"
+            className="font-semibold underline cursor-pointer"
+            onClick={() => {
+              void rolesQuery.refetch();
+              void departmentsQuery.refetch();
+            }}
+          >
+            {t("إعادة المحاولة", "Retry")}
+          </button>
         </div>
       )}
 
@@ -372,15 +364,17 @@ export function EditEmployeeView({
                 value={formData.name}
                 onChange={(e) => {
                   setFormData({ ...formData, name: e.target.value });
-                  if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }));
+                  setTouched((prev) => ({ ...prev, name: true }));
+                  if (serverErrors.name) setServerErrors((prev) => ({ ...prev, name: undefined }));
                 }}
+                onBlur={() => setTouched((prev) => ({ ...prev, name: true }))}
                 placeholder={t("مثال: راكان بن كمال الحارثي", "e.g. Rakan Alharbi")}
-                className={cn(inputBase, fieldError(!!errors.name))}
+                className={cn(inputBase, fieldError(!!displayErrors.name))}
               />
               <User className="size-[16px] text-[#948b83] dark:text-[#a89f91] absolute top-1/2 -translate-y-1/2 end-3 pointer-events-none" />
             </div>
-            {errors.name && (
-              <span className="text-[11px] text-red-500 mt-0.5 block">{errors.name}</span>
+            {displayErrors.name && (
+              <span className="text-[11px] text-red-500 mt-1 block font-medium">{displayErrors.name}</span>
             )}
           </div>
 
@@ -395,16 +389,18 @@ export function EditEmployeeView({
                 value={formData.email}
                 onChange={(e) => {
                   setFormData({ ...formData, email: e.target.value });
-                  if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
+                  setTouched((prev) => ({ ...prev, email: true }));
+                  if (serverErrors.email) setServerErrors((prev) => ({ ...prev, email: undefined }));
                 }}
+                onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
                 placeholder="name@aljudy.sa"
-                className={cn(inputBase, "text-left", fieldError(!!errors.email))}
+                className={cn(inputBase, "text-left", fieldError(!!displayErrors.email))}
                 dir="ltr"
               />
               <Mail className="size-[16px] text-[#948b83] dark:text-[#a89f91] absolute top-1/2 -translate-y-1/2 start-3 pointer-events-none" />
             </div>
-            {errors.email && (
-              <span className="text-[11px] text-red-500 mt-0.5 block">{errors.email}</span>
+            {displayErrors.email && (
+              <span className="text-[11px] text-red-500 mt-1 block font-medium">{displayErrors.email}</span>
             )}
           </div>
 
@@ -416,7 +412,7 @@ export function EditEmployeeView({
             <div
               className={cn(
                 "flex rounded-[6px] border overflow-hidden focus-within:ring-1",
-                errors.phone
+                displayErrors.phone
                   ? "border-red-500 focus-within:ring-red-500"
                   : "border-[#eae8e4] dark:border-[#38271c] bg-[#f5f3ef] dark:bg-[#160e0a] focus-within:border-[#9c6402] dark:focus-within:border-[#e29d38] focus-within:ring-[#9c6402] dark:focus-within:ring-[#e29d38]"
               )}
@@ -430,15 +426,26 @@ export function EditEmployeeView({
                 value={formData.phone}
                 onChange={(e) => {
                   setFormData({ ...formData, phone: e.target.value });
-                  if (errors.phone) setErrors((prev) => ({ ...prev, phone: undefined }));
+                  setTouched((prev) => ({ ...prev, phone: true }));
+                  if (serverErrors.phone) setServerErrors((prev) => ({ ...prev, phone: undefined }));
                 }}
-                placeholder="50 123 4567"
+                onBlur={() => setTouched((prev) => ({ ...prev, phone: true }))}
+                placeholder={isSeniorDept ? "050 123 4567" : "50 123 4567"}
                 className="w-full h-[40px] px-3 text-[13px] bg-transparent text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] dark:placeholder:text-[#8e8680] focus:outline-none font-mono text-right"
               />
             </div>
-            {errors.phone && (
-              <span className="text-[11px] text-red-500 mt-0.5 block">{errors.phone}</span>
-            )}
+            {displayErrors.phone ? (
+              <span className="text-[11px] text-red-500 mt-1 block font-medium leading-relaxed">
+                {displayErrors.phone}
+              </span>
+            ) : isSeniorDept ? (
+              <span className="text-[11px] text-[#9c6402] dark:text-[#e29d38] mt-1 block font-medium">
+                {t(
+                  "قسم الإدارة العليا: يشترط رقم جوال سعودي يبدأ بـ 05 ويتكون من 10 أرقام (أو بصيغة +9665XXXXXXXX).",
+                  "Senior Management: Requires Saudi mobile starting with 05 (10 digits) or +9665XXXXXXXX."
+                )}
+              </span>
+            ) : null}
           </div>
 
           {/* Department */}
@@ -450,14 +457,15 @@ export function EditEmployeeView({
               value={formData.departmentId}
               onChange={(e) => {
                 setFormData({ ...formData, departmentId: e.target.value });
-                if (errors.departmentId) {
-                  setErrors((prev) => ({ ...prev, departmentId: undefined }));
+                setTouched((prev) => ({ ...prev, departmentId: true }));
+                if (serverErrors.departmentId) {
+                  setServerErrors((prev) => ({ ...prev, departmentId: undefined }));
                 }
               }}
               placeholder={t("اختر القسم", "Select department")}
               className={cn(
                 "rounded-[6px] bg-[#f5f3ef] dark:bg-[#160e0a]",
-                fieldError(!!errors.departmentId)
+                fieldError(!!displayErrors.departmentId)
               )}
             >
               <option value="">{t("اختر القسم", "Select department")}</option>
@@ -467,8 +475,8 @@ export function EditEmployeeView({
                 </option>
               ))}
             </DashboardSelect>
-            {errors.departmentId && (
-              <span className="text-[11px] text-red-500 mt-0.5 block">{errors.departmentId}</span>
+            {displayErrors.departmentId && (
+              <span className="text-[11px] text-red-500 mt-1 block font-medium">{displayErrors.departmentId}</span>
             )}
           </div>
 
@@ -482,14 +490,15 @@ export function EditEmployeeView({
               disabled={isAdmin}
               onChange={(e) => {
                 setFormData({ ...formData, roleId: e.target.value });
-                if (errors.roleId) {
-                  setErrors((prev) => ({ ...prev, roleId: undefined }));
+                setTouched((prev) => ({ ...prev, roleId: true }));
+                if (serverErrors.roleId) {
+                  setServerErrors((prev) => ({ ...prev, roleId: undefined }));
                 }
               }}
               placeholder={t("اختر دور الموظف", "Select employee role")}
               className={cn(
                 "rounded-[6px] bg-[#f5f3ef] dark:bg-[#160e0a]",
-                fieldError(!!errors.roleId),
+                fieldError(!!displayErrors.roleId),
                 isAdmin && "opacity-80 cursor-not-allowed"
               )}
             >
@@ -505,79 +514,65 @@ export function EditEmployeeView({
                 {t("الدور مثبت كـ Super Admin لحساب المشرف العام.", "Role fixed as Super Admin for administrator.")}
               </span>
             )}
-            {errors.roleId && (
-              <span className="text-[11px] text-red-500 mt-0.5 block">{errors.roleId}</span>
+            {displayErrors.roleId && (
+              <span className="text-[11px] text-red-500 mt-1 block font-medium">{displayErrors.roleId}</span>
             )}
           </div>
 
           {/* Account Status */}
           <div>
             <label className="block text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] mb-2">
-              {t("حالة الحساب", "Account Status")} <span className="text-red-500">*</span>
+              {t("حالة حساب الموظف", "Account Status")} <span className="text-red-500">*</span>
             </label>
-            <div className="flex items-center gap-4 h-[42px]">
-              <label className="inline-flex items-center gap-2 cursor-pointer text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7]">
-                <input
-                  type="radio"
-                  name="status"
-                  value="active"
-                  checked={formData.status === "active"}
-                  onChange={() => setFormData({ ...formData, status: "active" })}
-                  className="accent-[#9c6402] dark:accent-[#e29d38] size-4 cursor-pointer"
-                />
-                <span className="inline-flex items-center gap-1.5 font-medium">
-                  <span className="size-[8px] rounded-full bg-[#10b981]" />
-                  {t("نشط", "Active")}
-                </span>
-              </label>
-
-              <label
-                className={cn(
-                  "inline-flex items-center gap-2 text-[13px] text-[#1b1c1a] dark:text-[#fdfbf7]",
-                  isAdmin ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-                )}
-                title={isAdmin ? t("لا يمكن إيقاف حساب المشرف العام", "Super Admin cannot be suspended") : undefined}
-              >
-                <input
-                  type="radio"
-                  name="status"
-                  value="suspended"
-                  disabled={isAdmin}
-                  checked={formData.status === "suspended"}
-                  onChange={() => !isAdmin && setFormData({ ...formData, status: "suspended" })}
-                  className="accent-[#9c6402] dark:accent-[#e29d38] size-4 cursor-pointer disabled:cursor-not-allowed"
-                />
-                <span className="inline-flex items-center gap-1.5 font-medium">
-                  <span className="size-[8px] rounded-full bg-[#f59e0b]" />
-                  {t("موقوف", "Suspended")}
-                </span>
-              </label>
-            </div>
+            <DashboardSelect
+              value={formData.status}
+              disabled={isAdmin}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  status: e.target.value as "active" | "suspended",
+                })
+              }
+              className={cn(
+                "rounded-[6px] bg-[#f5f3ef] dark:bg-[#160e0a]",
+                isAdmin && "opacity-80 cursor-not-allowed"
+              )}
+            >
+              <option value="active">{t("حساب نشط (مفعّل)", "Active (Enabled)")}</option>
+              <option value="suspended">{t("حساب موقوف إدارياً", "Suspended")}</option>
+            </DashboardSelect>
             {isAdmin && (
               <span className="text-[11px] text-[#79716b] dark:text-[#a89f91] mt-0.5 block">
-                {t("لا يمكن إيقاف حساب المشرف لضمان استمرارية الوصول.", "Admin account cannot be suspended to maintain access.")}
+                {t("لا يمكن إيقاف حساب المشرف العام الأعلى في المنصة.", "Cannot suspend super admin.")}
               </span>
             )}
           </div>
 
-          {/* New Password (Optional) */}
+          {/* Password (Optional on edit) */}
           <div className="md:col-span-2">
-            <label className="block text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] mb-1">
-              {t("تغيير كلمة المرور", "Change Password")} <span className="text-[12px] font-normal text-[#79716b] dark:text-[#a89f91]">({t("اختياري", "Optional")})</span>
-            </label>
-            <p className="text-[11px] text-[#79716b] dark:text-[#a89f91] mb-2">
-              {t("اترك هذا الحقل فارغاً إذا كنت لا ترغب في تغيير كلمة المرور الحالية للموظف.", "Leave this blank if you do not want to change current password.")}
-            </p>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7]">
+                {t("تحديث كلمة المرور (اختياري)", "Update Password (Optional)")}
+              </label>
+              <span className="text-[11px] text-[#79716b] dark:text-[#a89f91]">
+                {t("اترك الحقل فارغاً إذا كنت لا ترغب بتغييرها", "Leave blank to keep unchanged")}
+              </span>
+            </div>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
                 value={formData.password || ""}
                 onChange={(e) => {
                   setFormData({ ...formData, password: e.target.value });
-                  if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
+                  setTouched((prev) => ({ ...prev, password: true }));
+                  if (serverErrors.password) {
+                    setServerErrors((prev) => ({ ...prev, password: undefined }));
+                  }
                 }}
-                placeholder={t("أدخل كلمة المرور الجديدة فقط في حال الرغبة بتحديثها", "Enter new password only to change it")}
-                className={cn(inputBase, "ps-10", fieldError(!!errors.password))}
+                onBlur={() => setTouched((prev) => ({ ...prev, password: true }))}
+                placeholder={t("أدخل كلمة مرور جديدة أو اترك الحقل فارغاً", "Enter new password or leave empty")}
+                className={cn(inputBase, "ps-10", fieldError(!!displayErrors.password))}
+                dir="ltr"
               />
               <KeyRound className="size-[16px] text-[#948b83] dark:text-[#a89f91] absolute top-1/2 -translate-y-1/2 end-3 pointer-events-none" />
               <button
@@ -589,16 +584,17 @@ export function EditEmployeeView({
               </button>
             </div>
             {strength && (
-              <div className="mt-2">
+              <div className="mt-2 space-y-1">
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="text-[#79716b] dark:text-[#a89f91]">
-                    {t("مستوى قوة كلمة المرور:", "Password strength:")}
+                    {t(
+                      "في حال إدخال كلمة جديدة، سيُجبر الموظف على تأكيدها عند تسجيل الدخول القادم.",
+                      "If changed, employee will confirm it on next login."
+                    )}
                   </span>
-                  <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">
-                    {strength.text}
-                  </span>
+                  <span className="font-semibold text-[#1b1c1a] dark:text-[#fdfbf7]">{strength.text}</span>
                 </div>
-                <div className="w-full bg-[#f2efe9] dark:bg-[#281c15] h-[4px] rounded-full mt-1 overflow-hidden">
+                <div className="w-full bg-[#f2efe9] dark:bg-[#281c15] h-[4px] rounded-full overflow-hidden">
                   <div
                     className={`h-full transition-all duration-300 ${strength.color}`}
                     style={{ width: `${strength.percent}%` }}
@@ -606,8 +602,8 @@ export function EditEmployeeView({
                 </div>
               </div>
             )}
-            {errors.password && (
-              <span className="text-[11px] text-red-500 mt-1 block">{errors.password}</span>
+            {displayErrors.password && (
+              <span className="text-[11px] text-red-500 mt-1 block font-medium">{displayErrors.password}</span>
             )}
           </div>
         </div>
@@ -638,14 +634,15 @@ export function EditEmployeeView({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={isSubmitting}
-            className="px-5 py-2 text-[13px] font-bold text-white dark:text-[#1c140f] bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#855402] dark:hover:bg-[#f3c27e] rounded-[6px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-60 disabled:pointer-events-none"
-          >
-            {isSubmitting ? (
-              <Loader2 className="size-[16px] animate-spin" />
-            ) : (
-              <Check className="size-[16px]" />
+            disabled={!isFormValid || isSubmitting}
+            className={cn(
+              "px-5 py-2 text-[13px] font-bold text-white dark:text-[#1c140f] rounded-[6px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors flex items-center gap-2",
+              isFormValid && !isSubmitting
+                ? "bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#855402] dark:hover:bg-[#f3c27e] cursor-pointer"
+                : "bg-[#9c6402]/50 dark:bg-[#e29d38]/50 opacity-60 cursor-not-allowed pointer-events-none"
             )}
+          >
+            <Check className="size-[16px]" />
             <span>{t("حفظ التعديلات", "Save Changes")}</span>
           </button>
         </div>
@@ -663,11 +660,7 @@ export function EditEmployeeView({
           "هل أنت متأكد من حفظ التعديلات الجديدة على بيانات الموظف؟ سيتم تطبيق التغييرات فوراً على حسابه في لوحة الإدارة.",
           "Are you sure you want to save the new changes? The changes will be applied immediately."
         )}
-        confirmLabel={
-          isSubmitting
-            ? t("جاري الحفظ...", "Saving...")
-            : t("تأكيد الحفظ", "Confirm save")
-        }
+        confirmLabel={t("تأكيد الحفظ", "Confirm save")}
         variant="info"
         itemDetails={{
           [t("اسم الموظف", "Employee Name")]: formData.name,

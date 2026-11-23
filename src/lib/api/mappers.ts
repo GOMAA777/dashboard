@@ -23,11 +23,27 @@ import type {
   SeoData,
   FeatureItem,
 } from "@/features/website-settings/types/website-settings.types";
-import type { FirmListItem } from "./types";
 import { asBoolean, asNumber, asString, unwrapData, unwrapList } from "./helpers";
 import { DEFAULT_GOLDEN_LOGO_DATA_URL } from "./default-logo-base64";
 
 export const DEFAULT_OFFICE_LOGO = DEFAULT_GOLDEN_LOGO_DATA_URL;
+
+export function formatSaudiPhoneDisplay(phone?: string | null): string {
+  if (!phone) return "";
+  let clean = phone.trim();
+  // Strip redundant leading zero after +966 / 00966 / 966 (e.g. +966 0501234064 -> +966 501234064)
+  clean = clean.replace(/^(\+966\s*|00966\s*|966\s*)0(\d)/, "+966 $2");
+  if (clean.startsWith("+966") && !clean.startsWith("+966 ")) {
+    clean = clean.replace(/^\+966/, "+966 ");
+  }
+  // If in local format 05xxxxxxxx (10 digits), convert to international +966 5xxxxxxxx without zero
+  if (/^05\d{8}$/.test(clean)) {
+    clean = `+966 ${clean.slice(1)}`;
+  } else if (/^5\d{8}$/.test(clean)) {
+    clean = `+966 ${clean}`;
+  }
+  return clean;
+}
 
 function statusBadge(status?: string) {
   const normalized = (status || "active").toLowerCase().trim();
@@ -59,7 +75,13 @@ function statusBadge(status?: string) {
 
 function subscriptionBadge(status?: string) {
   const normalized = (status || "active").toLowerCase();
-  if (normalized.includes("unlimited") || normalized.includes("غير محدود")) {
+  if (
+    normalized.includes("unlimited") ||
+    normalized.includes("special") ||
+    normalized.includes("غير محدود") ||
+    normalized.includes("خطة مميزة") ||
+    normalized.includes("مميز")
+  ) {
     return {
       label: "غير محدود",
       type: "unlimited" as const,
@@ -338,6 +360,14 @@ export interface LocalFirmPlanData {
   planId?: number;
   planType?: string;
   billingCycle?: string;
+  maxLawyers?: number;
+  maxCases?: number;
+  maxClients?: number;
+  maxDocuments?: number;
+  storageLimitGb?: number;
+  extraLawyers?: number;
+  extraClients?: number;
+  extraDocuments?: number;
 }
 
 export function getLocalCustomFirmPlan(id: string | number): LocalFirmPlanData | undefined {
@@ -564,20 +594,28 @@ export function mapFirmToClientOffice(raw: unknown): ClientOffice {
 
   const isUnlimited =
     localPlanInfo?.planType === "unlimited" ||
+    localPlanInfo?.planType === "special" ||
     String(localPlanInfo?.plan || "").includes("غير محدود") ||
+    String(localPlanInfo?.plan || "").includes("خطة مميزة") ||
     (!localPlanInfo?.planType && !localPlanInfo?.plan && (
       rawPlanType === "unlimited" ||
+      rawPlanType === "special" ||
       rawSubStatus === "unlimited" ||
+      rawSubStatus === "special" ||
       String(firm.subscription_plan || "").toLowerCase() === "unlimited" ||
+      String(firm.subscription_plan || "").toLowerCase() === "special" ||
       String(firm.plan_type || "").toLowerCase() === "unlimited" ||
-      rawPlanName.includes("غير محدود")
+      String(firm.plan_type || "").toLowerCase() === "special" ||
+      rawPlanName.includes("غير محدود") ||
+      rawPlanName.includes("خطة مميزة") ||
+      rawPlanName.includes("مميز")
     ));
 
   const isFirmTrial =
     !isUnlimited &&
     (localPlanInfo?.planType === "trial"
       ? true
-      : localPlanInfo?.planType === "paid" || localPlanInfo?.planType === "unlimited"
+      : localPlanInfo?.planType === "paid" || localPlanInfo?.planType === "unlimited" || localPlanInfo?.planType === "special"
       ? false
       : isServerActivePaidSub
       ? false
@@ -604,7 +642,7 @@ export function mapFirmToClientOffice(raw: unknown): ClientOffice {
       planName = String(firm.plan_name).replace(/\s*-\s*تجربة\s*مجانية/gi, "").replace(/\s*\(تجربة\s*مجانية\)/gi, "").trim();
     } else if (firm.subscription_plan || firm.plan_type) {
       const sp = String(firm.subscription_plan || firm.plan_type).toLowerCase();
-      if (sp === "unlimited") planName = "غير محدود";
+      if (sp === "unlimited" || sp === "special") planName = "غير محدود";
       else if (sp === "paid") planName = rawPlanName || "باقة التميز العدلي";
       else if (sp === "professional") planName = "الباقة الاحترافية";
       else if (sp === "enterprise") planName = "باقة الشركات";
@@ -624,7 +662,7 @@ export function mapFirmToClientOffice(raw: unknown): ClientOffice {
       ? Number(rawPlan.id)
       : undefined;
 
-  const effectivePlanType = isUnlimited ? "unlimited" : isFirmTrial ? "trial" : "paid";
+  const effectivePlanType = isUnlimited ? "special" : isFirmTrial ? "trial" : "paid";
 
   const rawLicense = firm.license_number ? String(firm.license_number) : "—";
   const licenseNumber =
@@ -670,6 +708,11 @@ export function mapFirmToClientOffice(raw: unknown): ClientOffice {
   );
 
   const storageUsedGb = String(usage.storage_used_gb ?? firm.used_storage_gb ?? "0.00");
+  const extraLawyers = Number(firm.extra_lawyers ?? rawSub?.extra_lawyers ?? 0);
+  const extraStorageGb = Number(firm.extra_storage_gb ?? rawSub?.extra_storage_gb ?? 0);
+  const extraCases = Number(firm.extra_cases ?? rawSub?.extra_cases ?? 0);
+  const extraClients = Number(firm.extra_clients ?? rawSub?.extra_clients ?? 0);
+  const extraDocuments = Number(firm.extra_documents ?? rawSub?.extra_documents ?? 0);
   const storageLimitGb = Number(
     usage.storage_limit_gb ??
       firm.effective_storage_limit_gb ??
@@ -689,6 +732,18 @@ export function mapFirmToClientOffice(raw: unknown): ClientOffice {
       0
   );
 
+  const documentsUsed = Number(usage.documents_used ?? firm.documents_count ?? 0);
+  const documentsLimit = Number(
+    usage.documents_limit ??
+      firm.effective_max_documents ??
+      rawPlan?.max_documents ??
+      0
+  );
+  const documentsPercent = Number(
+    usage.documents_percent ??
+      (documentsLimit > 0 ? Math.round((documentsUsed / documentsLimit) * 100) : 0)
+  );
+
   const planDetails = rawPlan
     ? {
         id: rawPlan.id ? Number(rawPlan.id) : undefined,
@@ -701,14 +756,15 @@ export function mapFirmToClientOffice(raw: unknown): ClientOffice {
         yearlyDiscountPercent: rawPlan.yearly_discount_percent
           ? Number(rawPlan.yearly_discount_percent)
           : undefined,
-        maxLawyers: Number(firm.effective_max_lawyers ?? rawPlan.max_lawyers ?? 0) || undefined,
-        maxCases: Number(firm.effective_max_cases ?? rawPlan.max_cases ?? 0) || undefined,
+        maxLawyers: Number(localPlanInfo?.maxLawyers ?? firm.effective_max_lawyers ?? rawPlan.max_lawyers ?? 0) || undefined,
+        maxCases: Number(localPlanInfo?.maxCases ?? firm.effective_max_cases ?? rawPlan.max_cases ?? 0) || undefined,
         maxPowerOfAttorney: rawPlan.max_power_of_attorney
           ? Number(rawPlan.max_power_of_attorney)
           : undefined,
-        maxClients: Number(firm.effective_max_clients ?? rawPlan.max_clients ?? 0) || undefined,
+        maxClients: Number(localPlanInfo?.maxClients ?? firm.effective_max_clients ?? rawPlan.max_clients ?? 0) || undefined,
+        maxDocuments: Number(localPlanInfo?.maxDocuments ?? firm.effective_max_documents ?? rawPlan.max_documents ?? 0) || undefined,
         maxAssistants: rawPlan.max_assistants ? Number(rawPlan.max_assistants) : undefined,
-        storageLimitGb: Number(firm.effective_storage_limit_gb ?? rawPlan.storage_limit_gb ?? 0) || undefined,
+        storageLimitGb: Number(localPlanInfo?.storageLimitGb ?? firm.effective_storage_limit_gb ?? rawPlan.storage_limit_gb ?? 0) || undefined,
         supportLevel: rawPlan.support_level ? String(rawPlan.support_level) : undefined,
         features: Array.isArray(rawPlan.features) ? rawPlan.features.map(String) : [],
       }
@@ -792,6 +848,13 @@ export function mapFirmToClientOffice(raw: unknown): ClientOffice {
         renewalDate: rawSub.renewal_date ? String(rawSub.renewal_date) : undefined,
         status: isFirmTrial ? "trial" : (rawSub.status ? String(rawSub.status) : "active"),
         notes: rawSub.notes ? String(rawSub.notes) : null,
+        taxNumber: (firm.tax_number ? String(firm.tax_number) : rawSub.tax_number ? String(rawSub.tax_number) : undefined) || getLocalCustomTaxNumber(id),
+        usedStorageGb: storageUsedGb,
+        extraLawyers,
+        extraStorageGb,
+        extraCases,
+        extraClients,
+        extraDocuments,
       }
     : undefined;
 
@@ -868,7 +931,7 @@ export function mapFirmToClientOffice(raw: unknown): ClientOffice {
     country: firm.country ? String(firm.country) : undefined,
     owner: String(firm.owner_name || firm.owner || "—"),
     email: String(firm.email || ""),
-    phone: String(firm.phone || ""),
+    phone: formatSaudiPhoneDisplay(firm.phone ? String(firm.phone) : ""),
     landline: firm.landline ? String(firm.landline) : undefined,
     address: firm.address ? String(firm.address) : undefined,
     taxNumber:
@@ -884,7 +947,30 @@ export function mapFirmToClientOffice(raw: unknown): ClientOffice {
     planId: effectivePlanId,
     planType: effectivePlanType,
     subscriptionPlan: effectivePlanType,
-    planDetails,
+    planDetails: isUnlimited
+      ? {
+          id: 0,
+          name: "خطة مميزة",
+          badge: "خطة مميزة (صلاحيات كاملة)",
+          badgeColor: "gold",
+          type: "special",
+          monthlyPrice: "0",
+          yearlyPrice: "0",
+          maxLawyers: 999999,
+          storageLimitGb: 999999,
+          maxCases: 999999,
+          supportLevel: "دعم مباشر VIP شامل",
+          features: [
+            "صلاحيات كاملة وغير محدودة للنظام",
+            "ربط مباشر مع منصة ناجز ووزارة العدل",
+            "الفوترة الإلكترونية ZATCA المرحلة 2",
+            "تقارير مؤشرات الأداء والتحليلات القضائية",
+            "مدير حساب استشاري مخصص VIP",
+            "تكامل API خاص لأنظمة ERP",
+            "دعم فني فوري مخصص 24/7",
+          ],
+        }
+      : planDetails,
     activeSubscriptionDetails,
     planBadgeClass: isUnlimited
       ? "bg-[#f5f3ef] text-[#9c6402] border border-[#d8c29d] dark:bg-[#281c15] dark:text-[#e29d38] dark:border-[#5a4321]"
@@ -894,6 +980,12 @@ export function mapFirmToClientOffice(raw: unknown): ClientOffice {
     subscriptionStart: firm.subscription_start ? String(firm.subscription_start) : undefined,
     subscriptionEnd: firm.subscription_end ? String(firm.subscription_end) : undefined,
     autoRenew: parsedAutoRenew,
+    usedStorageGb: storageUsedGb,
+    extraLawyers,
+    extraStorageGb,
+    extraCases,
+    extraClients,
+    extraDocuments,
     resourceUsage: {
       lawyersUsed,
       lawyersLimit,
@@ -903,6 +995,9 @@ export function mapFirmToClientOffice(raw: unknown): ClientOffice {
       storagePercent,
       activeCases: Number(usage.active_cases ?? 0),
       maxCasesLimit: maxCasesLimit > 0 ? maxCasesLimit : undefined,
+      documentsUsed,
+      documentsLimit,
+      documentsPercent,
     },
     internalNotes,
     recentInvoices: invoicesRaw,
@@ -1076,7 +1171,7 @@ export function mapPlanFromApi(raw: Record<string, unknown>): PricingPlanItem {
         })
       : undefined,
     rawFeatures: Array.isArray(raw.features)
-      ? raw.features.map((f) => (typeof f === "string" ? f : asString((f as any)?.title || (f as any)?.name, "")))
+      ? raw.features.map((f) => (typeof f === "string" ? f : asString((f as Record<string, unknown>)?.title || (f as Record<string, unknown>)?.name, "")))
       : [],
   };
 }
@@ -1363,13 +1458,33 @@ export function mapStaffFromApi(raw: Record<string, unknown>): Employee {
       location: lastLoginCity || lastLoginIp || undefined,
     },
     createdAt: raw.created_at ? asString(raw.created_at) : undefined,
-    permissionsCount: Array.isArray(raw.permissions)
-      ? raw.permissions.length
-      : raw.permissions_count
-        ? asNumber(raw.permissions_count)
-        : undefined,
+    permissions: (() => {
+      const fromRole = Array.isArray(roleObj.permissions) ? roleObj.permissions : null;
+      const fromRaw = Array.isArray(raw.permissions) ? raw.permissions : null;
+      const list = fromRole || fromRaw;
+      if (!list) return undefined;
+      return list
+        .map((item) => {
+          if (typeof item === "string") return item;
+          if (item && typeof item === "object") {
+            const row = item as Record<string, unknown>;
+            return asString(row.name || row.label || row.slug || row.id);
+          }
+          return "";
+        })
+        .filter(Boolean);
+    })(),
+    permissionsCount: Array.isArray(roleObj.permissions)
+      ? roleObj.permissions.length
+      : Array.isArray(raw.permissions)
+        ? raw.permissions.length
+        : raw.permissions_count
+          ? asNumber(raw.permissions_count)
+          : undefined,
     assignedTicketsCount: Array.isArray(raw.tickets)
       ? raw.tickets.length
+      : Array.isArray(raw.assigned_tickets)
+      ? raw.assigned_tickets.length
       : raw.tickets_count || raw.assigned_tickets_count
         ? asNumber(raw.tickets_count || raw.assigned_tickets_count)
         : undefined,
@@ -1455,11 +1570,11 @@ export function mapTicketFromApi(raw: Record<string, unknown>): Ticket {
 
   const channelLabel =
     channel === "portal"
-      ? "بوابة العملاء (ناجز)"
+      ? "الشات المباشر"
       : channel === "email"
         ? "البريد الإلكتروني"
         : channel === "phone"
-          ? "الاتصال الهاتفي المباشر"
+          ? "رقمنا (مكالمة هاتفية)"
           : "واتساب الأعمال";
 
   const rawMessages = (raw.messages || raw.replies || raw.conversation || []) as Array<Record<string, unknown>>;
@@ -1582,73 +1697,161 @@ export function mapDepartmentFromApi(raw: Record<string, unknown>): TicketDepart
   };
 }
 
+function formatInvoiceDate(value: unknown): string {
+  const text = asString(value, "");
+  if (!text) return "—";
+  const day = text.slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : text;
+}
+
+function mapInvoiceStatus(rawStatus: string, dueDate: string, remaining: number): InvoiceStatus {
+  const statusRaw = rawStatus.toLowerCase();
+  if (statusRaw.includes("refund")) return "refunded";
+  if (statusRaw.includes("partial")) return "partial";
+  if (statusRaw.includes("overdue")) return "overdue";
+  if (statusRaw === "paid" || (statusRaw.includes("paid") && !statusRaw.includes("unpaid"))) {
+    return "paid";
+  }
+  if (dueDate !== "—" && remaining > 0) {
+    const due = new Date(`${dueDate}T00:00:00`);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (!Number.isNaN(due.getTime()) && due < today) return "overdue";
+  }
+  return "pending";
+}
+
+function mapInvoicePaymentMethod(methodRaw: string): {
+  paymentMethod: PaymentMethodType;
+  paymentMethodLabel: string;
+} {
+  const value = methodRaw.toLowerCase();
+  if (!value) return { paymentMethod: "other", paymentMethodLabel: "—" };
+  if (value.includes("visa")) return { paymentMethod: "visa", paymentMethodLabel: "VISA" };
+  if (value.includes("master")) return { paymentMethod: "mastercard", paymentMethodLabel: "Mastercard" };
+  if (value.includes("apple")) return { paymentMethod: "apple_pay", paymentMethodLabel: "Apple Pay" };
+  if (value.includes("bank") || value.includes("transfer") || value.includes("wire")) {
+    return { paymentMethod: "bank_transfer", paymentMethodLabel: "تحويل بنكي" };
+  }
+  if (value.includes("stripe")) return { paymentMethod: "stripe", paymentMethodLabel: "Stripe" };
+  if (value.includes("mada")) return { paymentMethod: "mada", paymentMethodLabel: "مدى (mada)" };
+  if (value.includes("credit") || value.includes("card")) {
+    return { paymentMethod: "credit_card", paymentMethodLabel: "بطاقة ائتمان" };
+  }
+  if (value.includes("check") || value.includes("cheque")) {
+    return { paymentMethod: "check", paymentMethodLabel: "شيك" };
+  }
+  if (value.includes("cash")) return { paymentMethod: "cash", paymentMethodLabel: "نقداً" };
+  return { paymentMethod: "other", paymentMethodLabel: methodRaw };
+}
+
 export function mapInvoiceFromApi(raw: Record<string, unknown>): InvoiceItem {
-  const firmObj = (raw.firm as Record<string, unknown> | undefined) || {};
-  const statusRaw = asString(raw.status, "pending").toLowerCase();
-  const status: InvoiceStatus = statusRaw.includes("paid")
-    ? "paid"
-    : statusRaw.includes("overdue")
-      ? "overdue"
-      : statusRaw.includes("refund")
-        ? "refunded"
-        : "pending";
-  const methodRaw = asString(raw.payment_method || raw.gateway, "mada").toLowerCase();
-  const paymentMethod: PaymentMethodType = methodRaw.includes("visa")
-    ? "visa"
-    : methodRaw.includes("master")
-      ? "mastercard"
-      : methodRaw.includes("apple")
-        ? "apple_pay"
-        : methodRaw.includes("bank")
-          ? "bank_transfer"
-          : methodRaw.includes("stripe")
-            ? "stripe"
-            : "mada";
+  const firmObj =
+    (raw.company as Record<string, unknown> | undefined) ||
+    (raw.firm as Record<string, unknown> | undefined) ||
+    {};
+  const clientObj = (raw.client as Record<string, unknown> | undefined) || {};
   const total = asNumber(raw.total_amount ?? raw.total ?? raw.amount, 0);
-  const taxAmount = asNumber(raw.tax_amount, Math.round(total * 0.15));
-  const subtotal = asNumber(raw.subtotal, total - taxAmount);
+  const hasTaxBreakdown = raw.tax_amount !== undefined && raw.tax_amount !== null;
+  const taxAmount = hasTaxBreakdown ? asNumber(raw.tax_amount, 0) : 0;
+  const subtotal = raw.subtotal !== undefined && raw.subtotal !== null
+    ? asNumber(raw.subtotal, total)
+    : hasTaxBreakdown
+      ? total - taxAmount
+      : total;
+  let paidAmount =
+    raw.paid_amount !== undefined && raw.paid_amount !== null
+      ? asNumber(raw.paid_amount, 0)
+      : 0;
+  let remainingAmount =
+    raw.remaining_amount !== undefined && raw.remaining_amount !== null
+      ? asNumber(raw.remaining_amount, 0)
+      : Math.max(total - paidAmount, 0);
+  const dueDate = formatInvoiceDate(raw.due_date);
+  const status = mapInvoiceStatus(asString(raw.status, "pending"), dueDate, remainingAmount);
+  if ((raw.paid_amount === undefined || raw.paid_amount === null) && status === "paid") {
+    paidAmount = total;
+    if (raw.remaining_amount === undefined || raw.remaining_amount === null) {
+      remainingAmount = 0;
+    }
+  }
+  const methodRaw = asString(raw.payment_method || raw.gateway, "");
+  const { paymentMethod, paymentMethodLabel } = mapInvoicePaymentMethod(methodRaw);
+  const description = asString(raw.description, "");
+  const cycle = asString(raw.billing_period || raw.billing_cycle, "").toLowerCase();
+  const billingPeriod: InvoiceItem["billingPeriod"] = cycle.includes("month")
+    ? "monthly"
+    : cycle.includes("quarter")
+      ? "quarterly"
+      : cycle.includes("year") || cycle.includes("annual")
+        ? "annual"
+        : "unspecified";
+  const planName = asString(raw.plan_name || description || firmObj.subscription_plan, "");
+  const items = Array.isArray(raw.items)
+    ? (raw.items as Array<Record<string, unknown>>).map((item, idx) => ({
+        id: asString(item.id, String(idx + 1)),
+        description: asString(item.description || item.name, ""),
+        descriptionEn: asString(item.description_en || item.description || item.name, ""),
+        quantity: asNumber(item.quantity, 1),
+        unitPrice: asNumber(item.unit_price ?? item.price, 0),
+        total: asNumber(item.total ?? item.amount, 0),
+      }))
+    : description
+      ? [
+          {
+            id: "1",
+            description,
+            descriptionEn: description,
+            quantity: 1,
+            unitPrice: total,
+            total,
+          },
+        ]
+      : [];
+  const zatcaRaw = asString(raw.zatca_status || raw.zatca_compliance_status, "").toLowerCase();
+  const zatcaComplianceStatus = zatcaRaw.includes("clear")
+    ? "cleared"
+    : zatcaRaw.includes("report")
+      ? "reported"
+      : zatcaRaw.includes("compliant")
+        ? "compliant"
+        : undefined;
 
   return {
     id: asString(raw.id, cryptoRandomId()),
-    invoiceNumber: asString(raw.invoice_number || raw.number || raw.code, `INV-${raw.id}`),
-    orderNumber: asString(raw.order_number, "01"),
-    lawFirmId: asString(firmObj.id || raw.firm_id, "0"),
-    lawFirmName: asString(firmObj.name || raw.firm_name, "مكتب محاماة"),
-    lawFirmNameEn: asString(firmObj.name_en || firmObj.name || raw.firm_name, "Law Firm"),
-    clientContact: asString(raw.client_contact || firmObj.owner_name, "—"),
-    clientEmail: asString(raw.client_email || firmObj.email, ""),
-    clientPhone: asString(raw.client_phone || firmObj.phone, ""),
-    taxNumber: asString(raw.tax_number || raw.vat_number, "—"),
-    commercialReg: asString(raw.commercial_reg || firmObj.license_number, "—"),
-    city: asString(raw.city || firmObj.city, "—"),
-    planName: asString(raw.plan_name, "باقة"),
-    planNameEn: asString(raw.plan_name_en || raw.plan_name, "Plan"),
-    billingPeriod: asString(raw.billing_period || raw.billing_cycle, "annual").includes("month")
-      ? "monthly"
-      : "annual",
-    issueDate: asString(raw.issue_date || raw.created_at, "—"),
-    dueDate: asString(raw.due_date, "—"),
-    paidAt: raw.paid_at ? asString(raw.paid_at) : undefined,
+    invoiceNumber: asString(raw.invoice_number || raw.number || raw.code, raw.id ? String(raw.id) : ""),
+    orderNumber: asString(raw.order_number || raw.id, ""),
+    lawFirmId: asString(firmObj.id || raw.company_id || raw.firm_id, ""),
+    lawFirmName: asString(firmObj.name || raw.firm_name || raw.company_name, ""),
+    lawFirmNameEn: asString(firmObj.name_en || firmObj.name || raw.firm_name || raw.company_name, ""),
+    clientContact: asString(clientObj.full_name || raw.client_contact || firmObj.owner_name, ""),
+    clientEmail: asString(clientObj.email || raw.client_email || firmObj.email, ""),
+    clientPhone: asString(clientObj.phone || raw.client_phone || firmObj.phone, ""),
+    taxNumber: asString(raw.tax_number || raw.vat_number || firmObj.tax_number, ""),
+    commercialReg: asString(raw.commercial_reg || firmObj.license_number, ""),
+    city: asString(raw.city || firmObj.city, ""),
+    planName,
+    planNameEn: asString(raw.plan_name_en || raw.plan_name || description || firmObj.subscription_plan, ""),
+    description,
+    billingPeriod,
+    issueDate: formatInvoiceDate(raw.issue_date || raw.created_at),
+    dueDate,
+    paidAt: raw.paid_at ? formatInvoiceDate(raw.paid_at) : undefined,
     subtotal,
-    taxRate: asNumber(raw.tax_rate, 15),
+    taxRate: hasTaxBreakdown ? asNumber(raw.tax_rate, 0) : 0,
     taxAmount,
+    hasTaxBreakdown,
     discountAmount: asNumber(raw.discount_amount, 0),
     totalAmount: total,
+    paidAmount,
+    remainingAmount,
     currency: asString(raw.currency, "SAR").toUpperCase() === "USD" ? "USD" : "SAR",
     status,
     paymentMethod,
-    transactionReference: asString(raw.transaction_reference || raw.reference, "—"),
-    zatcaComplianceStatus: "compliant",
-    items: Array.isArray(raw.items)
-      ? (raw.items as Array<Record<string, unknown>>).map((item, idx) => ({
-          id: asString(item.id, String(idx + 1)),
-          description: asString(item.description || item.name, ""),
-          descriptionEn: asString(item.description_en || item.description || item.name, ""),
-          quantity: asNumber(item.quantity, 1),
-          unitPrice: asNumber(item.unit_price, 0),
-          total: asNumber(item.total, 0),
-        }))
-      : [],
+    paymentMethodLabel,
+    transactionReference: asString(raw.transaction_reference || raw.reference, ""),
+    zatcaComplianceStatus,
+    items,
     notes: raw.notes ? asString(raw.notes) : undefined,
   };
 }
@@ -1663,11 +1866,20 @@ export function mapNotificationFromApi(raw: Record<string, unknown>): Notificati
         : statusRaw.includes("active")
           ? "active"
           : "sent";
+  const audience = asString(raw.target_audience || raw.audience_type, "all");
+  const audienceType =
+    audience === "specific" || audience === "selected_firms" ? "specific" : "all";
+  const targetAudienceLabel = raw.target_audience_label
+    ? asString(raw.target_audience_label)
+    : audienceType === "all"
+      ? "جميع المكاتب"
+      : "مكتب محدد بعينه";
+
   return {
     id: asString(raw.id, cryptoRandomId()),
     code: asString(raw.code || raw.reference, `NTF-${raw.id}`),
     title: asString(raw.title, "إشعار"),
-    description: asString(raw.description || raw.body || raw.message, ""),
+    description: asString(raw.content || raw.description || raw.body || raw.message, ""),
     status,
     statusLabel:
       status === "draft"
@@ -1678,12 +1890,13 @@ export function mapNotificationFromApi(raw: Record<string, unknown>): Notificati
             ? "نشط"
             : "تم الإرسال",
     sentAt: asString(raw.sent_at || raw.created_at, "—"),
-    scheduledFor: raw.scheduled_for ? asString(raw.scheduled_for) : undefined,
-    audienceType: asString(raw.audience_type, "all") === "specific" ? "specific" : "all",
-    targetAudienceLabel: asString(raw.target_audience_label, "جميع المكاتب"),
-    targetCount: asNumber(raw.target_count, 0),
+    scheduledFor: (raw.scheduled_at || raw.scheduled_for) ? asString(raw.scheduled_at || raw.scheduled_for) : undefined,
+    audienceType,
+    targetAudienceLabel,
+    targetCount: asNumber(raw.target_count || (audienceType === "all" ? 842 : 1), 0),
     actionUrl: asString(raw.action_url || raw.url, ""),
-    imageUrl: raw.image_url ? asString(raw.image_url) : undefined,
+    actionButtonText: asString(raw.action_label || raw.actionButtonText, "عرض التفاصيل"),
+    imageUrl: (raw.image || raw.image_url) ? asString(raw.image || raw.image_url) : undefined,
   };
 }
 
@@ -1725,23 +1938,37 @@ export function mapLanguageFromApi(raw: Record<string, unknown>, index = 0): Lan
 
 export function mapGeneralSettingsFromApi(payload: unknown): Partial<GeneralSettings> {
   const data = (unwrapData<Record<string, unknown>>(payload) || {}) as Record<string, unknown>;
-  return {
-    systemTitle: data.system_title || data.app_name ? asString(data.system_title || data.app_name) : undefined,
-    companyName: data.company_name ? asString(data.company_name) : undefined,
-    slogan: data.slogan ? asString(data.slogan) : undefined,
-    phone: data.phone ? asString(data.phone) : undefined,
-    email: data.email ? asString(data.email) : undefined,
-    licenseCode: data.license_code ? asString(data.license_code) : undefined,
-    licenseStatus: data.license_status ? asString(data.license_status) : undefined,
-    timezone: data.timezone ? asString(data.timezone) : undefined,
-    defaultLanguage: data.default_language ? asString(data.default_language) : undefined,
-    country: data.country ? asString(data.country) : undefined,
-    defaultCurrency: data.default_currency ? asString(data.default_currency) : undefined,
-    primaryColor: data.primary_color ? asString(data.primary_color) : undefined,
-    telegramGuideUrl: data.telegram_url ? asString(data.telegram_url) : undefined,
-    whatsappGuideUrl: data.whatsapp_url ? asString(data.whatsapp_url) : undefined,
-    apiDocsUrl: data.api_docs_url ? asString(data.api_docs_url) : undefined,
+  const mapped: Partial<GeneralSettings> = {};
+
+  const assign = <K extends keyof GeneralSettings>(
+    key: K,
+    raw: unknown
+  ) => {
+    if (raw === undefined || raw === null || raw === "") return;
+    mapped[key] = asString(raw) as GeneralSettings[K];
   };
+
+  assign("systemTitle", data.system_title || data.app_name);
+  assign("companyName", data.company_name);
+  assign("slogan", data.slogan);
+  assign("phone", data.phone);
+  assign("email", data.email);
+  assign("licenseCode", data.license_code);
+  assign("licenseStatus", data.license_status);
+  assign("timezone", data.timezone);
+  assign("defaultLanguage", data.default_language);
+  assign("country", data.country);
+  assign("defaultCurrency", data.default_currency);
+  assign("primaryColor", data.primary_color);
+  assign("telegramGuideUrl", data.telegram_url);
+  assign("whatsappGuideUrl", data.whatsapp_url);
+  assign("apiDocsUrl", data.api_docs_url);
+
+  if (data.is_email_verified !== undefined && data.is_email_verified !== null) {
+    mapped.isEmailVerified = Boolean(data.is_email_verified);
+  }
+
+  return mapped;
 }
 
 export function mapHeroFromApi(payload: unknown): Partial<HeroSectionData> {

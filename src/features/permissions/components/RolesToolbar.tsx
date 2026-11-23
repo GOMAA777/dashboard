@@ -84,7 +84,6 @@ export function RolesToolbar({
       onReset={onReset}
       drawerTitle={t("تصفية الأدوار والصلاحيات", "Filter Roles & Permissions")}
       drawerContent={drawerContent}
-      className="rounded-b-none border-b-0"
     />
   );
 }

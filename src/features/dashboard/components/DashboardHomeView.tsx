@@ -9,51 +9,30 @@ import { DashboardLawOfficesTable } from "./DashboardLawOfficesTable";
 import { DashboardBottomSection } from "./DashboardBottomSection";
 import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 import { DashboardPageSkeleton } from "@/components/shared/DashboardPageSkeleton";
-import { loadFullDashboardData, type FullDashboardState } from "@/lib/api/dashboard";
+import { useDashboardQuery } from "../hooks/useDashboardQuery";
 import { useUIStore } from "@/stores/use-ui-store";
 
 export function DashboardHomeView() {
-  const [data, setData] = useState<FullDashboardState | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { data, isLoading, refetch, isRefetching } = useDashboardQuery();
   const language = useUIStore((state) => state.language);
   const isEn = language === "en";
 
-  const loadData = useCallback(async (isRefreshAction = false) => {
+  const handleManualRefresh = async () => {
     try {
-      if (isRefreshAction) {
-        setIsRefreshing(true);
-      } else {
-        setIsLoading(true);
-      }
-
-      const fullData = await loadFullDashboardData();
-      setData(fullData);
-
-      if (isRefreshAction) {
-        toast.success(
-          isEn
-            ? "Dashboard data updated directly from API"
-            : "تم تحديث بيانات لوحة التحكم مباشرة من الخادم والـ API"
-        );
-      }
+      await refetch();
+      toast.success(
+        isEn
+          ? "Dashboard data updated directly from API"
+          : "تم تحديث بيانات لوحة التحكم مباشرة من الخادم والـ API"
+      );
     } catch {
-      if (isRefreshAction) {
-        toast.error(
-          isEn
-            ? "Failed to refresh dashboard data"
-            : "تعذر تحديث بعض بيانات لوحة التحكم"
-        );
-      }
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
+      toast.error(
+        isEn
+          ? "Failed to refresh dashboard data"
+          : "تعذر تحديث بعض بيانات لوحة التحكم"
+      );
     }
-  }, [isEn]);
-
-  useEffect(() => {
-    loadData(false);
-  }, [loadData]);
+  };
 
   if (isLoading && !data) {
     return (
@@ -68,8 +47,8 @@ export function DashboardHomeView() {
       <DashboardPageTransition>
         {/* Section 1: Page Introduction & Action Bar */}
         <DashboardHeaderSection
-          onRefresh={() => loadData(true)}
-          isRefreshing={isRefreshing}
+          onRefresh={handleManualRefresh}
+          isRefreshing={isRefetching}
         />
 
         {/* Section 2: Primary KPI Cards (4 Tiles) */}

@@ -222,7 +222,7 @@ export function SeoTab() {
             className="bg-[#9c6402] hover:bg-[#835401] active:bg-[#6c4501] dark:bg-[#e29d38] dark:hover:bg-[#c28328] text-white dark:text-[#1c140f] px-[28px] py-[10px] rounded-[8px] text-[13px] font-bold flex items-center gap-[8px] shadow-xs transition-all cursor-pointer disabled:opacity-75"
           >
             <Save className="size-[15px]" />
-            <span>{isSaving ? "جارٍ الحفظ..." : "تحديث الإعدادات (Update SEO Settings)"}</span>
+            <span>تحديث الإعدادات (Update SEO Settings)</span>
           </button>
           <button
             type="button"

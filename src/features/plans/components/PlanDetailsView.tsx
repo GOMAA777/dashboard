@@ -28,6 +28,8 @@ import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
 import { useLanguage } from "@/lib/i18n";
 import { localizeBillingCycle, getLocalizedCityName, localizeRoleOrTitle } from "@/lib/localize";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
+import { usePlanDetailQuery, usePlanSubscribersQuery } from "@/features/plans/hooks/usePlansQuery";
 import { fetchPlanById, fetchPlanSubscribers } from "@/lib/api/plans";
 import { mapPlanFromApi } from "@/lib/api/mappers";
 import { unwrapData, unwrapList, asString } from "@/lib/api/helpers";
@@ -50,65 +52,53 @@ export function PlanDetailsView({
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [livePlan, setLivePlan] = useState<PricingPlanItem | undefined>(plan);
   const [subscribers, setSubscribers] = useState<SubscribedFirm[]>([]);
-  const [isLoadingSubscribers, setIsLoadingSubscribers] = useState(true);
+
+  const planDetailQuery = usePlanDetailQuery(plan?.id);
+  const subscribersQuery = usePlanSubscribersQuery(plan?.id);
 
   useEffect(() => {
     setLivePlan(plan);
-    if (!plan?.id) return;
-    let cancelled = false;
-
-    fetchPlanById(plan.id)
-      .then((payload) => {
-        if (cancelled) return;
-        const raw = (unwrapData<Record<string, unknown>>(payload) ||
-          payload) as Record<string, unknown>;
-        if (raw?.id || raw?.name) {
-          setLivePlan(mapPlanFromApi(raw));
-        }
-      })
-      .catch(() => {
-        // Keep prop plan if detail fetch fails.
-      });
-
-    setIsLoadingSubscribers(true);
-    fetchPlanSubscribers(plan.id)
-      .then((payload) => {
-        if (cancelled) return;
-        const list = unwrapList<Record<string, unknown>>(payload);
-        const mappedSubscribers: SubscribedFirm[] = list.map((item) => {
-          const firmName = asString(item.name || item.firm_name, isEn ? "Law Firm" : "مكتب محاماة");
-          const activeSub = (item.active_subscription || {}) as Record<string, unknown>;
-          const billing = asString(activeSub.billing_cycle || item.billing_cycle, "monthly");
-          const subEnd = asString(activeSub.renewal_date || item.subscription_end || item.renewal_date, "—");
-          const subStart = asString(activeSub.start_date || item.subscription_start || item.created_at, "—");
-          const subStatus = asString(activeSub.status || item.status, "active");
-          return {
-            id: asString(item.id, String(Math.random())),
-            initial: firmName.trim().charAt(0) || "M",
-            name: firmName,
-            licenseNumber: asString(item.license_number, "—"),
-            city: asString(item.city, "—"),
-            owner: asString(item.owner_name || item.owner, "—"),
-            ownerRole: isEn ? "General Director" : "المدير العام للمكتب",
-            subscriptionDate: subStart && subStart.includes("T") ? subStart.split("T")[0] : subStart,
-            renewalDate: subEnd && subEnd.includes("T") ? subEnd.split("T")[0] : subEnd,
-            billingCycle: billing.includes("year") || billing.includes("سنو") ? "سنوي" : "شهري",
-            status: subStatus === "active" ? "active" : "suspended",
-          };
-        });
-        setSubscribers(mappedSubscribers);
-      })
-      .catch(() => {
-        if (!cancelled) setSubscribers([]);
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoadingSubscribers(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
   }, [plan]);
+
+  useEffect(() => {
+    if (planDetailQuery.data) {
+      const raw = (unwrapData<Record<string, unknown>>(planDetailQuery.data) ||
+        planDetailQuery.data) as Record<string, unknown>;
+      if (raw?.id || raw?.name) {
+        setLivePlan(mapPlanFromApi(raw));
+      }
+    }
+  }, [planDetailQuery.data]);
+
+  useEffect(() => {
+    if (subscribersQuery.data) {
+      const list = unwrapList<Record<string, unknown>>(subscribersQuery.data);
+      const mappedSubscribers: SubscribedFirm[] = list.map((item) => {
+        const firmName = asString(item.name || item.firm_name, isEn ? "Law Firm" : "مكتب محاماة");
+        const activeSub = (item.active_subscription || {}) as Record<string, unknown>;
+        const billing = asString(activeSub.billing_cycle || item.billing_cycle, "monthly");
+        const subEnd = asString(activeSub.renewal_date || item.subscription_end || item.renewal_date, "—");
+        const subStart = asString(activeSub.start_date || item.subscription_start || item.created_at, "—");
+        const subStatus = asString(activeSub.status || item.status, "active");
+        return {
+          id: asString(item.id, String(Math.random())),
+          initial: firmName.trim().charAt(0) || "M",
+          name: firmName,
+          licenseNumber: asString(item.license_number, "—"),
+          city: asString(item.city, "—"),
+          owner: asString(item.owner_name || item.owner, "—"),
+          ownerRole: isEn ? "General Director" : "المدير العام للمكتب",
+          subscriptionDate: subStart && subStart.includes("T") ? subStart.split("T")[0] : subStart,
+          renewalDate: subEnd && subEnd.includes("T") ? subEnd.split("T")[0] : subEnd,
+          billingCycle: billing.includes("year") || billing.includes("سنو") ? "سنوي" : "شهري",
+          status: subStatus === "active" ? "active" : "suspended",
+        };
+      });
+      setSubscribers(mappedSubscribers);
+    }
+  }, [subscribersQuery.data, isEn]);
+
+  const isLoadingSubscribers = subscribersQuery.isLoading && subscribers.length === 0;
 
   const totalItems = subscribers.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
@@ -769,11 +759,38 @@ export function PlanDetailsView({
             </thead>
             <tbody className="divide-y divide-[#f0eeea] dark:divide-[#38271c]">
               {isLoadingSubscribers ? (
-                <tr>
-                  <td colSpan={6} className="py-[32px] text-center text-[#737067] dark:text-[#cdc5bd]">
-                    {t("جاري تحميل المكاتب المشتركة...", "Loading subscribed firms...")}
-                  </td>
-                </tr>
+                Array.from({ length: 5 }).map((_, rIdx) => (
+                  <tr key={`skel-sub-${rIdx}`} className="border-b border-[#f0eeea] dark:border-[#38271c]">
+                    <td className="py-[14px] px-[12px]">
+                      <div className="flex items-center gap-[10px]">
+                        <Skeleton className="size-[34px] rounded-[6px]" />
+                        <div className="space-y-1">
+                          <Skeleton className="h-4 w-28 rounded-[4px]" />
+                          <Skeleton className="h-3 w-16 rounded-[4px]" />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-[14px] px-[12px]">
+                      <Skeleton className="h-4 w-24 rounded-[4px] mb-1" />
+                      <Skeleton className="h-3 w-14 rounded-[4px]" />
+                    </td>
+                    <td className="py-[14px] px-[12px]">
+                      <Skeleton className="h-4 w-20 rounded-[4px]" />
+                    </td>
+                    <td className="py-[14px] px-[14px]">
+                      <Skeleton className="h-4 w-20 rounded-[4px]" />
+                    </td>
+                    <td className="py-[14px] px-[12px]">
+                      <div className="space-y-1">
+                        <Skeleton className="h-4 w-14 rounded-[4px]" />
+                        <Skeleton className="h-4 w-16 rounded-full" />
+                      </div>
+                    </td>
+                    <td className="py-[14px] px-[12px] text-center">
+                      <Skeleton className="size-7 rounded-[4px] mx-auto" />
+                    </td>
+                  </tr>
+                ))
               ) : pagedFirms.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-[32px] text-center text-[#737067] dark:text-[#cdc5bd]">

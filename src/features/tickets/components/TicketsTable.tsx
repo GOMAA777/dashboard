@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import {
-  MoreHorizontal,
   Eye,
   UserCheck,
   RefreshCw,
@@ -11,6 +10,10 @@ import {
   ChevronsRight,
   ChevronsLeft,
   Building2,
+  MessageCircle,
+  MessageSquare,
+  Phone,
+  Mail,
 } from "lucide-react";
 import { Ticket } from "../types/tickets.types";
 import { PageSizeDropdown } from "@/components/shared/PageSizeDropdown";
@@ -20,8 +23,8 @@ import { cn } from "@/lib/utils";
 interface TicketsTableProps {
   tickets: Ticket[];
   onViewDetails: (ticket: Ticket) => void;
-  onChangeAssignee: (ticket: Ticket) => void;
-  onChangeStatus: (ticket: Ticket) => void;
+  onChangeAssignee?: (ticket: Ticket) => void;
+  onChangeStatus?: (ticket: Ticket) => void;
 }
 
 export function TicketsTable({
@@ -31,7 +34,6 @@ export function TicketsTable({
   onChangeStatus,
 }: TicketsTableProps) {
   const { t, isEn } = useLanguage();
-  const [activeMenuTicketId, setActiveMenuTicketId] = useState<string | null>(null);
   const [pageSize, setPageSize] = useState<number>(5);
   const [pageIndex, setPageIndex] = useState<number>(0);
 
@@ -43,6 +45,52 @@ export function TicketsTable({
   );
   const startItem = tickets.length === 0 ? 0 : safePageIndex * pageSize + 1;
   const endItem = Math.min((safePageIndex + 1) * pageSize, tickets.length);
+
+  const getChannelBadge = (channel: Ticket["channel"]) => {
+    switch (channel) {
+      case "whatsapp":
+        return (
+          <span
+            title={t("واتساب الأعمال", "WhatsApp Business")}
+            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] bg-[#25D366]/10 text-[#128C7E] dark:text-[#25D366] border border-[#25D366]/20 text-[10px] font-bold shrink-0"
+          >
+            <MessageCircle className="size-[11px]" />
+            <span>{t("واتس", "WhatsApp")}</span>
+          </span>
+        );
+      case "portal":
+        return (
+          <span
+            title={t("الشات المباشر / البوابة", "Live Chat / Portal")}
+            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] bg-[#0284c7]/10 text-[#0369a1] dark:text-[#38bdf8] border border-[#0284c7]/20 text-[10px] font-bold shrink-0"
+          >
+            <MessageSquare className="size-[11px]" />
+            <span>{t("شات", "Chat")}</span>
+          </span>
+        );
+      case "phone":
+        return (
+          <span
+            title={t("مكالمة هاتفية (رقمنا)", "Phone Call (Our Line)")}
+            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] bg-[#d97706]/10 text-[#b45309] dark:text-[#fbbf24] border border-[#d97706]/20 text-[10px] font-bold shrink-0"
+          >
+            <Phone className="size-[11px]" />
+            <span>{t("رقمنا", "Phone")}</span>
+          </span>
+        );
+      case "email":
+      default:
+        return (
+          <span
+            title={t("البريد الإلكتروني", "Email Inbox")}
+            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] bg-[#9c6402]/10 text-[#784d02] dark:text-[#f3c27e] border border-[#9c6402]/20 text-[10px] font-bold shrink-0"
+          >
+            <Mail className="size-[11px]" />
+            <span>{t("إيميل", "Email")}</span>
+          </span>
+        );
+    }
+  };
 
   const getPriorityBadge = (priority: Ticket["priority"]) => {
     switch (priority) {
@@ -163,7 +211,6 @@ export function TicketsTable({
           <tbody className="divide-y divide-[#eae8e4]/70">
             {pagedTickets.map((ticket, idx) => {
               const isEven = idx % 2 === 1;
-              const isMenuOpen = activeMenuTicketId === ticket.id;
 
               return (
                 <tr
@@ -193,15 +240,18 @@ export function TicketsTable({
 
                   {/* Column 2: Subject & Issue */}
                   <td className="px-[16px] py-[14px]">
-                    <div className="flex flex-col gap-[2px] max-w-[340px]">
-                      <button
-                        type="button"
-                        onClick={() => onViewDetails(ticket)}
-                        className="font-semibold text-[#1b1c1a] text-[13px] leading-[18px] text-start hover:text-[#9c6402] transition-colors cursor-pointer truncate"
-                        title={ticket.title}
-                      >
-                        {ticket.title}
-                      </button>
+                    <div className="flex flex-col gap-[4px] max-w-[340px]">
+                      <div className="flex items-center gap-[6px] flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => onViewDetails(ticket)}
+                          className="font-semibold text-[#1b1c1a] text-[13px] leading-[18px] text-start hover:text-[#9c6402] transition-colors cursor-pointer truncate max-w-[240px]"
+                          title={ticket.title}
+                        >
+                          {ticket.title}
+                        </button>
+                        {getChannelBadge(ticket.channel)}
+                      </div>
                       <p className="text-[#514537] text-[11px] leading-[16px] text-start line-clamp-1">
                         {ticket.description}
                       </p>
@@ -261,71 +311,42 @@ export function TicketsTable({
                     </div>
                   </td>
 
-                  {/* Column 8: Actions */}
-                  <td className="px-[16px] py-[14px] text-center whitespace-nowrap relative">
+                  {/* Column 8: Actions — inline icons only (no three-dot menu) */}
+                  <td className="px-[16px] py-[14px] text-center whitespace-nowrap">
                     <div className="flex items-center justify-center gap-[4px]">
-                      {/* View Details Icon Button */}
                       <button
                         type="button"
                         onClick={() => onViewDetails(ticket)}
                         title={t("تفاصيل التذكرة", "Ticket details")}
-                        className="size-[28px] rounded-[4px] hover:bg-[#f0eeea] flex items-center justify-center text-[#514537] hover:text-[#9c6402] transition-colors cursor-pointer"
+                        aria-label={t("تفاصيل التذكرة", "Ticket details")}
+                        className="size-[28px] rounded-[4px] hover:bg-[#f0eeea] dark:hover:bg-[#38271c] flex items-center justify-center text-[#514537] dark:text-[#cdc5bd] hover:text-[#9c6402] dark:hover:text-[#e29d38] transition-colors cursor-pointer"
                       >
                         <Eye className="size-[14px]" />
                       </button>
 
-                      {/* Dropdown Menu Trigger */}
-                      <div className="relative">
+                      {onChangeAssignee ? (
                         <button
                           type="button"
-                          onClick={() =>
-                            setActiveMenuTicketId(isMenuOpen ? null : ticket.id)
-                          }
-                          title={t("خيارات إضافية", "More options")}
-                          className="size-[28px] rounded-[4px] hover:bg-[#f0eeea] flex items-center justify-center text-[#514537] hover:text-[#1b1c1a] transition-colors cursor-pointer"
+                          onClick={() => onChangeAssignee(ticket)}
+                          title={t("تغيير الموظف المسؤول", "Change Assignee")}
+                          aria-label={t("تغيير الموظف المسؤول", "Change Assignee")}
+                          className="size-[28px] rounded-[4px] hover:bg-[#f0eeea] dark:hover:bg-[#38271c] flex items-center justify-center text-[#514537] dark:text-[#cdc5bd] hover:text-[#9c6402] dark:hover:text-[#e29d38] transition-colors cursor-pointer"
                         >
-                          <MoreHorizontal className="size-[15px]" />
+                          <UserCheck className="size-[14px]" />
                         </button>
+                      ) : null}
 
-                        {/* Dropdown Menu */}
-                        {isMenuOpen && (
-                          <div className="absolute start-0 sm:end-0 mt-[4px] w-[180px] bg-white rounded-[8px] shadow-[0px_8px_24px_rgba(0,0,0,0.12)] border border-[#eae8e4] py-[4px] z-50 text-start">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setActiveMenuTicketId(null);
-                                onViewDetails(ticket);
-                              }}
-                              className="w-full flex items-center gap-[8px] px-[12px] py-[8px] text-[12px] text-[#1b1c1a] hover:bg-[#f5f3ef] transition-colors cursor-pointer"
-                            >
-                              <Eye className="size-[13px] text-[#9c6402]" />
-                              <span>{t("تفاصيل التذكرة", "Ticket Details")}</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setActiveMenuTicketId(null);
-                                onChangeAssignee(ticket);
-                              }}
-                              className="w-full flex items-center gap-[8px] px-[12px] py-[8px] text-[12px] text-[#1b1c1a] hover:bg-[#f5f3ef] transition-colors cursor-pointer"
-                            >
-                              <UserCheck className="size-[13px] text-[#514537]" />
-                              <span>{t("تغيير الموظف المسؤول", "Change Assignee")}</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setActiveMenuTicketId(null);
-                                onChangeStatus(ticket);
-                              }}
-                              className="w-full flex items-center gap-[8px] px-[12px] py-[8px] text-[12px] text-[#1b1c1a] hover:bg-[#f5f3ef] transition-colors cursor-pointer"
-                            >
-                              <RefreshCw className="size-[13px] text-[#514537]" />
-                              <span>{t("تغيير حالة التذكرة", "Change Status")}</span>
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                      {onChangeStatus ? (
+                        <button
+                          type="button"
+                          onClick={() => onChangeStatus(ticket)}
+                          title={t("تغيير حالة التذكرة", "Change Status")}
+                          aria-label={t("تغيير حالة التذكرة", "Change Status")}
+                          className="size-[28px] rounded-[4px] hover:bg-[#f0eeea] dark:hover:bg-[#38271c] flex items-center justify-center text-[#514537] dark:text-[#cdc5bd] hover:text-[#9c6402] dark:hover:text-[#e29d38] transition-colors cursor-pointer"
+                        >
+                          <RefreshCw className="size-[14px]" />
+                        </button>
+                      ) : null}
                     </div>
                   </td>
                 </tr>

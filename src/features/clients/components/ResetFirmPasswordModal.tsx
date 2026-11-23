@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, KeyRound, Copy, Check, Eye, EyeOff, Sparkles, Loader2, AlertCircle } from "lucide-react";
+import { X, KeyRound, Copy, Check, Eye, EyeOff, Sparkles, AlertCircle } from "lucide-react";
 import { ModalPortal } from "@/components/shared/ModalPortal";
 import { useLanguage } from "@/lib/i18n";
 import { syncFirmOwnerPassword } from "@/lib/api/users";
@@ -189,14 +189,7 @@ export function ResetFirmPasswordModal({
                   disabled={isLoading || !newPassword}
                   className="flex-1 h-[42px] rounded-[8px] bg-[#9c6402] hover:bg-[#825301] disabled:opacity-50 text-white font-semibold text-[13px] flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
                 >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="size-4 animate-spin" />
-                      <span>{t("جاري التحديث...", "Updating...")}</span>
-                    </>
-                  ) : (
-                    <span>{t("تأكيد وتعيين كلمة المرور", "Confirm & Set Password")}</span>
-                  )}
+                  <span>{t("تأكيد وتعيين كلمة المرور", "Confirm & Set Password")}</span>
                 </button>
                 <button
                   type="button"

@@ -77,7 +77,7 @@ export function DeleteCurrencyModal({
             className="bg-[#ba1a1a] hover:bg-[#991515] active:bg-[#7a1111] text-[#fff3e9] h-[40px] px-[24px] py-[8px] rounded-[4px] font-bold text-[12px] flex items-center gap-[6px] transition-colors shadow-sm disabled:opacity-60 cursor-pointer"
           >
             <Trash2 className="size-[14px]" />
-            <span>{isDeleting ? (isEn ? "Deleting..." : "جارٍ الحذف...") : (isEn ? "Delete Currency" : "حذف العملة")}</span>
+            <span>{isEn ? "Delete Currency" : "حذف العملة"}</span>
           </button>
 
           {/* Cancel Button */}

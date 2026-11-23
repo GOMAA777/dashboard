@@ -2,6 +2,8 @@
 
 import { apiRequest } from "./http";
 import { API_COMPANY_ID } from "./config";
+import { fetchFirms } from "./firms";
+import { unwrapList } from "./helpers";
 
 export interface PaymentGatewaysStats {
   total_gateways?: number;
@@ -141,6 +143,52 @@ export async function fetchInvoices(
       status: params?.status,
     },
   });
+}
+
+function readLastPage(payload: unknown): number {
+  if (!payload || typeof payload !== "object") return 1;
+  const data = (payload as Record<string, unknown>).data;
+  if (!data || typeof data !== "object" || Array.isArray(data)) return 1;
+  const last = Number((data as Record<string, unknown>).last_page);
+  return Number.isFinite(last) && last > 0 ? last : 1;
+}
+
+/**
+ * سجل الفواتير المركزي: الـ API يلزم company_id لكل مكتب.
+ * نجمع فواتير كل المكاتب لأن معرّف الشركة الافتراضي ليس مكتباً صالحاً.
+ */
+export async function fetchAllFirmInvoices(): Promise<InvoicesListResponse> {
+  const companyIds: string[] = [];
+  let page = 1;
+  let lastPage = 1;
+
+  do {
+    const firms = await fetchFirms({ status: "all", page, per_page: 100 });
+    for (const firm of firms.items) {
+      if (firm.id !== undefined && firm.id !== null && String(firm.id) !== "") {
+        companyIds.push(String(firm.id));
+      }
+    }
+    lastPage = readLastPage(firms.raw);
+    page += 1;
+  } while (page <= lastPage);
+
+  const uniqueIds = [...new Set(companyIds)];
+  const lists = await Promise.all(
+    uniqueIds.map(async (id) => {
+      try {
+        return await fetchInvoices({ company_id: id });
+      } catch {
+        return null;
+      }
+    })
+  );
+
+  const data = lists.flatMap((payload) =>
+    payload ? unwrapList<Record<string, unknown>>(payload) : []
+  );
+
+  return { status: true, data };
 }
 
 /** 07. تفاصيل الفاتورة الإلكترونية ومطابقة ZATCA QR GET /admin/invoices/{id} */

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Eye, KeyRound, UserX, UserCheck } from "lucide-react";
+import { KeyRound } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -11,9 +11,9 @@ interface StaffRowActionMenuProps {
   onClose: () => void;
   onViewDetails: () => void;
   onLoginAsEmployee?: () => void;
-  onResetPassword: () => void;
-  onActivate: () => void;
-  onDeactivate: () => void;
+  onResetPassword?: () => void;
+  onActivate?: () => void;
+  onDeactivate?: () => void;
   isSuspended?: boolean;
   triggerRef?: React.RefObject<HTMLElement | null>;
 }
@@ -118,58 +118,17 @@ export function StaffRowActionMenu({
             }}
             className="w-[210px] bg-white dark:bg-[#221812] rounded-[8px] p-[6px] shadow-[0px_8px_24px_rgba(0,0,0,0.14)] border border-[#eae8e4] dark:border-[#38271c] flex flex-col gap-[2px] text-start font-['Cairo',sans-serif] animate-in fade-in-50 zoom-in-95 select-none"
           >
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onViewDetails();
-              }}
-              className="w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold transition-colors cursor-pointer group"
-            >
-              <Eye className="size-[15px] text-[#514537] dark:text-[#a89f91] group-hover:text-[#1b1c1a] dark:group-hover:text-[#fdfbf7] shrink-0" />
-              <span className="leading-[18px]">{t("عرض تفاصيل الموظف", "View Employee Details")}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onResetPassword();
-              }}
-              className="w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold transition-colors cursor-pointer group"
-            >
-              <KeyRound className="size-[15px] text-[#514537] dark:text-[#a89f91] group-hover:text-[#1b1c1a] dark:group-hover:text-[#fdfbf7] shrink-0" />
-              <span className="leading-[18px]">{t("إعادة تعيين كلمة المرور", "Reset Password")}</span>
-            </button>
-
-            <div className="h-px bg-[#f0eeea] dark:bg-[#38271c] my-[4px]" />
-
-            {isSuspended ? (
+            {onResetPassword && (
               <button
                 type="button"
                 onClick={() => {
                   onClose();
-                  onActivate();
+                  onResetPassword();
                 }}
-                className="w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] hover:bg-[#e8f5e9] dark:hover:bg-[#132c1c] text-[#1b7340] dark:text-[#6ee7b7] text-[13px] font-semibold transition-colors cursor-pointer group"
+                className="w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] hover:bg-[#f5f3ef] dark:hover:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] text-[13px] font-semibold transition-colors cursor-pointer group"
               >
-                <UserCheck className="size-[15px] text-[#1b7340] dark:text-[#6ee7b7] shrink-0" />
-                <span className="leading-[18px]">{t("تفعيل حساب الموظف", "Activate Account")}</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  onClose();
-                  onDeactivate();
-                }}
-                className={cn(
-                  "w-full flex items-center gap-[10px] px-[12px] py-[8px] rounded-[4px] text-[13px] font-semibold transition-colors cursor-pointer group",
-                  "hover:bg-[#fffbeb] dark:hover:bg-[#342711] text-[#b45309] dark:text-[#fbbf24]"
-                )}
-              >
-                <UserX className="size-[15px] text-[#b45309] dark:text-[#fbbf24] shrink-0" />
-                <span className="leading-[18px]">{t("إيقاف حساب الموظف", "Suspend Account")}</span>
+                <KeyRound className="size-[15px] text-[#514537] dark:text-[#a89f91] group-hover:text-[#1b1c1a] dark:group-hover:text-[#fdfbf7] shrink-0" />
+                <span className="leading-[18px]">{t("إعادة تعيين كلمة المرور", "Reset Password")}</span>
               </button>
             )}
           </div>,

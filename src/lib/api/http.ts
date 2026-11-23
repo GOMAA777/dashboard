@@ -1,17 +1,19 @@
 "use client";
 
 import { API_BASE_URL } from "./config";
-import { getAccessToken } from "@/lib/auth-client";
+import { clearAuthSession, getAccessToken, redirectToLogin } from "@/lib/auth-client";
 
 export class ApiError extends Error {
   status: number;
   body: unknown;
+  raw?: unknown;
 
   constructor(message: string, status: number, body?: unknown) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.body = body;
+    this.raw = body;
   }
 }
 
@@ -55,17 +57,35 @@ export async function apiRequest<T>(
     headers.set("Content-Type", "application/json");
   }
 
+  // Live Super Admin login often has no API token — only attach Authorization
+  // when a real token exists. Never treat a bare 401 (no bearer sent) as logout.
+  let sentBearer = false;
   if (auth) {
     const token = getAccessToken();
     if (token) {
       headers.set("Authorization", `Bearer ${token}`);
+      sentBearer = true;
     }
+  }
+
+  // Auth is Bearer-token based (localStorage). Only include cookies on
+  // same-origin calls. Cross-origin + credentials:"include" fails when the
+  // API returns Access-Control-Allow-Origin: * (browser blocks the response).
+  let credentialsMode: RequestCredentials = "omit";
+  try {
+    const apiOrigin = new URL(API_BASE_URL).origin;
+    const pageOrigin =
+      typeof window !== "undefined" ? window.location.origin : "";
+    credentialsMode = pageOrigin && apiOrigin === pageOrigin ? "include" : "omit";
+  } catch {
+    credentialsMode = "omit";
   }
 
   let response: Response;
   try {
     response = await fetch(buildUrl(path, query), {
       cache: "no-store",
+      credentials: credentialsMode,
       ...rest,
       headers,
       body:
@@ -81,8 +101,9 @@ export async function apiRequest<T>(
     const friendlyMessage =
       rawMessage.toLowerCase().includes("fetch") ||
       rawMessage.toLowerCase().includes("network") ||
+      rawMessage.toLowerCase().includes("cors") ||
       networkErr instanceof TypeError
-        ? "تعذر الاتصال بخادم الـ API (يرجى التحقق من الشبكة أو اتصال الخادم)."
+        ? "تعذر الاتصال بخادم الـ API (تحقق من الشبكة، أو أن السيرفر يسمح بالوصول من هذا النطاق)."
         : rawMessage || "خطأ غير متوقع في الاتصال بالخادم";
     throw new ApiError(friendlyMessage, 0, networkErr);
   }
@@ -98,9 +119,12 @@ export async function apiRequest<T>(
   }
 
   if (!response.ok) {
-    // Never auto-clear the session on 401. One failing endpoint was logging
-    // users out and trapping them on the login screen after every navigation.
-    // Logout stays explicit (sidebar confirm only).
+    // Only force logout when the server rejected an actual bearer token.
+    // Token-less sessions must stay until the user clicks logout.
+    if (response.status === 401 && auth && sentBearer) {
+      clearAuthSession();
+      redirectToLogin();
+    }
 
     const message =
       typeof parsed === "object" &&

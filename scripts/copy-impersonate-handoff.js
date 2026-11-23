@@ -13,3 +13,10 @@ if (!fs.existsSync(src)) {
 fs.mkdirSync(destDir, { recursive: true });
 fs.copyFileSync(src, dest);
 console.log("[copy-impersonate-handoff] wrote", dest);
+
+const htaccessSrc = path.join(__dirname, "..", "public", ".htaccess");
+const htaccessDest = path.join(__dirname, "..", "out", ".htaccess");
+if (fs.existsSync(htaccessSrc)) {
+  fs.copyFileSync(htaccessSrc, htaccessDest);
+  console.log("[copy-impersonate-handoff] wrote", htaccessDest);
+}

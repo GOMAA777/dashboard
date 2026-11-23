@@ -49,6 +49,8 @@ export interface Employee {
   twoFactorMethod?: string;
   passwordLastChanged?: string;
   permissionsCount?: number;
+  /** Permission slugs/labels from the linked role (API). */
+  permissions?: string[];
   assignedTicketsCount?: number;
 }
 

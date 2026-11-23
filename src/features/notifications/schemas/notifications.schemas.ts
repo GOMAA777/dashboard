@@ -21,10 +21,22 @@ export const sendNotificationSchema = z.object({
   imageFileName: z.string().optional(),
   imageFileSize: z.string().optional(),
   imageDimensions: z.string().optional(),
+  imageFile: z.any().optional(),
   categoryBadge: z.string().optional(),
   actionButtonText: z.string().optional(),
   isDraft: z.boolean().optional(),
-});
+}).refine(
+  (data) => {
+    if (data.audienceType === "specific" && !data.isDraft) {
+      return Boolean(data.specificFirmId && data.specificFirmId.trim().length > 0);
+    }
+    return true;
+  },
+  {
+    message: "يرجى اختيار مكتب المحاماة المستهدف",
+    path: ["specificFirmId"],
+  }
+);
 
 export type SendNotificationFormValues = z.infer<typeof sendNotificationSchema>;
 

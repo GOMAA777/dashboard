@@ -5,11 +5,13 @@ import { ApiError } from "@/lib/api/http";
 export interface LoginActionResult {
   data: {
     success: boolean;
+    mustChangePassword?: boolean;
     user?: {
       id: string;
       name: string;
       email: string;
       role: string;
+      mustChangePassword?: boolean;
     };
   } | null;
   serverError: string | null;
@@ -95,9 +97,12 @@ export async function loginAction(input: LoginInput): Promise<LoginActionResult>
     const loggedIn = await loginAdmin(identifier, password);
     const user = loggedIn.user;
 
+    const mustChangePassword = !!user?.mustChangePassword;
+
     return {
       data: {
         success: true,
+        mustChangePassword,
         user: {
           id: String(user?.id ?? "admin"),
           name: String(
@@ -107,6 +112,7 @@ export async function loginAction(input: LoginInput): Promise<LoginActionResult>
           ),
           email: String(user?.email ?? identifier),
           role: String(user?.role ?? "admin"),
+          mustChangePassword,
         },
       },
       serverError: null,

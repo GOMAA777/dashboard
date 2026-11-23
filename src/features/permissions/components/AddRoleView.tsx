@@ -22,16 +22,17 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { RoleItem, PermissionModule } from "../types/roles.types";
-import { permissionModules } from "../data/initialRoles";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { fetchSystemPermissions, fetchRoleById } from "@/lib/api/roles";
-import { unwrapList, unwrapData, asString } from "@/lib/api/helpers";
+import { useSystemPermissionsQuery, useRoleDetailQuery } from "../hooks/useRolesQuery";
+import { unwrapData, asString } from "@/lib/api/helpers";
+import { mapSystemPermissionsCatalog } from "@/lib/api/roles";
+import { ApiError } from "@/lib/api/http";
 import { saveUnifiedDraft } from "@/stores/use-drafts-store";
 
 interface AddRoleViewProps {
   onBack: () => void;
-  onSaveRole: (newRole: RoleItem) => void;
+  onSaveRole: (newRole: RoleItem) => void | Promise<void>;
   initialRole?: RoleItem | null;
 }
 
@@ -42,98 +43,44 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
   const [roleName, setRoleName] = useState(initialRole?.name || "");
   const [roleSlug, setRoleSlug] = useState(initialRole?.slug || "");
   const [searchFilter, setSearchFilter] = useState("");
-  const [modules, setModules] = useState<PermissionModule[]>(permissionModules);
+  const permissionsQuery = useSystemPermissionsQuery();
+  const roleDetailQuery = useRoleDetailQuery(initialRole?.id);
+
+  const modules = useMemo<PermissionModule[]>(() => {
+    if (!permissionsQuery.data) return [];
+    return mapSystemPermissionsCatalog(permissionsQuery.data);
+  }, [permissionsQuery.data]);
+
+  const [selectedPermissions, setSelectedPermissions] = useState<Set<string>>(
+    () => new Set(initialRole?.permissions?.filter((p) => p !== "all") || [])
+  );
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    let cancelled = false;
-    fetchSystemPermissions()
-      .then((payload) => {
-        if (cancelled) return;
-        const list = unwrapList<Record<string, unknown>>(payload);
-        if (list.length === 0) return;
-
-        // API may return flat permissions or nested modules.
-        const looksNested = list.some((item) => Array.isArray(item.permissions));
-        if (looksNested) {
-          setModules(
-            list.map((mod, idx) => ({
-              id: asString(mod.id, `mod-${idx}`),
-              name: asString(mod.name, `Module ${idx + 1}`),
-              description: asString(mod.description, ""),
-              iconType: "settings" as const,
-              permissions: (
-                (mod.permissions as Array<Record<string, unknown> | string>) || []
-              ).map((p, pIdx) =>
-                typeof p === "string"
-                  ? { id: p, label: p }
-                  : {
-                      id: asString(p.id || p.name, `perm-${pIdx}`),
-                      label: asString(p.label || p.name, asString(p.id, `perm-${pIdx}`)),
-                      isSensitive: Boolean(p.is_sensitive),
-                    }
-              ),
-            }))
-          );
-        }
-      })
-      .catch(() => {
-        // Keep local permission modules.
-      });
-
-    if (initialRole?.id) {
-      fetchRoleById(initialRole.id)
-        .then((payload) => {
-          if (cancelled) return;
-          const raw = (unwrapData<Record<string, unknown>>(payload) ||
-            payload) as Record<string, unknown>;
-          if (raw?.name) setRoleName(asString(raw.name));
-          if (raw?.slug) setRoleSlug(asString(raw.slug));
-        })
-        .catch(() => {
-          // Keep initial role fields.
-        });
+    if (!roleDetailQuery.data) return;
+    const raw = (unwrapData<Record<string, unknown>>(roleDetailQuery.data) ||
+      roleDetailQuery.data) as Record<string, unknown>;
+    if (raw?.name) setRoleName(asString(raw.name));
+    if (raw?.slug) setRoleSlug(asString(raw.slug));
+    const perms = Array.isArray(raw.permissions)
+      ? raw.permissions
+          .map((p) =>
+            typeof p === "string"
+              ? p
+              : asString((p as Record<string, unknown>).name || (p as Record<string, unknown>).id)
+          )
+          .filter(Boolean)
+      : [];
+    if (perms.length > 0) {
+      setSelectedPermissions(new Set(perms));
     }
+  }, [roleDetailQuery.data]);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [initialRole?.id]);
-
-  // Permissions state
-  const [selectedPermissions, setSelectedPermissions] = useState<Set<string>>(() => {
-    if (initialRole?.permissions) {
-      if (initialRole.permissions.includes("all")) {
-        const allIds = modules.flatMap((m) => m.permissions.map((p) => p.id));
-        return new Set(allIds);
-      }
-      return new Set(initialRole.permissions);
-    }
-    return new Set([
-      "dashboard.view",
-      "dashboard.analytics",
-      "clients.view",
-      "clients.create",
-      "clients.edit",
-      "subscriptions.view",
-      "subscriptions.create",
-      "subscriptions.edit",
-      "subscriptions.manage_status",
-      "plans.view",
-      "staff.view",
-      "roles.view",
-      "notifications.view",
-      "notifications.create",
-      "notifications.broadcast",
-      "tickets.view",
-      "tickets.create",
-      "tickets.edit",
-      "tickets.assign",
-      "finance.transactions.view",
-      "finance.invoices.view",
-      "payments.methods.view",
-      "system.settings.view",
-    ]);
-  });
+  useEffect(() => {
+    if (!initialRole?.permissions?.includes("all")) return;
+    if (modules.length === 0) return;
+    setSelectedPermissions(new Set(modules.flatMap((m) => m.permissions.map((p) => p.id))));
+  }, [initialRole?.permissions, modules]);
 
   // Total permissions across all modules
   const totalPermissionsCount = useMemo(() => {
@@ -184,18 +131,21 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
     });
   };
 
+  const handleSelectAllPermissions = () => {
+    setSelectedPermissions(new Set(modules.flatMap((m) => m.permissions.map((p) => p.id))));
+  };
+
+  const handleClearAllPermissions = () => {
+    setSelectedPermissions(new Set());
+  };
+
   const hasSensitivePermissions = useMemo(() => {
-    const sensitiveIds = [
-      "clients.impersonate",
-      "staff.impersonate",
-      "finance.refunds.process",
-      "clients.delete",
-      "staff.delete",
-    ];
-    return sensitiveIds.some((id) => selectedPermissions.has(id));
+    return Array.from(selectedPermissions).some((id) =>
+      ["staff.impersonate", "staff.delete", "firms.delete", "roles.delete", "settings.system_update"].includes(id)
+    );
   }, [selectedPermissions]);
 
-  const handleSave = (isDraft = false) => {
+  const handleSave = async (isDraft = false) => {
     if (!roleName.trim()) {
       toast.error(t("يرجى إدخال اسم الدور الوظيفي", "Please enter role name"));
       return;
@@ -206,6 +156,10 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
     }
     if (selectedPermissions.size === 0) {
       toast.error(t("يرجى تحديد صلاحية واحدة على الأقل", "Please select at least one permission"));
+      return;
+    }
+    if (modules.length === 0 && !isDraft) {
+      toast.error(t("تعذر تحميل دليل الصلاحيات من الخادم", "Could not load permissions catalog from server"));
       return;
     }
 
@@ -256,15 +210,32 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
           permissions: Array.from(selectedPermissions),
         },
       });
+      toast.success(
+        t(`تم حفظ الدور "${newRole.name}" كمسودة بنجاح`, `Role "${newRole.name}" saved as draft successfully`)
+      );
+      onBack();
+      return;
     }
 
-    onSaveRole(newRole);
-    toast.success(
-      isDraft
-        ? t(`تم حفظ الدور "${newRole.name}" كمسودة بنجاح`, `Role "${newRole.name}" saved as draft successfully`)
-        : t(`تم اعتماد وتفعيل الدور "${newRole.name}" بنجاح في مصفوفة الصلاحيات!`, `Role "${newRole.name}" saved and activated successfully!`)
-    );
-    onBack();
+    setIsSaving(true);
+    try {
+      await onSaveRole(newRole);
+      toast.success(
+        t(
+          `تم اعتماد وتفعيل الدور "${newRole.name}" بنجاح في مصفوفة الصلاحيات!`,
+          `Role "${newRole.name}" saved and activated successfully!`
+        )
+      );
+      onBack();
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : t("تعذر حفظ الدور على الخادم", "Failed to save role on server");
+      toast.error(message);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const getModuleIcon = (iconType: string) => {
@@ -427,8 +398,13 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
 
           <div data-node-id="1:12251">
             <label className="block text-[13px] font-bold text-[#1b1c1a] dark:text-[#fdfbf7] mb-2">
-              {t("المعرّف البرمجي للنظام (Slug)", "System Identifier (Slug)")}{" "}
-              <span className="text-red-500">*</span>
+              <span className="inline-flex items-center gap-1.5">
+                <span>{t("المعرّف البرمجي للنظام", "System Identifier")}</span>
+                <span dir="ltr" className="text-[12px] font-mono text-[#837565] dark:text-[#a89f91]">
+                  (Slug)
+                </span>
+                <span className="text-red-500">*</span>
+              </span>
             </label>
             <div className="relative">
               <input
@@ -437,9 +413,9 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
                 onChange={(e) => setRoleSlug(e.target.value)}
                 placeholder="e.g. employee"
                 dir="ltr"
-                className={cn(inputBase, "text-left font-mono")}
+                className={cn(inputBase, "text-left font-mono pl-3.5 pr-10")}
               />
-              <Code className="size-[16px] text-[#948b83] dark:text-[#a89f91] absolute top-1/2 -translate-y-1/2 end-3 pointer-events-none" />
+              <Code className="size-[16px] text-[#948b83] dark:text-[#a89f91] absolute top-1/2 -translate-y-1/2 right-3 pointer-events-none" />
             </div>
             <p className="text-[11px] text-[#79716b] dark:text-[#a89f91] mt-1">
               {t(
@@ -482,18 +458,38 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
             </div>
           </div>
 
-          <div className="relative min-w-[280px]" data-node-id="1:12265">
-            <input
-              type="text"
-              value={searchFilter}
-              onChange={(e) => setSearchFilter(e.target.value)}
-              placeholder={t(
-                "تصفية الأقسام أو الصلاحيات...",
-                "Filter modules or permissions..."
-              )}
-              className="w-full h-[42px] pe-10 ps-3 text-[13px] bg-[#f5f3ef] dark:bg-[#160e0a] border border-[#eae8e4] dark:border-[#38271c] rounded-[6px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] transition-colors"
-            />
-            <Search className="size-[16px] text-[#948b83] dark:text-[#a89f91] absolute top-1/2 -translate-y-1/2 end-3 pointer-events-none" />
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 min-w-[280px]">
+            <div className="relative flex-1" data-node-id="1:12265">
+              <input
+                type="text"
+                value={searchFilter}
+                onChange={(e) => setSearchFilter(e.target.value)}
+                placeholder={t(
+                  "تصفية الأقسام أو الصلاحيات...",
+                  "Filter modules or permissions..."
+                )}
+                className="w-full h-[42px] pe-10 ps-3 text-[13px] bg-[#f5f3ef] dark:bg-[#160e0a] border border-[#eae8e4] dark:border-[#38271c] rounded-[6px] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder:text-[#837565] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] transition-colors"
+              />
+              <Search className="size-[16px] text-[#948b83] dark:text-[#a89f91] absolute top-1/2 -translate-y-1/2 end-3 pointer-events-none" />
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={handleSelectAllPermissions}
+                disabled={modules.length === 0}
+                className="h-[42px] px-3 rounded-[6px] border border-[#eae8e4] dark:border-[#38271c] text-[12px] font-bold text-[#9c6402] dark:text-[#e29d38] hover:bg-[#f5f3ef] dark:hover:bg-[#2c221a] transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {t("تحديد الكل", "Select all")}
+              </button>
+              <button
+                type="button"
+                onClick={handleClearAllPermissions}
+                disabled={selectedPermissions.size === 0}
+                className="h-[42px] px-3 rounded-[6px] border border-[#eae8e4] dark:border-[#38271c] text-[12px] font-bold text-[#514537] dark:text-[#cdc5bd] hover:bg-[#f5f3ef] dark:hover:bg-[#2c221a] transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {t("مسح الكل", "Clear all")}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -512,6 +508,36 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
             </thead>
 
             <tbody className="divide-y divide-[#f0eeea] dark:divide-[#38271c]">
+              {permissionsQuery.isLoading && (
+                <tr>
+                  <td colSpan={2} className="py-10 px-6 text-center text-[13px] text-[#837565] dark:text-[#a89f91]">
+                    {t("جاري تحميل صلاحيات النظام من الخادم...", "Loading system permissions from server...")}
+                  </td>
+                </tr>
+              )}
+              {permissionsQuery.isError && !permissionsQuery.isLoading && (
+                <tr>
+                  <td colSpan={2} className="py-10 px-6 text-center space-y-3">
+                    <p className="text-[13px] text-red-600 dark:text-red-400 font-medium">
+                      {t("تعذر تحميل دليل الصلاحيات", "Failed to load permissions catalog")}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => void permissionsQuery.refetch()}
+                      className="inline-flex items-center justify-center h-9 px-4 rounded-[6px] bg-[#9c6402] hover:bg-[#855402] text-white text-[12px] font-bold cursor-pointer"
+                    >
+                      {t("إعادة المحاولة", "Retry")}
+                    </button>
+                  </td>
+                </tr>
+              )}
+              {!permissionsQuery.isLoading && !permissionsQuery.isError && filteredModules.length === 0 && (
+                <tr>
+                  <td colSpan={2} className="py-10 px-6 text-center text-[13px] text-[#837565] dark:text-[#a89f91]">
+                    {t("لا توجد صلاحيات متاحة من الخادم", "No permissions available from server")}
+                  </td>
+                </tr>
+              )}
               {filteredModules.map((module) => {
                 const allSelected = module.permissions.every((p) =>
                   selectedPermissions.has(p.id)
@@ -635,19 +661,25 @@ export function AddRoleView({ onBack, onSaveRole, initialRole }: AddRoleViewProp
 
           <button
             type="button"
-            onClick={() => handleSave(true)}
-            className="px-4 py-2 text-[13px] font-semibold text-[#514537] dark:text-[#fdfbf7] bg-[#f5f3ef] dark:bg-[#2d1f16] hover:bg-[#eae6e0] dark:hover:bg-[#38271c] border border-transparent dark:border-[#38271c] rounded-[6px] transition-colors cursor-pointer"
+            disabled={isSaving}
+            onClick={() => void handleSave(true)}
+            className="px-4 py-2 text-[13px] font-semibold text-[#514537] dark:text-[#fdfbf7] bg-[#f5f3ef] dark:bg-[#2d1f16] hover:bg-[#eae6e0] dark:hover:bg-[#38271c] border border-transparent dark:border-[#38271c] rounded-[6px] transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {t("حفظ كمسودة", "Save as Draft")}
           </button>
 
           <button
             type="button"
-            onClick={() => handleSave(false)}
-            className="px-5 py-2 text-[13px] font-bold text-white dark:text-[#1c140f] bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#855402] dark:hover:bg-[#f3c27e] rounded-[6px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors flex items-center gap-2 cursor-pointer"
+            disabled={isSaving || permissionsQuery.isLoading || modules.length === 0}
+            onClick={() => void handleSave(false)}
+            className="px-5 py-2 text-[13px] font-bold text-white dark:text-[#1c140f] bg-[#9c6402] dark:bg-[#e29d38] hover:bg-[#855402] dark:hover:bg-[#f3c27e] rounded-[6px] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <Check className="size-[16px]" />
-            <span>{t("حفظ وتفعيل الدور", "Save & Activate Role")}</span>
+            <span>
+              {isSaving
+                ? t("جاري الحفظ...", "Saving...")
+                : t("حفظ وتفعيل الدور", "Save & Activate Role")}
+            </span>
           </button>
         </div>
       </DashboardStickyActionBar>

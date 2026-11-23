@@ -1,14 +1,20 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useQueryState } from "nuqs";
 import { toast } from "sonner";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopNavbar } from "@/features/dashboard/components/DashboardTopNavbar";
 import { DashboardPageTransition } from "@/components/shared/DashboardPageTransition";
 import { DashboardPageSkeleton } from "@/components/shared/DashboardPageSkeleton";
+import { NotificationsPageSkeleton } from "./NotificationsPageSkeleton";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  useAnnouncementsQuery,
+  useAnnouncementsStatsQuery,
+  invalidateNotificationsQueries,
+} from "../hooks/useNotificationsQuery";
 import { NotificationItem } from "../types/notifications.types";
-import { initialNotificationsList } from "../data/initialNotifications";
 import { NotificationsListView } from "./NotificationsListView";
 import { SendNotificationView } from "./SendNotificationView";
 import { ConfirmSendModal } from "./ConfirmSendModal";
@@ -17,58 +23,100 @@ import { SendFailureModal } from "./SendFailureModal";
 import { DeleteNotificationModal } from "./DeleteNotificationModal";
 import { NotificationDetailsModal } from "./NotificationDetailsModal";
 import { SendNotificationFormValues } from "../schemas/notifications.schemas";
-import {
-  sendNotificationAction,
-  deleteNotificationAction,
-} from "../actions/notifications.actions";
 import { useLanguage } from "@/lib/i18n";
 import {
   fetchAnnouncements,
   fetchAnnouncementById,
+  fetchAnnouncementsStats,
   createAnnouncement,
   deleteAnnouncement,
 } from "@/lib/api/announcements";
+import type { AnnouncementsStats, CreateAnnouncementPayload } from "@/lib/api/types";
 import { mapNotificationsResponse, mapNotificationFromApi } from "@/lib/api/mappers";
 import { unwrapData } from "@/lib/api/helpers";
+import { ApiError } from "@/lib/api/http";
 import { useDraftsStore, saveUnifiedDraft } from "@/stores/use-drafts-store";
 
 export function NotificationsManagementView() {
-  const { direction, isEn } = useLanguage();
+  const { direction, isEn, t } = useLanguage();
 
   // Navigation & View URL State with nuqs
   const [view, setView] = useQueryState("view", { defaultValue: "list" });
   const [draftIdQuery] = useQueryState("draftId");
 
-  // Notifications State
-  const [notifications, setNotifications] = useState<NotificationItem[]>(
-    initialNotificationsList
+  // Notifications State & Server-side Query State
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+
+  const [activeTab, setActiveTab] = useState<"all" | "active" | "scheduled" | "draft">("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
+  const [totalItems, setTotalItems] = useState(0);
+  const [tabCounts, setTabCounts] = useState<AnnouncementsStats>({
+    all: 0,
+    activeAndReceived: 0,
+    scheduled: 0,
+    drafts: 0,
+  });
+
+  const queryClient = useQueryClient();
+  let statusParam: string | undefined = undefined;
+  if (activeTab === "active") statusParam = "sent";
+  else if (activeTab === "scheduled") statusParam = "scheduled";
+  else if (activeTab === "draft") statusParam = "draft";
+
+  const announcementsQueryParams = React.useMemo(
+    () => ({
+      page: currentPage,
+      per_page: pageSize,
+      search: searchQuery.trim() || undefined,
+      status: statusParam,
+    }),
+    [currentPage, pageSize, searchQuery, statusParam]
   );
-  const [isLoading, setIsLoading] = useState(true);
+
+  const announcementsQuery = useAnnouncementsQuery(announcementsQueryParams);
+  const announcementsStatsQuery = useAnnouncementsStatsQuery();
 
   useEffect(() => {
-    let cancelled = false;
-    setIsLoading(true);
-    fetchAnnouncements()
-      .then((payload) => {
-        if (cancelled) return;
-        const mapped = mapNotificationsResponse(payload);
-        if (mapped.length > 0) setNotifications(mapped);
-      })
-      .catch(() => {
-        // Keep mock notifications if API unavailable.
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    if (announcementsQuery.data) {
+      const mapped = mapNotificationsResponse(announcementsQuery.data);
+      setNotifications(mapped);
+      const serverTotal =
+        (announcementsQuery.data as { data?: { total?: number } })?.data?.total ?? mapped.length;
+      setTotalItems(serverTotal);
+    }
+  }, [announcementsQuery.data]);
+
+  useEffect(() => {
+    if (announcementsStatsQuery.data) {
+      setTabCounts(announcementsStatsQuery.data);
+    }
+  }, [announcementsStatsQuery.data]);
+
+  const effectiveNotifications = useMemo(() => {
+    if (notifications.length > 0) return notifications;
+    if (announcementsQuery.data) {
+      return mapNotificationsResponse(announcementsQuery.data);
+    }
+    return [];
+  }, [notifications, announcementsQuery.data]);
+
+  const isLoading = announcementsQuery.isLoading && effectiveNotifications.length === 0;
+  const listError = announcementsQuery.error instanceof Error ? announcementsQuery.error.message : null;
+
+  const loadNotificationsData = useCallback(async () => {
+    await Promise.all([
+      announcementsQuery.refetch(),
+      announcementsStatsQuery.refetch(),
+    ]);
+  }, [announcementsQuery, announcementsStatsQuery]);
 
   // Modals & Active Items State
   const [deleteTarget, setDeleteTarget] = useState<NotificationItem | null>(null);
   const [viewingDetails, setViewingDetails] = useState<NotificationItem | null>(null);
   const [editingDraft, setEditingDraft] = useState<NotificationItem | null>(null);
+  const [serverErrors, setServerErrors] = useState<Record<string, string[] | string> | null>(null);
 
   // Restore draft if draftId is in query
   useEffect(() => {
@@ -76,7 +124,7 @@ export function NotificationsManagementView() {
       useDraftsStore.getState().init();
       const found = useDraftsStore.getState().getDraft(draftIdQuery);
       if (found && found.data) {
-        const d = found.data as Record<string, any>;
+        const d = found.data as Record<string, unknown>;
         setEditingDraft({
           id: found.id,
           code: `NTF-DRAFT`,
@@ -85,7 +133,7 @@ export function NotificationsManagementView() {
           status: "draft",
           statusLabel: isEn ? "Draft" : "مسودة",
           sentAt: isEn ? "Saved Draft" : "مسودة محفوظة",
-          audienceType: (d.audienceType as any) || "all",
+          audienceType: (d.audienceType as "all" | "specific") || "all",
           targetAudienceLabel: isEn ? "Draft Target" : "المستهدف",
           targetCount: 842,
           actionUrl: String(d.actionUrl || ""),
@@ -123,6 +171,7 @@ export function NotificationsManagementView() {
   // Open Create View
   const handleOpenCreate = () => {
     setEditingDraft(null);
+    setServerErrors(null);
     setView("new");
   };
 
@@ -130,6 +179,7 @@ export function NotificationsManagementView() {
   const handleBackToList = () => {
     setView("list");
     setEditingDraft(null);
+    setServerErrors(null);
   };
 
   // Step 1 of Sending: User clicks "ارسال الاشعار" on form -> open confirmation modal
@@ -139,62 +189,87 @@ export function NotificationsManagementView() {
   };
 
   // Save as Draft
-  const handleSaveDraft = (values: SendNotificationFormValues) => {
-    const timeStr = new Date().toLocaleTimeString(isEn ? "en-US" : "ar-SA-u-nu-latn", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  const handleSaveDraft = async (values: SendNotificationFormValues) => {
+    setIsSending(true);
+    setServerErrors(null);
 
-    const newDraft: NotificationItem = {
-      id: `notif-draft-${Date.now()}`,
-      code: `NTF-${Math.floor(1000 + Math.random() * 9000)}`,
-      title: values.title,
-      description: values.description,
-      status: "draft",
-      statusLabel: isEn ? "Unsent Draft" : "مسودة غير مرسلة",
-      sentAt: (isEn ? "Today • " : "اليوم • ") + timeStr,
-      audienceType: values.audienceType,
-      targetAudienceLabel:
-        values.audienceType === "all"
-          ? isEn
-            ? "All Subscribed Law Firms (842 Firms)"
-            : "جميع مكاتب المحاماة المشتركة (842 مكتب)"
-          : isEn
-          ? "Specific Law Firm"
-          : "مكتب محدد بعينه",
-      targetCount: values.audienceType === "all" ? 842 : 1,
-      actionUrl: values.actionUrl,
-      imageUrl: values.imageUrl,
-      imageFileName: values.imageFileName,
-      imageFileSize: values.imageFileSize,
-      imageDimensions: values.imageDimensions,
-      categoryBadge:
-        values.categoryBadge || (isEn ? "Draft Notification" : "مسودة إشعار"),
-      actionButtonText:
-        values.actionButtonText || (isEn ? "Follow Up Action" : "متابعة الإجراء"),
-    };
+    try {
+      const audience = values.audienceType === "specific" ? "selected_firms" : "all";
+      const companyIds =
+        values.audienceType === "specific" && values.specificFirmId
+          ? [Number(values.specificFirmId)]
+          : undefined;
 
-    setNotifications((prev) => [newDraft, ...prev]);
+      let payload: CreateAnnouncementPayload | FormData;
+      if (values.imageFile instanceof File) {
+        const formData = new FormData();
+        formData.append("title", values.title || (isEn ? "Draft Notification" : "مسودة إشعار جديد"));
+        formData.append("content", values.description || (isEn ? "Draft Content" : "محتوى مسودة الإشعار"));
+        formData.append("target_audience", audience);
+        if (companyIds && companyIds.length > 0) {
+          companyIds.forEach((id) => formData.append("target_company_ids[]", String(id)));
+        }
+        if (values.actionUrl) formData.append("action_url", values.actionUrl);
+        if (values.actionButtonText) formData.append("action_label", values.actionButtonText);
+        formData.append("status", "draft");
+        formData.append("image", values.imageFile);
+        payload = formData;
+      } else {
+        payload = {
+          title: values.title || (isEn ? "Draft Notification" : "مسودة إشعار جديد"),
+          content: values.description || (isEn ? "Draft Content" : "محتوى مسودة الإشعار"),
+          target_audience: audience,
+          target_company_ids: companyIds,
+          action_url: values.actionUrl || "https://aljudy.sa",
+          action_label: values.actionButtonText || (isEn ? "Action Link" : "طريقة التفعيل"),
+          status: "draft",
+        };
+      }
 
-    // Save to unified central drafts store
-    saveUnifiedDraft({
-      id: newDraft.id,
-      type: "notifications",
-      typeLabelAr: "إشعار وتنبيه",
-      typeLabelEn: "Notification",
-      title: values.title || (isEn ? "Draft Notification" : "مسودة إشعار جديد"),
-      summary: values.description || (isEn ? "Target: All Law Firms" : "المستهدف: جميع مكاتب المحاماة"),
-      targetUrl: `/notifications?view=new&draftId=${newDraft.id}`,
-      badge: isEn ? "Draft" : "مسودة",
-      data: values as Record<string, unknown>,
-    });
+      const res = await createAnnouncement(payload);
+      const newId = String(res?.data?.id || `notif-draft-${Date.now()}`);
 
-    toast.success(
-      isEn
-        ? "Notification saved to Drafts successfully"
-        : "تم حفظ الإشعار كمسودة بنجاح وإضافته إلى قسم المسودات"
-    );
-    setView("list");
+      // Save to unified central drafts store
+      saveUnifiedDraft({
+        id: newId,
+        type: "notifications",
+        typeLabelAr: "إشعار وتنبيه",
+        typeLabelEn: "Notification",
+        title: values.title || (isEn ? "Draft Notification" : "مسودة إشعار جديد"),
+        summary: values.description || (isEn ? "Target: All Law Firms" : "المستهدف: جميع مكاتب المحاماة"),
+        targetUrl: `/notifications?view=new&draftId=${newId}`,
+        badge: isEn ? "Draft" : "مسودة",
+        data: values as Record<string, unknown>,
+      });
+
+      void invalidateNotificationsQueries(queryClient);
+      await loadNotificationsData();
+
+      toast.success(
+        isEn
+          ? "Notification saved to Drafts successfully"
+          : "تم حفظ الإشعار كمسودة بنجاح وإضافته إلى قسم المسودات"
+      );
+      setView("list");
+    } catch (err: unknown) {
+      let errorMsg = isEn ? "Failed to save draft" : "تعذر حفظ المسودة";
+      if (err instanceof ApiError) {
+        if (err.body && typeof err.body === "object") {
+          const body = err.body as { errors?: Record<string, string[]>; message?: string };
+          if (body.errors) {
+            setServerErrors(body.errors);
+          }
+          if (body.message) {
+            errorMsg = body.message;
+          }
+        } else if (err.message) {
+          errorMsg = err.message;
+        }
+      }
+      toast.error(errorMsg);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   // Step 2 of Sending: User clicks confirm in confirmation modal
@@ -202,105 +277,96 @@ export function NotificationsManagementView() {
     if (!pendingFormData) return;
 
     setIsSending(true);
+    setServerErrors(null);
 
     try {
-      let apiOk = false;
-      try {
-        await createAnnouncement({
+      const audience =
+        pendingFormData.audienceType === "specific" ? "selected_firms" : "all";
+      const companyIds =
+        pendingFormData.audienceType === "specific" && pendingFormData.specificFirmId
+          ? [Number(pendingFormData.specificFirmId)]
+          : undefined;
+
+      let payload: CreateAnnouncementPayload | FormData;
+      if (pendingFormData.imageFile instanceof File) {
+        const formData = new FormData();
+        formData.append("title", pendingFormData.title);
+        formData.append("content", pendingFormData.description);
+        formData.append("target_audience", audience);
+        if (companyIds && companyIds.length > 0) {
+          companyIds.forEach((id) => formData.append("target_company_ids[]", String(id)));
+        }
+        if (pendingFormData.actionUrl) {
+          formData.append("action_url", pendingFormData.actionUrl);
+        }
+        if (pendingFormData.actionButtonText) {
+          formData.append("action_label", pendingFormData.actionButtonText);
+        }
+        formData.append("status", "sent");
+        formData.append("image", pendingFormData.imageFile);
+        payload = formData;
+      } else {
+        payload = {
           title: pendingFormData.title,
-          description: pendingFormData.description,
-          body: pendingFormData.description,
-          audience_type: pendingFormData.audienceType,
+          content: pendingFormData.description,
+          target_audience: audience,
+          target_company_ids: companyIds,
           action_url: pendingFormData.actionUrl,
+          action_label: pendingFormData.actionButtonText || (isEn ? "Action Link" : "طريقة التفعيل"),
           status: "sent",
-        });
-        apiOk = true;
-      } catch {
-        const result = await sendNotificationAction(pendingFormData);
-        apiOk = Boolean(result?.data?.success);
+        };
       }
 
-      if (apiOk) {
-        const timeStr = new Date().toLocaleTimeString(isEn ? "en-US" : "ar-SA-u-nu-latn", {
+      const res = await createAnnouncement(payload);
+
+      const data = res?.data;
+      const notificationId = data?.id ? `NTF-${data.id}` : `NTF-${Date.now()}`;
+      const verificationCode = `${notificationId}-OK`;
+      const dispatchedCount = pendingFormData.audienceType === "all" ? 842 : 1;
+
+      void invalidateNotificationsQueries(queryClient);
+      await loadNotificationsData();
+
+      setLastDispatchedInfo({
+        title: pendingFormData.title,
+        actionUrl: pendingFormData.actionUrl,
+        verificationCode,
+        targetCount: dispatchedCount,
+        formattedTimestamp: new Intl.DateTimeFormat(isEn ? "en-US" : "ar-SA-u-nu-latn", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
           hour: "2-digit",
           minute: "2-digit",
-        });
-        const notificationId = `NTF-${Math.floor(1000 + Math.random() * 9000)}`;
-        const verificationCode = `${notificationId}-OK`;
-        const dispatchedCount = pendingFormData.audienceType === "all" ? 842 : 1;
+        }).format(new Date(data?.sent_at || data?.created_at || Date.now())),
+      });
 
-        const newNotification: NotificationItem = {
-          id: `notif-${Date.now()}`,
-          code: notificationId,
-          title: pendingFormData.title,
-          description: pendingFormData.description,
-          status: "sent",
-          statusLabel: isEn ? "Sent" : "تم الإرسال",
-          sentAt: (isEn ? "Now • " : "الآن • ") + timeStr,
-          audienceType: pendingFormData.audienceType,
-          targetAudienceLabel:
-            pendingFormData.audienceType === "all"
-              ? isEn
-                ? "All Subscribed Law Firms"
-                : "جميع مكاتب المحاماة المشتركة"
-              : isEn
-              ? "Specific Law Firm"
-              : "مكتب محدد بعينه",
-          targetCount: dispatchedCount,
-          actionUrl: pendingFormData.actionUrl,
-          imageUrl: pendingFormData.imageUrl,
-          imageFileName: pendingFormData.imageFileName,
-          imageFileSize: pendingFormData.imageFileSize,
-          imageDimensions: pendingFormData.imageDimensions,
-          priority: "high",
-          categoryBadge:
-            pendingFormData.categoryBadge ||
-            (isEn ? "Security & Regulatory Compliance" : "الأمان والامتثال العدلي"),
-          actionButtonText:
-            pendingFormData.actionButtonText ||
-            (isEn ? "Update Security Settings Now" : "تحديث إعدادات الأمان الآن"),
-        };
-
-        setNotifications((prev) => [newNotification, ...prev]);
-
-        setLastDispatchedInfo({
-          title: pendingFormData.title,
-          actionUrl: pendingFormData.actionUrl,
-          verificationCode,
-          targetCount: dispatchedCount,
-          formattedTimestamp: new Intl.DateTimeFormat(isEn ? "en-US" : "ar-SA-u-nu-latn", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          }).format(new Date()),
-        });
-
-        setIsConfirmOpen(false);
-        setIsSuccessOpen(true);
-        toast.success(
-          isEn
-            ? "Notification dispatched and logged to audit trail successfully"
-            : "تم إرسال الإشعار وتوثيق العملية بسجل التدقيق الأمني بنجاح"
-        );
-      } else {
-        setIsConfirmOpen(false);
-        setIsFailureOpen(true);
-        toast.error(
-          isEn
-            ? "Failed to send notification. Error logged."
-            : "تعذر إرسال الإشعار. تم تسجيل الخطأ."
-        );
-      }
-    } catch {
+      setIsConfirmOpen(false);
+      setIsSuccessOpen(true);
+      toast.success(
+        isEn
+          ? "Notification dispatched and broadcast successfully"
+          : "تم إرسال الإشعار وبثه للمكاتب بنجاح"
+      );
+    } catch (err: unknown) {
       setIsConfirmOpen(false);
       setIsFailureOpen(true);
-      toast.error(
-        isEn
-          ? "Failed to send notification, please retry."
-          : "تعذر إرسال الإشعار، يرجى إعادة المحاولة."
-      );
+
+      let errorMsg = isEn ? "Failed to send notification" : "تعذر إرسال الإشعار";
+      if (err instanceof ApiError) {
+        if (err.body && typeof err.body === "object") {
+          const body = err.body as { errors?: Record<string, string[]>; message?: string };
+          if (body.errors) {
+            setServerErrors(body.errors);
+          }
+          if (body.message) {
+            errorMsg = body.message;
+          }
+        } else if (err.message) {
+          errorMsg = err.message;
+        }
+      }
+      toast.error(errorMsg);
     } finally {
       setIsSending(false);
     }
@@ -318,25 +384,23 @@ export function NotificationsManagementView() {
     setIsDeleting(true);
 
     try {
-      try {
-        await deleteAnnouncement(notificationId);
-      } catch {
-        const res = await deleteNotificationAction({ notificationId });
-        if (!res?.data?.success) throw new Error("delete failed");
-      }
-      setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+      await deleteAnnouncement(notificationId);
+      void invalidateNotificationsQueries(queryClient);
+      await loadNotificationsData();
       setDeleteTarget(null);
       toast.success(
         isEn
           ? "Notification permanently deleted from dashboard."
           : "تم حذف الإشعار نهائياً من شاشة الإشعارات."
       );
-    } catch {
-      toast.error(
-        isEn
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : isEn
           ? "Could not complete deletion."
-          : "تعذر إتمام عملية الحذف."
-      );
+          : "تعذر إتمام عملية الحذف.";
+      toast.error(msg);
     } finally {
       setIsDeleting(false);
     }
@@ -359,7 +423,7 @@ export function NotificationsManagementView() {
       className="flex h-screen h-dvh overflow-hidden bg-background text-foreground transition-colors duration-200 font-sans antialiased"
     >
       {/* Dashboard Sidebar with Notifications highlighted */}
-      <DashboardSidebar activeNav="notifications" />
+      <DashboardSidebar activeNav="clients" activeSubNav="notifications" />
 
       {/* Main Layout Area */}
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
@@ -368,11 +432,43 @@ export function NotificationsManagementView() {
         <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 w-full space-y-6 scrollbar-thin">
           <DashboardPageTransition>
             {view === "list" ? (
-              isLoading && notifications.length === 0 ? (
-                <DashboardPageSkeleton />
+              isLoading && effectiveNotifications.length === 0 ? (
+                <NotificationsPageSkeleton />
+              ) : listError ? (
+                <div className="rounded-[8px] border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-[#2c1313] p-6 text-center space-y-3">
+                  <p className="text-[14px] font-semibold text-red-700 dark:text-red-300">
+                    {listError}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => void loadNotificationsData()}
+                    className="px-4 py-2 rounded-[6px] bg-[#9c6402] text-white text-[13px] font-bold cursor-pointer"
+                  >
+                    {t("إعادة المحاولة", "Retry")}
+                  </button>
+                </div>
               ) : (
                 <NotificationsListView
                   notifications={notifications}
+                  totalItems={totalItems}
+                  currentPage={currentPage}
+                  pageSize={pageSize}
+                  onPageChange={setCurrentPage}
+                  onPageSizeChange={(newSize) => {
+                    setPageSize(newSize);
+                    setCurrentPage(1);
+                  }}
+                  searchQuery={searchQuery}
+                  onSearchChange={(q) => {
+                    setSearchQuery(q);
+                    setCurrentPage(1);
+                  }}
+                  activeTab={activeTab}
+                  onTabChange={(t) => {
+                    setActiveTab(t);
+                    setCurrentPage(1);
+                  }}
+                  tabCounts={tabCounts}
                   onOpenCreate={handleOpenCreate}
                   onViewDetails={async (item) => {
                     setViewingDetails(item);
@@ -384,7 +480,7 @@ export function NotificationsManagementView() {
                         setViewingDetails(mapNotificationFromApi(raw));
                       }
                     } catch {
-                      // Keep list item.
+                      // Keep list item
                     }
                   }}
                   onInitiateDelete={(item) => setDeleteTarget(item)}
@@ -396,6 +492,8 @@ export function NotificationsManagementView() {
                 onSubmitSend={handleStageSend}
                 onSaveDraft={handleSaveDraft}
                 initialData={editingDraft}
+                serverErrors={serverErrors}
+                isSubmitting={isSending}
               />
             )}
           </DashboardPageTransition>

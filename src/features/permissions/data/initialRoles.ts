@@ -32,6 +32,7 @@ export const permissionModules: PermissionModule[] = [
       { id: "clients.edit", label: "تعديل عميل" },
       { id: "clients.delete", label: "حذف عميل" },
       { id: "clients.impersonate", label: "الدخول كعميل", isSensitive: true, sensitivityBadge: "مقيد أمنياً" },
+      { id: "clients.impersonate_bypass_reason", label: "تجاوز تسجيل سبب الدخول", isSensitive: true, sensitivityBadge: "مقيد أمنياً" },
     ],
   },
   {

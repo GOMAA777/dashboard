@@ -5,8 +5,8 @@ import { Plus, Download, ShieldCheck } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 
 interface InvoicesManagementHeaderProps {
-  onCreateInvoice: () => void;
-  onExportReport: () => void;
+  onCreateInvoice?: () => void;
+  onExportReport?: () => void;
 }
 
 export function InvoicesManagementHeader({
@@ -35,29 +35,32 @@ export function InvoicesManagementHeader({
         </p>
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex items-center gap-2.5 sm:gap-3">
-        {/* Export Report Button */}
-        <button
-          type="button"
-          onClick={onExportReport}
-          className="bg-white dark:bg-[#281c15] hover:bg-[#f5f3ef] dark:hover:bg-[#32231a] text-[#514537] dark:text-[#cdc5bd] border border-[#eae8e4] dark:border-[#38271c] px-3.5 py-2 rounded-[6px] font-semibold text-[13px] flex items-center gap-2 transition-colors cursor-pointer shadow-2xs"
-          title={isEn ? "Export Financial Report (Excel / PDF)" : "تصدير التقرير المالي (Excel / PDF)"}
-        >
-          <Download className="size-4 text-[#837565] dark:text-[#a89f91]" />
-          <span>{isEn ? "Export" : "تصدير"}</span>
-        </button>
+      {(onExportReport || onCreateInvoice) ? (
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          {onExportReport ? (
+            <button
+              type="button"
+              onClick={onExportReport}
+              className="bg-white dark:bg-[#281c15] hover:bg-[#f5f3ef] dark:hover:bg-[#32231a] text-[#514537] dark:text-[#cdc5bd] border border-[#eae8e4] dark:border-[#38271c] px-3.5 py-2 rounded-[6px] font-semibold text-[13px] flex items-center gap-2 transition-colors cursor-pointer shadow-2xs"
+              title={isEn ? "Export Financial Report (Excel / PDF)" : "تصدير التقرير المالي (Excel / PDF)"}
+            >
+              <Download className="size-4 text-[#837565] dark:text-[#a89f91]" />
+              <span>{isEn ? "Export" : "تصدير"}</span>
+            </button>
+          ) : null}
 
-        {/* Create Invoice Primary Button (Gold) */}
-        <button
-          type="button"
-          onClick={onCreateInvoice}
-          className="bg-[#9c6402] hover:bg-[#835401] active:bg-[#6c4501] dark:bg-[#e29d38] dark:hover:bg-[#c28328] text-white dark:text-[#1c140f] px-4 py-2 rounded-[6px] font-bold text-[13px] flex items-center gap-2 transition-all shadow-sm cursor-pointer shrink-0"
-        >
-          <Plus className="size-4 stroke-[2.5]" />
-          <span>{isEn ? "Create Invoice" : "إنشاء فاتورة جديدة"}</span>
-        </button>
-      </div>
+          {onCreateInvoice ? (
+            <button
+              type="button"
+              onClick={onCreateInvoice}
+              className="bg-[#9c6402] hover:bg-[#835401] active:bg-[#6c4501] dark:bg-[#e29d38] dark:hover:bg-[#c28328] text-white dark:text-[#1c140f] px-4 py-2 rounded-[6px] font-bold text-[13px] flex items-center gap-2 transition-all shadow-sm cursor-pointer shrink-0"
+            >
+              <Plus className="size-4 stroke-[2.5]" />
+              <span>{isEn ? "Create Invoice" : "إنشاء فاتورة جديدة"}</span>
+            </button>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }

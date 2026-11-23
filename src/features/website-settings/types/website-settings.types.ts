@@ -1,6 +1,5 @@
 export type WebsiteSettingsTab =
   | "theme-options"
-  | "menu"
   | "use-case"
   | "nav-more"
   | "section-titles"

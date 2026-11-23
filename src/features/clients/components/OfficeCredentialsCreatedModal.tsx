@@ -5,6 +5,7 @@ import { X, Check, Copy, KeyRound, ShieldAlert, CheckCircle2 } from "lucide-reac
 import { ModalPortal } from "@/components/shared/ModalPortal";
 import { useLanguage } from "@/lib/i18n";
 import { toast } from "sonner";
+import { LAWYER_APP_URL } from "@/lib/api/config";
 
 interface OfficeCredentialsCreatedModalProps {
   isOpen: boolean;
@@ -44,7 +45,7 @@ export function OfficeCredentialsCreatedModal({
 المسؤول: ${ownerName}
 البريد الإلكتروني: ${email}
 كلمة المرور: ${password}
-رابط الدخول: https://law.elmoroj.com/lawyer/login`;
+رابط الدخول: ${LAWYER_APP_URL}/login`;
 
   return (
     <ModalPortal isOpen={isOpen}>

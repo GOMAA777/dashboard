@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Check, CheckCheck, Settings2, Loader2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { X, Check, CheckCheck, Settings2 } from "lucide-react";
 import { SubscriptionRecord } from "../types/subscription.types";
 import { toast } from "sonner";
 import { useLanguage } from "@/lib/i18n";
@@ -10,6 +11,7 @@ import { LuxuryAlertDialog } from "@/components/shared/LuxuryAlertDialog";
 import { upgradeSubscription, applyCustomOffer } from "@/lib/api/subscriptions";
 import { updateFirm } from "@/lib/api/firms";
 import { saveLocalCustomFirmPlan } from "@/lib/api/mappers";
+import { InvalidationGraph } from "@/lib/query-keys";
 import { cn } from "@/lib/utils";
 
 type PlanId = "basic" | "silver" | "gold" | "unlimited" | "custom";
@@ -50,6 +52,7 @@ export function ChangeSubscriptionPlanModal({
   onSuccess,
 }: ChangeSubscriptionPlanModalProps) {
   const { t, isEn } = useLanguage();
+  const queryClient = useQueryClient();
   const [selectedPlanId, setSelectedPlanId] = useState<PlanId>("gold");
   const [timingOption, setTimingOption] = useState<"immediate" | "renewal">("immediate");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -123,14 +126,15 @@ export function ChangeSubscriptionPlanModal({
         if (selectedPlanId === "unlimited") {
           saveLocalCustomFirmPlan(firmId, {
             plan: "غير محدود",
-            planType: "unlimited",
+            planType: "special",
             billingCycle: "unlimited",
           });
           await updateFirm(firmId, {
-            plan_name: "غير محدود",
-            plan: "غير محدود",
-            subscription_plan: "unlimited",
-            plan_type: "unlimited",
+            plan_name: "خطة مميزة",
+            plan: "خطة مميزة",
+            subscription_plan: "special",
+            plan_type: "special",
+            plan_id: null,
             billing_cycle: "unlimited",
           }).catch(() => null);
         } else if (selectedPlanId === "custom") {
@@ -142,7 +146,8 @@ export function ChangeSubscriptionPlanModal({
           await updateFirm(firmId, {
             plan_name: planTitle,
             plan: planTitle,
-            subscription_plan: planTitle,
+            subscription_plan: "paid",
+            plan_type: "paid",
             billing_cycle: "yearly",
           }).catch(() => null);
           if (subscription?.id) {
@@ -165,7 +170,8 @@ export function ChangeSubscriptionPlanModal({
           await updateFirm(firmId, {
             plan_name: planTitle,
             plan: planTitle,
-            subscription_plan: planTitle,
+            subscription_plan: "paid",
+            plan_type: "paid",
             plan_id: planIdToNumber[selectedPlanId],
             billing_cycle: "yearly",
           }).catch(() => null);
@@ -200,6 +206,7 @@ export function ChangeSubscriptionPlanModal({
           `Successfully changed subscription for "${firmName}" to "${planTitle}"`
         )
       );
+      await InvalidationGraph.onSubscriptionMutation(queryClient);
       onSuccess?.(planTitle, timingOption);
       onClose();
     } catch (err: unknown) {
@@ -746,11 +753,7 @@ export function ChangeSubscriptionPlanModal({
               disabled={isSubmitting}
               className="bg-[#9c6402] hover:bg-[#825200] text-white px-5 py-2 rounded-[4px] font-bold text-[12px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
             >
-              {isSubmitting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <CheckCheck className="w-4 h-4" />
-              )}
+              <CheckCheck className="w-4 h-4" />
               <span>
                 {selectedPlanId === "custom"
                   ? t("تطبيق الباقة المخصصة", "Apply Custom Plan")

@@ -34,6 +34,11 @@ import {
   setDefaultLanguage,
 } from "@/lib/api/settings";
 import { mapLanguagesResponse } from "@/lib/api/mappers";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  useLanguagesQuery,
+  invalidateSettingsQueries,
+} from "@/features/settings/hooks/useSettingsQuery";
 
 export function LanguageSettingsView() {
   const { language: currentLang, direction, isEn, setLanguage } = useLanguage();
@@ -47,21 +52,15 @@ export function LanguageSettingsView() {
   const [languageToDelete, setLanguageToDelete] = useState<LanguageItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const queryClient = useQueryClient();
+  const languagesQuery = useLanguagesQuery();
+
   useEffect(() => {
-    let cancelled = false;
-    fetchLanguages()
-      .then((payload) => {
-        if (cancelled) return;
-        const mapped = mapLanguagesResponse(payload);
-        if (mapped.length > 0) setLanguages(mapped);
-      })
-      .catch(() => {
-        // Keep mock languages if API unavailable.
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    if (languagesQuery.data) {
+      const mapped = mapLanguagesResponse(languagesQuery.data);
+      if (mapped.length > 0) setLanguages(mapped);
+    }
+  }, [languagesQuery.data]);
 
   // Filtered languages
   const filteredLanguages = useMemo(() => {
@@ -166,6 +165,7 @@ export function LanguageSettingsView() {
       // Keep local delete.
     }
     setLanguages((prev) => prev.filter((l) => l.id !== language.id));
+    invalidateSettingsQueries(queryClient, "languages");
     setIsDeleting(false);
     setLanguageToDelete(null);
     toast.success(isEn ? `Language "${language.name}" deleted successfully` : `تم حذف اللغة «${language.name}» بنجاح`);
@@ -187,6 +187,7 @@ export function LanguageSettingsView() {
       // Keep local create.
     }
     setLanguages((prev) => [newLanguage, ...prev]);
+    invalidateSettingsQueries(queryClient, "languages");
   };
 
   return (

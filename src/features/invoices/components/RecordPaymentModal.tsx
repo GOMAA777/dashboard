@@ -183,7 +183,7 @@ export function RecordPaymentModal({
               className="px-5 py-2 text-[13px] font-bold rounded-[6px] bg-[#059669] hover:bg-[#047857] active:bg-[#065f46] text-white flex items-center gap-2 shadow-sm transition-all cursor-pointer disabled:opacity-60"
             >
               <CheckCircle2 className="size-4" />
-              <span>{isSubmitting ? (isEn ? "Processing..." : "جارٍ الاعتماد...") : (isEn ? "Confirm Payment" : "تأكيد واستلام السداد")}</span>
+              <span>{isEn ? "Confirm Payment" : "تأكيد واستلام السداد"}</span>
             </button>
           </div>
         </form>

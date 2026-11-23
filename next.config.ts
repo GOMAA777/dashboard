@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
   // HTML page for /_next/*.css, so the browser drew raw HTML only.
   experimental: {
     inlineCss: true,
+    agentUpgrade: "security",
   },
   turbopack: {
     rules: {

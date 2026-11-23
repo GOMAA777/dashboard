@@ -56,7 +56,23 @@ export function UnifiedFilterBar({
   className,
 }: UnifiedFilterBarProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [localSearch, setLocalSearch] = useState(searchQuery);
   const { t, direction } = useLanguage();
+
+  // Sync external searchQuery changes to local input
+  React.useEffect(() => {
+    setLocalSearch(searchQuery);
+  }, [searchQuery]);
+
+  // Debounce 300ms on typing to avoid flickering new query keys on every keystroke
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localSearch !== searchQuery) {
+        onSearchChange(localSearch);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [localSearch, searchQuery, onSearchChange]);
 
   const finalPlaceholder = searchPlaceholder || t("البحث في القائمة...", "Search menu...");
   const finalDrawerTitle = drawerTitle || t("خيارات التصفية المتقدمة", "Advanced Filter Options");
@@ -73,8 +89,8 @@ export function UnifiedFilterBar({
       <div className="relative w-full sm:w-[300px] md:w-[340px] shrink-0">
         <input
           type="text"
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
+          value={localSearch}
+          onChange={(e) => setLocalSearch(e.target.value)}
           placeholder={finalPlaceholder}
           className="w-full h-[40px] bg-[#f5f3ef] dark:bg-[#281c15] text-[#1b1c1a] dark:text-[#fdfbf7] placeholder-[#837565] dark:placeholder-[#8e8680] text-[13px] rounded-[6px] pe-[36px] ps-[14px] border border-transparent dark:border-[#38271c] focus:outline-none focus:ring-1 focus:ring-[#9c6402] dark:focus:ring-[#e29d38] transition-all font-sans"
         />

@@ -2,14 +2,11 @@
 
 import React, { useState, useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import userAvatarImg from "../../../../public/figma/user-avatar.png";
 import {
   Bell,
   CreditCard,
-  Headphones,
   LayoutGrid,
   Receipt,
   Settings,
@@ -25,7 +22,7 @@ import {
   FileText,
   RefreshCw,
   SlidersHorizontal,
-  Globe,
+  ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/use-ui-store";
@@ -34,6 +31,20 @@ import { LogoutConfirmModal } from "./LogoutConfirmModal";
 import { AlJoudyLogo } from "@/components/shared/BrandLogos";
 import { clearAuthSession } from "@/lib/auth-client";
 import { withBasePath } from "@/lib/base-path";
+import { usePermissions } from "@/lib/permissions";
+import { useQueryClient } from "@tanstack/react-query";
+import { prefetchDashboardQuery } from "@/features/dashboard/hooks/useDashboardQuery";
+import { prefetchClientsQuery } from "@/features/clients/hooks/useClientsQuery";
+import { prefetchNotificationsQuery } from "@/features/notifications/hooks/useNotificationsQuery";
+import { prefetchStaffQuery } from "@/features/staff/hooks/useStaffQuery";
+import { prefetchPlansQuery } from "@/features/plans/hooks/usePlansQuery";
+import { prefetchSubscriptionsQuery } from "@/features/subscriptions/hooks/useSubscriptionsQuery";
+import { prefetchTicketsQuery } from "@/features/tickets/hooks/useTicketsQuery";
+import { prefetchInvoicesQuery } from "@/features/invoices/hooks/useInvoicesQuery";
+import { prefetchPaymentGatewaysQuery } from "@/features/payment-gateways/hooks/usePaymentGatewaysQuery";
+import { prefetchSettingsQuery } from "@/features/settings/hooks/useSettingsQuery";
+import { prefetchWebsiteSettingsQuery } from "@/features/website-settings/hooks/useWebsiteSettingsQuery";
+import { prefetchImpersonationLogsQuery } from "@/features/impersonation-logs/hooks/useImpersonationLogsQuery";
 
 interface NavItem {
   id: string;
@@ -47,13 +58,10 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { id: "home", labelAr: "الرئيسية", labelEn: "Dashboard", href: "/", icon: LayoutGrid, sizeClass: "size-[16px]" },
-  { id: "clients", labelAr: "مكاتب المحاماة", labelEn: "Law Firms", href: "/accounts", icon: Users, sizeClass: "size-[18px]" },
-  { id: "notifications", labelAr: "الإشعارات", labelEn: "Notifications", href: "/notifications", icon: Bell, sizeClass: "size-[16px]" },
-  { id: "drafts", labelAr: "المسودات", labelEn: "Drafts", href: "/drafts", icon: FileText, sizeClass: "size-[16px]" },
-  { id: "staff", labelAr: "طاقم العمل", labelEn: "Staff", href: "/permissions", icon: UserCheck, sizeClass: "size-[19px]" },
-  { id: "finance", labelAr: "الفواتير والمالية", labelEn: "Invoices & Finance", href: "/invoices", icon: Receipt, sizeClass: "size-[16px]" },
-  { id: "support", labelAr: "الدعم الفني", labelEn: "Technical Support", href: "/tickets", icon: Headphones, sizeClass: "size-[17px]" },
-  { id: "system-settings", labelAr: "إعدادات النظام", labelEn: "System Settings", href: "/settings/general", icon: Settings, sizeClass: "size-[17px]" },
+  { id: "clients", labelAr: "العملاء", labelEn: "Clients", href: "/accounts/", icon: Users, sizeClass: "size-[18px]" },
+  { id: "staff", labelAr: "طاقم العمل", labelEn: "Staff", href: "/permissions/?tab=staff", icon: UserCheck, sizeClass: "size-[19px]" },
+  { id: "finance", labelAr: "الفواتير والمالية", labelEn: "Invoices & Finance", href: "/invoices/", icon: Receipt, sizeClass: "size-[16px]" },
+  { id: "system-settings", labelAr: "إعدادات النظام", labelEn: "System Settings", href: "/settings/general/", icon: Settings, sizeClass: "size-[17px]" },
 ];
 
 interface DashboardSidebarProps {
@@ -63,6 +71,7 @@ interface DashboardSidebarProps {
 
 export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarProps = {}) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
   const toggleSidebarCollapsed = useUIStore((state) => state.toggleSidebarCollapsed);
@@ -76,10 +85,50 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
 
   const draftCount = drafts.length;
 
-  const handleNavClick = (href: string) => {
-    if (href && href !== "#" && href !== pathname) {
-      setPageNavigating(true);
-    }
+  const queryClient = useQueryClient();
+
+  const prefetchTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const handlePrefetch = React.useCallback(
+    (href: string) => {
+      if (prefetchTimerRef.current) {
+        clearTimeout(prefetchTimerRef.current);
+      }
+      prefetchTimerRef.current = setTimeout(() => {
+        try {
+          if (href === "/" || href === "/dashboard" || href === "/dashboard/") {
+            void prefetchDashboardQuery(queryClient);
+          } else if (href.includes("/accounts")) {
+            void prefetchClientsQuery(queryClient);
+          } else if (href.includes("/notifications")) {
+            void prefetchNotificationsQuery(queryClient);
+          } else if (href.includes("/permissions") || href.includes("/roles")) {
+            void prefetchStaffQuery(queryClient);
+          } else if (href.includes("/plans")) {
+            void prefetchPlansQuery(queryClient);
+          } else if (href.includes("/subscriptions")) {
+            void prefetchSubscriptionsQuery(queryClient);
+          } else if (href.includes("/tickets")) {
+            void prefetchTicketsQuery(queryClient);
+          } else if (href.includes("/invoices")) {
+            void prefetchInvoicesQuery(queryClient);
+          } else if (href.includes("/payment-gateways")) {
+            void prefetchPaymentGatewaysQuery(queryClient);
+          } else if (href.includes("/settings") || href.includes("/utility")) {
+            void prefetchSettingsQuery(queryClient);
+          } else if (href.includes("/website-settings")) {
+            void prefetchWebsiteSettingsQuery(queryClient);
+          } else if (href.includes("/impersonation-logs")) {
+            void prefetchImpersonationLogsQuery(queryClient);
+          }
+        } catch {}
+      }, 60);
+    },
+    [queryClient]
+  );
+
+  const handleNavClick = (_href: string) => {
+    // Navigation is instant via TanStack Query and scroll is preserved
   };
 
   const isFinanceActive =
@@ -93,30 +142,115 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
   const isInvoicesActive = isFinanceActive && (activeSubNav === "invoices" || pathname === "/invoices");
   const isGatewaysActive = isFinanceActive && (activeSubNav === "gateways" || pathname === "/payment-gateways");
 
-  const isSupportActive = activeNav === "support" || (pathname?.startsWith("/tickets") ?? false);
-  const isSupportTicketsActive = isSupportActive && (activeSubNav === "tickets" || (!activeSubNav && pathname?.startsWith("/tickets")));
-  const isSupportDepartmentsActive = isSupportActive && activeSubNav === "departments";
+  const ticketsTab = searchParams?.get("tab");
+  const isDepartmentsPath =
+    activeSubNav === "departments" ||
+    (pathname?.startsWith("/tickets") === true && ticketsTab === "departments");
+
+  const isClientsOfficesActive =
+    activeSubNav === "offices" ||
+    activeSubNav === "accounts" ||
+    (pathname?.startsWith("/accounts") ?? false) ||
+    (pathname?.startsWith("/law-firms") ?? false);
+  const isClientsTicketsActive =
+    !isDepartmentsPath &&
+    (activeSubNav === "tickets" ||
+      activeSubNav === "support" ||
+      ticketsTab === "tickets" ||
+      (!ticketsTab && (pathname?.startsWith("/tickets") ?? false)));
+  const isClientsNotificationsActive =
+    activeSubNav === "notifications" ||
+    (pathname?.startsWith("/notifications") ?? false);
+  const isImpersonationLogsActive =
+    activeNav === "impersonation-logs" ||
+    activeSubNav === "impersonation-logs" ||
+    (pathname?.startsWith("/impersonation-logs") ?? false);
+  const isClientsGroupActive =
+    activeNav === "clients" ||
+    activeNav === "support" ||
+    activeNav === "notifications" ||
+    activeNav === "impersonation-logs" ||
+    isClientsOfficesActive ||
+    isClientsTicketsActive ||
+    isClientsNotificationsActive ||
+    isImpersonationLogsActive;
 
   const isStaffActive =
     activeNav === "staff" ||
+    isDepartmentsPath ||
     (pathname?.startsWith("/permissions") ?? false) ||
     (pathname?.startsWith("/staff") ?? false) ||
     (pathname?.startsWith("/roles") ?? false);
-  const isStaffTeamActive = isStaffActive && (activeSubNav === "staff" || pathname === "/staff");
-  const isStaffRolesActive = isStaffActive && (activeSubNav === "roles" || (!activeSubNav && (pathname === "/permissions" || pathname === "/roles")));
+  const isStaffTeamActive =
+    isStaffActive &&
+    !isDepartmentsPath &&
+    (activeSubNav === "staff" ||
+      ticketsTab === "staff" ||
+      pathname === "/staff");
+  const isStaffRolesActive =
+    isStaffActive &&
+    !isDepartmentsPath &&
+    (activeSubNav === "roles" ||
+      ticketsTab === "roles" ||
+      (!activeSubNav &&
+        !ticketsTab &&
+        (pathname === "/permissions" || pathname === "/roles")));
+  const isStaffDepartmentsActive = isStaffActive && isDepartmentsPath;
 
   const isMailSettingsActive =
     activeNav === "mail-settings" ||
     (pathname?.startsWith("/settings/mail") ?? false);
-  const isWebsiteSettingsPath =
-    (pathname?.startsWith("/website-settings") ?? false) || pathname === "/settings/website";
+  const isDraftsPath =
+    activeNav === "drafts" ||
+    activeSubNav === "drafts" ||
+    (pathname?.startsWith("/drafts") ?? false);
   const isSystemSettingsActive =
     activeNav === "system-settings" ||
-    isWebsiteSettingsPath ||
+    isDraftsPath ||
     ((pathname?.startsWith("/settings") ?? false) && !isMailSettingsActive);
-  const isGeneralActive = isSystemSettingsActive && (activeSubNav === "general" || pathname === "/settings/general");
-  const isWebsiteActive =
-    isSystemSettingsActive && (activeSubNav === "website" || isWebsiteSettingsPath);
+  const isGeneralActive =
+    isSystemSettingsActive &&
+    !isDraftsPath &&
+    (activeSubNav === "general" || pathname === "/settings/general");
+  const isDraftsActive = isSystemSettingsActive && isDraftsPath;
+
+  const { hasPermission, isSuperAdmin, user: authUser } = usePermissions();
+
+  const canSeeDashboard = isSuperAdmin || hasPermission("dashboard.view");
+  const canSeeClients = isSuperAdmin || hasPermission("clients.view");
+  const canSeeNotifications = isSuperAdmin || hasPermission("notifications.view");
+  const canSeeDrafts =
+    isSuperAdmin ||
+    hasPermission("clients.create") ||
+    hasPermission("staff.create") ||
+    hasPermission("roles.create");
+
+  const canSeeStaffTeam = isSuperAdmin || hasPermission("staff.view");
+  const canSeeStaffRoles = isSuperAdmin || hasPermission("roles.view");
+  const canSeeDepartments =
+    isSuperAdmin || hasPermission("departments.view") || hasPermission("tickets.view");
+  const canSeeStaff = canSeeStaffTeam || canSeeStaffRoles || canSeeDepartments;
+
+  const canSeePlans = isSuperAdmin || hasPermission("plans.view");
+  const canSeeSubscriptions = isSuperAdmin || hasPermission("subscriptions.view");
+  const canSeeInvoices = isSuperAdmin || hasPermission("invoices.view");
+  const canSeeGateways = isSuperAdmin || hasPermission("payments.methods.view");
+  const canSeeFinance =
+    canSeePlans || canSeeSubscriptions || canSeeInvoices || canSeeGateways;
+
+  const canSeeTickets = isSuperAdmin || hasPermission("tickets.view");
+  const canSeeImpersonationLogs =
+    isSuperAdmin ||
+    hasPermission("clients.impersonate") ||
+    hasPermission("staff.impersonate");
+  const canSeeClientsGroup =
+    canSeeClients || canSeeTickets || canSeeNotifications || canSeeImpersonationLogs;
+
+  const canSeeGeneralSettings =
+    isSuperAdmin ||
+    hasPermission("settings.general") ||
+    hasPermission("system.settings.view");
+  const canSeeSystemSettings = canSeeGeneralSettings || canSeeDrafts;
 
   const direction = useUIStore((state) => state.direction);
   const language = useUIStore((state) => state.language);
@@ -131,11 +265,30 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
   const currentLang = isMounted ? language : "ar";
   const isRTL = isMounted ? direction === "rtl" : true;
 
+  const profileName =
+    authUser?.name || (currentLang === "en" ? "System Admin" : "مشرف النظام");
+  const staffRoleLabel = String(authUser?.roleName || authUser?.staffRole || "");
+  const profileRole =
+    authUser?.userType === "office" || authUser?.role === "owner"
+      ? currentLang === "en"
+        ? "Law Firm Account"
+        : "حساب مكتب محاماة"
+      : staffRoleLabel
+        ? staffRoleLabel
+        : authUser?.role ||
+          (currentLang === "en" ? "System Super Admin" : "مشرف النظام العام");
+  const profileAvatar =
+    (typeof authUser?.avatar === "string" ? authUser.avatar : null) ||
+    (typeof authUser?.logo === "string" ? authUser.logo : null) ||
+    null;
+  const profileInitial = (profileName || "م").trim().charAt(0);
+
   const CollapseIcon = isCollapsed
     ? (isRTL ? ChevronLeft : ChevronRight)
     : (isRTL ? ChevronRight : ChevronLeft);
 
   const handleConfirmLogout = () => {
+    queryClient.clear();
     clearAuthSession();
     setIsLogoutModalOpen(false);
     toast.success(currentLang === "en" ? "Logged out successfully" : "تم تسجيل الخروج بنجاح");
@@ -211,6 +364,13 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
         >
           {navItems.map((item) => {
             const itemLabel = currentLang === "en" ? item.labelEn : item.labelAr;
+
+            if (item.id === "home" && !canSeeDashboard) return null;
+            if (item.id === "clients" && !canSeeClientsGroup) return null;
+            if (item.id === "staff" && !canSeeStaff) return null;
+            if (item.id === "finance" && !canSeeFinance) return null;
+            if (item.id === "system-settings" && !canSeeSystemSettings) return null;
+
             if (item.isUnderConstruction) {
               if (isCollapsed) {
                 return (
@@ -256,28 +416,39 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
               );
             }
 
-            const isActive = activeNav
-              ? item.id === activeNav
-              : item.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(item.href);
+            const isActive =
+              item.id === "system-settings"
+                ? isSystemSettingsActive
+                : item.id === "clients"
+                  ? isClientsGroupActive
+                  : activeNav
+                    ? item.id === activeNav
+                    : item.href === "/"
+                      ? pathname === "/"
+                      : pathname.startsWith(item.href);
 
             const hasChildren =
+              item.id === "clients" ||
               item.id === "staff" ||
               item.id === "finance" ||
-              item.id === "support" ||
               item.id === "system-settings";
 
             if (isCollapsed) {
               const targetHref =
-                item.id === "staff"
-                  ? "/permissions?tab=staff"
-                  : item.id === "finance"
-                    ? "/invoices"
-                    : item.id === "support"
-                      ? "/tickets?tab=tickets"
+                item.id === "clients"
+                  ? canSeeClients
+                    ? "/accounts/"
+                    : canSeeTickets
+                      ? "/tickets/?tab=tickets"
+                      : "/notifications/"
+                  : item.id === "staff"
+                    ? "/permissions/?tab=staff"
+                    : item.id === "finance"
+                      ? "/invoices/"
                       : item.id === "system-settings"
-                        ? "/settings/general"
+                        ? canSeeGeneralSettings
+                          ? "/settings/general/"
+                          : "/drafts/"
                         : item.href;
 
               return (
@@ -285,6 +456,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   key={item.id}
                   href={targetHref}
                   prefetch={true}
+                  scroll={false}
                   onClick={() => handleNavClick(targetHref)}
                   title={itemLabel}
                   className={cn(
@@ -303,7 +475,7 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                         : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
                     )}
                   />
-                  {item.id === "drafts" && draftCount > 0 && (
+                  {item.id === "system-settings" && canSeeDrafts && draftCount > 0 && (
                     <span className="absolute -top-1 -end-1 size-4 bg-[#9c6402] dark:bg-[#e29d38] text-white dark:text-[#1c140f] text-[10px] font-bold rounded-full flex items-center justify-center font-mono leading-none shadow-xs">
                       {draftCount > 9 ? "9+" : draftCount}
                     </span>
@@ -338,6 +510,8 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                   <Link
                     href={item.href}
                     prefetch={true}
+                    scroll={false}
+                    onMouseEnter={() => handlePrefetch(item.href)}
                     onClick={() => handleNavClick(item.href)}
                     className={cn(
                       "flex items-center gap-[12px] px-[12px] py-[8px] rounded-[12px] transition-colors duration-150 group text-start",
@@ -370,341 +544,490 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
                       {itemLabel}
                     </span>
 
-                    {item.id === "drafts" && draftCount > 0 && (
-                      <span
+                  </Link>
+                )}
+
+                {/* Sub-items for Clients (المكاتب، تذاكر الأعطال، الإشعارات) */}
+                {item.id === "clients" && (
+                  <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#eae8e4] dark:border-[#38271c] my-1">
+                    {canSeeClients && (
+                      <Link
+                        href="/accounts/"
+                        prefetch={true}
+                        scroll={false}
+                        onMouseEnter={() => handlePrefetch("/accounts/")}
+                        onClick={() => handleNavClick("/accounts/")}
                         className={cn(
-                          "text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0 font-mono transition-colors",
-                          isActive
-                            ? "bg-white/20 text-white dark:bg-black/20 dark:text-[#1c140f]"
-                            : "bg-[#9c6402]/10 text-[#9c6402] dark:bg-[#e29d38]/20 dark:text-[#e29d38]"
+                          "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
+                          isClientsOfficesActive
+                            ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                            : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                         )}
                       >
-                        {draftCount}
-                      </span>
+                        <span
+                          className={cn(
+                            "size-[6px] rounded-full shrink-0 transition-all",
+                            isClientsOfficesActive
+                              ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                              : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                          )}
+                        />
+                        <Building2
+                          className={cn(
+                            "size-[15px] shrink-0",
+                            isClientsOfficesActive
+                              ? "text-[#9c6402] dark:text-[#e29d38]"
+                              : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
+                          )}
+                        />
+                        <span className="truncate">
+                          {currentLang === "en" ? "Offices" : "المكاتب"}
+                        </span>
+                      </Link>
                     )}
-                  </Link>
+                    {canSeeTickets && (
+                      <Link
+                        href="/tickets/?tab=tickets"
+                        prefetch={true}
+                        scroll={false}
+                        onMouseEnter={() => handlePrefetch("/tickets/")}
+                        onClick={() => handleNavClick("/tickets/?tab=tickets")}
+                        className={cn(
+                          "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
+                          isClientsTicketsActive
+                            ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                            : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "size-[6px] rounded-full shrink-0 transition-all",
+                            isClientsTicketsActive
+                              ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                              : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                          )}
+                        />
+                        <Ticket
+                          className={cn(
+                            "size-[15px] shrink-0",
+                            isClientsTicketsActive
+                              ? "text-[#9c6402] dark:text-[#e29d38]"
+                              : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
+                          )}
+                        />
+                        <span className="leading-5 whitespace-normal">
+                          {currentLang === "en"
+                            ? "Customer Service Tickets"
+                            : "تذاكر خدمة العملاء"}
+                        </span>
+                      </Link>
+                    )}
+                    {canSeeNotifications && (
+                      <Link
+                        href="/notifications/"
+                        prefetch={true}
+                        scroll={false}
+                        onMouseEnter={() => handlePrefetch("/notifications/")}
+                        onClick={() => handleNavClick("/notifications/")}
+                        className={cn(
+                          "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
+                          isClientsNotificationsActive
+                            ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                            : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "size-[6px] rounded-full shrink-0 transition-all",
+                            isClientsNotificationsActive
+                              ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                              : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                          )}
+                        />
+                        <Bell
+                          className={cn(
+                            "size-[15px] shrink-0",
+                            isClientsNotificationsActive
+                              ? "text-[#9c6402] dark:text-[#e29d38]"
+                              : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
+                          )}
+                        />
+                        <span className="truncate">
+                          {currentLang === "en" ? "Notifications" : "الإشعارات"}
+                        </span>
+                      </Link>
+                    )}
+                    {canSeeImpersonationLogs && (
+                      <Link
+                        href="/impersonation-logs/"
+                        prefetch={true}
+                        scroll={false}
+                        onMouseEnter={() => handlePrefetch("/impersonation-logs/")}
+                        onClick={() => handleNavClick("/impersonation-logs/")}
+                        className={cn(
+                          "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
+                          isImpersonationLogsActive
+                            ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                            : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "size-[6px] rounded-full shrink-0 transition-all",
+                            isImpersonationLogsActive
+                              ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                              : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                          )}
+                        />
+                        <ClipboardList
+                          className={cn(
+                            "size-[15px] shrink-0",
+                            isImpersonationLogsActive
+                              ? "text-[#9c6402] dark:text-[#e29d38]"
+                              : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
+                          )}
+                        />
+                        <span className="truncate">
+                          {currentLang === "en" ? "Activities" : "النشاطات"}
+                        </span>
+                      </Link>
+                    )}
+                  </div>
                 )}
 
                 {/* Sub-items for Staff (فريق العمل والأدوار والصلاحيات) */}
                 {item.id === "staff" && (
                   <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#eae8e4] dark:border-[#38271c] my-1">
-                    <Link
-                      href="/permissions?tab=staff"
-                      prefetch={true}
-                      onClick={() => handleNavClick("/permissions?tab=staff")}
-                      className={cn(
-                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
-                        isStaffTeamActive
-                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
-                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
-                      )}
-                    >
-                      {/* Connecting dot */}
-                      <span
+                    {canSeeStaffTeam && (
+                      <Link
+                        href="/permissions/?tab=staff"
+                        prefetch={true}
+                        scroll={false}
+                        onMouseEnter={() => handlePrefetch("/permissions/?tab=staff")}
+                        onClick={() => handleNavClick("/permissions/?tab=staff")}
                         className={cn(
-                          "size-[6px] rounded-full shrink-0 transition-all",
+                          "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                           isStaffTeamActive
-                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
-                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                            ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                            : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                         )}
-                      />
-                      <Users
+                      >
+                        {/* Connecting dot */}
+                        <span
+                          className={cn(
+                            "size-[6px] rounded-full shrink-0 transition-all",
+                            isStaffTeamActive
+                              ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                              : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                          )}
+                        />
+                        <Users
+                          className={cn(
+                            "size-[15px] shrink-0",
+                            isStaffTeamActive
+                              ? "text-[#9c6402] dark:text-[#e29d38]"
+                              : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
+                          )}
+                        />
+                        <span className="truncate">{currentLang === "en" ? "Team Members" : "فريق العمل"}</span>
+                      </Link>
+                    )}
+                    {canSeeStaffRoles && (
+                      <Link
+                        href="/permissions/?tab=roles"
+                        prefetch={true}
+                        scroll={false}
+                        onMouseEnter={() => handlePrefetch("/permissions/?tab=roles")}
+                        onClick={() => handleNavClick("/permissions/?tab=roles")}
                         className={cn(
-                          "size-[15px] shrink-0",
-                          isStaffTeamActive
-                            ? "text-[#9c6402] dark:text-[#e29d38]"
-                            : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
-                        )}
-                      />
-                      <span className="truncate">{currentLang === "en" ? "Team Members" : "فريق العمل"}</span>
-                    </Link>
-                    <Link
-                      href="/permissions?tab=roles"
-                      prefetch={true}
-                      onClick={() => handleNavClick("/permissions?tab=roles")}
-                      className={cn(
-                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
-                        isStaffRolesActive
-                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
-                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
-                      )}
-                    >
-                      {/* Connecting dot */}
-                      <span
-                        className={cn(
-                          "size-[6px] rounded-full shrink-0 transition-all",
+                          "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                           isStaffRolesActive
-                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
-                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                            ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                            : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                         )}
-                      />
-                      <Key
+                      >
+                        {/* Connecting dot */}
+                        <span
+                          className={cn(
+                            "size-[6px] rounded-full shrink-0 transition-all",
+                            isStaffRolesActive
+                              ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                              : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                          )}
+                        />
+                        <Key
+                          className={cn(
+                            "size-[15px] shrink-0",
+                            isStaffRolesActive
+                              ? "text-[#9c6402] dark:text-[#e29d38]"
+                              : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
+                          )}
+                        />
+                        <span className="truncate">{currentLang === "en" ? "Roles & Permissions" : "الأدوار والصلاحيات"}</span>
+                      </Link>
+                    )}
+                    {canSeeDepartments && (
+                      <Link
+                        href="/tickets/?tab=departments"
+                        prefetch={true}
+                        scroll={false}
+                        onMouseEnter={() => handlePrefetch("/tickets/")}
+                        onClick={() => handleNavClick("/tickets/?tab=departments")}
                         className={cn(
-                          "size-[15px] shrink-0",
-                          isStaffRolesActive
-                            ? "text-[#9c6402] dark:text-[#e29d38]"
-                            : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
+                          "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
+                          isStaffDepartmentsActive
+                            ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                            : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                         )}
-                      />
-                      <span className="truncate">{currentLang === "en" ? "Roles & Permissions" : "الأدوار والصلاحيات"}</span>
-                    </Link>
+                      >
+                        <span
+                          className={cn(
+                            "size-[6px] rounded-full shrink-0 transition-all",
+                            isStaffDepartmentsActive
+                              ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                              : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                          )}
+                        />
+                        <Building2
+                          className={cn(
+                            "size-[15px] shrink-0",
+                            isStaffDepartmentsActive
+                              ? "text-[#9c6402] dark:text-[#e29d38]"
+                              : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
+                          )}
+                        />
+                        <span className="truncate">{currentLang === "en" ? "Departments" : "الأقسام"}</span>
+                      </Link>
+                    )}
                   </div>
                 )}
 
                 {/* Sub-items for Finance & Invoices (الباقات والأسعار، الاشتراكات، سجل الفواتير، بوابات الدفع) */}
                 {item.id === "finance" && (
                   <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#eae8e4] dark:border-[#38271c] my-1">
-                    <Link
-                      href="/plans"
-                      prefetch={true}
-                      onClick={() => handleNavClick("/plans")}
-                      className={cn(
-                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
-                        isPlansActive
-                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
-                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
-                      )}
-                    >
-                      {/* Connecting dot */}
-                      <span
+                    {canSeePlans && (
+                      <Link
+                        href="/plans/"
+                        prefetch={true}
+                        scroll={false}
+                        onMouseEnter={() => handlePrefetch("/plans/")}
+                        onClick={() => handleNavClick("/plans/")}
                         className={cn(
-                          "size-[6px] rounded-full shrink-0 transition-all",
+                          "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                           isPlansActive
-                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
-                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                            ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                            : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                         )}
-                      />
-                      <Tag
+                      >
+                        {/* Connecting dot */}
+                        <span
+                          className={cn(
+                            "size-[6px] rounded-full shrink-0 transition-all",
+                            isPlansActive
+                              ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                              : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                          )}
+                        />
+                        <Tag
+                          className={cn(
+                            "size-[15px] shrink-0",
+                            isPlansActive
+                              ? "text-[#9c6402] dark:text-[#e29d38]"
+                              : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
+                          )}
+                        />
+                        <span className="truncate">{currentLang === "en" ? "Plans & Pricing" : "الباقات والأسعار"}</span>
+                      </Link>
+                    )}
+                    {canSeeSubscriptions && (
+                      <Link
+                        href="/subscriptions/"
+                        prefetch={true}
+                        scroll={false}
+                        onMouseEnter={() => handlePrefetch("/subscriptions/")}
+                        onClick={() => handleNavClick("/subscriptions/")}
                         className={cn(
-                          "size-[15px] shrink-0",
-                          isPlansActive
-                            ? "text-[#9c6402] dark:text-[#e29d38]"
-                            : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
-                        )}
-                      />
-                      <span className="truncate">{currentLang === "en" ? "Plans & Pricing" : "الباقات والأسعار"}</span>
-                    </Link>
-                    <Link
-                      href="/subscriptions"
-                      prefetch={true}
-                      onClick={() => handleNavClick("/subscriptions")}
-                      className={cn(
-                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
-                        isSubscriptionsActive
-                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
-                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
-                      )}
-                    >
-                      {/* Connecting dot */}
-                      <span
-                        className={cn(
-                          "size-[6px] rounded-full shrink-0 transition-all",
+                          "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                           isSubscriptionsActive
-                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
-                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                            ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                            : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                         )}
-                      />
-                      <RefreshCw
+                      >
+                        {/* Connecting dot */}
+                        <span
+                          className={cn(
+                            "size-[6px] rounded-full shrink-0 transition-all",
+                            isSubscriptionsActive
+                              ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                              : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                          )}
+                        />
+                        <RefreshCw
+                          className={cn(
+                            "size-[15px] shrink-0",
+                            isSubscriptionsActive
+                              ? "text-[#9c6402] dark:text-[#e29d38]"
+                              : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
+                          )}
+                        />
+                        <span className="truncate">{currentLang === "en" ? "Subscriptions" : "الاشتراكات"}</span>
+                      </Link>
+                    )}
+                    {canSeeInvoices && (
+                      <Link
+                        href="/invoices/"
+                        prefetch={true}
+                        scroll={false}
+                        onMouseEnter={() => handlePrefetch("/invoices/")}
+                        onClick={() => handleNavClick("/invoices/")}
                         className={cn(
-                          "size-[15px] shrink-0",
-                          isSubscriptionsActive
-                            ? "text-[#9c6402] dark:text-[#e29d38]"
-                            : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
-                        )}
-                      />
-                      <span className="truncate">{currentLang === "en" ? "Subscriptions" : "الاشتراكات"}</span>
-                    </Link>
-                    <Link
-                      href="/invoices"
-                      prefetch={true}
-                      onClick={() => handleNavClick("/invoices")}
-                      className={cn(
-                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
-                        isInvoicesActive
-                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
-                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
-                      )}
-                    >
-                      {/* Connecting dot */}
-                      <span
-                        className={cn(
-                          "size-[6px] rounded-full shrink-0 transition-all",
+                          "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                           isInvoicesActive
-                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
-                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                            ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                            : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                         )}
-                      />
-                      <FileText
+                      >
+                        {/* Connecting dot */}
+                        <span
+                          className={cn(
+                            "size-[6px] rounded-full shrink-0 transition-all",
+                            isInvoicesActive
+                              ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                              : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                          )}
+                        />
+                        <FileText
+                          className={cn(
+                            "size-[15px] shrink-0",
+                            isInvoicesActive
+                              ? "text-[#9c6402] dark:text-[#e29d38]"
+                              : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
+                          )}
+                        />
+                        <span className="truncate">{currentLang === "en" ? "Invoices List" : "سجل الفواتير"}</span>
+                      </Link>
+                    )}
+                    {canSeeGateways && (
+                      <Link
+                        href="/payment-gateways/"
+                        prefetch={true}
+                        scroll={false}
+                        onMouseEnter={() => handlePrefetch("/payment-gateways/")}
+                        onClick={() => handleNavClick("/payment-gateways/")}
                         className={cn(
-                          "size-[15px] shrink-0",
-                          isInvoicesActive
-                            ? "text-[#9c6402] dark:text-[#e29d38]"
-                            : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
-                        )}
-                      />
-                      <span className="truncate">{currentLang === "en" ? "Invoices List" : "سجل الفواتير"}</span>
-                    </Link>
-                    <Link
-                      href="/payment-gateways"
-                      prefetch={true}
-                      onClick={() => handleNavClick("/payment-gateways")}
-                      className={cn(
-                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
-                        isGatewaysActive
-                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
-                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
-                      )}
-                    >
-                      {/* Connecting dot */}
-                      <span
-                        className={cn(
-                          "size-[6px] rounded-full shrink-0 transition-all",
+                          "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                           isGatewaysActive
-                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
-                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                            ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                            : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                         )}
-                      />
-                      <CreditCard
-                        className={cn(
-                          "size-[15px] shrink-0",
-                          isGatewaysActive
-                            ? "text-[#9c6402] dark:text-[#e29d38]"
-                            : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
-                        )}
-                      />
-                      <span className="truncate">{currentLang === "en" ? "Payment Gateways" : "بوابات الدفع"}</span>
-                    </Link>
+                      >
+                        {/* Connecting dot */}
+                        <span
+                          className={cn(
+                            "size-[6px] rounded-full shrink-0 transition-all",
+                            isGatewaysActive
+                              ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                              : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                          )}
+                        />
+                        <CreditCard
+                          className={cn(
+                            "size-[15px] shrink-0",
+                            isGatewaysActive
+                              ? "text-[#9c6402] dark:text-[#e29d38]"
+                              : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
+                          )}
+                        />
+                        <span className="truncate">{currentLang === "en" ? "Payment Gateways" : "بوابات الدفع"}</span>
+                      </Link>
+                    )}
                   </div>
                 )}
 
-                {/* Sub-items for Support (تذاكر الدعم الفني والأقسام) */}
-                {item.id === "support" && (
-                  <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#eae8e4] dark:border-[#38271c] my-1">
-                    <Link
-                      href="/tickets?tab=tickets"
-                      prefetch={true}
-                      onClick={() => handleNavClick("/tickets?tab=tickets")}
-                      className={cn(
-                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
-                        isSupportTicketsActive
-                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
-                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
-                      )}
-                    >
-                      {/* Connecting dot */}
-                      <span
-                        className={cn(
-                          "size-[6px] rounded-full shrink-0 transition-all",
-                          isSupportTicketsActive
-                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
-                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
-                        )}
-                      />
-                      <Ticket
-                        className={cn(
-                          "size-[15px] shrink-0",
-                          isSupportTicketsActive
-                            ? "text-[#9c6402] dark:text-[#e29d38]"
-                            : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
-                        )}
-                      />
-                      <span className="truncate">{currentLang === "en" ? "Support Tickets" : "تذاكر الدعم الفني"}</span>
-                    </Link>
-                    <Link
-                      href="/tickets?tab=departments"
-                      prefetch={true}
-                      onClick={() => handleNavClick("/tickets?tab=departments")}
-                      className={cn(
-                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
-                        isSupportDepartmentsActive
-                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
-                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
-                      )}
-                    >
-                      {/* Connecting dot */}
-                      <span
-                        className={cn(
-                          "size-[6px] rounded-full shrink-0 transition-all",
-                          isSupportDepartmentsActive
-                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
-                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
-                        )}
-                      />
-                      <Building2
-                        className={cn(
-                          "size-[15px] shrink-0",
-                          isSupportDepartmentsActive
-                            ? "text-[#9c6402] dark:text-[#e29d38]"
-                            : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
-                        )}
-                      />
-                      <span className="truncate">{currentLang === "en" ? "Departments" : "الأقسام"}</span>
-                    </Link>
-                  </div>
-                )}
-
-                {/* Sub-items for System Settings (اعدادت عامة، إعدادات الموقع) */}
+                {/* Sub-items for System Settings (اعدادت عامة، المسودات) */}
                 {item.id === "system-settings" && (
                   <div className="flex flex-col gap-1 ms-[20px] ps-[12px] border-s-2 border-[#eae8e4] dark:border-[#38271c] my-1">
-                    <Link
-                      href="/settings/general"
-                      prefetch={true}
-                      onClick={() => handleNavClick("/settings/general")}
-                      className={cn(
-                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
-                        isGeneralActive
-                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
-                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
-                      )}
-                    >
-                      <span
+                    {canSeeGeneralSettings && (
+                      <Link
+                        href="/settings/general/"
+                        prefetch={true}
+                        scroll={false}
+                        onMouseEnter={() => handlePrefetch("/settings/general/")}
+                        onClick={() => handleNavClick("/settings/general/")}
                         className={cn(
-                          "size-[6px] rounded-full shrink-0 transition-all",
+                          "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
                           isGeneralActive
-                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
-                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                            ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                            : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                         )}
-                      />
-                      <SlidersHorizontal
-                        className={cn(
-                          "size-[15px] shrink-0",
-                          isGeneralActive
-                            ? "text-[#9c6402] dark:text-[#e29d38]"
-                            : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
-                        )}
-                      />
-                      <span className="truncate">{currentLang === "en" ? "General Settings" : "اعدادات عامة"}</span>
-                    </Link>
+                      >
+                        <span
+                          className={cn(
+                            "size-[6px] rounded-full shrink-0 transition-all",
+                            isGeneralActive
+                              ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                              : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                          )}
+                        />
+                        <SlidersHorizontal
+                          className={cn(
+                            "size-[15px] shrink-0",
+                            isGeneralActive
+                              ? "text-[#9c6402] dark:text-[#e29d38]"
+                              : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
+                          )}
+                        />
+                        <span className="truncate">{currentLang === "en" ? "General Settings" : "اعدادات عامة"}</span>
+                      </Link>
+                    )}
 
-                    <Link
-                      href="/website-settings"
-                      prefetch={true}
-                      onClick={() => handleNavClick("/website-settings")}
-                      className={cn(
-                        "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
-                        isWebsiteActive
-                          ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
-                          : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
-                      )}
-                    >
-                      <span
+                    {canSeeDrafts && (
+                      <Link
+                        href="/drafts/"
+                        prefetch={true}
+                        scroll={false}
+                        onMouseEnter={() => handlePrefetch("/drafts/")}
+                        onClick={() => handleNavClick("/drafts/")}
                         className={cn(
-                          "size-[6px] rounded-full shrink-0 transition-all",
-                          isWebsiteActive
-                            ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
-                            : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                          "flex items-center gap-[10px] px-[10px] py-[6px] rounded-[8px] text-[13px] font-semibold transition-colors text-start group",
+                          isDraftsActive
+                            ? "text-[#9c6402] font-bold bg-[#fbf7f0] border border-[#ffddb6]/50 dark:text-[#e29d38] dark:bg-[#2c221c]/60 dark:border-transparent"
+                            : "text-[#625d5d] hover:bg-[#fbf7f0] hover:text-[#9c6402] dark:text-[#cdc5bd] dark:hover:bg-[#2c221c]/40 dark:hover:text-[#fdfbf7]"
                         )}
-                      />
-                      <Globe
-                        className={cn(
-                          "size-[15px] shrink-0",
-                          isWebsiteActive
-                            ? "text-[#9c6402] dark:text-[#e29d38]"
-                            : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
+                      >
+                        <span
+                          className={cn(
+                            "size-[6px] rounded-full shrink-0 transition-all",
+                            isDraftsActive
+                              ? "bg-[#9c6402] shadow-[0_0_6px_#9c6402] dark:bg-[#e29d38] dark:shadow-[0_0_6px_#e29d38]"
+                              : "bg-[#c2b8ad] group-hover:bg-[#9c6402] dark:bg-[#625d5d] dark:group-hover:bg-[#a89f91]"
+                          )}
+                        />
+                        <FileText
+                          className={cn(
+                            "size-[15px] shrink-0",
+                            isDraftsActive
+                              ? "text-[#9c6402] dark:text-[#e29d38]"
+                              : "text-[#837565] group-hover:text-[#9c6402] dark:text-[#cdc5bd] dark:group-hover:text-[#fdfbf7]"
+                          )}
+                        />
+                        <span className="truncate flex-1">
+                          {currentLang === "en" ? "Drafts" : "المسودات"}
+                        </span>
+                        {draftCount > 0 && (
+                          <span
+                            className={cn(
+                              "text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0 font-mono",
+                              isDraftsActive
+                                ? "bg-[#9c6402]/15 text-[#9c6402] dark:bg-[#e29d38]/20 dark:text-[#e29d38]"
+                                : "bg-[#9c6402]/10 text-[#9c6402] dark:bg-[#e29d38]/20 dark:text-[#e29d38]"
+                            )}
+                          >
+                            {draftCount}
+                          </span>
                         )}
-                      />
-                      <span className="truncate">{currentLang === "en" ? "Site Settings" : "إعدادات الموقع"}</span>
-                    </Link>
+                      </Link>
+                    )}
                   </div>
                 )}
               </React.Fragment>
@@ -725,19 +1048,23 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
           <div className="flex flex-col items-center gap-2">
             {/* Collapsed Mode: User Avatar Link to Profile */}
             <Link
-              href="/profile"
+              href="/profile/"
               prefetch={true}
-              onClick={() => handleNavClick("/profile")}
-              title={currentLang === "en" ? "Profile - Eng. Abdulaziz Bin Fahad" : "الملف الشخصي - م. عبد العزيز بن فهد"}
-              className="size-[38px] rounded-full overflow-hidden border border-[#9c6402] hover:border-[#b47818] hover:ring-2 hover:ring-[#9c6402]/40 dark:hover:ring-[#e29d38]/40 hover:scale-105 active:scale-95 transition-all flex items-center justify-center shrink-0 relative group shadow-2xs cursor-pointer"
+              scroll={false}
+              onClick={() => handleNavClick("/profile/")}
+              title={currentLang === "en" ? `Profile - ${profileName}` : `الملف الشخصي - ${profileName}`}
+              className="size-[38px] rounded-full overflow-hidden border border-[#9c6402] hover:border-[#b47818] hover:ring-2 hover:ring-[#9c6402]/40 dark:hover:ring-[#e29d38]/40 hover:scale-105 active:scale-95 transition-all flex items-center justify-center shrink-0 relative group shadow-2xs cursor-pointer bg-[#f5e6d3] dark:bg-[#342217] text-[#8e5927] dark:text-[#f3b353] font-bold text-[14px]"
             >
-              <Image
-                src={userAvatarImg}
-                alt={currentLang === "en" ? "Eng. Abdulaziz Bin Fahad" : "م. عبد العزيز بن فهد"}
-                width={38}
-                height={38}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-200"
-              />
+              {profileAvatar ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={profileAvatar}
+                  alt={profileName}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-200"
+                />
+              ) : (
+                <span>{profileInitial}</span>
+              )}
               <span className="absolute bottom-0 end-0 size-[8px] rounded-full bg-[#10b981] border border-white dark:border-[#16100c]" />
             </Link>
 
@@ -757,28 +1084,32 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
           <div className="w-full bg-white dark:bg-[#221812] border border-[#eae8e4] dark:border-[#38271c] rounded-full p-1.5 ps-2 pe-1.5 flex items-center justify-between gap-1.5 shadow-xs transition-colors">
             {/* User Info Link (Avatar + Name + Role) leading to /profile */}
             <Link
-              href="/profile"
+              href="/profile/"
               prefetch={true}
-              onClick={() => handleNavClick("/profile")}
+              scroll={false}
+              onClick={() => handleNavClick("/profile/")}
               title={currentLang === "en" ? "View Profile" : "فتح الملف الشخصي"}
               className="flex items-center gap-2.5 flex-1 min-w-0 text-start group/user cursor-pointer px-2 py-1 -ms-0.5 rounded-full hover:bg-[#f5f3ef]/80 dark:hover:bg-[#2d1f17] active:scale-[0.98] transition-all duration-200"
             >
-              <div className="relative size-[34px] rounded-full overflow-hidden border border-[#9c6402] shrink-0 transition-all duration-200 group-hover/user:border-[#b47818] group-hover/user:ring-2 group-hover/user:ring-[#9c6402]/50 dark:group-hover/user:ring-[#e29d38]/50 group-hover/user:scale-105 shadow-2xs">
-                <Image
-                  src={userAvatarImg}
-                  alt={currentLang === "en" ? "Eng. Abdulaziz Bin Fahad" : "م. عبد العزيز بن فهد"}
-                  width={34}
-                  height={34}
-                  className="w-full h-full object-cover group-hover/user:scale-110 transition-transform duration-200"
-                />
+              <div className="relative size-[34px] rounded-full overflow-hidden border border-[#9c6402] shrink-0 transition-all duration-200 group-hover/user:border-[#b47818] group-hover/user:ring-2 group-hover/user:ring-[#9c6402]/50 dark:group-hover/user:ring-[#e29d38]/50 group-hover/user:scale-105 shadow-2xs flex items-center justify-center bg-[#f5e6d3] dark:bg-[#342217] text-[#8e5927] dark:text-[#f3b353] font-bold text-[13px]">
+                {profileAvatar ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={profileAvatar}
+                    alt={profileName}
+                    className="w-full h-full object-cover group-hover/user:scale-110 transition-transform duration-200"
+                  />
+                ) : (
+                  <span>{profileInitial}</span>
+                )}
                 <span className="absolute bottom-0 end-0 size-[7px] rounded-full bg-[#10b981] border border-white dark:border-[#16100c]" />
               </div>
               <div className="flex flex-col min-w-0 text-start">
                 <span className="text-[13px] font-semibold text-[#1b1c1a] dark:text-[#fdfbf7] truncate group-hover/user:text-[#9c6402] dark:group-hover/user:text-[#e29d38] transition-colors leading-[18px]">
-                  {currentLang === "en" ? "Eng. Abdulaziz Bin Fahad" : "م. عبد العزيز بن فهد"}
+                  {profileName}
                 </span>
                 <span className="text-[10px] text-[#837565] dark:text-[#8e8680] truncate leading-[14px]">
-                  {currentLang === "en" ? "General System Admin" : "مشرف النظام العام"}
+                  {profileRole}
                 </span>
               </div>
             </Link>
@@ -802,6 +1133,9 @@ export function DashboardSidebar({ activeNav, activeSubNav }: DashboardSidebarPr
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
         onConfirm={handleConfirmLogout}
+        userName={profileName}
+        userRole={profileRole}
+        userAvatar={profileAvatar}
       />
     </aside>
   );

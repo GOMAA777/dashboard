@@ -25,6 +25,7 @@ export interface FetchTicketsParams {
   status?: string;
   priority?: string;
   search?: string;
+  company_id?: number | string;
   page?: number;
   per_page?: number;
 }
@@ -33,16 +34,25 @@ export interface FetchTicketsParams {
  * 01. إحصائيات تذاكر الدعم ونسب الرضا
  * GET /admin/tickets/stats
  */
-export async function fetchTicketsStats() {
+export async function fetchTicketsStats(params?: { company_id?: number | string }) {
   return apiRequest<ApiEnvelope<ApiTicketStats> | ApiTicketStats>(
     "/admin/tickets/stats",
-    { method: "GET" }
+    params?.company_id
+      ? {
+          method: "GET",
+          query: {
+            company_id: String(params.company_id),
+          },
+        }
+      : {
+          method: "GET",
+        }
   );
 }
 
 /**
- * 02. استعراض قائمة التذاكر (فلترة بالأولوية والحالة)
- * GET /admin/tickets?status=...&priority=...
+ * 02. استعراض قائمة التذاكر (فلترة بالأولوية والحالة والمكتب)
+ * GET /admin/tickets?status=...&priority=...&company_id=...
  */
 export async function fetchTickets(params: FetchTicketsParams = {}) {
   return apiRequest<
@@ -53,6 +63,7 @@ export async function fetchTickets(params: FetchTicketsParams = {}) {
       status: params.status && params.status !== "all" ? params.status : undefined,
       priority: params.priority && params.priority !== "all" ? params.priority : undefined,
       search: params.search?.trim() || undefined,
+      company_id: params.company_id ? String(params.company_id) : undefined,
       page: params.page,
       per_page: params.per_page,
     },

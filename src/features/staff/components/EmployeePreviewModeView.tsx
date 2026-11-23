@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import userAvatarImg from "../../../../public/figma/user-avatar.png";
 import {
   ShieldAlert,
   Clock,
@@ -458,14 +457,8 @@ export function EmployeePreviewModeView({
 
             {/* Client Info Card */}
             <div className="bg-[#fcfaf7] p-3 rounded-[6px] border border-[#f0ece5] flex items-center gap-3">
-              <div className="size-[48px] rounded-[8px] overflow-hidden shrink-0 border border-[#e6e2dc]">
-                <Image
-                  src={userAvatarImg}
-                  alt="Avatar"
-                  width={48}
-                  height={48}
-                  className="w-full h-full object-cover"
-                />
+              <div className="size-[48px] rounded-[8px] bg-[#f5e6d3] text-[#8e5927] font-bold text-[18px] flex items-center justify-center shrink-0 border border-[#e6e2dc]">
+                أ.ع
               </div>
               <div className="text-start">
                 <span className="font-bold text-[13px] text-[#1b1c1a] block">
